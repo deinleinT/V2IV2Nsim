@@ -1,0 +1,827 @@
+//
+//                           SimuLTE
+//
+// This file is part of a software released under the license included in file
+// "license.pdf". This license can be also found at http://www.ltesimulator.com/
+// The above file and the present reference are part of the software itself,
+// and cannot be removed from it.
+//
+
+/*
+ * This file has been modified for 5G-Sim-V2I/N
+*/
+
+
+#include "common/LteCommon.h"
+
+#include "corenetwork/lteCellInfo/LteCellInfo.h"
+#include "corenetwork/binder/LteBinder.h"
+#include "stack/mac/layer/LteMacEnb.h"
+#include "common/LteControlInfo.h"
+
+
+const std::string lteTrafficClassToA(LteTrafficClass type)
+{
+    //std::cout << "LteCommon::lteTrafficClassToA  at " << simTime().dbl() << std::endl;
+
+    switch (type)
+    {
+        case CONVERSATIONAL:
+            return "CONVERSATIONAL";
+        case STREAMING:
+            return "STREAMING";
+        case INTERACTIVE:
+            return "INTERACTIVE";
+        case BACKGROUND:
+            return "BACKGROUND";
+        case V2X_TRAFFIC:
+            return "V2X_TRAFFIC";
+        default:
+            return "UNKNOWN_TRAFFIC_TYPE";
+    }
+
+
+}
+
+LteTrafficClass aToLteTrafficClass(std::string s)
+{
+    //std::cout << "LteCommon::aToLteTrafficClass  at " << simTime().dbl() << std::endl;
+
+    if (s == "CONVERSATIONAL")
+        return CONVERSATIONAL;
+    if (s == "STREAMING")
+        return STREAMING;
+    if (s == "INTERACTIVE")
+        return INTERACTIVE;
+    if (s == "BACKGROUND")
+        return BACKGROUND;
+    if (s == "V2X_TRAFFIC")
+        return V2X_TRAFFIC;
+    return UNKNOWN_TRAFFIC_TYPE;
+}
+
+const std::string rlcTypeToA(LteRlcType type)
+{
+    //std::cout << "LteCommon::rlcTypeToA  at " << simTime().dbl() << std::endl;
+
+    switch (type)
+    {
+        case TM:
+            return "tm";
+        case UM:
+            return "um";
+        case AM:
+            return "am";
+        default:
+            return "UNKNOWN_RLC_TYPE";
+    }
+}
+
+char * cStringToLower(char* str)
+{
+    //std::cout << "LteCommon::cStringToLower start at " << simTime().dbl() << std::endl;
+
+    for (int i = 0; str[i]; i++)
+        str[i] = tolower(str[i]);
+
+    //std::cout << "LteCommon::cStringToLower end at " << simTime().dbl() << std::endl;
+
+    return str;
+}
+
+LteRlcType aToRlcType(std::string s)
+{
+    //std::cout << "LteCommon::aToRlcType at " << simTime().dbl() << std::endl;
+
+    if (s == "TM")
+        return TM;
+    if (s == "UM")
+        return UM;
+    if (s == "AM")
+        return AM;
+    return UNKNOWN_RLC_TYPE;
+}
+
+const std::string dirToA(Direction dir)
+{
+    //std::cout << "LteCommon::dirToA at " << simTime().dbl() << std::endl;
+
+    switch (dir)
+    {
+        case DL:
+            return "DL";
+        case UL:
+            return "UL";
+        case D2D:
+            return "D2D";
+        case D2D_MULTI:
+            return "D2D_MULTI";
+        default:
+            return "Unrecognized";
+    }
+}
+
+const std::string d2dModeToA(LteD2DMode mode)
+{
+    //std::cout << "LteCommon::d2dModeToA at " << simTime().dbl() << std::endl;
+
+    switch (mode)
+    {
+        case IM:
+            return "IM";
+        case DM:
+            return "DM";
+        default:
+            return "Unrecognized";
+    }
+}
+
+
+const std::string allocationTypeToA(RbAllocationType type)
+{
+    //std::cout << "LteCommon::allocationTypeToA at " << simTime().dbl() << std::endl;
+
+    switch (type)
+    {
+        case TYPE2_DISTRIBUTED:
+            return "distributed";
+        case TYPE2_LOCALIZED:
+            return "localized";
+    }
+    return "Unrecognized";
+}
+
+const std::string modToA(LteMod mod)
+{
+    //std::cout << "LteCommon::modToA at " << simTime().dbl() << std::endl;
+
+    switch (mod)
+    {
+        case _QPSK:
+            return "QPSK";
+        case _16QAM:
+            return "16-QAM";
+        case _64QAM:
+            return "64-QAM";
+        case _256QAM:
+            return "256-QAM";
+    }
+    return "UNKNOWN";
+}
+
+const std::string periodicityToA(FbPeriodicity per)
+{
+    //std::cout << "LteCommon::periodicityToA at " << simTime().dbl() << std::endl;
+
+    switch (per)
+    {
+        case PERIODIC:
+            return "PERIODIC";
+        case APERIODIC:
+            return "APERIODIC";
+    }
+    return "UNKNOWN";
+}
+
+FeedbackType getFeedbackType(std::string s)
+{
+    //std::cout << "LteCommon::getFeedbackType at " << simTime().dbl() << std::endl;
+
+    if (s == "ALLBANDS")
+        return ALLBANDS;
+    if (s == "PREFERRED")
+        return PREFERRED;
+    if (s == "WIDEBAND")
+        return WIDEBAND;
+
+    return WIDEBAND; // default
+}
+FeedbackGeneratorType getFeedbackGeneratorType(std::string s)
+{
+    //std::cout << "LteCommon::getFeedbackGeneratorType at " << simTime().dbl() << std::endl;
+
+    if (s == "IDEAL")
+        return IDEAL;
+    if (s == "REAL")
+        return REAL;
+    if (s == "DAS_AWARE")
+        return DAS_AWARE;
+    //default
+    return IDEAL;
+}
+
+RbAllocationType getRbAllocationType(std::string s)
+{
+    //std::cout << "LteCommon::getRbAllocationType at " << simTime().dbl() << std::endl;
+
+    if (s == "distributed")
+        return TYPE2_DISTRIBUTED;
+    if (s == "localized")
+        return TYPE2_LOCALIZED;
+
+    return TYPE2_DISTRIBUTED; // default type
+}
+
+const std::string txModeToA(TxMode tx)
+{
+    //std::cout << "LteCommon::txModeToA at " << simTime().dbl() << std::endl;
+
+    int i = 0;
+    while (txmodes[i].tx != UNKNOWN_TX_MODE)
+    {
+        if (txmodes[i].tx == tx)
+            return txmodes[i].txName;
+        i++;
+    }
+    return "UNKNOWN_TX_MODE";
+}
+
+TxMode aToTxMode(std::string s)
+{
+    //std::cout << "LteCommon::aToTxMode at " << simTime().dbl() << std::endl;
+
+    int i = 0;
+    while (txmodes[i].tx != UNKNOWN_TX_MODE)
+    {
+        if (txmodes[i].txName == s)
+            return txmodes[i].tx;
+        i++;
+    }
+    return UNKNOWN_TX_MODE;
+}
+
+const std::string schedDisciplineToA(SchedDiscipline discipline)
+{
+    //std::cout << "LteCommon::schedDisciplineToA at " << simTime().dbl() << std::endl;
+
+    int i = 0;
+    while (disciplines[i].discipline != UNKNOWN_DISCIPLINE)
+    {
+        if (disciplines[i].discipline == discipline)
+            return disciplines[i].disciplineName;
+        i++;
+    }
+    return "UNKNOWN_DISCIPLINE";
+}
+
+SchedDiscipline aToSchedDiscipline(std::string s)
+{
+    //std::cout << "LteCommon::aToSchedDiscipline at " << simTime().dbl() << std::endl;
+
+    int i = 0;
+    while (disciplines[i].discipline != UNKNOWN_DISCIPLINE)
+    {
+        if (disciplines[i].disciplineName == s)
+            return disciplines[i].discipline;
+        i++;
+    }
+    return UNKNOWN_DISCIPLINE;
+}
+
+const std::string dasToA(const Remote r)
+{
+    //std::cout << "LteCommon::dasToA at " << simTime().dbl() << std::endl;
+
+    int i = 0;
+    while (remotes[i].remote != UNKNOWN_RU)
+    {
+        if (remotes[i].remote == r)
+            return remotes[i].remoteName;
+        i++;
+    }
+    return "UNKNOWN_RU";
+}
+
+Remote aToDas(std::string s)
+{
+    //std::cout << "LteCommon::aToDas at " << simTime().dbl() << std::endl;
+
+    int i = 0;
+    while (remotes[i].remote != UNKNOWN_RU)
+    {
+        if (remotes[i].remoteName == s)
+            return remotes[i].remote;
+        i++;
+    }
+    return UNKNOWN_RU;
+}
+
+const std::string phyFrameTypeToA(const LtePhyFrameType r)
+{
+    //std::cout << "LteCommon::phyFrameTypeToA at " << simTime().dbl() << std::endl;
+
+    int i = 0;
+    while (phytypes[i].phyType != UNKNOWN_TYPE)
+    {
+        if (phytypes[i].phyType == r)
+            return phytypes[i].phyName;
+        i++;
+    }
+    return "UNKNOWN_TYPE";
+}
+
+LtePhyFrameType aToPhyFrameType(std::string s)
+{
+    //std::cout << "LteCommon::aToPhyFrameType at " << simTime().dbl() << std::endl;
+
+    int i = 0;
+    while (phytypes[i].phyType != UNKNOWN_TYPE)
+    {
+        if (phytypes[i].phyName == s)
+            return phytypes[i].phyType;
+        i++;
+    }
+    return UNKNOWN_TYPE;
+}
+
+LteSubFrameType aToSubFrameType(std::string s)
+{
+    //std::cout << "LteCommon::aToSubFrameType at " << simTime().dbl() << std::endl;
+
+    int i = 0;
+    while (subFrametypes[i].type != UNKNOWN_FRAME_TYPE)
+    {
+        if (subFrametypes[i].typeName == s)
+            return subFrametypes[i].type;
+        i++;
+    }
+    return UNKNOWN_FRAME_TYPE;
+}
+
+const std::string SubFrameTypeToA(const LteSubFrameType r)
+{
+    //std::cout << "LteCommon::SubFrameTypeToA at " << simTime().dbl() << std::endl;
+
+    int i = 0;
+    while (subFrametypes[i].type != UNKNOWN_FRAME_TYPE)
+    {
+        if (subFrametypes[i].type == r)
+            return subFrametypes[i].typeName;
+        i++;
+    }
+    return "UNKNOWN_FRAME_TYPE";
+}
+
+const std::string nodeTypeToA(const LteNodeType t)
+{
+    //std::cout << "LteCommon::nodeTypeToA at " << simTime().dbl() << std::endl;
+
+    int i = 0;
+    while (nodetypes[i].node != UNKNOWN_NODE_TYPE)
+    {
+        if (nodetypes[i].node == t)
+            return nodetypes[i].nodeName;
+        i++;
+    }
+    return "UNKNOWN_NODE_TYPE";
+}
+
+LteNodeType aToNodeType(std::string name)
+{
+    //std::cout << "LteCommon::aToNodeType at " << simTime().dbl() << std::endl;
+
+    int i = 0;
+    while (nodetypes[i].node != UNKNOWN_NODE_TYPE)
+    {
+        if (nodetypes[i].nodeName == name)
+            return nodetypes[i].node;
+        i++;
+    }
+    return UNKNOWN_NODE_TYPE;
+}
+
+const std::string applicationTypeToA(ApplicationType a)
+{
+    //std::cout << "LteCommon::applicationTypeToA at " << simTime().dbl() << std::endl;
+
+    int i = 0;
+    while (applications[i].app != UNKNOWN_APP)
+    {
+        if (applications[i].app == a)
+            return applications[i].appName;
+        i++;
+    }
+    return "UNKNOWN_APP";
+}
+
+ApplicationType aToApplicationType(std::string s)
+{
+    //std::cout << "LteCommon::aToApplicationType at " << simTime().dbl() << std::endl;
+
+    int i = 0;
+    while (applications[i].app != UNKNOWN_APP)
+    {
+        if (applications[i].appName == s)
+            return applications[i].app;
+        i++;
+    }
+    return UNKNOWN_APP;
+}
+
+const std::string fbGeneratorTypeToA(FeedbackGeneratorType type)
+{
+    //std::cout << "LteCommon::fbGeneratorTypeToA at " << simTime().dbl() << std::endl;
+
+    int i = 0;
+    while (feedbackGeneratorTypeTable[i].ty != UNKNOW_FB_GEN_TYPE)
+    {
+        if (feedbackGeneratorTypeTable[i].ty == type)
+            return feedbackGeneratorTypeTable[i].tyname;
+        i++;
+    }
+    return "UNKNOW_FB_GEN_TYPE";
+}
+
+LteNodeType getNodeTypeById(MacNodeId id)
+{
+    //std::cout << "LteCommon::getNodeTypeById at " << simTime().dbl() << std::endl;
+
+    if (id >= ENB_MIN_ID && id <= ENB_MAX_ID)
+        return ENODEB;
+    if (id >= RELAY_MIN_ID && id <= RELAY_MAX_ID)
+        return RELAY;
+    if (id >= UE_MIN_ID && id <= UE_MAX_ID)
+        return UE;
+    return UNKNOWN_NODE_TYPE;
+}
+
+const std::string planeToA(Plane p)
+{
+    //std::cout << "LteCommon::planeToA at " << simTime().dbl() << std::endl;
+
+    switch (p)
+    {
+        case MAIN_PLANE:
+            return "MAIN_PLANE";
+        case MU_MIMO_PLANE:
+            return "MU_MIMO_PLANE";
+        default:
+            return "UNKNOWN PLANE";
+    }
+}
+
+GrantType aToGrantType(std::string a)
+{
+    //std::cout << "LteCommon::aToGrantType at " << simTime().dbl() << std::endl;
+
+    if (a == "FITALL") 
+        return FITALL;
+    else if (a == "FIXED" ) 
+        return FIXED_;
+    else if (a == "URGENT") 
+        return URGENT;
+    else 
+        return UNKNOWN_GRANT_TYPE;
+}
+
+const std::string grantTypeToA(GrantType gType)
+{
+    //std::cout << "LteCommon::grantTypeToA at " << simTime().dbl() << std::endl;
+
+    switch (gType)
+    {
+        case FITALL:
+            return "FITALL";
+        case FIXED_:
+            return "FIXED";
+        case URGENT:
+            return "URGENT";
+        default:
+            return "UNKNOWN_GRANT_TYPE";
+    }
+}
+
+const std::string DeploymentScenarioToA(DeploymentScenario type)
+{
+    //std::cout << "LteCommon::DeploymentScenarioToA at " << simTime().dbl() << std::endl;
+
+    int i = 0;
+    while (DeploymentScenarioTable[i].scenario != UNKNOW_SCENARIO)
+    {
+        if (DeploymentScenarioTable[i].scenario == type)
+            return DeploymentScenarioTable[i].scenarioName;
+        i++;
+    }
+    return "UNKNOW_SCENARIO";
+}
+
+DeploymentScenario aToDeploymentScenario(std::string s)
+{
+    //std::cout << "LteCommon::aToDeploymentScenario at " << simTime().dbl() << std::endl;
+
+    int i = 0;
+    while (DeploymentScenarioTable[i].scenario != UNKNOW_SCENARIO)
+    {
+        if (DeploymentScenarioTable[i].scenarioName == s)
+            return DeploymentScenarioTable[i].scenario;
+        i++;
+    }
+    return UNKNOW_SCENARIO;
+}
+
+bool isMulticastConnection(LteControlInfo* lteInfo)
+{
+    //std::cout << "LteCommon::isMulticastConnection at " << simTime().dbl() << std::endl;
+
+    return (lteInfo->getMulticastGroupId() >= 0);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+MacCid idToMacCid(MacNodeId nodeId, LogicalCid lcid)
+{
+    //std::cout << "LteCommon::idToMacCid at " << simTime().dbl() << std::endl;
+
+    return (((MacCid) nodeId << 16) | lcid);
+
+}
+
+//MacCid idToMacCid(MacNodeId nodeId, LogicalCid lcid, unsigned short msgCat) {
+//    MacCid tmp = (((MacCid) nodeId << 8) | (unsigned char) lcid);
+//    return ((MacCid) tmp << 8 | (unsigned char) msgCat);
+//}
+
+/*
+ * Obtain the CID from the Control Info
+ */
+MacCid ctrlInfoToMacCid(LteControlInfo * info)
+{
+    //std::cout << "LteCommon::ctrlInfoToMacCid at " << simTime().dbl() << std::endl;
+
+    /*
+     * Given the fact that  CID = <UE_MAC_ID,LCID>
+     * we choose the proper MAC ID based on the direction of the packet
+     *
+     * direction | src       dest
+     * ---------------------------
+     *    DL     | eNb ---->  UE
+     *    UL     | UE  ---->  eNb
+     *    D2D    | UE  ---->  UE
+     *
+     */
+    unsigned int dir = info->getDirection();
+    LogicalCid lcid = info->getLcid();
+    MacNodeId ueId;
+
+    switch (dir)
+    {
+        case DL: case D2D:
+            ueId = info->getDestId();
+            break;
+        case UL: case D2D_MULTI:  // D2D_MULTI goes here, since the destination id is meaningless in that context
+            ueId = info->getSourceId();
+            break;
+        default:
+            throw cRuntimeError("ctrlInfoToMacCid(): unknown direction %d", dir);
+    }
+    //EV << "ctrlInfoToMacCid - dir[" << dir << "] - ueId[" << ueId << "] - lcid[" << lcid << "]" << endl;
+    return idToMacCid(ueId, lcid);
+//    return info->getCid();
+}
+
+/*
+ * Obtain the MacNodeId of an UE from packet control info
+ */
+MacNodeId ctrlInfoToUeId(LteControlInfo * info)
+{
+
+    //std::cout << "LteCommon::ctrlInfoToUeId at " << simTime().dbl() << std::endl;
+    /*
+     * direction | src       dest
+     * ---------------------------
+     *    DL     | eNb ---->  UE
+     *    UL     | UE  ---->  eNb
+     *    D2D    | UE  ---->  UE
+     *
+     */
+    unsigned int dir = info->getDirection();
+    MacNodeId ueId;
+
+    switch (dir)
+    {
+        case DL: case D2D:
+            ueId = info->getDestId();
+            break;
+        case UL: case D2D_MULTI: // D2D_MULTI goes here, since the destination id is meaningless in that context
+            ueId = info->getSourceId();
+            break;
+        default:
+            throw cRuntimeError("ctrlInfoToMacCid - unknown direction %d", dir);
+    }
+    return ueId;
+}
+
+MacNodeId MacCidToNodeId(MacCid cid)
+{
+    //std::cout << "LteCommon::MacCidToNodeId at " << simTime().dbl() << std::endl;
+
+    return ((MacNodeId) (cid >> 16));
+}
+
+LogicalCid MacCidToLcid(MacCid cid)
+{
+    //std::cout << "LteCommon::MacCidToLcid at " << simTime().dbl() << std::endl;
+
+    return ((LogicalCid) (cid));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+LteCellInfo* getCellInfo(MacNodeId nodeId)
+{
+    //std::cout << "LteCommon::getCellInfo at " << simTime().dbl() << std::endl;
+
+    LteBinder* temp = getBinder();
+    // Check if nodeId is a relay, if nodeId is a eNodeB
+    // function GetNextHop returns nodeId
+    // TODO change this behavior (its not needed unless we don't implement relays)
+    MacNodeId id = temp->getNextHop(nodeId);
+    OmnetId omnetid = temp->getOmnetId(id);
+
+    if(id == 0 || omnetid == 0)
+        return NULL;
+
+    return check_and_cast<LteCellInfo*>(getSimulation()->getModule(omnetid)->getSubmodule("cellInfo"));
+}
+
+cModule* getMacByMacNodeId(MacNodeId nodeId)
+{
+    //std::cout << "LteCommon::getMacByMacNodeId at " << simTime().dbl() << std::endl;
+
+    // UE might have left the simulation, return NULL in this case
+    // since we do not have a MAC-Module anymore
+	int id = getBinder()->getOmnetId(nodeId);
+	if (id == 0){
+		return nullptr;
+	}
+	// TODO fix for relays
+	return (getSimulation()->getModule(getBinder()->getOmnetId(nodeId))->getSubmodule("lteNic")->getSubmodule("mac"));
+}
+
+cModule* getRlcByMacNodeId(MacNodeId nodeId, LteRlcType rlcType)
+{
+    //std::cout << "LteCommon::getRlcByMacNodeId at " << simTime().dbl() << std::endl;
+
+	cModule* module = getMacByMacNodeId(nodeId);
+	if(module == NULL){
+		return nullptr;
+	}
+    return getMacByMacNodeId(nodeId)->getParentModule()->getSubmodule("rlc")->getSubmodule(rlcTypeToA(rlcType).c_str());
+//	return NULL;
+}
+
+LteBinder* getBinder()
+{
+
+    //std::cout << "LteCommon::getBinder at " << simTime().dbl() << std::endl;
+
+    return check_and_cast<LteBinder*>(getSimulation()->getModuleByPath("binder"));
+}
+
+LteMacBase* getMacUe(MacNodeId nodeId)
+{
+    //std::cout << "LteCommon::getMacUe at " << simTime().dbl() << std::endl;
+
+    return check_and_cast<LteMacBase*>(getMacByMacNodeId(nodeId));
+}
+
+void getParametersFromXML(cXMLElement* xmlData, ParameterMap& outputMap)
+{
+    //std::cout << "LteCommon::getParametersFromXML at " << simTime().dbl() << std::endl;
+
+    cXMLElementList parameters = xmlData->getElementsByTagName("Parameter");
+
+    for (cXMLElementList::const_iterator it = parameters.begin(); it != parameters.end(); it++)
+    {
+        const char* name = (*it)->getAttribute("name");
+        const char* type = (*it)->getAttribute("type");
+        const char* value = (*it)->getAttribute("value");
+        if (name == 0 || type == 0 || value == 0)
+        {
+            //EV << "Invalid parameter, could not find name, type or value." << endl;
+            continue;
+        }
+
+        std::string sType = type;     // needed for easier comparison
+        std::string sValue = value;    // needed for easier comparison
+
+        cMsgPar param(name);
+
+        // parse type of parameter and set value
+        if (sType == "bool")
+        {
+            param.setBoolValue(sValue == "true" || sValue == "1");
+        }
+        else if (sType == "double")
+        {
+            param.setDoubleValue(strtod(value, 0));
+        }
+        else if (sType == "string")
+        {
+            param.setStringValue(value);
+        }
+        else if (sType == "long")
+        {
+            param.setLongValue(strtol(value, 0, 0));
+        }
+        else
+        {
+            //EV << "Unknown parameter type: \"" << sType << "\"" << endl;
+            continue;
+        }
+
+        // add parameter to output map
+        outputMap[name] = param;
+    }
+}
+
+void parseStringToIntArray(std::string str, int* values, int dim, int pad)
+{
+    //std::cout << "LteCommon::parseStringToIntArray start at " << simTime().dbl() << std::endl;
+
+    for (int i = 0; i < dim; i++)
+    {
+        int pos = str.find(',');
+
+        if (pos == -1)
+        {
+            // last number or malformed string
+            pos = str.find(';');
+            if (pos == -1)
+            {
+                // malformed string or too few numbers, use 0 for remaining entries
+                for (int j = i; j < dim; j++)
+                {
+                    values[j] = pad;
+                }
+                //EV << "parseStringToIntArray: Error: too few values in string array, padding with " << pad << endl;
+                break;
+            }
+        }
+        std::string num = str.substr(0, pos);
+        std::istringstream ss(num);
+        ss >> values[i];
+        str = str.erase(0, pos + 1);
+    }
+
+    //std::cout << "LteCommon::parseStringToIntArray end at " << simTime().dbl() << std::endl;
+
+    if (!str.empty())
+        throw cRuntimeError("parseStringToIntArray(): more values in string than nodes");
+}
+
+double linearToDBm(double linear)
+{
+    //std::cout << "LteCommon::linearToDBm at " << simTime().dbl() << std::endl;
+
+    return 10 * log10(1000 * linear);
+}
+
+double linearToDb(double linear)
+{
+    //std::cout << "LteCommon::linearToDb at " << simTime().dbl() << std::endl;
+
+    return 10 * log10(linear);
+}
+
+double dBmToLinear(double db)
+{
+    //std::cout << "LteCommon::dBmToLinear at " << simTime().dbl() << std::endl;
+
+    return pow(10, (db - 30) / 10);
+}
+
+double dBToLinear(double db)
+{
+    //std::cout << "LteCommon::dBToLinear at " << simTime().dbl() << std::endl;
+
+    return pow(10, (db) / 10);
+}
+
+void initializeAllChannels(cModule *mod)
+{
+
+    //std::cout << "LteCommon::initializeAllChannels start at " << simTime().dbl() << std::endl;
+
+    for (cModule::GateIterator i(mod); !i.end(); i++)
+    {
+        cGate* gate = *i;
+        if (gate->getChannel() != NULL)
+        {
+                if(!gate->getChannel()->initialized()){
+                        gate->getChannel()->callInitialize();
+                }
+        }
+    }
+
+    for (cModule::SubmoduleIterator i(mod); !i.end(); i++)
+    {
+        cModule *submodule = *i;
+        initializeAllChannels(submodule);
+    }
+
+    //std::cout << "LteCommon::initializeAllChannels end at " << simTime().dbl() << std::endl;
+}
+
+
+

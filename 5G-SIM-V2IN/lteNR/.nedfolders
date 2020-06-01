@@ -1,0 +1,13 @@
+simulationsNR
+src/common
+src/corenetwork
+src/epc
+src/nr/apps
+src/nr/common
+src/nr/corenetwork
+src/nr/epc
+src/nr/stack
+src/nr/world
+src/stack
+src/world
+src/x2

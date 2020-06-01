@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!-- debug config -->
+<launch>
+    <copy file="autobahnSimple.net.xml" />
+    <copy file="autobahnSimple.rou.xml" />
+    <copy file="autobahnSimple.sumo.cfg" type="config" />
+</launch>
+

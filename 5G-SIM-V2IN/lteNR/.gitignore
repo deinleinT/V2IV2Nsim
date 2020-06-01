@@ -1,0 +1,52 @@
+# local and generated files not to be committed
+src/Makefile
+src/Makefile.vc
+*_m.h
+*_m.cc
+*_sm.h
+*_sm.cc
+.oppfeaturestate
+.nedexclusions
+
+
+# output and result files
+.settings/*
+*.log
+*.sim
+*.pyc
+*.pcap
+*.sca
+*.vec
+*.vci
+.buildlog*
+
+# ignore binary files
+out/
+*.so
+*.dylib
+*.dll
+*.a
+*.lib
+*.exe
+*.o
+*.obj
+*.pdb
+*.idb
+*.manifest
+.qtenv.ini
+.qtenvrc
+.tkenvrc
+.tkenvlog
+.cmdenv-log
+netanim-trace.txt
+*.out
+
+# ignore backup and temp files
+*.UPDATED
+*.FAILED
+*.ERROR
+*.bak
+backups
+*~
+xxx
+/tmp/
