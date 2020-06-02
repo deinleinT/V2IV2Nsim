@@ -5,8 +5,6 @@ src/Makefile.vc
 *_m.cc
 *_sm.h
 *_sm.cc
-src/inet/features.h
-src/inet/opp_defines.h
 precompiled_*.h.*
 /3rdparty
 **/MoBAN_Pattern*.txt
