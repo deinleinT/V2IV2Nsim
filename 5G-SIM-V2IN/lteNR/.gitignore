@@ -5,7 +5,6 @@ src/Makefile.vc
 *_m.cc
 *_sm.h
 *_sm.cc
-.oppfeaturestate
 .nedexclusions
 
 
