@@ -6,7 +6,7 @@
   initiallyEnabled = "false"
   requires = ""
   labels = ""
-  nedPackages = "lte.corenetwork.nodes.cars"
+  nedPackages = ""
   extraSourceFolders = ""
   compileFlags = ""
   linkerFlags = ""
