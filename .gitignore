@@ -59,6 +59,7 @@ out/
 *.cmdenv-log
 *netanim-trace.txt
 *.out
+*.Rhistory
 
 # ignore backup and temp files
 *.UPDATED
