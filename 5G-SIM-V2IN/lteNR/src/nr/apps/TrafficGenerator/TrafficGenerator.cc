@@ -719,6 +719,9 @@ void TrafficGeneratorServerUL::handleMessageWhenUp(cMessage *msg) {
 void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 
 	numberReceivedPackets++;
+	//from UDPBasicApp
+	numReceived++;
+	//
 
 	if (strcmp(pk->getName(), "V2X") == 0 || strcmp(pk->getName(), "status-update") == 0 || strcmp(pk->getName(), "request-to-merge") == 0 || strcmp(pk->getName(), "request-ack") == 0
 			|| strcmp(pk->getName(), "safe-to-merge|denial") == 0) {
@@ -1158,7 +1161,6 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 
 			assert(temp->getTimestamp() == temp->getCreationTime());
 			simtime_t delay = NOW - temp->getCreationTime();
-			double test = delay.dbl();
 			emit(delayData, delay);
 
 		} else {
@@ -1228,7 +1230,10 @@ void TrafficGeneratorCarUL::processStart() {
 void TrafficGeneratorCarUL::sendPacket() {
 
 	unsigned short nodeId = getNRBinder()->getMacNodeId(localAddress_.toIPv4());
-	//numberSentPackets++;
+	numberSentPackets++;
+	//from UDPBasicApp
+	numSent++;
+	//
 
 	if (strcmp(packetName, "V2X") == 0) {
 
@@ -1559,6 +1564,9 @@ void TrafficGeneratorCarDL::handleMessageWhenUp(cMessage *msg) {
 void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 
 	numberReceivedPackets++;
+	//from UDPBasicApp
+	numReceived++;
+	//
 
 	if (strcmp(pk->getName(), "V2X") == 0 || strcmp(pk->getName(), "status-update") == 0 || strcmp(pk->getName(), "request-to-merge") == 0 || strcmp(pk->getName(), "request-ack") == 0
 			|| strcmp(pk->getName(), "safe-to-merge|denial") == 0) {
@@ -2179,6 +2187,11 @@ void TrafficGeneratorServerDL::sendPacket() {
 
 			int omnetId = mod->getId();
 			int nodeId = getNRBinder()->getMacNodeIdFromOmnetId(omnetId);
+
+			numberSentPackets++;
+			//from UDPBasicApp
+			numSent++;
+			//
 
 			if (strcmp(packetName, "V2X") == 0) {
 				sentPacketsV2X++;
