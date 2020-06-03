@@ -178,6 +178,10 @@ protected:
     bool sendVideoPacket;
     bool sendDataPacket;
 
+    // statistics
+    int numberSentPackets = 0;
+    int numberReceivedPackets = 0;
+
     //Budgets for reliability, set in ned-file
     simtime_t v2xDelayBudget;
     simtime_t voipDelayBudget;

@@ -1228,7 +1228,7 @@ void TrafficGeneratorCarUL::processStart() {
 void TrafficGeneratorCarUL::sendPacket() {
 
 	unsigned short nodeId = getNRBinder()->getMacNodeId(localAddress_.toIPv4());
-	numberSentPackets++;
+	//numberSentPackets++;
 
 	if (strcmp(packetName, "V2X") == 0) {
 

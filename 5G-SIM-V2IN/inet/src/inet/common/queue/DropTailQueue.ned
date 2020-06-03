@@ -25,7 +25,7 @@ package inet.common.queue;
 simple DropTailQueue like IOutputQueue
 {
     parameters:
-        int frameCapacity = default(200);
+        int frameCapacity = default(100);
         string queueName = default("l2queue"); // name of the inner cQueue object, used in the 'q' tag of the display string
         @display("i=block/queue");
         @signal[rcvdPk](type=cPacket);

@@ -48,8 +48,8 @@ class INET_API UDPBasicApp : public ApplicationBase
     cMessage *selfMsg = nullptr;
 
     // statistics
-    int numberSentPackets = 0;
-    int numberReceivedPackets = 0;
+    int numSent = 0;
+    int numReceived = 0;
 
     static simsignal_t sentPkSignal;
     static simsignal_t rcvdPkSignal;

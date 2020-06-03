@@ -42,10 +42,10 @@ void UDPBasicApp::initialize(int stage)
     ApplicationBase::initialize(stage);
 
     if (stage == INITSTAGE_LOCAL) {
-        numberSentPackets = 0;
-        numberReceivedPackets = 0;
-        WATCH(numberSentPackets);
-        WATCH(numberReceivedPackets);
+        numSent = 0;
+        numReceived = 0;
+        WATCH(numSent);
+        WATCH(numReceived);
 
         localPort = par("localPort");
         destPort = par("destPort");
@@ -60,8 +60,8 @@ void UDPBasicApp::initialize(int stage)
 
 void UDPBasicApp::finish()
 {
-    recordScalar("packets sent", numberSentPackets);
-    recordScalar("packets received", numberReceivedPackets);
+    recordScalar("packets sent", numSent);
+    recordScalar("packets received", numReceived);
     ApplicationBase::finish();
 }
 
@@ -113,16 +113,16 @@ L3Address UDPBasicApp::chooseDestAddr()
 void UDPBasicApp::sendPacket()
 {
     std::ostringstream str;
-    str << packetName << "-" << numberSentPackets;
+    str << packetName << "-" << numSent;
     ApplicationPacket *payload = new ApplicationPacket(str.str().c_str());
     payload->setByteLength(par("messageLength").intValue());
-    payload->setSequenceNumber(numberSentPackets);
+    payload->setSequenceNumber(numSent);
 
     L3Address destAddr = chooseDestAddr();
 
     emit(sentPkSignal, payload);
     socket.sendTo(payload, destAddr, destPort);
-    numberSentPackets++;
+    numSent++;
 }
 
 void UDPBasicApp::processStart()
@@ -213,7 +213,7 @@ void UDPBasicApp::handleMessageWhenUp(cMessage *msg)
 void UDPBasicApp::refreshDisplay() const
 {
     char buf[100];
-    sprintf(buf, "rcvd: %d pks\nsent: %d pks", numberReceivedPackets, numberSentPackets);
+    sprintf(buf, "rcvd: %d pks\nsent: %d pks", numReceived, numSent);
     getDisplayString().setTagArg("t", 0, buf);
 }
 
@@ -222,7 +222,7 @@ void UDPBasicApp::processPacket(cPacket *pk)
     emit(rcvdPkSignal, pk);
     EV_INFO << "Received packet: " << UDPSocket::getReceivedPacketInfo(pk) << endl;
     delete pk;
-    numberReceivedPackets++;
+    numReceived++;
 }
 
 bool UDPBasicApp::handleNodeStart(IDoneCallback *doneCallback)
