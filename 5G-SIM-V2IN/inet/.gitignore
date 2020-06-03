@@ -6,6 +6,7 @@ src/Makefile.vc
 *_sm.h
 *_sm.cc
 .oppfeaturestate
+/3rdparty
 **/MoBAN_Pattern*.txt
 
 # output and result files

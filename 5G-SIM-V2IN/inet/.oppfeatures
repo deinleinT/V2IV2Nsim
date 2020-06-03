@@ -33,7 +33,7 @@
         id="TCP_lwIP"
         name="TCP (lwIP)"
         description = "TCP implementation based on lwIP (http://www.sics.se/~adam/lwip)"
-        initiallyEnabled = "true"
+        initiallyEnabled = "false"
         requires = "TCP_common"
         labels = ""
         nedPackages = "
@@ -51,7 +51,7 @@
                        OS stacks: Linux, FreeBSD, OpenBSD and lwIP.
                        NSC must be downloaded and installed separately; read
                        inet/3rdparty/README for more information."
-        initiallyEnabled = "true"
+        initiallyEnabled = "false"
         requires = "TCP_common"
         labels = ""
         nedPackages = "
@@ -373,7 +373,7 @@
                        The ExternalInterface module is responsible for sending/receiving
                        packets on the network. This feature requires at least version 1.5.3
                        of the libpcap-dev package."
-        initiallyEnabled = "true"
+        initiallyEnabled = "false"
         requires = "IPv4"
         labels = "nic"
         nedPackages = "
@@ -387,7 +387,7 @@
         id="ExternalInterface_examples"
         name="Network emulation examples"
         description = "Examples for network emulation"
-        initiallyEnabled = "true"
+        initiallyEnabled = "false"
         requires = "ExternalInterface Ethernet"
         labels = "nic"
         nedPackages = "
@@ -841,7 +841,7 @@
         id="VoIPStream"
         name="VoIPStream"
         description = "Voice over IP tool. Required external libraries: libavcodec libavformat libavresample libavutil"
-        initiallyEnabled = "true"
+        initiallyEnabled = "false"
         requires = "UDP"
         labels = ""
         nedPackages = "
@@ -855,7 +855,7 @@
         id="VoIPStream_examples"
         name="VoIPStream examples"
         description = "Example VoIP simulations"
-        initiallyEnabled = "true"
+        initiallyEnabled = "false"
         requires = "VoIPStream IPv4 Ethernet"
         labels = "examples"
         nedPackages = "
