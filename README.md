@@ -1,15 +1,29 @@
 # 5G-Sim-V2I/N
-Open Source 5G V2I / V2N Simulation OMNeT++-framework
+Open Source 5G V2I / V2N Simulation OMNeT++-framework. 
+We have tested the framework with Linux Mint 18.3, 19.3, Ubuntu 18.04 and 20.04. We strongly recommend using the framework with Linux.
 
-### Prerequisites and Installing
-You need OMNeT++ (version 5.6.2, https://omnetpp.org/download/) for using this framework. Start OMNeT++ after building, create a new and empty workspace and import all folders which are within the 5G-SIM-V2IN folder. 
-The framework consists of the Veins-Framework (folders Veins and Veins_inet3) in version 5 (https://veins.car2x.org/), the INET-framework (inet-folder) in Version 3.6.7 (https://inet.omnetpp.org/) and the SimuLTE-framework (https://simulte.com/) in version 1.1.0 in the lteNR folder. The latter contains all NR-relevant code in its src/nr-folder. Ensure that the inet_featuretool in the inet-folder has write-privileges before compiling.
+### Prerequisites
 
-Before you can run the examples you have to install the traffic simulator SUMO in version 1.0.0 (https://sumo.dlr.de/docs/index.html). You also have to start the sumo-listener (sumo-launchd.py) from the veins-folder before starting the simulation. See the veins-tutorial (https://veins.car2x.org/tutorial/) for all necessary steps.
+* You need *OMNeT++* (version 5.6.2, https://omnetpp.org/download/) for using this framework and the traffic simulator *SUMO* in version 1.0.0 (https://sumo.dlr.de/docs/index.html).
+* Compile and build both and ensure each of them works.
+* Download the framework from this site.
 
-In the lteNR-folder, the simulation examples for a motorway and an urban traffic scenario are available (in the simulationsNR-folder). In both scenerios you can simulate an example whichs runs four applications simultaneously in each car. For that, you just need to run the omnetpp.ini-files within the motorway and urban folder, respectively.
 
-We have tested the framework with Linux Mint 18.3, 19.3 and Ubuntu 18.04.
+### Installing
+* Start OMNeT++ after building, create a new and empty workspace and import the 5G-SIM-folder by clicking *File --> Import --> General --> Existing Projects into Workspace --> Choose the downloaded and extracted 5G-SIM-Folder --> Mark "Copy projects into Workspace"*.
+
+* The framework consists of the Veins-Framework (folders Veins and Veins_inet3) in version 5 (https://veins.car2x.org/), 
+* The INET-framework (inet-folder) in Version 3.6.7 (https://inet.omnetpp.org/) --> Ensure that the inet_featuretool in the inet-folder has write-privileges before compiling.
+* The SimuLTE-framework (https://simulte.com/) in version 1.1.0 in the lteNR folder. All NR-relevant code is located in src/nr-folder.
+
+* Push the compile button in the OMNeT++-Gui for building the framework.
+
+### Run the examples
+
+* You have to start the sumo-listener (sumo-launchd.py) from the veins-folder via command line before starting the simulation. See the veins-tutorial (https://veins.car2x.org/tutorial/) for all necessary steps.
+
+* In the lteNR-folder, the simulation examples for a motorway and an urban traffic scenario are available (in the simulationsNR-folder). 
+* In both scenerios you can simulate an example whichs runs four applications simultaneously in each car. For that, you just need to run the omnetpp.ini-files within the motorway and urban folder, respectively.
 
 
 **MORE INFORMATION IS COMING SOON**
