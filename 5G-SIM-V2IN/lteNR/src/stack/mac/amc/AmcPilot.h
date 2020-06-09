@@ -8,7 +8,9 @@
 //
 
 //
-// This file has been modified for 5G-Sim-V2I/N
+// This file has been modified/enhanced for 5G-SIM-V2I/N.
+// Date: 2020
+// Author: Thomas Deinlein
 //
 
 #ifndef _LTE_AMCPILOT_H_

@@ -20,6 +20,12 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
+//
+// This file has been modified/enhanced for 5G-SIM-V2I/N.
+// Date: 2020
+// Author: Thomas Deinlein
+//
+
 #include <sstream>
 #include <map>
 #include <set>
@@ -305,6 +311,10 @@ double ObstacleControl::calculateAttenuation(const Coord &senderPos,
     return factor;
 }
 
+
+/**
+ * used in 5G-SIM-V2I/N for determining the LOS
+ */
 bool ObstacleControl::isNLOS(const Coord &senderPos, const Coord &receiverPos,
         const double hBuilding) {
     Enter_Method_Silent("isNLOS");

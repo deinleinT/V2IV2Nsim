@@ -9,6 +9,12 @@
 package lte.corenetwork.lteip;
 
 //
+// This file has been modified/enhanced for 5G-SIM-V2I/N.
+// Date: 2020
+// Author: Thomas Deinlein
+//
+
+//
 // IP2lte module performs as a bridge between the network layer and the LTE protocol stack
 // It has a slightly different behavior in the UE rather than in the eNB
 // It basically:

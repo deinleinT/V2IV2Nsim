@@ -20,6 +20,12 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
+//
+// This file has been modified/enhanced for 5G-SIM-V2I/N.
+// Date: 2020
+// Author: Thomas Deinlein
+//
+
 #pragma once
 
 #include <memory>
@@ -59,6 +65,7 @@ public:
     bool isTypeSupported(std::string type);
     double getAttenuationPerCut(std::string type);
     double getAttenuationPerMeter(std::string type);
+    //for 5G-SIM-V2I/N
     bool isNLOS(const Coord& senderPos, const Coord& receiverPos, const double hBuilding);
 
     /**
