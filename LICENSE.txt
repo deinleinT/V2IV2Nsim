@@ -1,0 +1,2 @@
+
+The framework consists of several parts, each of which has its own license, either GPL or LGPL. Each source file contains the appropriate copyright notice and license terms. See there for further information.
