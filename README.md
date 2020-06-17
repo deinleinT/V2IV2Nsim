@@ -1,6 +1,6 @@
 # 5G-Sim-V2I/N
 Open Source 5G V2I / V2N Simulation OMNeT++-framework. 
-We have tested the framework with Linux Mint 18.3, 19.3, Ubuntu 18.04 and 20.04. We could also successfully test the framework on Windows 10. For our tests we used OMNeT++ version 5.6.2.
+We tested the framework with Linux Mint 18.3, 19.3, Ubuntu 18.04 and 20.04. We could also successfully test the framework on Windows 10. For our tests we used OMNeT++ version 5.6.2.
 
 ### Prerequisites
 
@@ -23,7 +23,7 @@ We have tested the framework with Linux Mint 18.3, 19.3, Ubuntu 18.04 and 20.04.
 * You have to start the sumo-listener (sumo-launchd.py) from the veins-folder via command line before starting the simulation. See the veins-tutorial (https://veins.car2x.org/tutorial/) for all necessary steps.
 
 * In the lteNR-folder, the simulation examples for a motorway and an urban traffic scenario are available (in the simulationsNR-folder). 
-* In both scenerios you can simulate an example whichs runs four UDP-applications simultaneously in each car. For that, you just need to run the omnetpp.ini-files within the motorway and urban folder, respectively.
+* In both scenarios you can simulate an example whichs runs four UDP-applications simultaneously in each car. For that, you just need to run the omnetpp.ini-files within the motorway and urban folder, respectively.
 
 
 **MORE INFORMATION IS COMING SOON**
