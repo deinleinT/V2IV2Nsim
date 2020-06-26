@@ -1,6 +1,5 @@
 //
-// SPDX-FileCopyrightText: 2020 Friedrich-Alexander University Erlangen-Nürnberg (FAU),
-// Computer Science 7 - Computer Networks and Communication Systems
+// SPDX-FileCopyrightText: 2020 Thomas Deinlein <thomas.deinlein@fau.de>
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 //
@@ -816,8 +815,8 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 			} else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsUEtoServ[nodeId].statReport.lastV2X->getSequenceNumber() + 1);
-				connectionsUEtoServ[nodeId].statReport.lostPacketsV2X = lostPackets; //lost packets from this node
-				lostPacketsV2X = lostPackets; //all over summary of lost packets
+				connectionsUEtoServ[nodeId].statReport.lostPacketsV2X += lostPackets; //lost packets from this node
+				lostPacketsV2X = connectionsUEtoServ[nodeId].statReport.lostPacketsV2X; //all over summary of lost packets
 			}
 
 			if (NOW - pk->getCreationTime() > v2xDelayBudget) {
@@ -921,8 +920,8 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 			} else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsUEtoServ[nodeId].statReport.lastVideo->getSequenceNumber() + 1);
-				connectionsUEtoServ[nodeId].statReport.lostPacketsVideo = lostPackets; //lost packets from this node
-				lostPacketsVideo = lostPackets; //all over summary of lost packets
+				connectionsUEtoServ[nodeId].statReport.lostPacketsVideo += lostPackets; //lost packets from this node
+				lostPacketsVideo = connectionsUEtoServ[nodeId].statReport.lostPacketsVideo; //all over summary of lost packets
 
 			}
 			//Reliability
@@ -1027,8 +1026,8 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 			} else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsUEtoServ[nodeId].statReport.lastVoIP->getSequenceNumber() + 1);
-				connectionsUEtoServ[nodeId].statReport.lostPacketsVoip = lostPackets; //lost packets from this node
-				lostPacketsVoip = lostPackets; //all over summary of lost packets
+				connectionsUEtoServ[nodeId].statReport.lostPacketsVoip += lostPackets; //lost packets from this node
+				lostPacketsVoip = connectionsUEtoServ[nodeId].statReport.lostPacketsVoip; //all over summary of lost packets
 
 			}
 			//Reliability
@@ -1171,8 +1170,8 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 			} else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsUEtoServ[nodeId].statReport.lastData->getSequenceNumber() + 1);
-				connectionsUEtoServ[nodeId].statReport.lostPacketsData = lostPackets; //lost packets from this node
-				lostPacketsData = lostPackets; //all over summary of lost packets
+				connectionsUEtoServ[nodeId].statReport.lostPacketsData += lostPackets; //lost packets from this node
+				lostPacketsData = connectionsUEtoServ[nodeId].statReport.lostPacketsData; //all over summary of lost packets
 
 			}
 
@@ -1660,8 +1659,8 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 			} else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsServToUE[nodeId].statReport.lastV2X->getSequenceNumber() + 1);
-				connectionsServToUE[nodeId].statReport.lostPacketsV2X = lostPackets; //lost packets from this node
-				lostPacketsV2X = lostPackets; //all over summary of lost packets
+				connectionsServToUE[nodeId].statReport.lostPacketsV2X += lostPackets; //lost packets from this node
+				lostPacketsV2X = connectionsServToUE[nodeId].statReport.lostPacketsV2X; //all over summary of lost packets
 
 			}
 			//
@@ -1832,8 +1831,8 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 			} else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsServToUE[nodeId].statReport.lastVideo->getSequenceNumber() + 1);
-				connectionsServToUE[nodeId].statReport.lostPacketsVideo = lostPackets; //lost packets from this node
-				lostPacketsVideo = lostPackets; //all over summary of lost packets
+				connectionsServToUE[nodeId].statReport.lostPacketsVideo += lostPackets; //lost packets from this node
+				lostPacketsVideo = connectionsServToUE[nodeId].statReport.lostPacketsVideo; //all over summary of lost packets
 
 			}
 
@@ -1939,8 +1938,8 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 			} else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsServToUE[nodeId].statReport.lastVoIP->getSequenceNumber() + 1);
-				connectionsServToUE[nodeId].statReport.lostPacketsVoip = lostPackets; //lost packets from this node
-				lostPacketsVoip = lostPackets; //all over summary of lost packets
+				connectionsServToUE[nodeId].statReport.lostPacketsVoip += lostPackets; //lost packets from this node
+				lostPacketsVoip = connectionsServToUE[nodeId].statReport.lostPacketsVoip; //all over summary of lost packets
 
 			}
 
@@ -2089,8 +2088,8 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 			} else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsServToUE[nodeId].statReport.lastData->getSequenceNumber() + 1);
-				connectionsServToUE[nodeId].statReport.lostPacketsData = lostPackets; //lost packets from this node
-				lostPacketsData = lostPackets; //all over summary of lost packets
+				connectionsServToUE[nodeId].statReport.lostPacketsData += lostPackets; //lost packets from this node
+				lostPacketsData = connectionsServToUE[nodeId].statReport.lostPacketsData; //all over summary of lost packets
 
 			}
 
