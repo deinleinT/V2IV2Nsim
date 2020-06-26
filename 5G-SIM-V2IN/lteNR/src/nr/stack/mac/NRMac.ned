@@ -1,5 +1,5 @@
 //
-// SPDX-FileCopyrightText: 2020 Friedrich-Alexander University Erlangen-Nürnberg (FAU), 
+// SPDX-FileCopyrightText: 2020 Friedrich-Alexander University Erlangen-Nuernberg (FAU), 
 // Computer Science 7 - Computer Networks and Communication Systems
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
