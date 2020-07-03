@@ -1,6 +1,5 @@
 //
-// SPDX-FileCopyrightText: 2020 Friedrich-Alexander University Erlangen-Nuernberg (FAU),
-// Computer Science 7 - Computer Networks and Communication Systems
+// SPDX-FileCopyrightText: 2020 Friedrich-Alexander University Erlangen-Nuernberg (FAU), Computer Science 7 - Computer Networks and Communication Systems
 //
 // SPDX-License-Identifier: LGPL-3.0-or-later
 //
@@ -329,6 +328,6 @@ ScheduleListSizes& NRLcgScheduler::schedule(unsigned int availableBytes, Directi
 
 		//std::cout << "NRLcgScheduler::schedule end at " << simTime().dbl() << std::endl;
 
-		return scheduleListSizes_;
 	}
+	return scheduleListSizes_;
 }

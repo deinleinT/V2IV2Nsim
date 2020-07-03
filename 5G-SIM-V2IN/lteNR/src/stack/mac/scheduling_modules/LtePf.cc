@@ -151,10 +151,10 @@ void LtePf::prepareSchedule() //
 					availableBytes += eNbScheduler_->mac_->getAmc()->computeBytesOnNRbs(nodeId, *it, availableBlocks, direction_);
 				}
 			}
-			std::pair<MacNodeId, unsigned int> keyB(nodeId, availableBytes);
-			if (nodeIdTotalBytesRest.find(keyB) == nodeIdTotalBytesRest.end()) {
-				nodeIdTotalBytesRest[keyB] = availableBytes;
-			}
+//			std::pair<MacNodeId, unsigned int> keyB(nodeId, availableBytes);
+//			if (nodeIdTotalBytesRest.find(keyB) == nodeIdTotalBytesRest.end()) {
+//				nodeIdTotalBytesRest[keyB] = availableBytes;
+//			}
 
 			double s = .0;
 
@@ -194,17 +194,17 @@ void LtePf::prepareSchedule() //
 			//
 			unsigned int bytes = 4294967295U;
 			std::pair<MacNodeId, unsigned int> keyB;
-			for (auto &var : nodeIdTotalBytesRest) {
-				if (var.first.first == nodeId) {
-					keyB = std::make_pair(nodeId, var.first.second);
-					bytes = var.second;
-				}
-			}
+//			for (auto &var : nodeIdTotalBytesRest) {
+//				if (var.first.first == nodeId) {
+//					keyB = std::make_pair(nodeId, var.first.second);
+//					bytes = var.second;
+//				}
+//			}
 			//unsigned int granted = eNbScheduler_->scheduleGrant(cid, bytes, terminate, active, eligible);
 			unsigned int granted = eNbScheduler_->scheduleGrant(cid, 4294967295U, terminate, active, eligible);
 			grantedBytes_[cid] += granted;
 
-			nodeIdTotalBytesRest[keyB] = bytes - granted;
+			//nodeIdTotalBytesRest[keyB] = bytes - granted;
 
 			//EV << NOW << "LtePf::execSchedule Granted: " << granted << " bytes" << endl;
 

@@ -1855,7 +1855,12 @@ bool NRRealisticChannelModel::computeUplinkInterference(MacNodeId eNbId, MacNode
 			for (; ue_it != ue_et; ++ue_it) {
 				MacNodeId ueId = ue_it->nodeId;
 				MacCellId cellId = ue_it->cellId;
-				LtePhyUe *uePhy = check_and_cast<LtePhyUe*>(ue_it->phy);
+
+				//node has left the simulation
+				if (binder_->getOmnetId(ueId) == 0)
+					continue;
+
+				LtePhyBase *uePhy = check_and_cast<LtePhyBase*>(ue_it->phy);
 				Direction dir = ue_it->dir;
 
 				// no self interference
@@ -1893,6 +1898,11 @@ bool NRRealisticChannelModel::computeUplinkInterference(MacNodeId eNbId, MacNode
 			for (; ue_it != ue_et; ++ue_it) {
 				MacNodeId ueId = ue_it->nodeId;
 				MacCellId cellId = ue_it->cellId;
+
+				// node has left the simulation
+				if (binder_->getOmnetId(ueId) == 0)
+					continue;
+
 				LtePhyUe *uePhy = check_and_cast<LtePhyUe*>(ue_it->phy);
 				Direction dir = ue_it->dir;
 

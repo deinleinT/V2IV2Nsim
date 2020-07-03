@@ -104,7 +104,7 @@ simple LteRealisticChannelModel like LteChannelModelInterface
     // if true, enables the interference computation for UL connections -->
     bool uplink_interference = default(false);
 	// if true, enables the interference computation for D2D connections -->  
-    bool d2d_interference = default(true);
+    bool d2d_interference = default(false);
     
     // statistics
     @signal[rcvdSinr];
