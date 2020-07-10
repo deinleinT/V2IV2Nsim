@@ -101,10 +101,10 @@ void TrafficFlowFilterNR::handleMessage(cMessage *msg) {
 			tftInfo->setMsgCategory(VOD);
 			tftInfo->setQfi(qosHandler->getQfi(VOD));
 			tftInfo->setRadioBearerId(qosHandler->getRadioBearerId(tftInfo->getQfi()));
-		} else if (strcmp(name.c_str(), "Data") == 0 || strcmp(name.c_str(), "Data-frag") == 0) {
-			tftInfo->setMsgCategory(DATA_FLOW);
-			tftInfo->setQfi(qosHandler->getQfi(DATA_FLOW));
-			tftInfo->setRadioBearerId(qosHandler->getRadioBearerId(tftInfo->getQfi()));
+		} else /*if (strcmp(name.c_str(), "Data") == 0 || strcmp(name.c_str(), "Data-frag") == 0) */{
+	        tftInfo->setMsgCategory(DATA_FLOW);
+	        tftInfo->setQfi(qosHandler->getQfi(DATA_FLOW));
+	        tftInfo->setRadioBearerId(qosHandler->getRadioBearerId(tftInfo->getQfi()));
 	    }
 
 		if (getSystemModule()->par("v2vCooperativeLaneMerge").boolValue()) {

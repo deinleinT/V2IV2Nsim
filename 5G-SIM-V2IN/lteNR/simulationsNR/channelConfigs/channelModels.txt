@@ -1,5 +1,5 @@
 //contains all 5G Channel Models
-//to use a specifice channel model, copy the corresponding parameters 
+//to use a specific channel model, copy the corresponding parameters 
 //into the omnetpp.ini
 
 INDOOR_HOTSPOT_EMMB: InH_A 

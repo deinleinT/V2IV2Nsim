@@ -126,7 +126,7 @@ void NRsdap::setTrafficInformation(cPacket* pkt, FlowControlInfo* lteInfo) {
         lteInfo->setQfi(qosHandler->getQfi(VOD));
         lteInfo->setApplication(VOD);
         lteInfo->setRadioBearerId(qosHandler->getRadioBearerId(lteInfo->getQfi()));
-    } else if (strcmp(pkt->getName(), "Data") == 0 || strcmp(pkt->getName(), "Data-frag") == 0) {
+    } else /*if (strcmp(pkt->getName(), "Data") == 0 || strcmp(pkt->getName(), "Data-frag") == 0) */{
         lteInfo->setQfi(qosHandler->getQfi(DATA_FLOW));
         lteInfo->setApplication(DATA_FLOW);
         lteInfo->setRadioBearerId(qosHandler->getRadioBearerId(lteInfo->getQfi()));
