@@ -1,6 +1,6 @@
 # 5G-Sim-V2I/N
 Open Source 5G V2I / V2N Simulation OMNeT++-framework. 
-We tested the framework with Linux Mint 18.3, 19.3, Ubuntu 18.04 and 20.04. We could also successfully test the framework on Windows 10. For our tests we used OMNeT++ version 5.6.2.
+We tested the framework with Linux Mint 18.3, 19.3, Ubuntu 18.04 and 20.04 (we use gcc/g++ in version 7.5 for compiling). We could also successfully test the framework on Windows 10. For our tests we used OMNeT++ version 5.6.2.
 
 ### Prerequisites
 
@@ -31,6 +31,13 @@ We tested the framework with Linux Mint 18.3, 19.3, Ubuntu 18.04 and 20.04. We c
 ## Authors
 
 * **Thomas Deinlein** - https://github.com/deinleinT
+
+## Citation
+
+If you use this framework, please cite it as follows:
+
+*T. Deinlein, R. German, A. Djanatliev, “5G-SIM-V2I/N: Towards a simulation framework for the evaluation of 5G V2I/N Use Cases“, in 2020 European Conference on Networks and Communications (EuCNC): Wireless, Optical and Satellite Networks (WOS) (EuCNC2020 - WOS), Dubrovnik, Croatia, 2020.*
+
 
 ## License
 
