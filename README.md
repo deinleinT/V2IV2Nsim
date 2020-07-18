@@ -38,7 +38,7 @@ We tested the framework with Linux Mint 18.3, 19.3, Ubuntu 18.04 and 20.04 (we u
 ## Authors
 
 * **Thomas Deinlein** - https://github.com/deinleinT    thomas.deinlein@fau.de
-* Please contact us via email, if you are have any questions.
+* Please contact us via email, if you have any questions.
 
 ## Citation
 
