@@ -292,7 +292,7 @@ void LtePhyUeD2D::handleUpperMessage(cMessage* msg)
     // initialize frame fields
 
     frame->setSchedulingPriority(airFramePriority_);
-    frame->setDuration(TTI);
+    frame->setDuration(getBinder()->getTTI());
     // set current position
     lteInfo->setCoord(getRadioPosition());
 
@@ -497,7 +497,7 @@ void LtePhyUeD2D::sendFeedback(LteFeedbackDoubleVector fbDl, LteFeedbackDoubleVe
     frame->encapsulate(check_and_cast<cPacket*>(fbPkt));
     uinfo->feedbackReq = req;
     uinfo->setDirection(UL);
-    simtime_t signalLength = TTI;
+    simtime_t signalLength = getBinder()->getTTI();
     uinfo->setTxPower(txPower_);
     uinfo->setD2dTxPower(d2dTxPower_);
     // initialize frame fields

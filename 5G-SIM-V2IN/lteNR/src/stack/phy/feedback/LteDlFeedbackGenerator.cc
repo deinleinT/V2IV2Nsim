@@ -34,8 +34,8 @@ void LteDlFeedbackGenerator::initialize(int stage)
     if (stage == 0)
     {
         // Read NED parameters
-        fbPeriod_ = (simtime_t)(int(par("fbPeriod")) * TTI);// TTI -> seconds
-        fbDelay_ = (simtime_t)(int(par("fbDelay")) * TTI);// TTI -> seconds
+        fbPeriod_ = (simtime_t)(int(par("fbPeriod")) * 0.001);
+        fbDelay_ = (simtime_t)(int(par("fbDelay")) * 0.001);//
         if (fbPeriod_ <= fbDelay_)
         {
             error("Feedback Period MUST be greater than Feedback Delay");

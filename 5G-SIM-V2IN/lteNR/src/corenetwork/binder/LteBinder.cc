@@ -128,6 +128,7 @@ void LteBinder::initialize(int stage)
     if (stage == inet::INITSTAGE_LOCAL)
     {
         numBands_ = par("numBands");
+        numerology = par("numerology").intValue();
     }
 }
 

@@ -298,7 +298,7 @@ unsigned int calcTBS(MacNodeId nodeId, unsigned int numPRB, unsigned short mcsIn
     //Step 1: --> 12
     const unsigned short numSC = check_and_cast<NRCellInfo*>(getCellInfo(nodeId))->getRbyDl();
 
-    //--> nSym is the number of symbols per SC and 1ms --> if numerology is 15 --> 14, if numerology is 30 --> 28, if numerology is 60 --> 56
+    //--> nSym is the number of symbols per SC and --> 14
     const unsigned short nSym = check_and_cast<NRCellInfo*>(getCellInfo(nodeId))->getDlSymbolsOneMS();//slot symbols
     //
 

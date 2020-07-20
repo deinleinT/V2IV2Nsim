@@ -227,10 +227,14 @@ void LtePf::prepareSchedule() //
 			if (!active) {
 				//EV << NOW << "LtePf::execSchedule NOT ACTIVE" << endl;
 				activeConnectionTempSet_.erase(current.x_);
+				//std::set<std::pair<unsigned int, unsigned int>> temp;
 				for (auto var : qfiNodeCidSizeMap) {
-					if (var.second.first == current.x_)
+					if (var.second.first == current.x_) {
+						//temp.insert(var.first);
 						qfiNodeCidSizeMap.erase(var.first);
+					}
 				}
+
 			}
 		}
 
@@ -357,7 +361,7 @@ void LtePf::prepareSchedule() //
 			if (!active || !eligible) {
 				score.pop();
 
-				if (!eligible){
+				if (!eligible) {
 					//EV << NOW << "LtePf::execSchedule NOT ELIGIBLE " << endl;
 				}
 			}

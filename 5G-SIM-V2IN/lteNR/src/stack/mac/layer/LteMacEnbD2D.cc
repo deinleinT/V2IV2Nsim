@@ -412,8 +412,8 @@ void LteMacEnbD2D::sendModeSwitchNotification(MacNodeId srcId, MacNodeId dstId, 
     D2DModeSwitchNotification* switchPktRx_local = switchPktRx->dup();
     switchPktTx_local->setControlInfo(uinfoTx->dup());
     switchPktRx_local->setControlInfo(uinfoRx->dup());
-    scheduleAt(NOW+TTI, switchPktTx_local);
-    scheduleAt(NOW+TTI, switchPktRx_local);
+    scheduleAt(NOW+getBinder()->getTTI(), switchPktTx_local);
+    scheduleAt(NOW+getBinder()->getTTI(), switchPktRx_local);
 }
 
 void LteMacEnbD2D::macHandleD2DModeSwitch(cPacket* pkt)

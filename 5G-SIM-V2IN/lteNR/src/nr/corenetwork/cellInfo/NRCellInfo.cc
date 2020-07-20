@@ -31,21 +31,10 @@ Define_Module(NRCellInfo);
 void NRCellInfo::initialize() {
     //NRCellInfo::initialize();
 
-    int numerology = par("numerology").intValue();
-    if (numerology == 15) {
-        //in 5g 1 Slot == 1 ms, in LTE 1 Slot == 0.5 ms, in 5G 1 Slot consists always of 14 Symbols!
-        //7 symbols per 0.5ms --> also applied in 5G
-        //slot in Simulte is 0.5ms
-        rbxDl_ = 7;
-        rbxUl_ = 7;
-    } else if (numerology == 30) {
-        //1 Slot is 0.5ms
+    int numerology = getBinder()->getNumerology();
+    if (numerology == 15 || numerology == 30 || numerology == 60) {
         rbxDl_ = 14;
         rbxUl_ = 14;
-    } else if (numerology == 60) {
-        //1 Slot is 0.25ms
-        rbxDl_ = 28;
-        rbxUl_ = 28;
     } else
         throw cRuntimeError(
                 "Unknown numerology of %d, possible values are 15, 30 or 60");
@@ -62,8 +51,8 @@ void NRCellInfo::initialize() {
     numRbUl_ = par("numRbUl");
     rbyDl_ = par("rbyDl");
     rbyUl_ = par("rbyUl");
-    rbxDl_ = par("rbxDl");
-    rbxUl_ = par("rbxUl");
+//    rbxDl_ = par("rbxDl");
+//    rbxUl_ = par("rbxUl");
     rbPilotDl_ = par("rbPilotDl");
     rbPilotUl_ = par("rbPilotUl");
     signalDl_ = par("signalDl");
@@ -102,34 +91,11 @@ void NRCellInfo::initialize() {
 void NRCellInfo::calculateMCSScale(double *mcsUl, double *mcsDl) {
     // RBsubcarriers * (TTISymbols - SignallingSymbols) - pilotREs
 
-    int numerology = par("numerology").intValue();
     int ulRbSubcarriers = par("rbyUl");
     int dlRbSubCarriers = par("rbyDl");
 
-    int ulRbSymbols;
-    int dlRbSymbols;
-
-    if (numerology == 15) {
-        //in 5g 1 Slot == 1 ms, in LTE 1 Slot == 0.5 ms, in 5G 1 Slot consists always of 14 Symbols!
-        //7 symbols per 0.5ms --> also applied in 5G
-        //slot in Simulte is 0.5ms, TTI is 1
-        dlRbSymbols = 7;
-        ulRbSymbols = 7;
-    } else if (numerology == 30) {
-        //1 Slot is 0.5ms
-        dlRbSymbols = 14;
-        ulRbSymbols = 14;
-    } else if (numerology == 60) {
-        //1 Slot is 0.25ms
-        dlRbSymbols = 28;
-        ulRbSymbols = 28;
-    } else
-        throw cRuntimeError(
-                "Unknown numerology of %d, possible values are 15, 30 or 60");
-
-	//see 38.211 Table 4.2.2.1
-	ulRbSymbols *= 2; // slot --> RB
-	dlRbSymbols *= 2; // slot --> RB
+    int ulRbSymbols = rbxDl_;
+    int dlRbSymbols = rbxUl_;
 
     ulSymbolsOneMS = ulRbSymbols;
     dlSymbolsOneMS = dlRbSymbols;

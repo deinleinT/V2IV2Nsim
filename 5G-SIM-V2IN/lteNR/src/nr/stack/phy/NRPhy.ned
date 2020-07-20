@@ -44,6 +44,7 @@ simple NRPhyBase like NRPhy
         double microTxPower = default(30);
         string txDirection = default("OMNI");
         double txAngle = default(0);
+        double dasRssiThreshold = default(1.0e-5);
 //        bool exchangeBuffersOnHandover = default(false);
 
         bool dynamicCellAssociation = default(true);

@@ -27,6 +27,7 @@ simple LteBinder
         
         // number of logical bands
         int numBands = default(1);
+        int numerology = default(15);
          
         
         @display("i=block/cogwheel");

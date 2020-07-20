@@ -162,7 +162,7 @@ void LtePhyBase::handleUpperMessage(cMessage* msg)//XXX UE GNB SAME
         frame->setSchedulingPriority(-1);
     else
         frame->setSchedulingPriority(airFramePriority_);
-    frame->setDuration(TTI);
+    frame->setDuration(getBinder()->getTTI());
     // set current position
     lteInfo->setCoord(getRadioPosition());
 

@@ -26,6 +26,15 @@ void D2DModeSelectionBase::initialize(int stage)
 
         // get mode selection period
         modeSelectionPeriod_ = par("modeSelectionPeriod").doubleValue();
+        int TTI;
+		if (binder_->getNumerology() == 15) {
+			TTI = 0.001;
+		} else if (binder_->getNumerology() == 30) {
+			TTI = 0.0005;
+		} else if (binder_->getNumerology() == 60) {
+			TTI =  0.00025;
+		}else
+			throw cRuntimeError("Numerology not supported");
         if (modeSelectionPeriod_ < TTI)
             modeSelectionPeriod_ = TTI;
 

@@ -53,7 +53,7 @@ class ExtCell;
 #define ELEM(x) {x,#x}
 
 /// Transmission time interval
-#define TTI 0.001
+//#define TTI 0.001
 
 /// Current simulation time
 #define NOW simTime()
@@ -703,10 +703,10 @@ typedef std::list<MacControlElement*> MacControlElementsList;
 #define UE_RX_HARQ_PROCESSES 8
 
 /// time interval between two transmissions of the same pdu
-#define HARQ_TX_INTERVAL 4*TTI
+//#define HARQ_TX_INTERVAL 4*TTI
 
 /// time it takes to generate feedback for a pdu
-#define HARQ_FB_EVALUATION_INTERVAL 1*TTI
+#define HARQ_FB_EVALUATION_INTERVAL 1
 
 /// H-ARQ feedback (ACK, NACK)
 enum HarqAcknowledgment

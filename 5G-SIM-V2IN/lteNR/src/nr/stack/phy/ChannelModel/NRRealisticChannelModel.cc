@@ -1875,7 +1875,8 @@ bool NRRealisticChannelModel::computeUplinkInterference(MacNodeId eNbId, MacNode
 
 				// get tx power and attenuation from this UE
 				double txPwr = uePhy->getTxPwr(dir) - cableLoss_ + antennaGainUe_ + antennaGainEnB_;
-				double att = getAttenuation(ueId, UL, uePhy->getCoord());
+				LtePhyBase *gNodeBPhy = check_and_cast<LtePhyBase*>(getBinder()->getMacFromMacNodeId(cellId)->getParentModule()->getSubmodule("phy", 0));
+				double att = getAttenuationNR(ueId, UL, uePhy->getCoord(), gNodeBPhy->getCoord());
 				(*interference)[i] += dBmToLinear(txPwr - att); //(dBm-dB)=dBm
 
 				//EV << "\t band " << i << "/pwr[" << txPwr-att << "]-int[" << (*interference)[i] << "]" << endl;
@@ -1918,7 +1919,8 @@ bool NRRealisticChannelModel::computeUplinkInterference(MacNodeId eNbId, MacNode
 
 				// get tx power and attenuation from this UE
 				double txPwr = uePhy->getTxPwr(dir) - cableLoss_ + antennaGainUe_ + antennaGainEnB_;
-				double att = getAttenuation(ueId, UL, uePhy->getCoord());
+				LtePhyBase *gNodeBPhy = check_and_cast<LtePhyBase*>(getBinder()->getMacFromMacNodeId(cellId)->getParentModule()->getSubmodule("phy", 0));
+				double att = getAttenuationNR(ueId, UL, uePhy->getCoord(), gNodeBPhy->getCoord());
 				(*interference)[i] += dBmToLinear(txPwr - att); //(dBm-dB)=dBm
 
 				//EV << "\t band " << i << "/pwr[" << txPwr-att << "]-int[" << (*interference)[i] << "]" << endl;

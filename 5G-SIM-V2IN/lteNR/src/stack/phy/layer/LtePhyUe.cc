@@ -643,7 +643,7 @@ void LtePhyUe::sendFeedback(LteFeedbackDoubleVector fbDl,
     frame->encapsulate(check_and_cast<cPacket*>(fbPkt));
     uinfo->feedbackReq = req;
     uinfo->setDirection(UL);
-    simtime_t signalLength = TTI;
+    simtime_t signalLength = getBinder()->getTTI();
     uinfo->setTxPower(txPower_);
     // initialize frame fields
 

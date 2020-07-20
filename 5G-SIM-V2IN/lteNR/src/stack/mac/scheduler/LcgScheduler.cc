@@ -173,7 +173,7 @@ ScheduleListSizes& LcgScheduler::schedule(unsigned int availableBytes, Direction
                 if (lastExecutionTime_ > 0)
                 { // TODO desc->parameters_.startTime_) {
                     // PBR*(n*TTI) where n is the number of TTI from last update
-                    bucket += /* TODO desc->parameters_.minReservedRate_*/ 100.0 * TTI;
+                    bucket += /* TODO desc->parameters_.minReservedRate_*/ 100.0 * getBinder()->getTTI();
                 }
                 // otherwise, set the bucket value accordingly to the start time
                 else

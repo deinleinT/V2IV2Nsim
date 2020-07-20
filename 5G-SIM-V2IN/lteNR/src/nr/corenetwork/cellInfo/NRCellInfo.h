@@ -34,6 +34,7 @@ protected:
     int ulSymbolsOneMS;
     int dlSymbolsOneMS;
 
+
 protected:
     virtual void initialize();
     virtual void calculateMCSScale(double *mcsUl, double *mcsDl);
@@ -45,6 +46,7 @@ public:
     virtual int getDlSymbolsOneMS() {
         return dlSymbolsOneMS;
     }
+
     ;
 //    virtual void updateMCSScale(double *mcs, double signalRe, double signalCarriers = 0, Direction dir = DL);
 };

@@ -388,7 +388,8 @@ void LteMacBase::initialize(int stage)
         /* Start TTI tick */
         ttiTick_ = new cMessage("ttiTick_");
         ttiTick_->setSchedulingPriority(1);        // TTI TICK after other messages
-        scheduleAt(NOW + TTI, ttiTick_);
+//        scheduleAt(NOW + TTI, ttiTick_);
+        scheduleAt(NOW + getBinder()->getTTI(), ttiTick_);
         totalOverflowedBytes_ = 0;
         macBufferOverflowDl_ = registerSignal("macBufferOverFlowDl");
         macBufferOverflowUl_ = registerSignal("macBufferOverFlowUl");
@@ -417,7 +418,7 @@ void LteMacBase::handleMessage(cMessage* msg)
     if (msg->isSelfMessage())
     {
         handleSelfMessage();
-        scheduleAt(NOW + TTI, ttiTick_);
+        scheduleAt(NOW + getBinder()->getTTI(), ttiTick_);
         //std::cout << "LteMacBase::handleMessage end at " << simTime().dbl() << std::endl;
         return;
     }

@@ -56,7 +56,8 @@ void NRPhyUe::initialize(int stage) {
 		//handoverDelta_ = 0.00001;
 		handoverDelta_ = par("handoverDelta").doubleValue();
 
-		dasRssiThreshold_ = 1.0e-5;
+		dasRssiThreshold_ = par("dasRssiThreshold").doubleValue();
+
 		das_ = new DasFilter(this, binder_, NULL, dasRssiThreshold_);
 
 		servingCell_ = registerSignal("servingCell");
