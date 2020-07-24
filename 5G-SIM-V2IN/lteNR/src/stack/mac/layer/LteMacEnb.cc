@@ -710,7 +710,6 @@ void LteMacEnb::sendGrants(LteMacScheduleListWithSizes* scheduleList)
         uinfo->setLcid(lcid);
 
         grant->setControlInfo(uinfo);
-		grant->setRtxGrant(false);
 
         // get and set the user's UserTxParams
         const UserTxParams& ui = getAmc()->computeTxParams(nodeId, UL);

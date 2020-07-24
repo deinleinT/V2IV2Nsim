@@ -145,93 +145,160 @@ bool NRSchedulerGnbUl::rtxschedule() {
 	//std::cout << "NRSchedulerGnbUl::rtxschedule start at " << simTime().dbl() << std::endl;
 
 	// try to handle RAC requests first and abort rtx scheduling if no OFDMA space is left after
-//    if (racschedule())
-//        return true;
 
-	try {
-		//EV << NOW << " NRSchedulerGnbUl::rtxschedule --------------------::[ START RTX-SCHEDULE ]::--------------------" << endl;
-		//EV << NOW << " NRSchedulerGnbUl::rtxschedule eNodeB: " << mac_->getMacCellId() << endl;
-		//EV << NOW << " NRSchedulerGnbUl::rtxschedule Direction: " << (direction_ == UL ? "UL" : "DL") << endl;
-		harqRxBuffers_ = mac_->getHarqRxBuffers();
-		HarqRxBuffers::iterator it = harqRxBuffers_->begin(), et = harqRxBuffers_->end();
+	bool rtxNeeded = false;
+    try
+    {
+//        EV << NOW << " NRSchedulerGnbUl::rtxschedule --------------------::[ START RTX-SCHEDULE ]::--------------------" << endl;
+//        EV << NOW << " NRSchedulerGnbUl::rtxschedule eNodeB: " << mac_->getMacCellId() << endl;
+//        EV << NOW << " NRSchedulerGnbUl::rtxschedule Direction: " << (direction_ == UL ? "UL" : "DL") << endl;
 
-		for (; it != et; ++it) {
-			// get current nodeId
-			MacNodeId nodeId = it->first;
+        HarqRxBuffers::iterator it= harqRxBuffers_->begin() , et=harqRxBuffers_->end();
 
-			if (nodeId == 0) {
-				// UE has left the simulation - erase queue and continue
-				harqRxBuffers_->erase(nodeId);
-				continue;
-			}
-			OmnetId id = binder_->getOmnetId(nodeId);
-			if (id == 0) {
-				harqRxBuffers_->erase(nodeId);
-				continue;
-			}
+        for(; it != et; ++it)
+        {
+            // get current nodeId
+            MacNodeId nodeId = it->first;
 
-			// get current Harq Process for nodeId
-			unsigned char currentAcid = harqStatus_.at(nodeId);
+            if(nodeId == 0){
+                // UE has left the simulation - erase queue and continue
+                harqRxBuffers_->erase(nodeId);
+                continue;
+            }
+            OmnetId id = binder_->getOmnetId(nodeId);
+            if(id == 0){
+                harqRxBuffers_->erase(nodeId);
+                continue;
+            }
 
-			// check whether the UE has a H-ARQ process waiting for retransmission. If not, skip UE.
-			bool skip = true;
-			unsigned char acid = (currentAcid + 2) % (it->second->getProcesses());
-			LteHarqProcessRx *currentProcess = it->second->getProcess(acid);
-			std::vector<RxUnitStatus> procStatus = currentProcess->getProcessStatus();
-			std::vector<RxUnitStatus>::iterator pit = procStatus.begin();
-			for (; pit != procStatus.end(); ++pit) {
-				if (pit->second == RXHARQ_PDU_CORRUPTED) {
-					skip = false;
-					break;
-				}
-			}
-			if (skip) {
-				continue;
-			}
+            // get current Harq Process for nodeId
+            unsigned char currentAcid = harqStatus_.at(nodeId);
 
-			//EV << NOW << "NRSchedulerGnbUl::rtxschedule UE: " << nodeId << "Acid: " << (unsigned int)currentAcid << endl;
+            // check whether the UE has a H-ARQ process waiting for retransmission. If not, skip UE.
+            bool skip = true;
+            unsigned char acid = (currentAcid + 2) % (it->second->getProcesses());
+            LteHarqProcessRx* currentProcess = it->second->getProcess(acid);
+            std::vector<RxUnitStatus> procStatus = currentProcess->getProcessStatus();
+            std::vector<RxUnitStatus>::iterator pit = procStatus.begin();
+            for (; pit != procStatus.end(); ++pit )
+            {
+                if (pit->second == RXHARQ_PDU_CORRUPTED)
+                {
+                    skip = false;
 
-			// Get user transmission parameters
-			const UserTxParams &txParams = mac_->getAmc()->computeTxParams(nodeId, direction_);        // get the user info
+                    break;
+                }
+            }
+            if (skip)
+                continue;
 
-			unsigned int codewords = txParams.getLayers().size();        // get the number of available codewords
-			unsigned int allocatedBytes = 0;
+            EV << NOW << "LteSchedulerEnbUl::rtxschedule UE: " << nodeId << "Acid: " << (unsigned int)currentAcid << endl;
 
-			// TODO handle the codewords join case (sizeof(cw0+cw1) < currentTbs && currentLayers ==1)
+            // Get user transmission parameters
+            const UserTxParams& txParams = mac_->getAmc()->computeTxParams(nodeId, direction_);// get the user info
 
-			for (Codeword cw = 0; (cw < MAX_CODEWORDS) && (codewords > 0); ++cw) {
-				unsigned int rtxBytes = 0;
-				// FIXME PERFORMANCE: check for rtx status before calling rtxAcid
+            unsigned int codewords = txParams.getLayers().size();// get the number of available codewords
+            unsigned int allocatedBytes =0;
 
-				// perform a retransmission on available codewords for the selected acid
-				rtxBytes = schedulePerAcidRtx(nodeId, cw, currentAcid);
-				if (rtxBytes > 0) {
-					--codewords;
-					allocatedBytes += rtxBytes;
-				}
-			}
-			//EV << NOW << "NRSchedulerGnbUl::rtxschedule user " << nodeId << " allocated bytes : " << allocatedBytes << endl;
-		}
+            // TODO handle the codewords join case (sizeof(cw0+cw1) < currentTbs && currentLayers ==1)
 
-		int availableBlocks = allocator_->computeTotalRbs();
+            for(Codeword cw = 0; (cw < MAX_CODEWORDS) && (codewords>0); ++cw)
+            {
+                unsigned int rtxBytes=0;
+                // FIXME PERFORMANCE: check for rtx status before calling rtxAcid
 
-		//EV << NOW << " NRSchedulerGnbUl::rtxschedule residual OFDM Space: " << availableBlocks << endl;
+                // perform a retransmission on available codewords for the selected acid
+                rtxBytes=NRSchedulerGnbUl::schedulePerAcidRtx(nodeId, cw,currentAcid);
+                if (rtxBytes>0)
+                {
+                    --codewords;
+                    allocatedBytes+=rtxBytes;
+                    rtxNeeded = true;
+                }
+            }
+            EV << NOW << "LteSchedulerEnbUl::rtxschedule user " << nodeId << " allocated bytes : " << allocatedBytes << endl;
+        }
+        if(rtxNeeded)
+        	return true;
 
-		//EV << NOW << " NRSchedulerGnbUl::rtxschedule --------------------::[  END RTX-SCHEDULE  ]::--------------------" << endl;
+//        if (mac_->isD2DCapable())
+//        {
+//            // --- START Schedule D2D retransmissions --- //
+//            Direction dir = D2D;
+//            HarqBuffersMirrorD2D* harqBuffersMirrorD2D = check_and_cast<LteMacEnbD2D*>(mac_)->getHarqBuffersMirrorD2D();
+//            HarqBuffersMirrorD2D::iterator it_d2d = harqBuffersMirrorD2D->begin() , et_d2d=harqBuffersMirrorD2D->end();
+//            for(; it_d2d != et_d2d; ++it_d2d)
+//            {
+//
+//                // get current nodeIDs
+//                MacNodeId senderId = (it_d2d->first).first; // Transmitter
+//                MacNodeId destId = (it_d2d->first).second;  // Receiver
+//
+//                // get current Harq Process for nodeId
+//                unsigned char currentAcid = harqStatus_.at(senderId);
+//
+//                // check whether the UE has a H-ARQ process waiting for retransmission. If not, skip UE.
+//                bool skip = true;
+//                unsigned char acid = (currentAcid + 2) % (it_d2d->second->getProcesses());
+//                LteHarqProcessMirrorD2D* currentProcess = it_d2d->second->getProcess(acid);
+//                std::vector<TxHarqPduStatus> procStatus = currentProcess->getProcessStatus();
+//                std::vector<TxHarqPduStatus>::iterator pit = procStatus.begin();
+//                for (; pit != procStatus.end(); ++pit )
+//                {
+//                    if (*pit == TXHARQ_PDU_BUFFERED)
+//                    {
+//                        skip = false;
+//                        break;
+//                    }
+//                }
+//                if (skip)
+//                    continue;
+//
+//                EV << NOW << " LteSchedulerEnbUl::rtxschedule - D2D UE: " << senderId << " Acid: " << (unsigned int)currentAcid << endl;
+//
+//                // Get user transmission parameters
+//                const UserTxParams& txParams = mac_->getAmc()->computeTxParams(senderId, dir);// get the user info
+//
+//                unsigned int codewords = txParams.getLayers().size();// get the number of available codewords
+//                unsigned int allocatedBytes =0;
+//
+//                // TODO handle the codewords join case (size of(cw0+cw1) < currentTbs && currentLayers ==1)
+//
+//                for(Codeword cw = 0; (cw < MAX_CODEWORDS) && (codewords>0); ++cw)
+//                {
+//                    unsigned int rtxBytes=0;
+//                    // FIXME PERFORMANCE: check for rtx status before calling rtxAcid
+//
+//                    // perform a retransmission on available codewords for the selected acid
+//                    rtxBytes = LteSchedulerEnbUl::schedulePerAcidRtxD2D(destId, senderId, cw, currentAcid);
+//                    if (rtxBytes>0)
+//                    {
+//                        --codewords;
+//                        allocatedBytes+=rtxBytes;
+//                    }
+//                }
+//                EV << NOW << " LteSchedulerEnbUl::rtxschedule - D2D UE: " << senderId << " allocated bytes : " << allocatedBytes << endl;
+//
+//            }
+//            // --- END Schedule D2D retransmissions --- //
+//        }
 
-		//std::cout << "NRSchedulerGnbUl::rtxschedule end at " << simTime().dbl() << std::endl;
+        racschedule();
 
-		bool retValue = racschedule();
+        int availableBlocks = allocator_->computeTotalRbs();
 
-		return retValue;
+        //EV << NOW << " NRSchedulerGnbUl::rtxschedule residual OFDM Space: " << availableBlocks << endl;
 
-		//return (availableBlocks == 0);
-	} catch (std::exception &e) {
-		throw cRuntimeError("Exception in NRSchedulerGnbUl::rtxschedule(): %s", e.what());
-	}
-	//std::cout << "NRSchedulerGnbUl::rtxschedule end at " << simTime().dbl() << std::endl;
+        //EV << NOW << " NRSchedulerGnbUl::rtxschedule --------------------::[  END RTX-SCHEDULE  ]::--------------------" << endl;
 
-	return 0;
+        return (availableBlocks == 0);
+    }
+    catch(std::exception& e)
+    {
+        throw cRuntimeError("Exception in NRSchedulerEnbUl::rtxschedule(): %s", e.what());
+    }
+    return 0;
+
 }
 
 unsigned int NRSchedulerGnbUl::schedulePerAcidRtx(MacNodeId nodeId, Codeword cw, unsigned char acid, std::vector<BandLimit> *bandLim, Remote antenna, bool limitBl) {
@@ -378,7 +445,9 @@ unsigned int NRSchedulerGnbUl::schedulePerAcidRtx(MacNodeId nodeId, Codeword cw,
 			scheduleList_[scListId].first = cwAllocatedBlocks;
 			scheduleList_[scListId].second = cwAllocatedBytes;
 			bytes = cwAllocatedBytes;
-//			rtxNodes_.insert(scListId.first);
+
+			mac_->insertRtxMap(nodeId, currentAcid);
+
 			// mark codeword as used
 			if (allocatedCws_.find(nodeId) != allocatedCws_.end()) {
 				allocatedCws_.at(nodeId)++;}

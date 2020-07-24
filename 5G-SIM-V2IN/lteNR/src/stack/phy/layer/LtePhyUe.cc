@@ -91,7 +91,7 @@ void LtePhyUe::initialize(int stage)
         lastFeedback_ = 0;
 
         handoverStarter_ = new cMessage("handoverStarter");
-        handoverStarter_->setSchedulingPriority(-1);
+
         mac_ = check_and_cast<LteMacUe *>(getParentModule()-> // nic
         getSubmodule("mac"));
         rlcUm_ = check_and_cast<LteRlcUm *>(getParentModule()-> // nic
@@ -248,7 +248,7 @@ void LtePhyUe::handoverHandler(LteAirFrame* frame, UserControlInfo* lteInfo) {
             if (!handoverStarter_->isScheduled()) {
                 // all broadcast messages are scheduled at the very same time, a small delta
                 // guarantees the ones belonging to the same turn have been received
-                handoverStarter_->setSchedulingPriority(-1);
+
                 scheduleAt(simTime() + handoverDelta_, handoverStarter_);
             }
         }
@@ -291,7 +291,7 @@ void LtePhyUe::triggerHandover() {
     enbIp2lte->triggerHandoverSource(nodeId_,candidateMasterId_);
 
     handoverTrigger_ = new cMessage("handoverTrigger");
-    handoverTrigger_->setSchedulingPriority(-1);
+
     //handoverLatency_ = uniform(0.0,0.005);//--> set in ini-file
 
     if (masterId_ == candidateMasterId_) {

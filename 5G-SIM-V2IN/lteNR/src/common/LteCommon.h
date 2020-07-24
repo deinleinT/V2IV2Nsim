@@ -706,7 +706,7 @@ typedef std::list<MacControlElement*> MacControlElementsList;
 //#define HARQ_TX_INTERVAL 4*TTI
 
 /// time it takes to generate feedback for a pdu
-#define HARQ_FB_EVALUATION_INTERVAL 1
+#define HARQ_FB_EVALUATION_INTERVAL 3
 
 /// H-ARQ feedback (ACK, NACK)
 enum HarqAcknowledgment

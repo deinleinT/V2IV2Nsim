@@ -52,12 +52,12 @@ void NRMacGnb::initialize(int stage) {
 
 }
 
-void NRMacGnb::handleMessage(cMessage* msg) {
+void NRMacGnb::handleMessage(cMessage *msg) {
 
 	//std::cout << "NRMacGnbRealistic::handleMessage start at " << simTime().dbl() << std::endl;
 
 	if (strcmp(msg->getName(), "RRC") == 0) {
-		cGate* incoming = msg->getArrivalGate();
+		cGate *incoming = msg->getArrivalGate();
 		if (incoming == up_[IN]) {
 			//from pdcp to mac
 			send(msg, gate("lowerLayer$o"));
@@ -83,7 +83,7 @@ void NRMacGnb::handleMessage(cMessage* msg) {
 void NRMacGnb::fromPhy(cPacket *pkt) {
 	//std::cout << "NRMacGnbRealistic::fromPhy start at " << simTime().dbl() << std::endl;
 
-	UserControlInfo *userInfo = check_and_cast<UserControlInfo *>(pkt->getControlInfo());
+	UserControlInfo *userInfo = check_and_cast<UserControlInfo*>(pkt->getControlInfo());
 
 	if (userInfo->getFrameType() == DATAPKT) {
 
@@ -114,21 +114,21 @@ void NRMacGnb::fromPhy(cPacket *pkt) {
  * checks whether there are more than one SDU in the pkt
  * @param pkt
  */
-void NRMacGnb::macPduUnmake(cPacket* pkt) {
+void NRMacGnb::macPduUnmake(cPacket *pkt) {
 	//std::cout << "NRMacEnb::macPduUnmake start at " << simTime().dbl() << std::endl;
 
-	LteMacPdu* macPkt = check_and_cast<LteMacPdu*>(pkt);
+	LteMacPdu *macPkt = check_and_cast<LteMacPdu*>(pkt);
 	while (macPkt->hasSdu()) {
 		// Extract and send SDU
-		cPacket* upPkt = macPkt->popSdu();
+		cPacket *upPkt = macPkt->popSdu();
 		take(upPkt);
-		LteRlcUmDataPdu * rlc = check_and_cast<LteRlcUmDataPdu*>(upPkt);
+		LteRlcUmDataPdu *rlc = check_and_cast<LteRlcUmDataPdu*>(upPkt);
 
 		if (rlc->getRequest().size() > 0) {
 			while (rlc->getRequest().size() > 0) {
-				std::vector<LteRlcUmDataPdu *> tmp = rlc->getRequest();
-				LteRlcUmDataPdu * t = tmp.back()->dup();
-				FlowControlInfo* lteInfo = check_and_cast<FlowControlInfo*>(t->getControlInfo());
+				std::vector<LteRlcUmDataPdu*> tmp = rlc->getRequest();
+				LteRlcUmDataPdu *t = tmp.back()->dup();
+				FlowControlInfo *lteInfo = check_and_cast<FlowControlInfo*>(t->getControlInfo());
 				MacCid cid = lteInfo->getCid();
 				take(t);
 				if (connDescIn_.find(cid) == connDescIn_.end()) {
@@ -152,7 +152,7 @@ void NRMacGnb::macPduUnmake(cPacket* pkt) {
 			}
 		} else {
 			//EV << "NRMacGnb: pduUnmaker extracted SDU" << endl;
-			FlowControlInfo* lteInfo = check_and_cast<FlowControlInfo*>(upPkt->getControlInfo());
+			FlowControlInfo *lteInfo = check_and_cast<FlowControlInfo*>(upPkt->getControlInfo());
 			MacCid cid = lteInfo->getCid();
 			if (connDescIn_.find(cid) == connDescIn_.end()) {
 				FlowControlInfo toStore(*lteInfo);
@@ -176,8 +176,8 @@ void NRMacGnb::macPduUnmake(cPacket* pkt) {
 
 	while (macPkt->hasCe()) {
 
-		MacBsr* bsr = check_and_cast<MacBsr*>(macPkt->popCe());
-		UserControlInfo* lteInfo = check_and_cast<UserControlInfo*>(macPkt->getControlInfo());
+		MacBsr *bsr = check_and_cast<MacBsr*>(macPkt->popCe());
+		UserControlInfo *lteInfo = check_and_cast<UserControlInfo*>(macPkt->getControlInfo());
 		MacCid cid = lteInfo->getCid();
 		bufferizeBsr(bsr, cid);
 		delete bsr;
@@ -224,7 +224,7 @@ void NRMacGnb::macSduRequest() {
 				continue;
 
 			// send the request message to the upper layer
-			LteMacSduRequest* macSduRequest = new LteMacSduRequest("LteMacSduRequest");
+			LteMacSduRequest *macSduRequest = new LteMacSduRequest("LteMacSduRequest");
 			macSduRequest->setUeId(destId);
 			macSduRequest->setContainsFlag(false);
 			macSduRequest->setLcid(MacCidToLcid(destCid));
@@ -251,7 +251,7 @@ void NRMacGnb::macSduRequest() {
 
 		if (nodeCounter > 1) {                //several nodes
 
-			for (auto & node : nodeCids) {
+			for (auto &node : nodeCids) {
 
 				if (nodeCidCounts[node.first] == 1) { // several Nodes, but one cid for this node
 
@@ -259,7 +259,7 @@ void NRMacGnb::macSduRequest() {
 					MacNodeId destId = node.first;
 					Codeword cw;
 					unsigned int test;
-					for (auto & var : *scheduleListDl_) {
+					for (auto &var : *scheduleListDl_) {
 						if (var.first.first == destCid) {
 							cw = var.first.second;
 							test = var.second.second - MAC_HEADER;
@@ -281,7 +281,7 @@ void NRMacGnb::macSduRequest() {
 						continue;
 
 					// send the request message to the upper layer
-					LteMacSduRequest* macSduRequest = new LteMacSduRequest("LteMacSduRequest");
+					LteMacSduRequest *macSduRequest = new LteMacSduRequest("LteMacSduRequest");
 					macSduRequest->setUeId(destId);
 					macSduRequest->setContainsFlag(false);
 					macSduRequest->setLcid(MacCidToLcid(destCid));
@@ -295,15 +295,15 @@ void NRMacGnb::macSduRequest() {
 
 				MacCid newCid = idToMacCid(node.first, 0); // several cids
 				std::pair<MacCid, Codeword> schedulePair;
-				for (auto & var : *scheduleListDl_) {
-					for (auto & cid : node.second) {
+				for (auto &var : *scheduleListDl_) {
+					for (auto &cid : node.second) {
 						if (var.first.first == cid)
 							schedulePair = std::make_pair(newCid, var.first.second);
 					}
 				}
 				unsigned int allocatedBytes = 0;
 				unsigned int allocatedBytesTmp = 0;
-				for (auto & var : *scheduleListDl_) {
+				for (auto &var : *scheduleListDl_) {
 					if (MacCidToNodeId(var.first.first) == node.first)
 						allocatedBytes += var.second.second - MAC_HEADER;
 				}
@@ -312,24 +312,24 @@ void NRMacGnb::macSduRequest() {
 					continue;
 
 				allocatedBytesTmp = allocatedBytes;
-				LteMacSduRequest* macSduRequest = new LteMacSduRequest("LteMacSduRequest");
+				LteMacSduRequest *macSduRequest = new LteMacSduRequest("LteMacSduRequest");
 				macSduRequest->setContainsFlag(true);
 				macSduRequest->setCdi(newCid);
 				macSduRequest->setSduSize(allocatedBytes);
-				FlowControlInfo* lteInfo = new FlowControlInfo();
+				FlowControlInfo *lteInfo = new FlowControlInfo();
 				lteInfo->setRlcType(UM);
 				lteInfo->setContainsSeveralCids(true);
 				macSduRequest->setControlInfo(lteInfo);
 				macSduRequest->setByteLength(allocatedBytes);
 
-				for (auto & var : *scheduleListDl_) {
+				for (auto &var : *scheduleListDl_) {
 					MacCid destCid = var.first.first;
-					for (auto & cids : node.second) {
+					for (auto &cids : node.second) {
 						if (cids == destCid) {
 							if (allocatedBytesTmp <= RLC_HEADER_UM)
 								continue;
 							MacNodeId destId = MacCidToNodeId(destCid);
-							LteMacSduRequest* tmp = new LteMacSduRequest("LteMacSduRequest");
+							LteMacSduRequest *tmp = new LteMacSduRequest("LteMacSduRequest");
 							// send the request message to the upper layer
 							tmp->setUeId(destId);
 							tmp->setLcid(MacCidToLcid(destCid));
@@ -359,18 +359,18 @@ void NRMacGnb::macSduRequest() {
 			std::pair<MacCid, Codeword> schedulePair(newCid, it->first.second);
 			unsigned int allocatedBytes = 0;
 			unsigned int allocatedBytesTmp = 0;
-			for (auto & var : *scheduleListDl_) {
+			for (auto &var : *scheduleListDl_) {
 				allocatedBytes += var.second.second - MAC_HEADER;
 			}
 
 			if (allocatedBytes <= RLC_HEADER_UM || it->second.second <= RLC_HEADER_UM)
 				return;
 			allocatedBytesTmp = allocatedBytes;
-			LteMacSduRequest* macSduRequest = new LteMacSduRequest("LteMacSduRequest");
+			LteMacSduRequest *macSduRequest = new LteMacSduRequest("LteMacSduRequest");
 			macSduRequest->setContainsFlag(true);
 			macSduRequest->setCdi(newCid);
 			macSduRequest->setSduSize(allocatedBytes);
-			FlowControlInfo* lteInfo = new FlowControlInfo();
+			FlowControlInfo *lteInfo = new FlowControlInfo();
 			lteInfo->setRlcType(UM);
 			lteInfo->setContainsSeveralCids(true);
 			macSduRequest->setControlInfo(lteInfo);
@@ -382,7 +382,7 @@ void NRMacGnb::macSduRequest() {
 					continue;
 				MacCid destCid = it->first.first;
 				MacNodeId destId = MacCidToNodeId(destCid);
-				LteMacSduRequest* tmp = new LteMacSduRequest("LteMacSduRequest");
+				LteMacSduRequest *tmp = new LteMacSduRequest("LteMacSduRequest");
 				// send the request message to the upper layer
 				tmp->setUeId(destId);
 				tmp->setLcid(MacCidToLcid(destCid));
@@ -422,8 +422,8 @@ void NRMacGnb::macPduMake(MacCid cid) {
 	//  Build a MAC pdu for each scheduled user on each codeword
 	LteMacScheduleListWithSizes::const_iterator it;
 	for (it = scheduleListDl_->begin(); it != scheduleListDl_->end(); it++) {
-		LteMacPdu* macPkt;
-		cPacket* pkt;
+		LteMacPdu *macPkt;
+		cPacket *pkt;
 		MacCid destCid = it->first.first;
 
 		if (destCid != cid)
@@ -452,14 +452,14 @@ void NRMacGnb::macPduMake(MacCid cid) {
 
 			// No packets for this user on this codeword
 			if (pit == macPduList_.end()) {
-				UserControlInfo* uinfo = new UserControlInfo();
+				UserControlInfo *uinfo = new UserControlInfo();
 				uinfo->setSourceId(getMacNodeId());
 				uinfo->setDestId(destId);
 				uinfo->setDirection(DL);
 
-				const UserTxParams& txInfo = amc_->computeTxParams(destId, DL);
+				const UserTxParams &txInfo = amc_->computeTxParams(destId, DL);
 
-				UserTxParams* txPara = new UserTxParams(txInfo);
+				UserTxParams *txPara = new UserTxParams(txInfo);
 
 				uinfo->setUserTxParams(txPara);
 				txmode = txInfo.readTxMode();
@@ -509,19 +509,19 @@ void NRMacGnb::macPduMake(MacCid cid) {
 		MacNodeId destId = MacCidToNodeId(cid);
 		Codeword cw = pit->first.second;
 
-		LteHarqBufferTx* txBuf;
+		LteHarqBufferTx *txBuf;
 		HarqTxBuffers::iterator hit = harqTxBuffers_.find(destId);
 		if (hit != harqTxBuffers_.end()) {
 			txBuf = hit->second;
 		} else {
 			// FIXME: possible memory leak
-			LteHarqBufferTx* hb = new LteHarqBufferTx(ENB_TX_HARQ_PROCESSES, this, (LteMacBase*) getMacUe(destId));
+			LteHarqBufferTx *hb = new LteHarqBufferTx(ENB_TX_HARQ_PROCESSES, this, (LteMacBase*) getMacUe(destId));
 			harqTxBuffers_[destId] = hb;
 			txBuf = hb;
 		}
 		UnitList txList = (txBuf->firstAvailable());
 
-		LteMacPdu* macPkt = pit->second;
+		LteMacPdu *macPkt = pit->second;
 		//EV << "LteMacBase: pduMaker created PDU: " << macPkt->info() << endl;
 
 		// pdu transmission here (if any)
@@ -539,7 +539,7 @@ void NRMacGnb::macPduMake(MacCid cid) {
 	//std::cout << "NRMacGnb::macPduMake end at " << simTime().dbl() << std::endl;
 }
 
-bool NRMacGnb::bufferizePacket(cPacket* pkt) {
+bool NRMacGnb::bufferizePacket(cPacket *pkt) {
 	//std::cout << "NRMacGnb::bufferizePacket start at " << simTime().dbl() << std::endl;
 
 	if (pkt->getByteLength() == 0)
@@ -547,7 +547,7 @@ bool NRMacGnb::bufferizePacket(cPacket* pkt) {
 
 	pkt->setTimestamp();        // Add timestamp with current time to packet
 
-	FlowControlInfo* lteInfo = check_and_cast<FlowControlInfo*>(pkt->getControlInfo());
+	FlowControlInfo *lteInfo = check_and_cast<FlowControlInfo*>(pkt->getControlInfo());
 
 	// obtain the cid from the packet informations
 	MacCid cid = ctrlInfoToMacCid(lteInfo);
@@ -561,7 +561,7 @@ bool NRMacGnb::bufferizePacket(cPacket* pkt) {
 
 		LteMacBufferMap::iterator it = macBuffers_.find(cid);
 		if (it == macBuffers_.end()) {
-			LteMacBuffer* vqueue = new LteMacBuffer();
+			LteMacBuffer *vqueue = new LteMacBuffer();
 			vqueue->pushBack(vpkt);
 			macBuffers_[cid] = vqueue;
 
@@ -603,7 +603,7 @@ bool NRMacGnb::bufferizePacket(cPacket* pkt) {
 	LteMacBuffers::iterator it = mbuf_.find(cid);
 	if (it == mbuf_.end()) {
 		// Queue not found for this cid: create
-		LteMacQueue* queue = new LteMacQueue(queueSize_);
+		LteMacQueue *queue = new LteMacQueue(queueSize_);
 
 		queue->pushBack(pkt);
 
@@ -612,7 +612,7 @@ bool NRMacGnb::bufferizePacket(cPacket* pkt) {
 		//EV << "LteMacBuffers : Using new buffer on node: " << MacCidToNodeId(cid) << " for Lcid: " << MacCidToLcid(cid) << ", Space left in the Queue: " << queue->getQueueSize() - queue->getByteLength() << "\n";
 	} else {
 		// Found
-		LteMacQueue* queue = it->second;
+		LteMacQueue *queue = it->second;
 		if (!queue->pushBack(pkt)) {
 			totalOverflowedBytes_ += pkt->getByteLength();
 			double sample = (double) totalOverflowedBytes_ / (NOW - getSimulation()->getWarmupPeriod());
@@ -635,10 +635,10 @@ bool NRMacGnb::bufferizePacket(cPacket* pkt) {
 	return false; // do not need to notify the activation of the connection (already done when received newDataPkt)
 }
 
-void NRMacGnb::handleUpperMessage(cPacket* pkt) {
+void NRMacGnb::handleUpperMessage(cPacket *pkt) {
 	//std::cout << "NRMacGnb::handleUpperMessage start at " << simTime().dbl() << std::endl;
 
-	FlowControlInfo* lteInfo = check_and_cast<FlowControlInfo*>(pkt->getControlInfo());
+	FlowControlInfo *lteInfo = check_and_cast<FlowControlInfo*>(pkt->getControlInfo());
 	MacCid cid = idToMacCid(lteInfo->getDestId(), lteInfo->getLcid());
 
 	if (bufferizePacket(pkt)) {
@@ -701,7 +701,7 @@ void NRMacGnb::handleSelfMessage() {
 
 	enbSchedulerUl_->updateHarqDescs();
 
-	LteMacScheduleListWithSizes* scheduleListUl = enbSchedulerUl_->schedule();
+	LteMacScheduleListWithSizes *scheduleListUl = enbSchedulerUl_->schedule();
 	// send uplink grants to PHY layer
 	if (!scheduleListUl->empty())
 		sendGrants(scheduleListUl);
@@ -724,19 +724,19 @@ void NRMacGnb::handleSelfMessage() {
 	scheduleListDl_ = enbSchedulerDl_->schedule();        //--> ok
 
 	// requests SDUs to the RLC layer
-    if(!scheduleListDl_->empty())
-    	macSduRequest();
+	if (!scheduleListDl_->empty())
+		macSduRequest();
 //    }
 	//EV << "========================================== END DOWNLINK ============================================" << endl;
 
 	// purge from corrupted PDUs all Rx H-HARQ buffers for all users
-	for (; hit != het; ++hit){
+	for (; hit != het; ++hit) {
 		hit->second->purgeCorruptedPdus();
 	}
 
 	// Message that triggers flushing of Tx H-ARQ buffers for all users
 	// This way, flushing is performed after the (possible) reception of new MAC PDUs
-	cMessage* flushHarqMsg = new cMessage("flushHarqMsg");
+	cMessage *flushHarqMsg = new cMessage("flushHarqMsg");
 	flushHarqMsg->setSchedulingPriority(1);        // after other messages
 	scheduleAt(NOW, flushHarqMsg);
 
@@ -745,122 +745,120 @@ void NRMacGnb::handleSelfMessage() {
 	//std::cout << "NRMacGnb::handleSelfMessage end at " << simTime().dbl() << std::endl;
 }
 
-void NRMacGnb::sendGrants(LteMacScheduleListWithSizes* scheduleList)
-{
-    //std::cout << "LteMacEnb::sendGrants start at " << simTime().dbl() << std::endl;
+void NRMacGnb::sendGrants(LteMacScheduleListWithSizes *scheduleList) {
+	//std::cout << "LteMacEnb::sendGrants start at " << simTime().dbl() << std::endl;
 
-    //EV << NOW << "LteMacEnb::sendGrants " << endl;
+	//EV << NOW << "LteMacEnb::sendGrants " << endl;
 
-    while (!scheduleList->empty())
-    {
-        LteMacScheduleListWithSizes::iterator it, ot;
-        it = scheduleList->begin();
+	while (!scheduleList->empty()) {
+		LteMacScheduleListWithSizes::iterator it, ot;
+		it = scheduleList->begin();
 
-        Codeword cw = it->first.second;
-        Codeword otherCw = MAX_CODEWORDS - cw;
+		Codeword cw = it->first.second;
+		Codeword otherCw = MAX_CODEWORDS - cw;
 
-        MacCid cid = it->first.first;
-        LogicalCid lcid = MacCidToLcid(cid);
-        MacNodeId nodeId = MacCidToNodeId(cid);
+		MacCid cid = it->first.first;
+		LogicalCid lcid = MacCidToLcid(cid);
+		MacNodeId nodeId = MacCidToNodeId(cid);
 
-        unsigned int granted = it->second.first;//blocks
-        unsigned int codewords = 0;
+		unsigned int granted = it->second.first;        //blocks
+		unsigned int codewords = 0;
 
-        // removing visited element from scheduleList.
-        scheduleList->erase(it);
+		// removing visited element from scheduleList.
+		scheduleList->erase(it);
 
-        if (granted > 0)
-        {
-            // increment number of allocated Cw
-            ++codewords;
-        }
-        else
-        {
-            // active cw becomes the "other one"
-            cw = otherCw;
-        }
+		if (granted > 0) {
+			// increment number of allocated Cw
+			++codewords;
+		} else {
+			// active cw becomes the "other one"
+			cw = otherCw;
+		}
 
-        std::pair<unsigned int, Codeword> otherPair(nodeId, otherCw);
+		std::pair<unsigned int, Codeword> otherPair(nodeId, otherCw);
 
-        if ((ot = (scheduleList->find(otherPair))) != (scheduleList->end()))
-        {
-            // increment number of allocated Cw
-            ++codewords;
+		if ((ot = (scheduleList->find(otherPair))) != (scheduleList->end())) {
+			// increment number of allocated Cw
+			++codewords;
 
-            // removing visited element from scheduleList.
-            scheduleList->erase(ot);
-        }
+			// removing visited element from scheduleList.
+			scheduleList->erase(ot);
+		}
 
-        if (granted == 0)
-        	continue; // avoiding transmission of 0 grant (0 grant should not be created)
+		if (granted == 0)
+			continue; // avoiding transmission of 0 grant (0 grant should not be created)
 
-        //EV << NOW << " LteMacEnb::sendGrants Node[" << getMacNodeId() << "] - " << granted << " blocks to grant for user " << nodeId << " on " << codewords << " codewords. CW[" << cw << "\\" << otherCw << "]" << endl;
+		//EV << NOW << " LteMacEnb::sendGrants Node[" << getMacNodeId() << "] - " << granted << " blocks to grant for user " << nodeId << " on " << codewords << " codewords. CW[" << cw << "\\" << otherCw << "]" << endl;
 
-        // TODO Grant is set aperiodic as default
-        LteSchedulingGrant* grant = new LteSchedulingGrant("LteGrant");
+		// TODO Grant is set aperiodic as default
+		LteSchedulingGrant *grant = new LteSchedulingGrant("LteGrant");
 
-        grant->setDirection(UL);
+		grant->setDirection(UL);
 
-        grant->setCodewords(codewords);
+		grant->setCodewords(codewords);
 
-        // set total granted blocks
-        grant->setTotalGrantedBlocks(granted);
+		// set total granted blocks
+		grant->setTotalGrantedBlocks(granted);
 
-        UserControlInfo* uinfo = new UserControlInfo();
-        uinfo->setSourceId(getMacNodeId());
-        uinfo->setDestId(nodeId);
-        uinfo->setFrameType(GRANTPKT);
-        uinfo->setCid(cid);
-        uinfo->setLcid(lcid);
+		UserControlInfo *uinfo = new UserControlInfo();
+		uinfo->setSourceId(getMacNodeId());
+		uinfo->setDestId(nodeId);
+		uinfo->setFrameType(GRANTPKT);
+		uinfo->setCid(cid);
+		uinfo->setLcid(lcid);
 
-        grant->setControlInfo(uinfo);
-		grant->setRtxGrant(false);
+		grant->setControlInfo(uinfo);
+		if (rtxMap[nodeId].size() == 1) {
+			//one rtx scheduled
+			auto temp = rtxMap[nodeId].begin();
+			grant->setProcessId((unsigned int)*temp);
+			grant->setNewTx(false);
+			rtxMap[nodeId].erase(temp);rtxMap.erase(nodeId);
+		} else if (rtxMap[nodeId].size() == 0) {
+			//TODO
+			grant->setNewTx(true);
+		}
 
-        // get and set the user's UserTxParams
-        const UserTxParams& ui = getAmc()->computeTxParams(nodeId, UL);
-        UserTxParams* txPara = new UserTxParams(ui);
-        grant->setUserTxParams(txPara);
+		// get and set the user's UserTxParams
+		const UserTxParams &ui = getAmc()->computeTxParams(nodeId, UL);
+		UserTxParams *txPara = new UserTxParams(ui);
+		grant->setUserTxParams(txPara);
 
-        // acquiring remote antennas set from user info
-        const std::set<Remote>& antennas = ui.readAntennaSet();
-        std::set<Remote>::const_iterator antenna_it, antenna_et = antennas.end();
-        const unsigned int logicalBands = cellInfo_->getNumBands();
+		// acquiring remote antennas set from user info
+		const std::set<Remote> &antennas = ui.readAntennaSet();
+		std::set<Remote>::const_iterator antenna_it, antenna_et = antennas.end();
+		const unsigned int logicalBands = cellInfo_->getNumBands();
 
-        //  HANDLE MULTICW
-        for (; cw < codewords; ++cw)
-        {
-            unsigned int grantedBytes = 0;
+		//  HANDLE MULTICW
+		for (; cw < codewords; ++cw) {
+			unsigned int grantedBytes = 0;
 
-            for (Band b = 0; b < logicalBands; ++b)
-            {
-                unsigned int bandAllocatedBlocks = 0;
+			for (Band b = 0; b < logicalBands; ++b) {
+				unsigned int bandAllocatedBlocks = 0;
 
-                for (antenna_it = antennas.begin(); antenna_it != antenna_et; ++antenna_it)
-                {
-                    bandAllocatedBlocks += enbSchedulerUl_->readPerUeAllocatedBlocks(nodeId,
-                        *antenna_it, b);
-                }
+				for (antenna_it = antennas.begin(); antenna_it != antenna_et; ++antenna_it) {
+					bandAllocatedBlocks += enbSchedulerUl_->readPerUeAllocatedBlocks(nodeId, *antenna_it, b);
+				}
 
-                grantedBytes += amc_->computeBytesOnNRbs(nodeId, b, cw,
-                    bandAllocatedBlocks, UL);
-            }
+				grantedBytes += amc_->computeBytesOnNRbs(nodeId, b, cw, bandAllocatedBlocks, UL);
+			}
 
-            grant->setGrantedCwBytes(cw, grantedBytes);
-            //EV << NOW << " LteMacEnb::sendGrants - granting " << grantedBytes << " on cw " << cw << endl;
-        }
+			grant->setGrantedCwBytes(cw, grantedBytes);
+			//EV << NOW << " LteMacEnb::sendGrants - granting " << grantedBytes << " on cw " << cw << endl;
+		}
 
-        RbMap map;
+		RbMap map;
 
-        enbSchedulerUl_->readRbOccupation(nodeId, map);
+		enbSchedulerUl_->readRbOccupation(nodeId, map);
 
-        grant->setGrantedBlocks(map);
+		grant->setGrantedBlocks(map);
 
-        // send grant to PHY layer
-        sendLowerPackets(grant);
-    }
+		// send grant to PHY layer
+		sendLowerPackets(grant);
+	}
 //    getSchedulerEnbUl()->clearRtxNodes();
 
-    //std::cout << "LteMacEnb::sendGrants end at " << simTime().dbl() << std::endl;
+	//std::cout << "LteMacEnb::sendGrants end at " << simTime().dbl() << std::endl;
 }
 
 void NRMacGnb::flushHarqBuffers() {

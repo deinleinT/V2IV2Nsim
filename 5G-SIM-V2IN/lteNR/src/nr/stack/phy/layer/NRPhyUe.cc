@@ -96,7 +96,7 @@ void NRPhyUe::initialize(int stage) {
 		lastFeedback_ = 0;
 
 		handoverStarter_ = new cMessage("handoverStarter");
-		handoverStarter_->setSchedulingPriority(0);
+
 		mac_ = check_and_cast<LteMacUe *>(getParentModule()-> // nic
 		getSubmodule("mac"));
 		rlcUm_ = check_and_cast<LteRlcUm *>(getParentModule()-> // nic
@@ -220,8 +220,8 @@ void NRPhyUe::handleMessage(cMessage *msg) {
 }
 
 void NRPhyUe::finish() {
-	LtePhyUe::finish();
 	recordScalar("#errorCounts", errorCount);
+	LtePhyUe::finish();
 }
 
 void NRPhyUe::recordBler(const double & blerVal) {
@@ -259,7 +259,6 @@ void NRPhyUe::deleteOldBuffers(MacNodeId masterId) {
 	masterMac->deleteQueues(nodeId_);
 	//qosHandler GNB
 	masterMac->deleteNodeFromQosHandler(nodeId_);
-	masterMac->deleteOnHandoverRtxSignalised(nodeId_);
 
 	// delete queues for master at this ue
 	mac_->deleteQueues(masterId_);
@@ -269,7 +268,6 @@ void NRPhyUe::deleteOldBuffers(MacNodeId masterId) {
 	//added, Thomas Deinlein
 	NRMacUe * macReal = check_and_cast<NRMacUe*>(mac_);
 	macReal->resetScheduleList();
-	macReal->getRtxSignalised() = false;
 
 	/////////////////////////////////////////////////////////////////////////////////
 

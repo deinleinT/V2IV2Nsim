@@ -31,9 +31,6 @@ LteHarqProcessTx::LteHarqProcessTx(unsigned char acid, unsigned int numUnits, un
 std::vector<UnitStatus>
 LteHarqProcessTx::getProcessStatus()
 {
-
-    //std::cout << "LteHarqProcessTx::getProcessStatus start at " << simTime().dbl() << std::endl;
-
     std::vector<UnitStatus> ret(numHarqUnits_);
 
     for (unsigned int j = 0; j < numHarqUnits_; j++)
@@ -46,49 +43,33 @@ LteHarqProcessTx::getProcessStatus()
 
 void LteHarqProcessTx::insertPdu(LteMacPdu *pdu, Codeword cw)
 {
-    //std::cout << "LteHarqProcessTx::insertPdu start at " << simTime().dbl() << std::endl;
-
     numEmptyUnits_--;
     numSelected_++;
     (*units_)[cw]->insertPdu(pdu);
     dropped_ = false;
-
-    //std::cout << "LteHarqProcessTx::insertPdu end at " << simTime().dbl() << std::endl;
 }
 
 void LteHarqProcessTx::markSelected(Codeword cw)
 {
-    //std::cout << "LteHarqProcessTx::markSelected start at " << simTime().dbl() << std::endl;
-
     if (numSelected_ == numHarqUnits_)
         throw cRuntimeError("H-ARQ TX process: cannot select another unit because they are all already selected");
 
     numSelected_++;
     (*units_)[cw]->markSelected();
-
-    //std::cout << "LteHarqProcessTx::markSelected end at " << simTime().dbl() << std::endl;
 }
 
 LteMacPdu *LteHarqProcessTx::extractPdu(Codeword cw)
 {
-    //std::cout << "LteHarqProcessTx::extractPdu start at " << simTime().dbl() << std::endl;
-
     if (numSelected_ == 0)
         throw cRuntimeError("H-ARQ TX process: cannot extract pdu: numSelected = 0 ");
 
     numSelected_--;
     LteMacPdu *pdu = (*units_)[cw]->extractPdu();
-
-    //std::cout << "LteHarqProcessTx::extractPdu end at " << simTime().dbl() << std::endl;
-
     return pdu;
 }
 
 bool LteHarqProcessTx::pduFeedback(HarqAcknowledgment fb, Codeword cw)
 {
-
-    //std::cout << "LteHarqProcessTx::pduFeedback start at " << simTime().dbl() << std::endl;
-
     // controllare se numempty == numunits e restituire true/false
     bool reset = (*units_)[cw]->pduFeedback(fb);
 
@@ -103,16 +84,11 @@ bool LteHarqProcessTx::pduFeedback(HarqAcknowledgment fb, Codeword cw)
     else
         reset = false;
 
-    //std::cout << "LteHarqProcessTx::pduFeedback end at " << simTime().dbl() << std::endl;
-
     return reset;
 }
 
 bool LteHarqProcessTx::selfNack(Codeword cw)
 {
-
-    //std::cout << "LteHarqProcessTx::selfNack start at " << simTime().dbl() << std::endl;
-
     bool reset = (*units_)[cw]->selfNack();
 
     if (reset)
@@ -126,31 +102,21 @@ bool LteHarqProcessTx::selfNack(Codeword cw)
     else
         reset = false;
 
-    //std::cout << "LteHarqProcessTx::selfNack end at " << simTime().dbl() << std::endl;
-
     return reset;
 }
 
 bool LteHarqProcessTx::hasReadyUnits()
 {
-
-    //std::cout << "LteHarqProcessTx::hasReadyUnits start at " << simTime().dbl() << std::endl;
-
     for (unsigned int i = 0; i < numHarqUnits_; i++)
     {
         if ((*units_)[i]->isReady())
             return true;
     }
-
-    //std::cout << "LteHarqProcessTx::hasReadyUnits end at " << simTime().dbl() << std::endl;
-
     return false;
 }
 
 simtime_t LteHarqProcessTx::getOldestUnitTxTime()
 {
-    //std::cout << "LteHarqProcessTx::getOldestUnitTxTime start at " << simTime().dbl() << std::endl;
-
     simtime_t oldestTxTime = NOW + 1;
     simtime_t curTxTime = 0;
     for (unsigned int i = 0; i < numHarqUnits_; i++)
@@ -164,17 +130,11 @@ simtime_t LteHarqProcessTx::getOldestUnitTxTime()
             }
         }
     }
-
-    //std::cout << "LteHarqProcessTx::getOldestUnitTxTime end at " << simTime().dbl() << std::endl;
-
     return oldestTxTime;
 }
 
 CwList LteHarqProcessTx::readyUnitsIds()
 {
-
-    //std::cout << "LteHarqProcessTx::readyUnitsIds start at " << simTime().dbl() << std::endl;
-
     CwList ul;
 
     for (Codeword i = 0; i < numHarqUnits_; i++)
@@ -184,17 +144,11 @@ CwList LteHarqProcessTx::readyUnitsIds()
             ul.push_back(i);
         }
     }
-
-    //std::cout << "LteHarqProcessTx::readyUnitsIds end at " << simTime().dbl() << std::endl;
-
     return ul;
 }
 
 CwList LteHarqProcessTx::emptyUnitsIds()
 {
-
-    //std::cout << "LteHarqProcessTx::emptyUnitsIds start at " << simTime().dbl() << std::endl;
-
     CwList ul;
     for (Codeword i = 0; i < numHarqUnits_; i++)
     {
@@ -203,16 +157,11 @@ CwList LteHarqProcessTx::emptyUnitsIds()
             ul.push_back(i);
         }
     }
-
-    //std::cout << "LteHarqProcessTx::emptyUnitsIds end at " << simTime().dbl() << std::endl;
-
     return ul;
 }
 
 CwList LteHarqProcessTx::selectedUnitsIds()
 {
-    //std::cout << "LteHarqProcessTx::selectedUnitsIds start at " << simTime().dbl() << std::endl;
-
     CwList ul;
     for (Codeword i = 0; i < numHarqUnits_; i++)
     {
@@ -221,39 +170,26 @@ CwList LteHarqProcessTx::selectedUnitsIds()
             ul.push_back(i);
         }
     }
-
-    //std::cout << "LteHarqProcessTx::selectedUnitsIds end at " << simTime().dbl() << std::endl;
-
     return ul;
 }
 
 bool LteHarqProcessTx::isEmpty()
 {
-    //std::cout << "LteHarqProcessTx::isEmpty start at " << simTime().dbl() << std::endl;
-
     return (numEmptyUnits_ == numHarqUnits_);
 }
 
 LteMacPdu *LteHarqProcessTx::getPdu(Codeword cw)
 {
-    //std::cout << "LteHarqProcessTx::getPdu start at " << simTime().dbl() << std::endl;
-
     return (*units_)[cw]->getPdu();
 }
 
 long LteHarqProcessTx::getPduId(Codeword cw)
 {
-
-    //std::cout << "LteHarqProcessTx::getPduId start at " << simTime().dbl() << std::endl;
-
     return (*units_)[cw]->getMacPduId();
 }
 
 void LteHarqProcessTx::forceDropProcess()
 {
-
-    //std::cout << "LteHarqProcessTx::forceDropProcess start at " << simTime().dbl() << std::endl;
-
     for (unsigned int i = 0; i < numHarqUnits_; i++)
     {
         (*units_)[i]->forceDropUnit();
@@ -261,22 +197,15 @@ void LteHarqProcessTx::forceDropProcess()
     numEmptyUnits_ = numHarqUnits_;
     numSelected_ = 0;
     dropped_ = true;
-
-    //std::cout << "LteHarqProcessTx::forceDropProcess end at " << simTime().dbl() << std::endl;
 }
 
 bool LteHarqProcessTx::forceDropUnit(Codeword cw)
 {
-
-    //std::cout << "LteHarqProcessTx::forceDropUnit start at " << simTime().dbl() << std::endl;
-
     if ((*units_)[cw]->isMarked())
         numSelected_--;
 
     (*units_)[cw]->forceDropUnit();
     numEmptyUnits_++;
-
-    //std::cout << "LteHarqProcessTx::forceDropUnit end at " << simTime().dbl() << std::endl;
 
     // empty process?
     return numEmptyUnits_ == numHarqUnits_;
@@ -284,67 +213,47 @@ bool LteHarqProcessTx::forceDropUnit(Codeword cw)
 
 TxHarqPduStatus LteHarqProcessTx::getUnitStatus(Codeword cw)
 {
-
-    //std::cout << "LteHarqProcessTx::getUnitStatus start at " << simTime().dbl() << std::endl;
-
     return (*units_)[cw]->getStatus();
 }
 
 void LteHarqProcessTx::dropPdu(Codeword cw)
 {
-
-    //std::cout << "LteHarqProcessTx::dropPdu start at " << simTime().dbl() << std::endl;
-
     (*units_)[cw]->dropPdu();
     numEmptyUnits_++;
 }
 
 bool LteHarqProcessTx::isUnitEmpty(Codeword cw)
 {
-    //std::cout << "LteHarqProcessTx::isUnitEmpty start at " << simTime().dbl() << std::endl;
-
     return (*units_)[cw]->isEmpty();
 }
 
 bool LteHarqProcessTx::isUnitReady(Codeword cw)
 {
-    //std::cout << "LteHarqProcessTx::isUnitReady start at " << simTime().dbl() << std::endl;
-
     return (*units_)[cw]->isReady();
 }
 
 unsigned char LteHarqProcessTx::getTransmissions(Codeword cw)
 {
-    //std::cout << "LteHarqProcessTx::getTransmissions start at " << simTime().dbl() << std::endl;
-
     return (*units_)[cw]->getTransmissions();
 }
 
 inet::int64 LteHarqProcessTx::getPduLength(Codeword cw)
 {
-    //std::cout << "LteHarqProcessTx::getPduLength start at " << simTime().dbl() << std::endl;
-
     return (*units_)[cw]->getPduLength();
 }
 
 simtime_t LteHarqProcessTx::getTxTime(Codeword cw)
 {
-    //std::cout << "LteHarqProcessTx::getTxTime start at " << simTime().dbl() << std::endl;
-
     return (*units_)[cw]->getTxTime();
 }
 
 bool LteHarqProcessTx::isUnitMarked(Codeword cw)
 {
-    //std::cout << "LteHarqProcessTx::isUnitMarked start at " << simTime().dbl() << std::endl;
-
     return (*units_)[cw]->isMarked();
 }
 
 bool LteHarqProcessTx::isDropped()
 {
-    //std::cout << "LteHarqProcessTx::isDropped start at " << simTime().dbl() << std::endl;
-
     return dropped_;
 }
 

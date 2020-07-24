@@ -7,12 +7,6 @@
 // and cannot be removed from it.
 //
 
-//
-// This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
-// Author: Thomas Deinlein
-//
-
 #include "stack/mac/buffer/harq/LteHarqProcessRx.h"
 #include "stack/mac/layer/LteMacBase.h"
 #include "common/LteControlInfo.h"
@@ -34,13 +28,10 @@ LteHarqProcessRx::LteHarqProcessRx(unsigned char acid, LteMacBase *owner)
 
 void LteHarqProcessRx::insertPdu(Codeword cw, LteMacPdu *pdu)
 {
-
-    //std::cout << "LteHarqProcessRx::insertPdu start at " << simTime().dbl() << std::endl;
-
     UserControlInfo *lteInfo = check_and_cast<UserControlInfo *>(pdu->getControlInfo());
     bool ndi = lteInfo->getNdi();
 
-    //EV << "LteHarqProcessRx::insertPdu - ndi is " << ndi << endl;
+    EV << "LteHarqProcessRx::insertPdu - ndi is " << ndi << endl;
     if (ndi && !(status_.at(cw) == RXHARQ_PDU_EMPTY))
         throw cRuntimeError("New data arriving in busy harq process -- this should not happen");
 
@@ -62,15 +53,12 @@ void LteHarqProcessRx::insertPdu(Codeword cw, LteMacPdu *pdu)
     rxTime_.at(cw) = NOW;
 
     transmissions_++;
-
-    //std::cout << "LteHarqProcessRx::insertPdu start at " << simTime().dbl() << std::endl;
 }
 
 bool LteHarqProcessRx::isEvaluated(Codeword cw)
 {
-    //std::cout << "LteHarqProcessRx::isEvaluated start at " << simTime().dbl() << std::endl;
-
-    if (status_.at(cw) == RXHARQ_PDU_EVALUATING && (NOW - rxTime_.at(cw)) >= (HARQ_FB_EVALUATION_INTERVAL * getBinder()->getTTI()))
+	simtime_t check = HARQ_FB_EVALUATION_INTERVAL * getBinder()->getTTI();
+    if (status_.at(cw) == RXHARQ_PDU_EVALUATING && (NOW - rxTime_.at(cw)) >= check)
         return true;
     else
         return false;
@@ -78,9 +66,6 @@ bool LteHarqProcessRx::isEvaluated(Codeword cw)
 
 LteHarqFeedback *LteHarqProcessRx::createFeedback(Codeword cw)
 {
-
-    //std::cout << "LteHarqProcessRx::createFeedback start at " << simTime().dbl() << std::endl;
-
     if (!isEvaluated(cw))
         throw cRuntimeError("Cannot send feedback for a pdu not in EVALUATING state");
 
@@ -95,12 +80,6 @@ LteHarqFeedback *LteHarqProcessRx::createFeedback(Codeword cw)
     fbInfo->setSourceId(pduInfo->getDestId());
     fbInfo->setDestId(pduInfo->getSourceId());
     fbInfo->setFrameType(HARQPKT);
-    fbInfo->setApplication(pduInfo->getApplication());
-    fbInfo->setQfi(pduInfo->getQfi());
-    fbInfo->setRadioBearerId(pduInfo->getRadioBearerId());
-    fbInfo->setTraffic(pduInfo->getTraffic());
-    fbInfo->setRlcType(pduInfo->getRlcType());
-    fbInfo->setLcid(pduInfo->getLcid());
     fb->setControlInfo(fbInfo);
 
     if (!result_.at(cw))
@@ -108,10 +87,10 @@ LteHarqFeedback *LteHarqProcessRx::createFeedback(Codeword cw)
         // NACK will be sent
         status_.at(cw) = RXHARQ_PDU_CORRUPTED;
 
-        //EV << "LteHarqProcessRx::createFeedback - tx number " << (unsigned int)transmissions_ << endl;
+        EV << "LteHarqProcessRx::createFeedback - tx number " << (unsigned int)transmissions_ << endl;
         if (transmissions_ == (maxHarqRtx_ + 1))
         {
-            //EV << NOW << " LteHarqProcessRx::createFeedback - max number of tx reached for cw " << cw << ". Resetting cw" << endl;
+            EV << NOW << " LteHarqProcessRx::createFeedback - max number of tx reached for cw " << cw << ". Resetting cw" << endl;
 
             // purge PDU
             purgeCorruptedPdu(cw);
@@ -123,22 +102,16 @@ LteHarqFeedback *LteHarqProcessRx::createFeedback(Codeword cw)
         status_.at(cw) = RXHARQ_PDU_CORRECT;
     }
 
-    //std::cout << "LteHarqProcessRx::createFeedback end at " << simTime().dbl() << std::endl;
-
     return fb;
 }
 
 bool LteHarqProcessRx::isCorrect(Codeword cw)
 {
-    //std::cout << "LteHarqProcessRx::isCorrect start at " << simTime().dbl() << std::endl;
-
     return (status_.at(cw) == RXHARQ_PDU_CORRECT);
 }
 
 LteMacPdu* LteHarqProcessRx::extractPdu(Codeword cw)
 {
-    //std::cout << "LteHarqProcessRx::extractPdu start at " << simTime().dbl() << std::endl;
-
     if (!isCorrect(cw))
         throw cRuntimeError("Cannot extract pdu if the state is not CORRECT");
 
@@ -151,8 +124,6 @@ LteMacPdu* LteHarqProcessRx::extractPdu(Codeword cw)
 
 int64_t LteHarqProcessRx::getByteLength(Codeword cw)
 {
-    //std::cout << "LteHarqProcessRx::getByteLength start at " << simTime().dbl() << std::endl;
-
     if (pdu_.at(cw) != NULL)
     {
         return pdu_.at(cw)->getByteLength();
@@ -163,22 +134,16 @@ int64_t LteHarqProcessRx::getByteLength(Codeword cw)
 
 void LteHarqProcessRx::purgeCorruptedPdu(Codeword cw)
 {
-    //std::cout << "LteHarqProcessRx::purgeCorruptedPdu start at " << simTime().dbl() << std::endl;
-
     // drop ownership
     if (pdu_.at(cw) != NULL)
         macOwner_->dropObj(pdu_.at(cw));
 
     delete pdu_.at(cw);
     pdu_.at(cw) = NULL;
-
-    //std::cout << "LteHarqProcessRx::purgeCorruptedPdu end at " << simTime().dbl() << std::endl;
 }
 
 void LteHarqProcessRx::resetCodeword(Codeword cw)
 {
-    //std::cout << "LteHarqProcessRx::resetCodeword start at " << simTime().dbl() << std::endl;
-
     // drop ownership
     if (pdu_.at(cw) != NULL){
         macOwner_->dropObj(pdu_.at(cw));
@@ -191,8 +156,6 @@ void LteHarqProcessRx::resetCodeword(Codeword cw)
     result_.at(cw) = false;
 
     transmissions_ = 0;
-
-    //std::cout << "LteHarqProcessRx::resetCodeword end at " << simTime().dbl() << std::endl;
 }
 
 LteHarqProcessRx::~LteHarqProcessRx()
@@ -214,8 +177,6 @@ LteHarqProcessRx::~LteHarqProcessRx()
 std::vector<RxUnitStatus>
 LteHarqProcessRx::getProcessStatus()
 {
-    //std::cout << "LteHarqProcessRx::getProcessStatus start at " << simTime().dbl() << std::endl;
-
     std::vector<RxUnitStatus> ret(MAX_CODEWORDS);
 
     for (unsigned int j = 0; j < MAX_CODEWORDS; j++)

@@ -121,7 +121,7 @@ LteAirFrame *LtePhyBase::createHandoverMessage()
 
     bdcAirFrame->setDuration(0);
     bdcAirFrame->setSchedulingPriority(airFramePriority_);
-//    bdcAirFrame->setSchedulingPriority(0);
+
     // current position
     cInfo->setCoord(getRadioPosition());
 

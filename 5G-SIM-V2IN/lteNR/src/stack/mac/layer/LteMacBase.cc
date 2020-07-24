@@ -406,8 +406,6 @@ void LteMacBase::initialize(int stage)
         WATCH_MAP(mbuf_);
         WATCH_MAP(macBuffers_);
 
-        rtxSignalised = false;
-        rtxSignalisedFlagEnabled = par("rtxSignalisedFlagEnabled").boolValue();
     }
 }
 

@@ -61,34 +61,7 @@ class LteMacBase : public cSimpleModule
     friend class LteHarqBufferTxD2D;
     friend class LteHarqBufferRxD2D;
 
-public:
-    virtual bool & getRtxSignalised(){
-    	return rtxSignalised;
-    }
-	virtual void deleteOnHandoverRtxSignalised(MacNodeId node){
-		rtxSignalisedMap.erase(node);
-	}
-	virtual void setRtxSignalised(MacNodeId node, bool flag) {
-		rtxSignalisedMap[node] = flag;
-	}
-	virtual bool getRtxSignalised(MacNodeId node){
-		if (rtxSignalisedFlagEnabled) {
-			std::map<MacNodeId, bool>::iterator it;
-			it = rtxSignalisedMap.find(node);
-			if (it != rtxSignalisedMap.end()) {
-				return rtxSignalisedMap[node];
-			} else {
-				return false;
-			}
-		} else {
-			return false;
-		}
-	}
   protected:
-    bool rtxSignalised;
-    bool rtxSignalisedFlagEnabled;
-
-    std::map<MacNodeId,bool> rtxSignalisedMap;
 
     unsigned int totalOverflowedBytes_;
     simsignal_t macBufferOverflowDl_;

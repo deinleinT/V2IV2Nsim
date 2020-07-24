@@ -60,9 +60,6 @@ class LteHarqProcessRx
 
   public:
 
-    virtual void setMacOwner(LteMacBase * macOwner){
-        this->macOwner_ = macOwner;
-    }
     /**
      * Constructor.
      *

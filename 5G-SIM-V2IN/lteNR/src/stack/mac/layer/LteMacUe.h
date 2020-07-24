@@ -47,7 +47,7 @@ public:
 
     // configured grant - one each codeword
     LteSchedulingGrant* schedulingGrant_;
-//    LteSchedulingGrant* schedulingGrantRTX_;
+    std::map<double,LteSchedulingGrant*> schedulingGrantMap;
 
     /// List of scheduled connection for this UE
     LteMacScheduleListWithSizes scheduleList_;

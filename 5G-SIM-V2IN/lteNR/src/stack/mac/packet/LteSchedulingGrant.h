@@ -51,7 +51,6 @@ public:
 		grantedBlocks = other.grantedBlocks;
 		grantedCwBytes = other.grantedCwBytes;
 		direction_ = other.direction_;
-		rtxGrant = other.rtxGrant;
 		LteSchedulingGrant_Base::operator=(other);
 		return *this;
 	}
@@ -105,11 +104,5 @@ public:
 	Direction getDirection() const {
 		return direction_;
 	}
-	void setRtxGrant(bool rtxGrant) {
-		this->rtxGrant = rtxGrant;
-	}
 
-	bool getRtxGrant() const {
-		return rtxGrant;
-	}
 };

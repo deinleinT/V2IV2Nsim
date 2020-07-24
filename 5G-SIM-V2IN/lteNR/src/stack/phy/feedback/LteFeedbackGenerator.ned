@@ -26,7 +26,7 @@ simple LteDlFeedbackGenerator {
         string rbAllocationType = default("localized");    
         
         // period for Periodic feedback in TTI
-        int fbPeriod = default(3);         
+        int fbPeriod = default(6);         
         
         // time interval between sensing and transmission in TTI
         int fbDelay  = default(1);         
