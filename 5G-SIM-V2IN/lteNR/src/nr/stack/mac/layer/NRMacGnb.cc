@@ -811,12 +811,18 @@ void NRMacGnb::sendGrants(LteMacScheduleListWithSizes *scheduleList) {
 		if (rtxMap[nodeId].size() == 1) {
 			//one rtx scheduled
 			auto temp = rtxMap[nodeId].begin();
-			grant->setProcessId((unsigned int)*temp);
+			grant->setProcessId((unsigned int) temp->first);
 			grant->setNewTx(false);
-			rtxMap[nodeId].erase(temp);rtxMap.erase(nodeId);
+			rtxMap[nodeId].erase(temp);
+			rtxMap.erase(nodeId);
 		} else if (rtxMap[nodeId].size() == 0) {
 			//TODO
 			grant->setNewTx(true);
+			grant->setProcessId(-1);
+
+		} else {
+			//TODO two codewords
+			throw cRuntimeError("Two Codewords not implemented yet");
 		}
 
 		// get and set the user's UserTxParams
@@ -856,7 +862,6 @@ void NRMacGnb::sendGrants(LteMacScheduleListWithSizes *scheduleList) {
 		// send grant to PHY layer
 		sendLowerPackets(grant);
 	}
-//    getSchedulerEnbUl()->clearRtxNodes();
 
 	//std::cout << "LteMacEnb::sendGrants end at " << simTime().dbl() << std::endl;
 }

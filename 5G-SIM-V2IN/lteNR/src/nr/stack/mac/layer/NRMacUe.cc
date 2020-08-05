@@ -45,21 +45,52 @@ void NRMacUe::macHandleGrant(cPacket *pkt) {
 	//std::cout << "NRMacUe macHandleGrant start at " << simTime().dbl() << std::endl;
 
 	//EV << NOW << " NRMacUe::macHandleGrant - UE [" << nodeId_ << "] - Grant received" << endl;
-	// delete old grant
+
 	LteSchedulingGrant *grant = check_and_cast<LteSchedulingGrant*>(pkt);
-	//3ms after request, when newTx
-	schedulingGrantMap[NOW.dbl()] = grant;
 
-	if (schedulingGrant_ != NULL) {
-		delete schedulingGrant_;
-		schedulingGrant_ = NULL;
-	}
+	if (!isRtxSignalisedEnabled()) {
+		if (grant->getNewTx()) {
+			//check whether there is already a newTX grant
+			for (auto &var : schedulingGrantMap) {
+				if (var.second->getNewTx())
+					throw cRuntimeError("Error in NRMacUE, macHandleGrant - a newTX Grant is arriving although there is already one available");
 
-	schedulingGrant_ = grant;
+				if (var.second->getProcessId() == grant->getProcessId())
+					throw cRuntimeError("Error in NRMacUE, macHandleGrant - a newTX Grant is arriving in although there is already one available");
 
-	if (grant->getPeriodic()) {
-		periodCounter_ = grant->getPeriod();
-		expirationCounter_ = grant->getExpiration();
+			}
+			if (!firstTx) {
+				grant->setProcessId(6);
+				schedulingGrantMap[6] = grant;
+			} else {
+				grant->setProcessId(*racRequests_.begin());
+				schedulingGrantMap[*racRequests_.begin()] = grant;
+			}
+			racRequests_.clear();
+		} else {
+			//check whether there is a grant for a RTX for the same processNumber
+			for (auto &var : schedulingGrantMap) {
+				if (var.second->getProcessId() == grant->getProcessId()) {
+					delete schedulingGrantMap[char(grant->getProcessId())];
+					//std::cout << "RTX Grant available for process " << grant->getProcessId() << " although there is a grant in map" << std::endl;
+					break;
+				}
+			}
+			schedulingGrantMap[char(grant->getProcessId())] = grant;
+		}
+	} else {
+
+		if (schedulingGrant_ != NULL) {
+			delete schedulingGrant_;
+			schedulingGrant_ = NULL;
+		}
+
+		schedulingGrant_ = grant;
+
+		if (grant->getPeriodic()) {
+			periodCounter_ = grant->getPeriod();
+			expirationCounter_ = grant->getExpiration();
+		}
 	}
 
 	// clearing pending RAC requests
@@ -327,6 +358,9 @@ void NRMacUe::handleSelfMessage() {
 
 	//EV << NOW << "NRMacUe::handleSelfMessage " << nodeId_ << " - HARQ process " << (unsigned int) currentHarq_ << endl;
 
+	if(!rtxSignalisedFlagEnabled)
+		checkConfiguredGrant();
+
 	if (schedulingGrant_ == NULL) {
 		//EV << NOW << " NRMacUe::handleSelfMessage " << nodeId_ << " NO configured grant" << endl;
 		checkRAC();
@@ -362,6 +396,8 @@ void NRMacUe::handleSelfMessage() {
 
 		HarqTxBuffers::iterator it2;
 		LteHarqBufferTx *currHarq;
+		//map with gNodeB id as key, and LteHarqBufferTx is value with processes
+		ASSERT(harqTxBuffers_.size() == 0 || harqTxBuffers_.size() == 1);
 		for (it2 = harqTxBuffers_.begin(); it2 != harqTxBuffers_.end(); it2++) {
 			//EV << "\t Looking for retx in acid " << (unsigned int) currentHarq_ << endl;
 			currHarq = it2->second;
@@ -377,7 +413,7 @@ void NRMacUe::handleSelfMessage() {
 				signal.first = currentHarq_;
 				signal.second = cwListRetx;
 				currHarq->markSelected(signal, schedulingGrant_->getUserTxParams()->getLayers().size());
-
+				rtxSignalised = false;
 			}
 		}
 		// if no retx is needed, proceed with normal scheduling
@@ -568,16 +604,6 @@ void NRMacUe::handleUpperMessage(cPacket *pkt) {
 			delete pkt;
 		}
 
-		// creates pdus from schedule list and puts them in buffers
-//		if (scheduleListWithSizes_.size() > 1) {
-//			for (auto const & var : scheduleListWithSizes_) {
-//				if (mbuf_.find(var.first.first) == mbuf_.end())
-//					return;
-//				else if (mbuf_[var.first.first]->getBitLength() == 0)
-//					return;
-//			}
-//		}
-
 		// build a MAC PDU only after all MAC SDUs have been received from RLC
 		requestedSdus_--;
 		if (requestedSdus_ == 0) {
@@ -705,13 +731,9 @@ void NRMacUe::flushHarqBuffers() {
 		it2->second->sendSelectedDown();
 
 	// deleting non-periodic grant
-	if (schedulingGrant_ != NULL && !schedulingGrant_->getPeriodic()) {
-		delete schedulingGrant_;
-		schedulingGrant_ = NULL;
+	if (schedulingGrant_ != NULL && !schedulingGrant_->getPeriodic() && !getRtxSignalised()) {
+		resetSchedulingGrant();
 	}
-	//
-	schedulingGrantMap.erase(NOW.dbl() - 0.001);
-	//
 
 	//std::cout << "NRMacUe flushHarqBuffers end at " << simTime().dbl() << std::endl;
 }
@@ -720,6 +742,14 @@ void NRMacUe::checkRAC() {
 	//std::cout << "NRMacUe checkRAC start at " << simTime().dbl() << std::endl;
 
 	//EV << NOW << " NRMacUe::checkRAC , Ue  " << nodeId_ << ", racTimer : " << racBackoffTimer_ << " maxRacTryOuts : " << maxRacTryouts_ << ", raRespTimer:" << raRespTimer_ << endl;
+
+	// to be set in omnetpp.ini --> if true, the ue do not send a rac request when the last transmission failed (a HARQNACK arrived)
+	// a new rac request will be sent after a successfull rtx
+	if (rtxSignalisedFlagEnabled) {
+		if (rtxSignalised) {
+			return;
+		}
+	}
 
 	if (racBackoffTimer_ > 0) {
 		racBackoffTimer_--;
@@ -772,7 +802,14 @@ void NRMacUe::checkRAC() {
 		uinfo->setBytesize(bytesize);
 		racReq->setControlInfo(uinfo);
 		racReq->setKind(tmp.appType);
-		//racReq->setTimeOfRequest(NOW.dbl());
+
+		if (!isRtxSignalisedEnabled()) {
+			if (!firstTx) {
+				racRequests_.insert(6);
+			} else {
+				racRequests_.insert((currentHarq_ + 4) % harqProcesses_);
+			}
+		}
 
 		sendLowerPackets(racReq);
 

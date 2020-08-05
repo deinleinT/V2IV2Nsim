@@ -89,6 +89,7 @@ class LteSchedulerEnb
     // Schedule list
     LteMacScheduleListWithSizes scheduleList_;
 
+
     // Codeword list
     LteMacAllocatedCws allocatedCws_;
 

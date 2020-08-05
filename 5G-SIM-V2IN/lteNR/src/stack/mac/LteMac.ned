@@ -45,6 +45,8 @@ simple LteMacBase like LteMac {
         //# H-ARQ
         int harqProcesses = default(8);
         int maxHarqRtx = default(3);
+        
+        bool rtxSignalisedFlagEnabled = default(true);
          
         //#
         //# Statistics recording

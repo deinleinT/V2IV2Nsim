@@ -36,6 +36,8 @@ public:
 
     void changeMasterId(MacNodeId oldMasterId, MacNodeId newMasterId);
 
+
+
   protected:
     QosHandler * qosHandler;
 
@@ -47,7 +49,8 @@ public:
 
     // configured grant - one each codeword
     LteSchedulingGrant* schedulingGrant_;
-    std::map<double,LteSchedulingGrant*> schedulingGrantMap;
+    std::map<unsigned char,LteSchedulingGrant*> schedulingGrantMap;
+    std::set<unsigned char> racRequests_;
 
     /// List of scheduled connection for this UE
     LteMacScheduleListWithSizes scheduleList_;

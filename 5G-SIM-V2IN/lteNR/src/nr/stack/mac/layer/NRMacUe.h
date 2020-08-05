@@ -22,7 +22,7 @@
  * Part of 5G-Sim-V2I/N
  *
  *
-*/
+ */
 
 #pragma once
 
@@ -46,65 +46,112 @@
 class NRMacUe: public LteMacUe {
 
 public:
-    void resetScheduleList(){ scheduleListWithSizes_.clear();};
+	void resetScheduleList() {
+		Enter_Method_Silent();
 
+		scheduleListWithSizes_.clear();
+	}
+
+	virtual void resetSchedulingGrant() {
+		Enter_Method_Silent();
+
+		if (schedulingGrantMap.size() > 0) {
+			schedulingGrantMap.erase(schedulingGrant_->getProcessId());
+		}
+		delete schedulingGrant_;
+		schedulingGrant_ = NULL;
+	}
+
+	virtual void resetSchedulingGrantMap() {
+
+		Enter_Method_Silent();
+
+		delete schedulingGrant_;
+		schedulingGrant_ = NULL;
+
+		for (auto &var : schedulingGrantMap) {
+			delete var.second;
+		}
+
+		schedulingGrantMap.clear();
+	}
+
+	virtual void checkConfiguredGrant() {
+		Enter_Method_Silent();
+
+		if (schedulingGrantMap.empty()) {
+			delete schedulingGrant_;
+			schedulingGrant_ = NULL;
+			return;
+		}
+		if (schedulingGrantMap.find(currentHarq_) != schedulingGrantMap.end()) {
+			schedulingGrant_ = schedulingGrantMap[currentHarq_];
+		} else {
+			for (auto &var : schedulingGrantMap) {
+				if (var.second->getNewTx()) {
+					schedulingGrant_ = var.second;
+					break;
+				}
+			}
+		}
+	}
 
 protected:
 
-    LteMacScheduleListWithSizes scheduleListWithSizes_;
-    virtual void initialize(int stage);
-    virtual void handleMessage(cMessage *msg);
-    virtual void fromPhy(cPacket *pkt);
-    /**
-     * macSduRequest() sends a message to the RLC layer
-     * requesting MAC SDUs (one for each CID),
-     * according to the Schedule List.
-     */
-    virtual int macSduRequest();
+	LteMacScheduleListWithSizes scheduleListWithSizes_;
+	virtual void initialize(int stage);
+	virtual void handleMessage(cMessage *msg);
+	virtual void fromPhy(cPacket *pkt);
+	/**
+	 * macSduRequest() sends a message to the RLC layer
+	 * requesting MAC SDUs (one for each CID),
+	 * according to the Schedule List.
+	 */
+	virtual int macSduRequest();
 
-    virtual void macHandleGrant(cPacket* pkt);
+	virtual void macHandleGrant(cPacket *pkt);
 
-    /**
-     * macPduUnmake() extracts SDUs from a received MAC
-     * PDU and sends them to the upper layer.
-     *
-     * @param pkt container packet
-     */
-    virtual void macPduUnmake(cPacket* pkt);
+	/**
+	 * macPduUnmake() extracts SDUs from a received MAC
+	 * PDU and sends them to the upper layer.
+	 *
+	 * @param pkt container packet
+	 */
+	virtual void macPduUnmake(cPacket *pkt);
 
-    /**
-     * Flush Tx H-ARQ buffers for the user
-     */
-    virtual void flushHarqBuffers();
+	/**
+	 * Flush Tx H-ARQ buffers for the user
+	 */
+	virtual void flushHarqBuffers();
 
-    /**
-     * Main loop
-     */
-    virtual void handleSelfMessage();
+	/**
+	 * Main loop
+	 */
+	virtual void handleSelfMessage();
 
-    /**
-     * macPduMake() creates MAC PDUs (one for each CID)
-     * by extracting SDUs from Real Mac Buffers according
-     * to the Schedule List.
-     * It sends them to H-ARQ (at the moment lower layer)
-     *
-     * On UE it also adds a BSR control element to the MAC PDU
-     * containing the size of its buffer (for that CID)
-     */
-    virtual void macPduMake(MacCid cid = 0);
+	/**
+	 * macPduMake() creates MAC PDUs (one for each CID)
+	 * by extracting SDUs from Real Mac Buffers according
+	 * to the Schedule List.
+	 * It sends them to H-ARQ (at the moment lower layer)
+	 *
+	 * On UE it also adds a BSR control element to the MAC PDU
+	 * containing the size of its buffer (for that CID)
+	 */
+	virtual void macPduMake(MacCid cid = 0);
 
-    /**
-     * handleUpperMessage() is called every time a packet is
-     * received from the upper layer
-     */
-    virtual void handleUpperMessage(cPacket* pkt);
+	/**
+	 * handleUpperMessage() is called every time a packet is
+	 * received from the upper layer
+	 */
+	virtual void handleUpperMessage(cPacket *pkt);
 
-    /**
-     * bufferizePacket() is called every time a packet is
-     * received from the upper layer
-     */
-    virtual bool bufferizePacket(cPacket* pkt);
+	/**
+	 * bufferizePacket() is called every time a packet is
+	 * received from the upper layer
+	 */
+	virtual bool bufferizePacket(cPacket *pkt);
 
-    virtual void checkRAC();
+	virtual void checkRAC();
 };
 

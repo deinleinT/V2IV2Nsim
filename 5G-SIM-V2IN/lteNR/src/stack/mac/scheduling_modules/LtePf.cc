@@ -67,7 +67,9 @@ void LtePf::prepareSchedule() //
 		for (; cidIt != cidEt; ++cidIt) {
 			MacCid cid = *cidIt;
 			MacNodeId nodeId = MacCidToNodeId(cid);
-
+			if (this->mac_->getRtxSignalised(nodeId)) {
+				continue;
+			}
 			OmnetId id = binder_->getOmnetId(nodeId);
 			if (nodeId == 0 || id == 0 || nodeId < UE_MIN_ID || nodeId > UE_MAX_ID) {
 				// node has left the simulation - erase corresponding CIDs
@@ -258,6 +260,10 @@ void LtePf::prepareSchedule() //
 			++cidIt;
 			MacNodeId nodeId = MacCidToNodeId(cid);
 			OmnetId id = binder_->getOmnetId(nodeId);
+
+			if (this->mac_->getRtxSignalised(nodeId)) {
+				continue;
+			}
 
 			if (nodeId == 0 || id == 0) {
 				// node has left the simulation - erase corresponding CIDs

@@ -25,7 +25,7 @@ LteHarqUnitTx::LteHarqUnitTx(unsigned char acid, Codeword cw,
     dstMac_ = dstMac;
     maxHarqRtx_ = macOwner->par("maxHarqRtx");
 
-    if (macOwner_->getNodeType() == ENODEB)
+    if (macOwner_->getNodeType() == ENODEB || macOwner_->getNodeType() == GNODEB)
     {
         nodeB_ = macOwner_;
         macPacketLoss_ = dstMac_->registerSignal("macPacketLossDl");
@@ -80,8 +80,7 @@ void LteHarqUnitTx::insertPdu(LteMacPdu *pdu)
 
 void LteHarqUnitTx::markSelected()
 {
-    EV << NOW << " LteHarqUnitTx::markSelected trying to select buffer "
-       << acid_ << " codeword " << cw_ << " for transmission " << endl;
+    //EV << NOW << " LteHarqUnitTx::markSelected trying to select buffer " << acid_ << " codeword " << cw_ << " for transmission " << endl;
 
     if (!(this->isReady()))
     throw cRuntimeError("ERROR acid %d codeword %d trying to select for transmission an empty buffer", acid_, cw_);
@@ -101,7 +100,7 @@ LteMacPdu *LteHarqUnitTx::extractPdu()
         pdu_->getControlInfo());
     lteInfo->setTxNumber(transmissions_);
     lteInfo->setNdi((transmissions_ == 1) ? true : false);
-    EV << "LteHarqUnitTx::extractPdu - ndi set to " << ((transmissions_ == 1) ? "true" : "false") << endl;
+    //EV << "LteHarqUnitTx::extractPdu - ndi set to " << ((transmissions_ == 1) ? "true" : "false") << endl;
 
     LteMacPdu* extractedPdu = pdu_->dup();
     macOwner_->takeObj(extractedPdu);
@@ -110,7 +109,7 @@ LteMacPdu *LteHarqUnitTx::extractPdu()
 
 bool LteHarqUnitTx::pduFeedback(HarqAcknowledgment a)
 {
-    EV << "LteHarqUnitTx::pduFeedback - Welcome!" << endl;
+    //EV << "LteHarqUnitTx::pduFeedback - Welcome!" << endl;
     double sample;
     bool reset = false;
     UserControlInfo *lteInfo;
@@ -123,7 +122,7 @@ bool LteHarqUnitTx::pduFeedback(HarqAcknowledgment a)
     if (a == HARQACK)
     {
         // pdu_ has been sent and received correctly
-        EV << "\t pdu_ has been sent and received correctly " << endl;
+        //EV << "\t pdu_ has been sent and received correctly " << endl;
         resetUnit();
         reset = true;
         sample = 0;
@@ -134,19 +133,25 @@ bool LteHarqUnitTx::pduFeedback(HarqAcknowledgment a)
         if (transmissions_ == (maxHarqRtx_ + 1))
         {
             // discard
-            EV << NOW << " LteHarqUnitTx::pduFeedback H-ARQ process  " << (unsigned int)acid_ << " Codeword " << cw_ << " PDU "
-               << pdu_->getId() << " discarded "
-            "(max retransmissions reached) : " << maxHarqRtx_ << endl;
+            //EV << NOW << " LteHarqUnitTx::pduFeedback H-ARQ process  " << (unsigned int)acid_ << " Codeword " << cw_ << " PDU " << pdu_->getId() << " discarded ""(max retransmissions reached) : " << maxHarqRtx_ << endl;
             resetUnit();
             reset = true;
+
+			if (this->macOwner_->isRtxSignalisedEnabled()) {
+				if (macOwner_->getNodeType() == UE) {
+					macOwner_->getRtxSignalised() = false;
+				} else {
+					MacNodeId nodeId = dstMac_->getMacNodeId();
+					macOwner_->setRtxSignalised(nodeId, false);
+				}
+			}
         }
         else
         {
             // pdu_ ready for next transmission
             macOwner_->takeObj(pdu_);
             status_ = TXHARQ_PDU_BUFFERED;
-            EV << NOW << " LteHarqUnitTx::pduFeedbackH-ARQ process  " << (unsigned int)acid_ << " Codeword " << cw_ << " PDU "
-               << pdu_->getId() << " set for RTX " << endl;
+            //EV << NOW << " LteHarqUnitTx::pduFeedbackH-ARQ process  " << (unsigned int)acid_ << " Codeword " << cw_ << " PDU " << pdu_->getId() << " set for RTX " << endl;
         }
     }
     else

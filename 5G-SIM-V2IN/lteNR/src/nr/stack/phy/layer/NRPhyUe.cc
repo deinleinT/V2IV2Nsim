@@ -259,6 +259,8 @@ void NRPhyUe::deleteOldBuffers(MacNodeId masterId) {
 	masterMac->deleteQueues(nodeId_);
 	//qosHandler GNB
 	masterMac->deleteNodeFromQosHandler(nodeId_);
+	masterMac->deleteOnHandoverRtxSignalised(nodeId_);
+	masterMac->deleteFromRtxMap(nodeId_);
 
 	// delete queues for master at this ue
 	mac_->deleteQueues(masterId_);
@@ -268,6 +270,8 @@ void NRPhyUe::deleteOldBuffers(MacNodeId masterId) {
 	//added, Thomas Deinlein
 	NRMacUe * macReal = check_and_cast<NRMacUe*>(mac_);
 	macReal->resetScheduleList();
+	macReal->getRtxSignalised() = false;
+	macReal->resetSchedulingGrantMap();
 
 	/////////////////////////////////////////////////////////////////////////////////
 

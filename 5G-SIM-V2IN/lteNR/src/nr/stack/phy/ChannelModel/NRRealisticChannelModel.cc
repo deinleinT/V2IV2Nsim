@@ -1564,6 +1564,7 @@ bool NRRealisticChannelModel::isCorrupted(LteAirFrame *frame, UserControlInfo *l
 		if (isNodeB_) {
 			NRPhyGnb *nrPhy = check_and_cast<NRPhyGnb*>(getSimulation()->getModule(binder_->getOmnetId(eNbId))->getSubmodule("lteNic")->getSubmodule("phy"));
 			nrPhy->errorDetected();
+
 		} else {
 			NRPhyUe *nrPhy = check_and_cast<NRPhyUe*>(getSimulation()->getModule(binder_->getOmnetId(ueId))->getSubmodule("lteNic")->getSubmodule("phy"));
 			nrPhy->errorDetected();

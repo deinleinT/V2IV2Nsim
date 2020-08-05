@@ -14,11 +14,6 @@
 #include "stack/mac/packet/LteHarqFeedback_m.h"
 #include "stack/mac/buffer/harq/LteHarqProcessTx.h"
 
-/*
- * NOTA: e' compito del mac ul usare solo il processo di turno, non c'e' nessun controllo.
- * TODO: aggiungere supporto all'uplink: funzioni in cui si specifica il processo da usare
- * TODO: commenti
- */
 
 class LteHarqBufferTx
 {
@@ -31,6 +26,55 @@ class LteHarqBufferTx
     MacNodeId nodeId_; // UE nodeId for which this buffer has been created
 
   public:
+    //for Handover
+    LteMacBase * getMacOwner() {
+        return macOwner_;
+    }
+
+    void setMacOwner(LteMacBase * mac) {
+        this->macOwner_ = mac;
+    }
+
+    std::vector<LteHarqProcessTx *> * getProcesses() {
+        return processes_;
+    }
+
+    void setProcesses(std::vector<LteHarqProcessTx *> * processes) {
+        this->processes_ = processes;
+    }
+
+    unsigned int getNumProc() {
+        return numProc_;
+    }
+
+    void setNumProc(unsigned int numProc) {
+        this->numProc_ = numProc;
+    }
+
+    unsigned int getNumEmptyProc() {
+        return numEmptyProc_;
+    }
+
+    void setNumEmptyProc(unsigned int numEmptyProc) {
+        this->numEmptyProc_ = numEmptyProc;
+    }
+
+    unsigned char getSelectedAcid() {
+        return selectedAcid_;
+    }
+
+    void setSelectedAcid(unsigned char selectedAcid) {
+        this->selectedAcid_ = selectedAcid;
+    }
+
+    MacNodeId getNodeId() {
+        return nodeId_;
+    }
+
+    void setNodeId(MacNodeId nodeId) {
+        this->nodeId_ = nodeId;
+    }
+    //for Handover
 
     /*
      * Default Constructor
