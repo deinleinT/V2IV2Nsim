@@ -32,6 +32,10 @@ We tested the framework with Linux Mint 18.3, 19.3, Ubuntu 18.04 and 20.04 (we u
 * In the lteNR-folder, the simulation examples for a motorway and an urban traffic scenario are available (in the simulationsNR-folder). 
 * In both scenarios you can simulate an example whichs runs four UDP-applications simultaneously in each car. For that, you just need to run the omnetpp.ini-files within the motorway and urban folder, respectively.
 
+### Post-Processing
+* Within the postProcessing-folder an R-Script is contained that can be used for plotting the KPIs packet delay, reliabilty and jitter from the default scenarios.
+* You need the OMNeT++-R-Package for using the script with R Studio.
+* See the OMNeT++-github-site (https://github.com/omnetpp/omnetpp-resultfiles) for further information how to install the package within R Studio.
 
 **MORE INFORMATION IS COMING SOON**
 
