@@ -464,7 +464,7 @@ void LteMacEnbD2D::macHandleD2DModeSwitch(cPacket* pkt)
                     HarqRxBuffers::iterator hit = harqRxBuffers_.find(nodeId);
                     if (hit != harqRxBuffers_.end())
                     {
-                        for (unsigned int proc = 0; proc < (unsigned int) ENB_RX_HARQ_PROCESSES; proc++)
+                        for (unsigned int proc = 0; proc < (unsigned int) harqProcesses_; proc++)
                         {
                             unsigned int numUnits = hit->second->getProcess(proc)->getNumHarqUnits();
                             for (unsigned int i=0; i < numUnits; i++)
@@ -541,7 +541,7 @@ void LteMacEnbD2D::fromPhy(cPacket *pkt)
                 return;
 
             // create buffer
-            LteHarqBufferMirrorD2D* hb = new LteHarqBufferMirrorD2D((unsigned int) UE_TX_HARQ_PROCESSES, (unsigned char)par("maxHarqRtx"));
+            LteHarqBufferMirrorD2D* hb = new LteHarqBufferMirrorD2D((unsigned int) harqProcesses_, (unsigned char)par("maxHarqRtx"));
             harqBuffersMirrorD2D_[pair] = hb;
             hb->receiveHarqFeedback(check_and_cast<LteHarqFeedbackMirror*>(hfbpkt));
         }

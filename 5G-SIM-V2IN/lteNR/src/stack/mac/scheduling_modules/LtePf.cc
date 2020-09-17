@@ -41,6 +41,7 @@ void LtePf::removeActiveConnection(MacCid cid) {
  */
 void LtePf::prepareSchedule() //
 {
+
 	if (variationFlag) {
 		//std::cout << "LtePf::prepareSchedule start at " << simTime().dbl() << std::endl;//XXX
 
@@ -80,11 +81,14 @@ void LtePf::prepareSchedule() //
 			unsigned short qfi = mac_->getQosHandler()->getQfi(cid);
 			std::pair<unsigned int, unsigned int> key(qfi, nodeId);
 			LteMacBufferMap *tmp = mac_->getMacBuffers();
-			LteMacBuffer *t = (*tmp)[cid];
-			if (t == nullptr)
-				continue;
-			std::pair<unsigned int, unsigned int> value(cid, t->getQueueOccupancy());
-			qfiNodeCidSizeMap[key] = value;
+			LteMacBuffer *tempBuffer = (*tmp)[cid];
+			if (tempBuffer != nullptr) {
+				std::pair<unsigned int, unsigned int> value(cid, tempBuffer->getQueueOccupancy());
+				qfiNodeCidSizeMap[key] = value;
+			} else {
+				std::pair<unsigned int, unsigned int> value(cid, 0);
+				qfiNodeCidSizeMap[key] = value;
+			}
 		}
 
 		auto qfiIt = qfiNodeCidSizeMap.rbegin();
@@ -151,10 +155,6 @@ void LtePf::prepareSchedule() //
 					availableBytes += eNbScheduler_->mac_->getAmc()->computeBytesOnNRbs(nodeId, *it, availableBlocks, direction_);
 				}
 			}
-//			std::pair<MacNodeId, unsigned int> keyB(nodeId, availableBytes);
-//			if (nodeIdTotalBytesRest.find(keyB) == nodeIdTotalBytesRest.end()) {
-//				nodeIdTotalBytesRest[keyB] = availableBytes;
-//			}
 
 			double s = .0;
 
@@ -194,12 +194,7 @@ void LtePf::prepareSchedule() //
 			//
 			unsigned int bytes = 4294967295U;
 			std::pair<MacNodeId, unsigned int> keyB;
-//			for (auto &var : nodeIdTotalBytesRest) {
-//				if (var.first.first == nodeId) {
-//					keyB = std::make_pair(nodeId, var.first.second);
-//					bytes = var.second;
-//				}
-//			}
+
 			//unsigned int granted = eNbScheduler_->scheduleGrant(cid, bytes, terminate, active, eligible);
 			unsigned int granted = eNbScheduler_->scheduleGrant(cid, 4294967295U, terminate, active, eligible);
 			grantedBytes_[cid] += granted;

@@ -36,10 +36,10 @@ import org.car2x.veins.base.modules.BaseWorldUtility;
 
 import nr.corenetwork.nodes.UPF;
 import nr.corenetwork.nodes.gNodeB;
-import nr.corenetwork.nodes.v2vScenario;
+import nr.corenetwork.nodes.GeneralParameters;
 
 
-network NRSeveralBS extends v2vScenario
+network NRSeveralBS extends GeneralParameters
 {
     parameters:
         double playgroundSizeX @unit(m); // x size of the area the nodes are in (in meters)

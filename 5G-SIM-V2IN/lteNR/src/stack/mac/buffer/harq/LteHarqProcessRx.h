@@ -59,6 +59,9 @@ class LteHarqProcessRx
     unsigned char maxHarqRtx_;
 
   public:
+    virtual simtime_t getRxTimeForCodeWord(Codeword cw){
+    	return rxTime_[cw];
+    }
 
     virtual void setMacOwner(LteMacBase * macOwner){
         this->macOwner_ = macOwner;

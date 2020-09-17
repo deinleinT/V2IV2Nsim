@@ -69,8 +69,13 @@ void LteHarqProcessRx::insertPdu(Codeword cw, LteMacPdu *pdu)
 bool LteHarqProcessRx::isEvaluated(Codeword cw)
 {
     //std::cout << "LteHarqProcessRx::isEvaluated start at " << simTime().dbl() << std::endl;
-
-    if (status_.at(cw) == RXHARQ_PDU_EVALUATING && (NOW - rxTime_.at(cw)) >= (HARQ_FB_EVALUATION_INTERVAL * getBinder()->getTTI()))
+	unsigned int evaluationTime = 0;
+	if(getSimulation()->getSystemModule()->par("nrHarq").boolValue()){
+		evaluationTime = getSimulation()->getSystemModule()->par("harqFBEvaluationIntervalNR").intValue();
+	}else{
+		evaluationTime = getSimulation()->getSystemModule()->par("harqFBEvaluationIntervalLTE").intValue();
+	}
+    if (status_.at(cw) == RXHARQ_PDU_EVALUATING && (NOW - rxTime_.at(cw)) >= ((evaluationTime * getBinder()->getTTI())))
         return true;
     else
         return false;

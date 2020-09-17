@@ -91,6 +91,7 @@ void LtePhyUe::initialize(int stage)
         lastFeedback_ = 0;
 
         handoverStarter_ = new cMessage("handoverStarter");
+        handoverStarter_->setSchedulingPriority(-1);
 
         mac_ = check_and_cast<LteMacUe *>(getParentModule()-> // nic
         getSubmodule("mac"));
@@ -291,6 +292,7 @@ void LtePhyUe::triggerHandover() {
     enbIp2lte->triggerHandoverSource(nodeId_,candidateMasterId_);
 
     handoverTrigger_ = new cMessage("handoverTrigger");
+    handoverTrigger_->setSchedulingPriority(-1);
 
     //handoverLatency_ = uniform(0.0,0.005);//--> set in ini-file
 
@@ -648,6 +650,7 @@ void LtePhyUe::sendFeedback(LteFeedbackDoubleVector fbDl,
     // initialize frame fields
 
     frame->setSchedulingPriority(airFramePriority_);
+//    frame->setSchedulingPriority(0);
     frame->setDuration(signalLength);
 
     uinfo->setCoord(getRadioPosition());

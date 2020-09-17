@@ -22,7 +22,7 @@
  * Part of 5G-Sim-V2I/N
  *
  *
-*/
+ */
 
 #pragma once
 
@@ -42,8 +42,24 @@ class NRCellInfo;
 
 NRBinder* getNRBinder();
 
+struct RtxMapInfo {
+	Codeword cw;
+	unsigned char processId;
+	simtime_t rtxTime;
+	unsigned short order;
+
+	RtxMapInfo() : cw(0), processId(0), rtxTime(NOW), order(17) {};
+	RtxMapInfo(Codeword cw, unsigned char processId, simtime_t rtxTime, unsigned short order){
+		this->cw = cw;
+		this->processId = processId;
+		this->rtxTime = rtxTime;
+		this->order = order;
+	}
+	~RtxMapInfo(){};
+};
+
 enum ResourceType {
-    GBR, NGBR, DCGBR, UNKNOWN_RES
+	GBR, NGBR, DCGBR, UNKNOWN_RES
 //GBR -> Guaranteed Bitrate, NGBR -> NonGBR, DCGBR -> Delay-CriticalGBR
 };
 
@@ -63,17 +79,12 @@ typedef unsigned int bitrate;
 //REMARK
 //added for the NR Channel Models
 enum DeploymentScenarioNR {
-    INDOOR_HOTSPOT_EMBB = 0,
-    DENSE_URBAN_EMBB,
-    RURAL_EMBB,
-    URBAN_MACRO_MMTC,
-    URBAN_MACRO_URLLC,
-    UNKNOW_SCENARIO_NR
+	INDOOR_HOTSPOT_EMBB = 0, DENSE_URBAN_EMBB, RURAL_EMBB, URBAN_MACRO_MMTC, URBAN_MACRO_URLLC, UNKNOW_SCENARIO_NR
 };
 
 struct DeploymentScenarioMappingNR {
-    DeploymentScenarioNR scenarioNR;
-    std::string scenarioNRName;
+	DeploymentScenarioNR scenarioNR;
+	std::string scenarioNRName;
 };
 
 const DeploymentScenarioMappingNR DeploymentScenarioTableNR[] = {
@@ -86,12 +97,12 @@ DeploymentScenarioNR aToDeploymentScenarioNR(std::string s);
 
 //
 enum NRChannelModel {
-    InH_A, InH_B, UMa_A, UMa_B, UMi_A, UMi_B, RMa_A, RMa_B, UNKNOWN
+	InH_A, InH_B, UMa_A, UMa_B, UMi_A, UMi_B, RMa_A, RMa_B, UNKNOWN
 };
 
 struct NRChannelModelMapping {
-    NRChannelModel channelModel;
-    std::string channelModelName;
+	NRChannelModel channelModel;
+	std::string channelModelName;
 };
 
 const NRChannelModelMapping NRChannelModelTable[] = { ELEM(InH_A), ELEM(InH_B),
@@ -101,116 +112,105 @@ ELEM(RMa_B) };
 const std::string NRChannelModelToA(NRChannelModel type);
 NRChannelModel aToNRChannelModel(std::string s);
 
-
 // QosCharacteristics to which a 5QI refers to
 class QosCharacteristic {
 public:
-    QosCharacteristic() {
-    }
-    QosCharacteristic(ResourceType resType, uint16_t priorityLevel, double PDB,
-            double PER, uint16_t DMDBV, uint16_t defAveragingWindow) :
-            resType(resType), priorityLevel(priorityLevel), PDB(PDB), PER(PER), DMDBV(
-                    DMDBV), defAveragingWindow(defAveragingWindow) {
-        ASSERT(priorityLevel >= 0 && priorityLevel <= 127);
-        ASSERT(DMDBV >= 0 && DMDBV <= 4095);
-        ASSERT(defAveragingWindow >= 0 && defAveragingWindow <= 4095);
-    }
+	QosCharacteristic() {
+	}
+	QosCharacteristic(ResourceType resType, uint16_t priorityLevel, double PDB, double PER, uint16_t DMDBV, uint16_t defAveragingWindow) :
+			resType(resType), priorityLevel(priorityLevel), PDB(PDB), PER(PER), DMDBV(DMDBV), defAveragingWindow(defAveragingWindow) {
+		ASSERT(priorityLevel >= 0 && priorityLevel <= 127);
+		ASSERT(DMDBV >= 0 && DMDBV <= 4095);
+		ASSERT(defAveragingWindow >= 0 && defAveragingWindow <= 4095);
+	}
 
-    ResourceType resType; //GBR,nonGBR,DC-GBR
-    uint16_t priorityLevel; // TS 38.413, 9.3.1.84, 1...127
-    double PDB; //Packet Delay Budget, in milliseconds,
-    double PER; //Packet Error Rate
-    uint16_t DMDBV; //Default Maximum Data Burst Volume, in Bytes, 0...4095, 38.413, 9.3.1.83
-    uint16_t defAveragingWindow; // in milliseconds, 38.413, 9.3.1.82, 0...4095
+	ResourceType resType; //GBR,nonGBR,DC-GBR
+	uint16_t priorityLevel; // TS 38.413, 9.3.1.84, 1...127
+	double PDB; //Packet Delay Budget, in milliseconds,
+	double PER; //Packet Error Rate
+	uint16_t DMDBV; //Default Maximum Data Burst Volume, in Bytes, 0...4095, 38.413, 9.3.1.83
+	uint16_t defAveragingWindow; // in milliseconds, 38.413, 9.3.1.82, 0...4095
 };
 
 // see in TS 23.501 ->  Chapter 5.7, Table 5.7.4-1
 class NRQosCharacteristics {
 public:
-    static NRQosCharacteristics * getNRQosCharacteristics() {
-        if (instance == nullptr) {
-            instance = new NRQosCharacteristics();
-        }
-        return instance;
-    }
-    ~NRQosCharacteristics() {
-        values.clear();
-        instance = nullptr;
-    }
-    std::map<QI, QosCharacteristic> & getValues() {
-        return values;
-    }
-    QosCharacteristic & getQosCharacteristic(QI value5qi) {
-        return values[value5qi];
-    }
+	static NRQosCharacteristics* getNRQosCharacteristics() {
+		if (instance == nullptr) {
+			instance = new NRQosCharacteristics();
+		}
+		return instance;
+	}
+	~NRQosCharacteristics() {
+		values.clear();
+		instance = nullptr;
+	}
+	std::map<QI, QosCharacteristic>& getValues() {
+		return values;
+	}
+	QosCharacteristic& getQosCharacteristic(QI value5qi) {
+		return values[value5qi];
+	}
 private:
-    static NRQosCharacteristics * instance;
-    NRQosCharacteristics() {
-    }
+	static NRQosCharacteristics *instance;
+	NRQosCharacteristics() {
+	}
 
-    //QosCharacteristics from 23.501 V16.0.2, Table 5.7.4-1, map is filled with values in initialization method in NRBinder
-    std::map<QI, QosCharacteristic> values;
+	//QosCharacteristics from 23.501 V16.0.2, Table 5.7.4-1, map is filled with values in initialization method in NRBinder
+	std::map<QI, QosCharacteristic> values;
 };
 
 //QosParameters
 class NRQosParameters {
 public:
-    NRQosParameters() {
-    }
-    NRQosParameters(QI qi, unsigned short arp, bool reflectiveQosAttribute,
-            bool notificationControl, bitrate MFBR_UL, bitrate MFBR_DL,
-            bitrate GFBR_DL, bitrate GFBR_UL, bitrate sessionAMBR,
-            bitrate ueAMBR, unsigned int MPLR_DL, unsigned int MPLR_UL) {
-        qosCharacteristics =
-                NRQosCharacteristics::getNRQosCharacteristics()->getQosCharacteristic(
-                        qi);
-        this->arp = arp;
-        this->reflectiveQosAttribute = reflectiveQosAttribute;
-        this->notificationControl = notificationControl;
-        this->MFBR_UL = MFBR_UL;
-        this->GFBR_DL = GFBR_DL;
-        this->MFBR_DL = MFBR_DL;
-        this->GFBR_UL = GFBR_UL;
-        this->MPLR_DL = MPLR_DL;
-        this->MPLR_UL = MPLR_UL;
-        this->sessionAMBR = sessionAMBR;
-        this->ueAMBR = ueAMBR;
-        ASSERT(arp >= 1 && arp <= 15);
-    }
-    QosCharacteristic qosCharacteristics;
-    uint16_t arp; //1...15
-    bool reflectiveQosAttribute; //optional, non-GBR
-    bool notificationControl; //GBR
-    bitrate MFBR_UL; //maximum flow bit rate, GBR / DC-GBR only
-    bitrate MFBR_DL;
-    bitrate GFBR_UL; // guaranteed flow bit rate
-    bitrate GFBR_DL;
-    bitrate sessionAMBR;
-    bitrate ueAMBR;
-    uint32_t MPLR_DL; //Maximum Packet Loss Rate
-    uint32_t MPLR_UL;
-    // maximum packet loss rate
+	NRQosParameters() {
+	}
+	NRQosParameters(QI qi, unsigned short arp, bool reflectiveQosAttribute, bool notificationControl, bitrate MFBR_UL, bitrate MFBR_DL, bitrate GFBR_DL, bitrate GFBR_UL, bitrate sessionAMBR,
+			bitrate ueAMBR, unsigned int MPLR_DL, unsigned int MPLR_UL) {
+		qosCharacteristics = NRQosCharacteristics::getNRQosCharacteristics()->getQosCharacteristic(qi);
+		this->arp = arp;
+		this->reflectiveQosAttribute = reflectiveQosAttribute;
+		this->notificationControl = notificationControl;
+		this->MFBR_UL = MFBR_UL;
+		this->GFBR_DL = GFBR_DL;
+		this->MFBR_DL = MFBR_DL;
+		this->GFBR_UL = GFBR_UL;
+		this->MPLR_DL = MPLR_DL;
+		this->MPLR_UL = MPLR_UL;
+		this->sessionAMBR = sessionAMBR;
+		this->ueAMBR = ueAMBR;
+		ASSERT(arp >= 1 && arp <= 15);
+	}
+	QosCharacteristic qosCharacteristics;
+	uint16_t arp; //1...15
+	bool reflectiveQosAttribute; //optional, non-GBR
+	bool notificationControl; //GBR
+	bitrate MFBR_UL; //maximum flow bit rate, GBR / DC-GBR only
+	bitrate MFBR_DL;
+	bitrate GFBR_UL; // guaranteed flow bit rate
+	bitrate GFBR_DL;
+	bitrate sessionAMBR;
+	bitrate ueAMBR;
+	uint32_t MPLR_DL; //Maximum Packet Loss Rate
+	uint32_t MPLR_UL;
+	// maximum packet loss rate
 };
 
 //QosProfile --> TS 23.501
 class NRQosProfile {
 public:
-    NRQosProfile(QI qi, unsigned short arp, bool reflectiveQosAttribute,
-            bool notificationControl, bitrate MFBR_UL, bitrate MFBR_DL,
-            bitrate GFBR_DL, bitrate GFBR_UL, bitrate sessionAMBR,
-            bitrate ueAMBR, unsigned int MPLR_DL, unsigned int MPLR_UL) {
-        this->qosParam = new NRQosParameters(qi, arp, reflectiveQosAttribute,
-                notificationControl, MFBR_UL, MFBR_DL, GFBR_DL, GFBR_UL,
-                sessionAMBR, ueAMBR, MPLR_DL, MPLR_UL);
-    }
+	NRQosProfile(QI qi, unsigned short arp, bool reflectiveQosAttribute, bool notificationControl, bitrate MFBR_UL, bitrate MFBR_DL, bitrate GFBR_DL, bitrate GFBR_UL, bitrate sessionAMBR,
+			bitrate ueAMBR, unsigned int MPLR_DL, unsigned int MPLR_UL) {
+		this->qosParam = new NRQosParameters(qi, arp, reflectiveQosAttribute, notificationControl, MFBR_UL, MFBR_DL, GFBR_DL, GFBR_UL, sessionAMBR, ueAMBR, MPLR_DL, MPLR_UL);
+	}
 
-    virtual ~NRQosProfile() {
-    }
+	virtual ~NRQosProfile() {
+	}
 
-    NRQosParameters * getQosParameters() {
-        return qosParam;
-    }
+	NRQosParameters* getQosParameters() {
+		return qosParam;
+	}
 protected:
-    NRQosParameters * qosParam;
+	NRQosParameters *qosParam;
 };
 

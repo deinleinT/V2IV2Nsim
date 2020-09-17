@@ -91,6 +91,7 @@ void LtePhyEnb::initialize(int stage)
         if (bdcUpdateInterval_ != 0 && par("enableHandover").boolValue()) {
             // self message provoking the generation of a broadcast message
             bdcStarter_ = new cMessage("bdcStarter");
+            bdcStarter_->setSchedulingPriority(-1);
 
             scheduleAt(NOW + bdcUpdateInterval_, bdcStarter_);
         }

@@ -261,9 +261,9 @@ void LteMacUeD2D::macPduMake(MacCid cid)
             // FIXME: hb is never deleted
             UserControlInfo* info = check_and_cast<UserControlInfo*>(pit->second->getControlInfo());
             if (info->getDirection() == UL)
-                hb = new LteHarqBufferTx((unsigned int) ENB_TX_HARQ_PROCESSES, this, (LteMacBase*) getMacByMacNodeId(destId));
+                hb = new LteHarqBufferTx((unsigned int) harqProcesses_, this, (LteMacBase*) getMacByMacNodeId(destId));
             else // D2D or D2D_MULTI
-                hb = new LteHarqBufferTxD2D((unsigned int) ENB_TX_HARQ_PROCESSES, this, (LteMacBase*) getMacByMacNodeId(destId));
+                hb = new LteHarqBufferTxD2D((unsigned int) harqProcesses_, this, (LteMacBase*) getMacByMacNodeId(destId));
             harqTxBuffers_[destId] = hb;
             txBuf = hb;
         }
@@ -620,7 +620,7 @@ void LteMacUeD2D::handleSelfMessage()
             firstTx=true;
             // the eNb will receive the first pdu in 2 TTI, thus initializing acid to 0
 //            currentHarq_ = harqRxBuffers_.begin()->second->getProcesses() - 2;
-            currentHarq_ = UE_TX_HARQ_PROCESSES - 2;
+            currentHarq_ = harqProcesses_ - 2;
         }
         EV << "\t " << schedulingGrant_ << endl;
 
@@ -851,7 +851,7 @@ void LteMacUeD2D::macHandleD2DModeSwitch(cPacket* pkt)
                         HarqTxBuffers::iterator hit = harqTxBuffers_.find(id);
                         if (hit != harqTxBuffers_.end())
                         {
-                            for (int proc = 0; proc < (unsigned int) UE_TX_HARQ_PROCESSES; proc++)
+                            for (int proc = 0; proc < (unsigned int) harqProcesses_; proc++)
                             {
                                 hit->second->forceDropProcess(proc);
                             }
@@ -862,7 +862,7 @@ void LteMacUeD2D::macHandleD2DModeSwitch(cPacket* pkt)
                         hit = harqTxBuffers_.find(id);
                         if (hit != harqTxBuffers_.end())
                         {
-                            for (int proc = 0; proc < (unsigned int) UE_TX_HARQ_PROCESSES; proc++)
+                            for (int proc = 0; proc < (unsigned int) harqProcesses_; proc++)
                             {
                                 hit->second->forceDropProcess(proc);
                             }
@@ -937,7 +937,7 @@ void LteMacUeD2D::macHandleD2DModeSwitch(cPacket* pkt)
                         HarqRxBuffers::iterator hit = harqRxBuffers_.find(id);
                         if (hit != harqRxBuffers_.end())
                         {
-                            for (unsigned int proc = 0; proc < (unsigned int) UE_RX_HARQ_PROCESSES; proc++)
+                            for (unsigned int proc = 0; proc < (unsigned int) harqProcesses_; proc++)
                             {
                                 unsigned int numUnits = hit->second->getProcess(proc)->getNumHarqUnits();
                                 for (unsigned int i=0; i < numUnits; i++)

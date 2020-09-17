@@ -386,7 +386,7 @@ void LteMacUe::macPduMake(MacCid cid)
         {
             // the tx buffer does not exist yet for this mac node id, create one
             // FIXME: hb is never deleted
-            LteHarqBufferTx* hb = new LteHarqBufferTx((unsigned int) ENB_TX_HARQ_PROCESSES, this,
+            LteHarqBufferTx* hb = new LteHarqBufferTx((unsigned int) harqProcesses_, this,
                 (LteMacBase*) getMacByMacNodeId(cellId_));
             harqTxBuffers_[cellId_] = hb;
             txBuf = hb;
@@ -575,7 +575,7 @@ void LteMacUe::handleSelfMessage()
             firstTx=true;
             // the eNb will receive the first pdu in 2 TTI, thus initializing acid to 0
 //            currentHarq_ = harqRxBuffers_.begin()->second->getProcesses() - 2;
-            currentHarq_ = UE_TX_HARQ_PROCESSES - 2;
+            currentHarq_ = harqProcesses_ - 2;
         }
         //EV << "\t " << schedulingGrant_ << endl;
 

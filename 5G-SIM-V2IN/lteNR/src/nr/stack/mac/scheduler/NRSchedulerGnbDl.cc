@@ -105,9 +105,35 @@ bool NRSchedulerGnbDl::rtxschedule() {
 		//EV << NOW << " NRSchedulerGnbDl::rtxschedule Number of codewords: " << codewords << endl;
 		unsigned int process = 0;
 		unsigned int maxProcesses = currHarq->getNumProcesses();
+		std::map<simtime_t,unsigned int>rtxProcesses;
+
+		//find longest waiting process
 		for (process = 0; process < maxProcesses; ++process) {
 			// for each HARQ process
 			LteHarqProcessTx *currProc = (*processes)[process];
+
+			if (allocatedCws_[nodeId] == codewords)
+				break;
+			for (Codeword cw = 0; cw < codewords; ++cw) {
+				if (allocatedCws_[nodeId] == codewords)
+					break;
+				//EV << NOW << " NRSchedulerGnbDl::rtxschedule process " << process << endl;
+				//EV << NOW << " NRSchedulerGnbDl::rtxschedule ------- CODEWORD " << cw << endl;
+
+				// skip processes which are not in rtx status
+				if (currProc->getUnitStatus(cw) == TXHARQ_PDU_BUFFERED) {
+					rtxProcesses[currProc->getOldestUnitTxTime()] = process;
+				}else{
+					continue;
+				}
+			}
+		}
+
+
+//		for (process = 0; process < maxProcesses; ++process) {
+		for (auto & process : rtxProcesses) {
+			// for each HARQ process
+			LteHarqProcessTx *currProc = (*processes)[process.second];
 
 			if (allocatedCws_[nodeId] == codewords)
 				break;
@@ -135,7 +161,7 @@ bool NRSchedulerGnbDl::rtxschedule() {
 					bandLim = &usableBands;
 
 				// perform the retransmission
-				unsigned int bytes = schedulePerAcidRtx(nodeId, cw, process, bandLim);
+				unsigned int bytes = schedulePerAcidRtx(nodeId, cw, process.second, bandLim);
 
 				// if a value different from zero is returned, there was a service
 				if (bytes > 0) {

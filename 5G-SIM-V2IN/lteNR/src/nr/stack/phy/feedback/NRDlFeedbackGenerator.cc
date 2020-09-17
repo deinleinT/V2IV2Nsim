@@ -34,4 +34,5 @@ void NRDlFeedbackGenerator::handleMessage(cMessage *msg){
 
 void NRDlFeedbackGenerator::initialize(int stage){
     LteDlFeedbackGenerator::initialize(stage);
+    currentTxMode_ = aToTxMode(getSimulation()->getSystemModule()->par("initialTxMode").stringValue());
 }

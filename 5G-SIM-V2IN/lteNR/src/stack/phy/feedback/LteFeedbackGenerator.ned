@@ -37,7 +37,7 @@ simple LteDlFeedbackGenerator {
         // initial txMode (see LteCommon.h)
         //     SINGLE_ANTENNA_PORT0,SINGLE_ANTENNA_PORT5,TRANSMIT_DIVERSITY,OL_SPATIAL_MULTIPLEXING,
         // CL_SPATIAL_MULTIPLEXING,MULTI_USER,
-        string initialTxMode = default("SINGLE_ANTENNA_PORT0");  
+        string initialTxMode = default("OL_SPATIAL_MULTIPLEXING");  
         
         //Feedback Computation (warning, this should be compatible with
         // analogue model and Decider

@@ -157,9 +157,9 @@ void LteMacBase::fromPhy(cPacket *pkt)
         {
             LteHarqBufferRx *hrb;
             if (userInfo->getDirection() == DL || userInfo->getDirection() == UL)
-                hrb = new LteHarqBufferRx(ENB_RX_HARQ_PROCESSES, this,src);
+                hrb = new LteHarqBufferRx(harqProcesses_, this,src);
             else // D2D
-                hrb = new LteHarqBufferRxD2D(ENB_RX_HARQ_PROCESSES, this,src, (userInfo->getDirection() == D2D_MULTI) );
+                hrb = new LteHarqBufferRxD2D(harqProcesses_, this,src, (userInfo->getDirection() == D2D_MULTI) );
 
             hrb->insertPdu(cw,pdu);
             harqRxBuffers_[src] = hrb;

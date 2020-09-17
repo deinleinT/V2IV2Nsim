@@ -697,16 +697,16 @@ typedef std::list<MacControlElement*> MacControlElementsList;
 #define HARQ_NONE 255
 
 /// Number of harq tx processes
-#define ENB_TX_HARQ_PROCESSES 8
-#define UE_TX_HARQ_PROCESSES 8
-#define ENB_RX_HARQ_PROCESSES 8
-#define UE_RX_HARQ_PROCESSES 8
+//#define ENB_TX_HARQ_PROCESSES 8
+//#define UE_TX_HARQ_PROCESSES 8
+//#define ENB_RX_HARQ_PROCESSES 8
+//#define UE_RX_HARQ_PROCESSES 8
 
 /// time interval between two transmissions of the same pdu
 //#define HARQ_TX_INTERVAL 4*TTI
 
 /// time it takes to generate feedback for a pdu
-#define HARQ_FB_EVALUATION_INTERVAL 3
+//#define HARQ_FB_EVALUATION_INTERVAL 3
 
 /// H-ARQ feedback (ACK, NACK)
 enum HarqAcknowledgment

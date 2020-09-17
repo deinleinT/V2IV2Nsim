@@ -45,10 +45,9 @@
 
 class NRMacGnb: public LteMacEnb {
 
-public:
-
 
 protected:
+	unsigned int harqProcessesNR_;
 
 //    QosHandler * qosHandler;
     virtual void initialize(int stage);

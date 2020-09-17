@@ -58,7 +58,7 @@ simple LteCellInfo {
         string ruTxPower = default("0;");
         
         // cws for each antenna, note that first position refers to the MACRO
-        string antennaCws = default("1;");
+        string antennaCws = default("2;");
 
         //#
         //# Physical layer properties

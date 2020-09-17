@@ -31,8 +31,9 @@ simple NRDlFeedbackGenerator extends LteDlFeedbackGenerator
         @display("i=block/cogwheel");
         @class("NRDlFeedbackGenerator");
 
-        initialTxMode = default("SINGLE_ANTENNA_PORT0");
+        //initialTxMode = default("SINGLE_ANTENNA_PORT0");
 		//initialTxMode = default("TRANSMIT_DIVERSITY");
+		initialTxMode = default("OL_SPATIAL_MULTIPLEXING");
         feedbackGeneratorType = default("IDEAL");
 }
 

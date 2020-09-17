@@ -47,13 +47,15 @@ class NRMacUe: public LteMacUe {
 
 public:
 	void resetScheduleList() {
-		Enter_Method_Silent();
+		Enter_Method_Silent
+		();
 
 		scheduleListWithSizes_.clear();
 	}
 
 	virtual void resetSchedulingGrant() {
-		Enter_Method_Silent();
+		Enter_Method_Silent
+		();
 
 		if (schedulingGrantMap.size() > 0) {
 			schedulingGrantMap.erase(schedulingGrant_->getProcessId());
@@ -64,20 +66,30 @@ public:
 
 	virtual void resetSchedulingGrantMap() {
 
-		Enter_Method_Silent();
+		Enter_Method_Silent
+		();
 
-		delete schedulingGrant_;
-		schedulingGrant_ = NULL;
-
-		for (auto &var : schedulingGrantMap) {
-			delete var.second;
+		std::map<unsigned char, LteSchedulingGrant*>::iterator it;
+		for (it = schedulingGrantMap.begin(); it != schedulingGrantMap.end();) {
+			delete it->second;
+			schedulingGrantMap.erase(it++);
 		}
+
+		if (schedulingGrant_ != NULL) {
+			if (schedulingGrant_->getUserTxParams() == NULL) {
+				schedulingGrant_ = NULL;
+			} else {
+				delete schedulingGrant_;
+			}
+		}
+		schedulingGrant_ = NULL;
 
 		schedulingGrantMap.clear();
 	}
 
 	virtual void checkConfiguredGrant() {
-		Enter_Method_Silent();
+		Enter_Method_Silent
+		();
 
 		if (schedulingGrantMap.empty()) {
 			delete schedulingGrant_;
@@ -97,7 +109,7 @@ public:
 	}
 
 protected:
-
+	unsigned int harqProcessesNR_;
 	LteMacScheduleListWithSizes scheduleListWithSizes_;
 	virtual void initialize(int stage);
 	virtual void handleMessage(cMessage *msg);
@@ -128,6 +140,7 @@ protected:
 	 * Main loop
 	 */
 	virtual void handleSelfMessage();
+	virtual void handleSelfMessageWithNRHarq();
 
 	/**
 	 * macPduMake() creates MAC PDUs (one for each CID)

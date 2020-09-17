@@ -345,7 +345,22 @@ protected:
 
     unsigned int lastSentStatusUpdateSN;
 
+    std::set<std::string> carsV2X;
+    std::set<std::string> carsData;
+
 protected:
+    virtual bool isRemoteCar(unsigned short ueId, unsigned int remoteCarFactor){
+    	if(getSystemModule()->par("remoteCarJustOne").boolValue()){
+    		if((UE_MIN_ID + remoteCarFactor) == ueId){
+    			return true;
+    		}
+    		return false;
+    	}
+    	if(ueId % remoteCarFactor == 0){
+    		return true;
+    	}
+    	return false;
+    }
 
     virtual int numInitStages() const override {
         return NUM_INIT_STAGES;
@@ -609,7 +624,8 @@ public:
     void receiveSignal(std::string name) {
         Enter_Method_Silent();
         //startTime --> server determines the first time a packet is sent to this car
-        simtime_t nextSelfMsg = NOW + par("sendInterval").doubleValue() + uniform(0.0, par("startTimeDL").doubleValue());
+        simtime_t interval = par("sendInterval").doubleValue();
+        simtime_t nextSelfMsgTime = NOW + interval + + uniform(0.0, par("startTimeDL").doubleValue());
         if (considerDatasizeAndMessages) {
 			//HD Map
 //			if ("car[159]" == name || "car[237]" == name) {
@@ -617,7 +633,7 @@ public:
 //			}
         }
         if (names.find(name) == names.end()) {
-			carsSendingTimes[name] = nextSelfMsg;
+			carsSendingTimes[name] = nextSelfMsgTime;
         }
         names.insert(name);
         if(selfMsg->isScheduled())
@@ -625,16 +641,26 @@ public:
         selfMsg->setKind(START);
 
 		for (auto & var : names) {
-			if (carsSendingTimes[var] <= nextSelfMsg) {
-				nextSelfMsg = carsSendingTimes[var];
+			if (carsSendingTimes[var] <= nextSelfMsgTime) {
+				nextSelfMsgTime = carsSendingTimes[var];
 			}
 		}
-        scheduleAt(nextSelfMsg, selfMsg);
+
+		//save the random messageLength for each car in RemoteDrivingDL
+		if(getSimulation()->getSystemModule()->par("remoteDrivingDL")){
+			carsByteLengthRemoteDrivingDL[name] = par("messageLength").intValue();
+			carsSendingIntervalRemoteDrivingDL[name] = interval;
+		}
+		//
+
+        scheduleAt(nextSelfMsgTime, selfMsg);
     }
 
     void deleteNameFromQueuedNames(std::string name){
         names.erase(name);
         carsSendingTimes.erase(name);
+        carsByteLengthRemoteDrivingDL.erase(name);
+		carsSendingIntervalRemoteDrivingDL.erase(name);
     }
 
 
@@ -642,6 +668,8 @@ protected:
 
     std::set<std::string> names;
     std::map<std::string,simtime_t> carsSendingTimes;
+    std::map<std::string,unsigned int> carsByteLengthRemoteDrivingDL;
+    std::map<std::string,simtime_t> carsSendingIntervalRemoteDrivingDL;
 
     virtual bool handleNodeStart(IDoneCallback *doneCallback) override;
     virtual void sendPacket() override;

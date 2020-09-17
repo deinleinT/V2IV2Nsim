@@ -38,6 +38,7 @@ NRMacGnb::~NRMacGnb() {
 }
 
 void NRMacGnb::initialize(int stage) {
+	LteMacEnb::initialize(stage);
 	if (stage == 0) {
 
 		/* Create and initialize MAC Downlink scheduler */
@@ -47,8 +48,12 @@ void NRMacGnb::initialize(int stage) {
 		/* Create and initialize MAC Uplink scheduler */
 		enbSchedulerUl_ = check_and_cast<LteSchedulerEnbUl*>(new NRSchedulerGnbUl());
 		enbSchedulerUl_->initialize(UL, this);
+		harqProcesses_ = getSystemModule()->par("numberHarqProcesses").intValue();
+		harqProcessesNR_ = getSystemModule()->par("numberHarqProcessesNR").intValue();
+		if (getSystemModule()->par("nrHarq").boolValue()) {
+			harqProcesses_ = harqProcessesNR_;
+		}
 	}
-	LteMacEnb::initialize(stage);
 
 }
 
@@ -515,7 +520,8 @@ void NRMacGnb::macPduMake(MacCid cid) {
 			txBuf = hit->second;
 		} else {
 			// FIXME: possible memory leak
-			LteHarqBufferTx *hb = new LteHarqBufferTx(ENB_TX_HARQ_PROCESSES, this, (LteMacBase*) getMacUe(destId));
+
+			LteHarqBufferTx *hb = new LteHarqBufferTx(harqProcesses_, this, (LteMacBase*) getMacUe(destId));
 			harqTxBuffers_[destId] = hb;
 			txBuf = hb;
 		}
@@ -810,19 +816,31 @@ void NRMacGnb::sendGrants(LteMacScheduleListWithSizes *scheduleList) {
 		grant->setControlInfo(uinfo);
 		if (rtxMap[nodeId].size() == 1) {
 			//one rtx scheduled
-			auto temp = rtxMap[nodeId].begin();
-			grant->setProcessId((unsigned int) temp->first);
+			auto temp = rtxMap[nodeId];
+			unsigned short lastProcess = temp.begin()->second.processId;
+			grant->setProcessId(lastProcess);
 			grant->setNewTx(false);
-			rtxMap[nodeId].erase(temp);
+			rtxMap[nodeId].erase(temp.begin()->second.processId);
 			rtxMap.erase(nodeId);
 		} else if (rtxMap[nodeId].size() == 0) {
-			//TODO
+			//no rtx
 			grant->setNewTx(true);
 			grant->setProcessId(-1);
 
 		} else {
-			//TODO two codewords
-			throw cRuntimeError("Two Codewords not implemented yet");
+			auto & temp = rtxMap[nodeId];
+			unsigned short order = 17;
+			for(auto & var : temp){
+				if(var.second.order < order){
+					order = var.second.order;
+				}
+			}
+
+			unsigned short processId = temp.at(order).processId;
+			grant->setProcessId(processId);
+			grant->setNewTx(false);
+			rtxMap[nodeId].erase(temp.erase(order));
+			//rtxMap.erase(nodeId);
 		}
 
 		// get and set the user's UserTxParams

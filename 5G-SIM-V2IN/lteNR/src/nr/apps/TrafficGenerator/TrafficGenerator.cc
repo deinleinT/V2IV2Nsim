@@ -261,7 +261,7 @@ void TrafficGenerator::finish() {
 
 	if (nodeType == "car") {
 
-		for (auto & var : connectionsServToUE) {
+		for (auto &var : connectionsServToUE) {
 			//record all values for the four applications
 
 			double recPacketsDataOutBudget10ms = var.second.statReport.recPacketsDataOutBudget10ms;
@@ -304,6 +304,12 @@ void TrafficGenerator::finish() {
 				double reliabilityData1s = 1.0 - double(recPacketsDataOutBudget1s / recPacketsData);
 				recordScalar("reliabilityData1sDL", reliabilityData1s);
 				reliabilityData1sVecDL.record(reliabilityData1s);
+
+				recordScalar("lostPacketsData", lostPacketsData);
+				recordScalar("recPacketsData", recPacketsData);
+				recordScalar("sentPacketsData", sentPacketsData);
+				recordScalar("recPacketsDataOutBudget", recPacketsDataOutBudget);
+				recordScalar("delayDataVariationOut", delayDataVariationOut);
 			}
 			//
 
@@ -348,6 +354,12 @@ void TrafficGenerator::finish() {
 				double reliabilityV2X1s = 1.0 - double(recPacketsV2XOutBudget1s / recPacketsV2X);
 				recordScalar("reliabilityV2X1sDL", reliabilityV2X1s);
 				reliabilityV2X1sVecDL.record(reliabilityV2X1s);
+
+				recordScalar("lostPacketsV2X", lostPacketsV2X);
+				recordScalar("recPacketsV2X", recPacketsV2X);
+				recordScalar("sentPacketsV2X", sentPacketsV2X);
+				recordScalar("recPacketsV2XOutBudget", recPacketsV2XOutBudget);
+				recordScalar("delayV2XVariationOut", delayV2XVariationOut);
 			}
 			//
 
@@ -392,6 +404,12 @@ void TrafficGenerator::finish() {
 				double reliabilityVoip1s = 1.0 - double(recPacketsVoipOutBudget1s / recPacketsVoip);
 				recordScalar("reliabilityVoip1sDL", reliabilityVoip1s);
 				reliabilityVoip1sVecDL.record(reliabilityVoip1s);
+
+				recordScalar("lostPacketsVoip", lostPacketsVoip);
+				recordScalar("recPacketsVoip", recPacketsVoip);
+				recordScalar("sentPacketsVoip", sentPacketsVoip);
+				recordScalar("recPacketsVoipOutBudget", recPacketsVoipOutBudget);
+				recordScalar("delayVideoVariationOut", delayVideoVariationOut);
 			}
 			//
 
@@ -436,6 +454,11 @@ void TrafficGenerator::finish() {
 				double reliabilityVideo1s = 1.0 - double(recPacketsVideoOutBudget1s / recPacketsVideo);
 				recordScalar("reliabilityVideo1sDL", reliabilityVideo1s);
 				reliabilityVideo1sVecDL.record(reliabilityVideo1s);
+
+				recordScalar("lostPacketsVideo", lostPacketsVideo);
+				recordScalar("recPacketsVideo", recPacketsVideo);
+				recordScalar("sentPacketsVideo", sentPacketsVideo);
+				recordScalar("recPacketsVideoOutBudget", recPacketsVideoOutBudget);
 			}
 			//
 		}
@@ -445,7 +468,7 @@ void TrafficGenerator::finish() {
 	//on server side
 	if (nodeType == "server") {
 
-		for (auto & var : connectionsUEtoServ) {
+		for (auto &var : connectionsUEtoServ) {
 			//record all different reliabilities
 
 			double recPacketsDataOutBudget10ms = var.second.statReport.recPacketsDataOutBudget10ms;
@@ -488,6 +511,14 @@ void TrafficGenerator::finish() {
 				double reliabilityData1s = 1.0 - double(recPacketsDataOutBudget1s / recPacketsData);
 				recordScalar("reliabilityData1sUL", reliabilityData1s);
 				reliabilityData1sVecUL.record(reliabilityData1s);
+
+				recordScalar("numberCarsData", carsData.size());
+
+				recordScalar("lostPacketsData", lostPacketsData);
+				recordScalar("recPacketsData", recPacketsData);
+				recordScalar("sentPacketsData", sentPacketsData);
+				recordScalar("recPacketsDataOutBudget", recPacketsDataOutBudget);
+				recordScalar("delayDataVariationOut", delayDataVariationOut);
 			}
 
 			//V2X
@@ -531,6 +562,14 @@ void TrafficGenerator::finish() {
 				double reliabilityV2X1s = 1.0 - double(recPacketsV2XOutBudget1s / recPacketsV2X);
 				recordScalar("reliabilityV2X1sUL", reliabilityV2X1s);
 				reliabilityV2X1sVecUL.record(reliabilityV2X1s);
+
+				recordScalar("numberCarsV2X", carsV2X.size());
+
+				recordScalar("lostPacketsV2X", lostPacketsV2X);
+				recordScalar("recPacketsV2X", recPacketsV2X);
+				recordScalar("sentPacketsV2X", sentPacketsV2X);
+				recordScalar("recPacketsV2XOutBudget", recPacketsV2XOutBudget);
+				recordScalar("delayV2XVariationOut", delayV2XVariationOut);
 			}
 			//
 
@@ -575,6 +614,12 @@ void TrafficGenerator::finish() {
 				double reliabilityVoip1s = 1.0 - double(recPacketsVoipOutBudget1s / recPacketsVoip);
 				recordScalar("reliabilityVoip1sUL", reliabilityVoip1s);
 				reliabilityVoip1sVecUL.record(reliabilityVoip1s);
+
+				recordScalar("lostPacketsVoip", lostPacketsVoip);
+				recordScalar("recPacketsVoip", recPacketsVoip);
+				recordScalar("sentPacketsVoip", sentPacketsVoip);
+				recordScalar("recPacketsVoipOutBudget", recPacketsVoipOutBudget);
+				recordScalar("delayVideoVariationOut", delayVideoVariationOut);
 			}
 			//
 
@@ -619,35 +664,15 @@ void TrafficGenerator::finish() {
 				double reliabilityVideo1s = 1.0 - double(recPacketsVideoOutBudget1s / recPacketsVideo);
 				recordScalar("reliabilityVideo1sUL", reliabilityVideo1s);
 				reliabilityVideo1sVecUL.record(reliabilityVideo1s);
+
+				recordScalar("lostPacketsVideo", lostPacketsVideo);
+				recordScalar("recPacketsVideo", recPacketsVideo);
+				recordScalar("sentPacketsVideo", sentPacketsVideo);
+				recordScalar("recPacketsVideoOutBudget", recPacketsVideoOutBudget);
 			}
 			//
 		}
 	}
-
-	recordScalar("lostPacketsVideo", lostPacketsVideo);
-	recordScalar("lostPacketsV2X", lostPacketsV2X);
-	recordScalar("lostPacketsVoip", lostPacketsVoip);
-	recordScalar("lostPacketsData", lostPacketsData);
-
-	recordScalar("recPacketsVideo", recPacketsVideo);
-	recordScalar("recPacketsV2X", recPacketsV2X);
-	recordScalar("recPacketsVoip", recPacketsVoip);
-	recordScalar("recPacketsData", recPacketsData);
-
-	recordScalar("sentPacketsVideo", sentPacketsVideo);
-	recordScalar("sentPacketsV2X", sentPacketsV2X);
-	recordScalar("sentPacketsVoip", sentPacketsVoip);
-	recordScalar("sentPacketsData", sentPacketsData);
-
-	recordScalar("recPacketsVideoOutBudget", recPacketsVideoOutBudget);
-	recordScalar("recPacketsV2XOutBudget", recPacketsV2XOutBudget);
-	recordScalar("recPacketsVoipOutBudget", recPacketsVoipOutBudget);
-	recordScalar("recPacketsDataOutBudget", recPacketsDataOutBudget);
-
-	recordScalar("delayVoipVariationOut", delayVoipVariationOut);
-	recordScalar("delayV2XVariationOut", delayV2XVariationOut);
-	recordScalar("delayVideoVariationOut", delayVideoVariationOut);
-	recordScalar("delayDataVariationOut", delayDataVariationOut);
 
 	ApplicationBase::finish();
 }
@@ -729,9 +754,8 @@ void TrafficGeneratorServerUL::handleMessageWhenUp(cMessage *msg) {
 	delete msg;
 }
 
-
 /**
- * calculates and records statistics from received packtes from cars
+ * calculates and records statistics from received packets from cars
  *
  * @param pk The packet received from Car
  */
@@ -750,10 +774,11 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 			return;
 		}
 
-		V2XMessage * temp = check_and_cast<V2XMessage*>(pk->dup());
+		V2XMessage *temp = check_and_cast<V2XMessage*>(pk->dup());
 		int nodeId = temp->getSenderNodeId();
 		unsigned int number = temp->getSequenceNumber();
-		const char * name = temp->getSenderName();
+		const char *name = temp->getSenderName();
+		carsV2X.insert(name);
 
 		cModule *mod = getSimulation()->getModuleByPath(name);
 		if (!mod) {
@@ -860,10 +885,10 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 
 	} else if (strcmp(pk->getName(), "Video") == 0) {
 
-		VideoMessage * temp = check_and_cast<VideoMessage*>(pk->dup());
+		VideoMessage *temp = check_and_cast<VideoMessage*>(pk->dup());
 		int nodeId = temp->getSenderNodeId();
 		int number = temp->getSequenceNumber();
-		const char * name = temp->getSenderName();
+		const char *name = temp->getSenderName();
 		temp->setArrivalTime(NOW);
 
 		if (connectionsUEtoServ.find(nodeId) != connectionsUEtoServ.end()) {
@@ -966,10 +991,10 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 
 	} else if (strcmp(pk->getName(), "VoIP") == 0) {
 
-		VoIPMessage * temp = check_and_cast<VoIPMessage*>(pk->dup());
+		VoIPMessage *temp = check_and_cast<VoIPMessage*>(pk->dup());
 		int nodeId = temp->getSenderNodeId();
 		int number = temp->getSequenceNumber();
-		const char * name = temp->getSenderName();
+		const char *name = temp->getSenderName();
 		temp->setArrivalTime(NOW);
 
 		if (connectionsUEtoServ.find(nodeId) != connectionsUEtoServ.end()) {
@@ -1071,10 +1096,11 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 		delete temp;
 	} else if (strcmp(pk->getName(), "Data") == 0) {
 
-		DataMessage * temp = check_and_cast<DataMessage*>(pk->dup());
+		DataMessage *temp = check_and_cast<DataMessage*>(pk->dup());
 		int nodeId = temp->getSenderNodeId();
 		int number = temp->getSequenceNumber();
-		const char * name = temp->getSenderName();
+		const char *name = temp->getSenderName();
+		carsData.insert(name);
 		temp->setArrivalTime(NOW);
 		int messageLen = temp->getByteLength();
 
@@ -1136,7 +1162,7 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 						--connectionsUEtoServ[nodeId].messages;
 
 						if (connectionsUEtoServ[nodeId].messages <= 0) {
-							TrafficGeneratorCarUL * tmp1 = check_and_cast<TrafficGeneratorCarUL*>(getSimulation()->getModuleByPath(name)->getSubmodule("udpApp", 0));
+							TrafficGeneratorCarUL *tmp1 = check_and_cast<TrafficGeneratorCarUL*>(getSimulation()->getModuleByPath(name)->getSubmodule("udpApp", 0));
 							tmp1->setDataPacketFlag(false);
 							connectionsUEtoServ[nodeId].timeLastDataPacketArrived = NOW;
 
@@ -1255,6 +1281,14 @@ void TrafficGeneratorCarUL::sendPacket() {
 	//
 
 	if (strcmp(packetName, "V2X") == 0) {
+
+		if (getSimulation()->getSystemModule()->par("remoteDrivingUL")) {
+			//check nodeId --> every 10th car is a remote car
+			if (!isRemoteCar(nodeId, getSystemModule()->par("remoteCarFactor").intValue())) {
+				sendVideoPacket = false;
+				return;
+			}
+		}
 
 		sentPacketsV2X++;
 
@@ -1424,6 +1458,14 @@ void TrafficGeneratorCarUL::sendPacket() {
 
 	} else if (strcmp(packetName, "Data") == 0) {
 
+		if (getSimulation()->getSystemModule()->par("remoteDrivingUL")) {
+			//check nodeId --> every 10th car is a remote car
+			if (isRemoteCar(nodeId, getSystemModule()->par("remoteCarFactor"))) {
+				sendDataPacket = false;
+				return;
+			}
+		}
+
 		sentPacketsData++;
 
 		DataMessage *payload = new DataMessage(packetName);
@@ -1515,7 +1557,7 @@ void TrafficGeneratorCarDL::initialize(int stage) {
 		TrafficGenerator::initialize(stage);
 
 	} else if (stage == INITSTAGE_LAST) {
-		const char * carName = getParentModule()->getFullName();
+		const char *carName = getParentModule()->getFullName();
 
 		//for V2X Broadcast
 		bool flag = getSystemModule()->par("v2vMulticastFlag").boolValue();
@@ -1523,29 +1565,29 @@ void TrafficGeneratorCarDL::initialize(int stage) {
 			return;
 		//
 
-		TrafficGeneratorServerDL * tmp0 = check_and_cast<TrafficGeneratorServerDL*>(getSimulation()->getModuleByPath(par("destAddresses").stdstringValue().c_str())->getSubmodule("udpApp", 0));
+		TrafficGeneratorServerDL *tmp0 = check_and_cast<TrafficGeneratorServerDL*>(getSimulation()->getModuleByPath(par("destAddresses").stdstringValue().c_str())->getSubmodule("udpApp", 0));
 		listener0 = new Listener(tmp0);
 		carNameSignal = registerSignal("carName");
 		subscribe(carNameSignal, listener0);
 
-		if (getAncestorPar("numUdpApps").intValue() > 1) {
+		if (getAncestorPar("numUdpApps").intValue() == 4) {
 
 			unsigned short tmpGate = 0;
 			unsigned short tmpGateTwo = 0;
 			unsigned short tmpGateThree = 0;
 			if (getAncestorPar("oneServer").boolValue())
 				tmpGate = 1;
-			TrafficGeneratorServerDL * tmp1 = check_and_cast<TrafficGeneratorServerDL*>(
+			TrafficGeneratorServerDL *tmp1 = check_and_cast<TrafficGeneratorServerDL*>(
 					getSimulation()->getModuleByPath(par("destAddresses").stdstringValue().c_str())->getSubmodule("udpApp", tmpGate));
 
 			if (getAncestorPar("oneServer").boolValue())
 				tmpGateTwo = 2;
-			TrafficGeneratorServerDL * tmp2 = check_and_cast<TrafficGeneratorServerDL*>(
+			TrafficGeneratorServerDL *tmp2 = check_and_cast<TrafficGeneratorServerDL*>(
 					getSimulation()->getModuleByPath(par("destAddresses").stdstringValue().c_str())->getSubmodule("udpApp", tmpGateTwo));
 
 			if (getAncestorPar("oneServer").boolValue())
 				tmpGateThree = 3;
-			TrafficGeneratorServerDL * tmp3 = check_and_cast<TrafficGeneratorServerDL*>(
+			TrafficGeneratorServerDL *tmp3 = check_and_cast<TrafficGeneratorServerDL*>(
 					getSimulation()->getModuleByPath(par("destAddresses").stdstringValue().c_str())->getSubmodule("udpApp", tmpGateThree));
 
 			listener1 = new Listener(tmp1);
@@ -1554,6 +1596,16 @@ void TrafficGeneratorCarDL::initialize(int stage) {
 			subscribe(carNameSignal, listener1);
 			subscribe(carNameSignal, listener2);
 			subscribe(carNameSignal, listener3);
+		} else if (getAncestorPar("numUdpApps").intValue() == 2) {
+			unsigned short tmpGate = 0;
+
+			if (getAncestorPar("oneServer").boolValue())
+				tmpGate = 1;
+			TrafficGeneratorServerDL *tmp1 = check_and_cast<TrafficGeneratorServerDL*>(
+					getSimulation()->getModuleByPath(par("destAddresses").stdstringValue().c_str())->getSubmodule("udpApp", tmpGate));
+
+			listener1 = new Listener(tmp1);
+			subscribe(carNameSignal, listener1);
 		}
 		emit(carNameSignal, carName);
 
@@ -1590,10 +1642,10 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 	if (strcmp(pk->getName(), "V2X") == 0 || strcmp(pk->getName(), "status-update") == 0 || strcmp(pk->getName(), "request-to-merge") == 0 || strcmp(pk->getName(), "request-ack") == 0
 			|| strcmp(pk->getName(), "safe-to-merge|denial") == 0) {
 
-		V2XMessage * temp = check_and_cast<V2XMessage*>(pk->dup());
+		V2XMessage *temp = check_and_cast<V2XMessage*>(pk->dup());
 		int nodeId = temp->getSenderNodeId();
 		unsigned int number = temp->getSequenceNumber();
-		const char * name = temp->getSenderName();
+		const char *name = temp->getSenderName();
 
 		cModule *mod = getSimulation()->getModuleByPath(name);
 		if (!mod) {
@@ -1601,9 +1653,7 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 			return;
 		}
 
-		const char * myName = getParentModule()->getFullName();
-
-
+		const char *myName = getParentModule()->getFullName();
 
 		if (connectionsServToUE.find(nodeId) != connectionsServToUE.end()) {
 			//
@@ -1698,7 +1748,6 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 			tmp.statReport.recPacketsV2X++;
 			tmp.messages = messages;
 
-
 			connectionsServToUE[nodeId] = tmp;
 		}
 
@@ -1771,10 +1820,10 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 
 	} else if (strcmp(pk->getName(), "Video") == 0) {
 
-		VideoMessage * temp = check_and_cast<VideoMessage*>(pk->dup());
+		VideoMessage *temp = check_and_cast<VideoMessage*>(pk->dup());
 		int nodeId = temp->getSenderNodeId();
 		int number = temp->getSequenceNumber();
-		const char * name = temp->getSenderName();
+		const char *name = temp->getSenderName();
 		temp->setArrivalTime(NOW);
 
 		if (connectionsServToUE.find(nodeId) != connectionsServToUE.end()) {
@@ -1878,10 +1927,10 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 
 	} else if (strcmp(pk->getName(), "VoIP") == 0) {
 
-		VoIPMessage * temp = check_and_cast<VoIPMessage*>(pk->dup());
+		VoIPMessage *temp = check_and_cast<VoIPMessage*>(pk->dup());
 		int nodeId = temp->getSenderNodeId();
 		int number = temp->getSequenceNumber();
-		const char * name = temp->getSenderName();
+		const char *name = temp->getSenderName();
 		temp->setArrivalTime(NOW);
 
 		if (connectionsServToUE.find(nodeId) != connectionsServToUE.end()) {
@@ -1985,10 +2034,10 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 
 	} else if (strcmp(pk->getName(), "Data") == 0) {
 
-		DataMessage * temp = check_and_cast<DataMessage*>(pk->dup());
+		DataMessage *temp = check_and_cast<DataMessage*>(pk->dup());
 		int nodeId = temp->getSenderNodeId();
 		int number = temp->getSequenceNumber();
-		const char * name = temp->getSenderName();
+		const char *name = temp->getSenderName();
 		unsigned int messageLen = temp->getByteLength();
 		temp->setArrivalTime(NOW);
 
@@ -2052,8 +2101,8 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 						--connectionsServToUE[nodeId].messages;
 
 						if (connectionsServToUE[nodeId].messages <= 0) {
-							TrafficGeneratorServerDL * tmp1 = check_and_cast<TrafficGeneratorServerDL*>(getSimulation()->getModuleByPath(name)->getSubmodule("udpApp", 0));
-							const char* ueName = this->getParentModule()->getFullName();
+							TrafficGeneratorServerDL *tmp1 = check_and_cast<TrafficGeneratorServerDL*>(getSimulation()->getModuleByPath(name)->getSubmodule("udpApp", 0));
+							const char *ueName = this->getParentModule()->getFullName();
 							tmp1->deleteNameFromQueuedNames(ueName);
 
 							connectionsServToUE[nodeId].timeLastDataPacketArrived = NOW;
@@ -2188,21 +2237,30 @@ void TrafficGeneratorServerDL::sendPacket() {
 		return;
 	}
 
-	simtime_t nextSelfMsg = NOW + par("sendInterval").doubleValue() + uniform(0, par("resendingDelay").doubleValue());
+	simtime_t nextSelfMsgTime = NOW + par("sendInterval").doubleValue() + uniform(0, par("resendingDelay").doubleValue());
 
-	for (auto & var : names) {
+	for (auto &var : names) {
 
 		if (carsSendingTimes[var] == NOW) {
 
 			std::string carName = var;
-			carsSendingTimes[var] = nextSelfMsg;
 
 			cModule *mod = getSimulation()->getModuleByPath(carName.c_str());
 			if (!mod) {
 				names.erase(carName);
-				carsSendingTimes.erase(carName);
+				carsSendingTimes.erase(carName);carsSendingIntervalRemoteDrivingDL.erase(carName);
+				carsByteLengthRemoteDrivingDL.erase(carName);
 				continue;
 			}
+
+			//
+			if (getSimulation()->getSystemModule()->par("remoteDrivingDL")) {
+				//use the same random time
+				carsSendingTimes[var] = carsSendingIntervalRemoteDrivingDL[var] + NOW;
+			} else {
+				carsSendingTimes[var] = nextSelfMsgTime;
+			}
+			//
 
 			int omnetId = mod->getId();
 			int nodeId = getNRBinder()->getMacNodeIdFromOmnetId(omnetId);
@@ -2213,9 +2271,30 @@ void TrafficGeneratorServerDL::sendPacket() {
 			//
 
 			if (strcmp(packetName, "V2X") == 0) {
+
+				if (getSimulation()->getSystemModule()->par("remoteDrivingDL")) {
+					//check nodeId --> every ...th car is a remote car
+					if (!isRemoteCar(nodeId, getSystemModule()->par("remoteCarFactor").intValue())) {
+						//sendVideoPacket = false;
+						names.erase(carName);
+						carsSendingTimes.erase(carName);
+						carsByteLengthRemoteDrivingDL.erase(carName);
+						carsSendingIntervalRemoteDrivingDL.erase(carName);
+						continue;
+					}
+				}
+
 				sentPacketsV2X++;
 				V2XMessage *payload = new V2XMessage(packetName);
-				payload->setByteLength(messageLength);
+
+				//
+				if (getSimulation()->getSystemModule()->par("remoteDrivingDL")) {
+					payload->setByteLength(carsByteLengthRemoteDrivingDL[carName]);
+				} else {
+					payload->setByteLength(messageLength);
+				}
+				//
+
 				payload->setSenderNodeId(nodeId);
 				payload->setSenderName(getParentModule()->getFullName());
 				payload->setTimestamp(NOW);
@@ -2334,10 +2413,30 @@ void TrafficGeneratorServerDL::sendPacket() {
 
 				socket.sendTo(payload, L3AddressResolver().resolve(carName.c_str()), destPort);
 			} else if (strcmp(packetName, "Data") == 0) {
+
+				if (getSimulation()->getSystemModule()->par("remoteDrivingDL")) {
+					//check nodeId --> every 10th car is a remote car
+					if (isRemoteCar(nodeId, getSystemModule()->par("remoteCarFactor").intValue())) {
+						//sendVideoPacket = false;
+						names.erase(carName);
+						carsSendingTimes.erase(carName);
+						carsByteLengthRemoteDrivingDL.erase(carName);
+						carsSendingIntervalRemoteDrivingDL.erase(carName);
+						continue;
+					}
+				}
+
 				sentPacketsData++;
 
 				DataMessage *payload = new DataMessage(packetName);
-				payload->setByteLength(messageLength);
+
+				//
+				if (getSimulation()->getSystemModule()->par("remoteDrivingDL")) {
+					payload->setByteLength(carsByteLengthRemoteDrivingDL[carName]);
+				} else {
+					payload->setByteLength(messageLength);
+				}
+				//
 
 				payload->setSenderNodeId(nodeId);
 				payload->setSenderName(getParentModule()->getFullName());
@@ -2381,12 +2480,12 @@ void TrafficGeneratorServerDL::sendPacket() {
 	}
 
 	selfMsg->setKind(START);
-	for (auto & var : names) {
-		if (carsSendingTimes[var] <= nextSelfMsg) {
-			nextSelfMsg = carsSendingTimes[var];
+	for (auto &var : names) {
+		if (carsSendingTimes[var] <= nextSelfMsgTime) {
+			nextSelfMsgTime = carsSendingTimes[var];
 		}
 	}
-	scheduleAt(nextSelfMsg, selfMsg);
+	scheduleAt(nextSelfMsgTime, selfMsg);
 }
 
 bool TrafficGeneratorServerDL::handleNodeStart(IDoneCallback *doneCallback) {

@@ -72,7 +72,8 @@ class LteFeedback
     LteFeedback()
     {
         status_ = EMPTY;
-        txMode_ = SINGLE_ANTENNA_PORT0;
+//        txMode_ = SINGLE_ANTENNA_PORT0;
+        txMode_ = aToTxMode(getSimulation()->getSystemModule()->par("initialTxMode").stringValue());
         //txMode_ = TRANSMIT_DIVERSITY;
         periodicFeedback_ = true;
         remoteAntennaId_ = MACRO;
@@ -88,8 +89,9 @@ class LteFeedback
 
         status_ = EMPTY;
         periodicFeedback_ = true;
-        txMode_ = SINGLE_ANTENNA_PORT0;
+//        txMode_ = SINGLE_ANTENNA_PORT0;
         //txMode_ = TRANSMIT_DIVERSITY;
+        txMode_ = aToTxMode(getSimulation()->getSystemModule()->par("initialTxMode").stringValue());
         remoteAntennaId_ = MACRO;
     }
 

@@ -779,6 +779,7 @@ void LteMacEnb::macHandleRac(cPacket* pkt)
     uinfo->setDestId(uinfo->getSourceId());
     uinfo->setSourceId(nodeId_);
     uinfo->setDirection(DL);
+    racPkt->setSchedulingPriority(0);
 
     sendLowerPackets(racPkt);
 
@@ -894,7 +895,7 @@ void LteMacEnb::macPduMake(MacCid cid)
         }
         else
         {
-            LteHarqBufferTx* hb = new LteHarqBufferTx(ENB_TX_HARQ_PROCESSES,
+            LteHarqBufferTx* hb = new LteHarqBufferTx(harqProcesses_,
                 this,(LteMacBase*)getMacUe(destId));
             harqTxBuffers_[destId] = hb;
             txBuf = hb;

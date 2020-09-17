@@ -136,7 +136,7 @@ void GtpUserNR::handleFromUdp(GtpUserMsg * gtpMsg) {
 			socket_.sendTo(gtpMsg, tunnelPeerAddress, tunnelPeerPort_);
 			//EV << "GtpUserSimplified::handleFromUdp - Destination is a MEC server. Sending GTP packet to " << symbolicName << endl;
 		} else {
-			// destination is outside the LTE network
+			// destination is outside the network
 			//EV << "GtpUserSimplified::handleFromUdp - Deliver datagram to the internet " << endl;
 			send(datagram, "pppGate");
 		}
