@@ -34,7 +34,7 @@ We tested the framework with Linux Mint 18.3, 19.3, Ubuntu 18.04 and 20.04 (we u
 
 ### Change log v0.2:
 * Version v0.2 adds further default use cases to the default scenarios: video streaming, remote driving (only in UL), cooperative perception
-* The 5G HARQ mechanism can be turned on/off by setting the flag *nrHarq* in the omnetpp.ini. If that flag is true, in DL and UL 16 parallel HARQ processes are used. The time that is assumed for decoding a HARQ ACK/NACK is reduced to 1ms. In UL the time for receiving a scheduling grant is reduced to 1ms.
+* The 5G HARQ mechanism can be turned on/off by setting the flag *nrHarq* in the omnetpp.ini. If that flag is true, in DL and UL 16 parallel HARQ processes are used. The time that is assumed for decoding a HARQ ACK/NACK is reduced to 1ms. In UL the time for receiving a scheduling grant is reduced to 1ms. If the flag is false, the LTE HARQ procedure with 8 parallel processes (asynchronous in DL, synchronous in UL) is used (time for decoding a HARQ ACK/NACK is set to 3ms and also the time for receiving a scheduling grant).
 * If the flag *rtxSignalisedFlag* is set to true, just one HARQ process is active and no other transmission or retransmission are considered (until either an ACK is received or the maximum number of retransmission is exceeded for that one active HARQ process).
 
 **MORE INFORMATION IS COMING SOON**
@@ -42,13 +42,13 @@ We tested the framework with Linux Mint 18.3, 19.3, Ubuntu 18.04 and 20.04 (we u
 ## Authors
 
 * **Thomas Deinlein** - https://github.com/deinleinT    thomas.deinlein@fau.de
-* Please contact us via email, if you have any questions.
+* Please contact us via email if you have any questions.
 
 ## Citation
 
 If you use this framework, please cite it as follows:
 
-*T. Deinlein, R. German, A. Djanatliev, “5G-SIM-V2I/N: Towards a simulation framework for the evaluation of 5G V2I/N Use Cases“, in 2020 European Conference on Networks and Communications (EuCNC): Wireless, Optical and Satellite Networks (WOS) (EuCNC2020 - WOS), Dubrovnik, Croatia, 2020.*
+*T. Deinlein, R. German and A. Djanatliev, "5G-Sim-V2I/N: Towards a Simulation Framework for the Evaluation of 5G V2I/V2N Use Cases," 2020 European Conference on Networks and Communications (EuCNC), Dubrovnik, Croatia, 2020, pp. 353-357, doi: 10.1109/EuCNC48522.2020.9200949.*
 
 ## License
 
