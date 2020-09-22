@@ -34,7 +34,7 @@ We tested the framework with Linux Mint 18.3, 19.3, Ubuntu 18.04 and 20.04 (we u
 
 ### Change log v0.2:
 * Version v0.2 adds further default use cases to the default scenarios: video streaming, remote driving (only in UL), cooperative perception
-* The 5G HARQ mechanism can be turned on/off by setting the flag *nrHarq* in the omnetpp.ini. If that flag is true, in DL and UL 16 parallel HARQ processes are used. The time that is assumed for decoding a HARQ ACK/NACK is reduced to 1ms. In UL the time for receiving a scheduling grant is reduced to 1ms. If the flag is false, the LTE HARQ procedure with 8 parallel processes (asynchronous in DL, synchronous in UL) is used (time for decoding a HARQ ACK/NACK is set to 3ms and also the time for receiving a scheduling grant).
+* The 5G HARQ mechanism can be turned on/off by setting the flag *nrHarq* in the omnetpp.ini. If that flag is true, in DL and UL 16 parallel HARQ processes are used. The time that is assumed for decoding a HARQ ACK/NACK is reduced to 1ms. In UL the time for receiving a scheduling grant is reduced to 1ms. If the flag is false, the LTE HARQ procedure with 8 parallel processes (asynchronous in DL, synchronous in UL) is used (time for decoding a HARQ ACK/NACK is set to 3ms and also the time for receiving a scheduling grant) is used.
 * If the flag *rtxSignalisedFlag* is set to true, just one HARQ process is active and no other transmission or retransmission are considered (until either an ACK is received or the maximum number of retransmission is exceeded for that one active HARQ process).
 
 **MORE INFORMATION IS COMING SOON**
