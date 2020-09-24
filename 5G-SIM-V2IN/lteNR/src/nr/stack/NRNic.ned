@@ -58,7 +58,6 @@ module NRNicBase like INRNic
         string interfaceTableModule;
         bool isBS = default(false);
         bool dynamicNLOS = default(false); 
-        bool veinsObstacleShadowing = default(false);
         string routingTableModule;
         string NRPdcpRrcType;
         string LteMacType;

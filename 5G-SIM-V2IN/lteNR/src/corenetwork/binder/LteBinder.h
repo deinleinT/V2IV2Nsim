@@ -352,7 +352,7 @@ public:
 	 * getDeployedUes() returns the affiliates
 	 * of a given eNodeB
 	 */
-	ConnectedUesMap getDeployedUes(MacNodeId localId, Direction dir);
+	ConnectedUesMap getDeployedUes(MacNodeId localId);
 	PhyPisaData phyPisaData;
 
 	int getNodeCount() {

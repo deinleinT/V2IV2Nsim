@@ -38,83 +38,94 @@
 
 Define_Module(NRRealisticChannelModel);
 
-void NRRealisticChannelModel::initialize() {
-	scenario_ = aToDeploymentScenario(par("scenario").stringValue());
-	hNodeB_ = par("nodeb_height");
-	carrierFrequency_ = par("carrierFrequency");
-	shadowing_ = par("shadowing");
-	hBuilding_ = par("building_height");
+void NRRealisticChannelModel::initialize(int stage) {
+	if (stage == inet::INITSTAGE_PHYSICAL_ENVIRONMENT_2) {
+		scenario_ = aToDeploymentScenario(par("scenario").stringValue());
+		hNodeB_ = par("nodeb_height").doubleValue();
+		carrierFrequency_ = par("carrierFrequency").doubleValue();
+		shadowing_ = par("shadowing").boolValue();
+		hBuilding_ = par("building_height").doubleValue();
 
-	tolerateMaxDistViolation_ = par("tolerateMaxDistViolation");
-	hUe_ = par("ue_height");
+		tolerateMaxDistViolation_ = par("tolerateMaxDistViolation");
+		hUe_ = par("ue_height").doubleValue();
 
-	wStreet_ = par("street_wide");
+		wStreet_ = par("street_wide").doubleValue();
 
-	correlationDistance_ = par("correlation_distance");
-	harqReduction_ = par("harqReduction");
+		correlationDistance_ = par("correlation_distance").doubleValue();
+		harqReduction_ = par("harqReduction").doubleValue();
 
-	lambdaMinTh_ = par("lambdaMinTh");
-	lambdaMaxTh_ = par("lambdaMaxTh");
-	lambdaRatioTh_ = par("lambdaRatioTh");
+		lambdaMinTh_ = par("lambdaMinTh");
+		lambdaMaxTh_ = par("lambdaMaxTh");
+		lambdaRatioTh_ = par("lambdaRatioTh");
 
-	antennaGainUe_ = par("antennaGainUe");
-	antennaGainEnB_ = par("antennGainEnB");
-	antennaGainGnB_ = antennaGainEnB_;
-	antennaGainMicro_ = par("antennGainMicro");
-	thermalNoise_ = par("thermalNoise");
-	cableLoss_ = par("cable_loss");
-	ueNoiseFigure_ = par("ue_noise_figure");
-	bsNoiseFigure_ = par("bs_noise_figure");
-	useTorus_ = par("useTorus");
-	dynamicLos_ = par("dynamic_los");
-	dynamicNlos_ = par("dynamicNlos");
-	fixedLos_ = par("fixed_los");
+		antennaGainUe_ = par("antennaGainUe").doubleValue();
+		antennaGainEnB_ = par("antennGainEnB").doubleValue();
+		antennaGainGnB_ = antennaGainEnB_;
+		antennaGainMicro_ = par("antennGainMicro").doubleValue();
+		thermalNoise_ = par("thermalNoise").doubleValue();
+		cableLoss_ = par("cable_loss").doubleValue();
+		ueNoiseFigure_ = par("ue_noise_figure").doubleValue();
+		bsNoiseFigure_ = par("bs_noise_figure").doubleValue();
+		useTorus_ = par("useTorus");
+		dynamicLos_ = par("dynamic_los").boolValue();
+		dynamicNlos_ = par("dynamicNlos").boolValue();
+		fixedLos_ = par("fixed_los").boolValue();
 
-	fading_ = par("fading");
-	std::string fType = par("fading_type");
-	if (fType.compare("JAKES") == 0)
-		fadingType_ = JAKES;
-	else if (fType.compare("RAYLEIGH") == 0)
-		fadingType_ = RAYLEIGH;
-	else
-		fadingType_ = JAKES;
+		fading_ = par("fading");
+		std::string fType = par("fading_type");
+		if (fType.compare("JAKES") == 0)
+			fadingType_ = JAKES;
+		else if (fType.compare("RAYLEIGH") == 0)
+			fadingType_ = RAYLEIGH;
+		else
+			fadingType_ = JAKES;
 
-	fadingPaths_ = par("fading_paths");
-	enableExtCellInterference_ = par("extCell_interference");
-	enableDownlinkInterference_ = par("downlink_interference");
-	enableUplinkInterference_ = par("uplink_interference");
-	enableD2DInterference_ = par("d2d_interference");
-	delayRMS_ = par("delay_rms");
+		fadingPaths_ = par("fading_paths");
+		enableExtCellInterference_ = par("extCell_interference");
+		enableDownlinkInterference_ = par("downlink_interference");
+		enableUplinkInterference_ = par("uplink_interference");
+		enableD2DInterference_ = par("d2d_interference");
+		delayRMS_ = par("delay_rms");
 
-	//get binder
-	binder_ = getNRBinder();
-	//clear jakes fading map structure
-	jakesFadingMap_.clear();
+		//get binder
+		binder_ = getNRBinder();
+		//clear jakes fading map structure
+		jakesFadingMap_.clear();
 
-	// statistics
-	rcvdSinr_ = registerSignal("rcvdSinr");
-	//
-	scenarioNR_ = aToDeploymentScenarioNR(par("scenarioNR").stringValue());
+		// statistics
+		rcvdSinr_ = registerSignal("rcvdSinr");
+		//
+		scenarioNR_ = aToDeploymentScenarioNR(par("scenarioNR").stringValue());
 
-	channelModelType_ = aToNRChannelModel(par("channelModelType").stringValue());
+		channelModelType_ = aToNRChannelModel(par("channelModelType").stringValue());
 
-	isNodeB_ = par("isNodeB").boolValue(); //OK in NRNic
+		isNodeB_ = par("isNodeB").boolValue(); //OK in NRNic
 
-	checkScenarioAndChannelModel();
-	myCoord_ = inet::Coord(0.0, 0.0);
-	myCoord3d = myCoord_;
+		checkScenarioAndChannelModel();
 
-	if (dynamicNlos_)
-		veinsObstacleShadowing = par("veinsObstacleShadowing").boolValue();
-	else
-		veinsObstacleShadowing = false;
+		myCoord_ = check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
+		if (isNodeB_) {
+			myCoord_.z = hNodeB_;
+		} else {
+			myCoord_.z = hUe_;
+		}
+		myCoord3d = myCoord_;
 
-	errorCount = 0;
+		if (dynamicNlos_) {
+			veinsObstacleShadowing = par("veinsObstacleShadowing").boolValue();
+			
+		} else {
+			veinsObstacleShadowing = false;
+			
+		}
 
-	if (scenarioNR_ == UNKNOW_SCENARIO_NR)
-		throw cRuntimeError("Only NR ChannelModels are allowed!");
+		errorCount = 0;
 
-	lastStatisticRecord = -1;
+		if (scenarioNR_ == UNKNOW_SCENARIO_NR)
+			throw cRuntimeError("Only NR ChannelModels are allowed!");
+
+		lastStatisticRecord = -1;
+	}
 
 }
 
@@ -409,7 +420,7 @@ std::vector<double> NRRealisticChannelModel::getSINR(LteAirFrame *frame, UserCon
 	 *         DownLink error computation
 	 */
 	if (dir == DL && (lteInfo->getFrameType() != FEEDBACKPKT)) {
-		assert(recvPower == 46);
+		//assert(recvPower == 46);
 		//set noise Figure
 		noiseFigure = ueNoiseFigure_; //dB
 		//set antenna gain Figure
@@ -452,7 +463,7 @@ std::vector<double> NRRealisticChannelModel::getSINR(LteAirFrame *frame, UserCon
 		//eNbType = getCellInfo(eNbId)->getEnbType();
 
 		if (dir == DL) {
-			assert(recvPower == 46);
+			//assert(recvPower == 46);
 			//set noise Figure
 			noiseFigure = ueNoiseFigure_; //dB
 			//set antenna gain Figure
@@ -464,7 +475,7 @@ std::vector<double> NRRealisticChannelModel::getSINR(LteAirFrame *frame, UserCon
 			ASSERT(isNodeB_);
 		} else // if( dir == UL )
 		{
-			assert(recvPower == 26);
+			//assert(recvPower == 26);
 
 			antennaGainTx = antennaGainUe_;
 			antennaGainRx = antennaGainGnB_;
@@ -656,8 +667,8 @@ void NRRealisticChannelModel::computeLosProbabilityNR(const double &d2d, const M
 	//std::cout << "NRRealisticChannelModel::computeLosProbabilityNR start at " << simTime().dbl() << std::endl;
 
 	double p = 0;
-	if (!dynamicLos_) {
-		losMap_[nodeId] = fixedLos_;
+	if (!dynamicLos_) { //set by default to true
+		losMap_[nodeId] = fixedLos_; // fixedLos_ set by default to false
 		return;
 	}
 	switch (channelModelType_) {
@@ -728,17 +739,17 @@ double NRRealisticChannelModel::getAttenuationNR(const MacNodeId &nodeId, const 
 
 	double d3ddistance = enodebcoord.distance(uecoord);
 	double d2ddistance = sqrt(pow(enodebcoord.x - uecoord.x, 2) + pow(enodebcoord.y - uecoord.y, 2));
+	losMap_.erase(nodeId); //ensure that no old LOS evaluation is used
 
-	if (dir == DL) // sender is UE
+	if (dir == DL)
 		speed = computeSpeed(nodeId, uecoord, movement);
 	else
 		speed = computeSpeed(nodeId, enodebcoord, movement);
 
-//If traveled distance is greater than correlation distance UE could have changed its state and
-// its visibility from eNodeb, hence it is correct to recompute the los probability
+	//If traveled distance is greater than correlation distance UE could have changed its state and
+	// its visibility from eNodeb, hence it is correct to recompute the los probability
 	if (dynamicNlos_) {
 		//todo 2D / 3D
-//		bool nlos = getNRBinder()->checkIsNLOS(uecoord, enodebcoord);
 		bool nlos = getNRBinder()->checkIsNLOS(uecoord, enodebcoord, hBuilding_);
 		losMap_[nodeId] = !nlos;
 	}
@@ -748,10 +759,7 @@ double NRRealisticChannelModel::getAttenuationNR(const MacNodeId &nodeId, const 
 	}
 
 	double attenuation = 0.0;
-	if (!dynamicNlos_ //use 5G ChannelModel
-	|| losMap_[nodeId] // we are in los, use ChannelModel
-			|| (dynamicNlos_ && !veinsObstacleShadowing)) //use veinsObstacleControl for NLOS, here it is nlos, and we don't want to calculate attenuation with veins obstacleControl
-			{
+	if (!dynamicNlos_ || (dynamicNlos_ && !veinsObstacleShadowing)) {
 		switch (scenarioNR_) {
 		case INDOOR_HOTSPOT_EMBB:
 			attenuation = computeIndoorHotspot(d3ddistance, d2ddistance, nodeId);
@@ -772,7 +780,7 @@ double NRRealisticChannelModel::getAttenuationNR(const MacNodeId &nodeId, const 
 			throw cRuntimeError("Wrong value %d for path-loss scenario", scenarioNR_);
 		}
 	} else {
-		attenuation = getNRBinder()->calculateAttenuationPerCutAndMeter(enodebcoord, uecoord);
+		attenuation = getNRBinder()->calculateAttenuationPerCutAndMeter(enodebcoord, uecoord); //use veinsObstacleControl for NLOS, here it is nlos, and we want to calculate attenuation with veins obstacleControl
 	}
 
 //    Applying shadowing only if it is enabled by configuration
@@ -1328,7 +1336,7 @@ double NRRealisticChannelModel::computeUMaA(double &d3d, double &d2d, const MacN
 		double plumaNlos;
 
 		if (0.5 <= carrierFrequency_ && carrierFrequency_ <= 6) {
-			if (!(10 < d2d && d2d < 5000 && wStreet_ == 20 && hBuilding_ == 20))
+			if (!(10 < d2d && d2d < 5000 && wStreet_ == 20 /*&& hBuilding_ == 20*/))
 				throw cRuntimeError("Error LOS UMaA path loss model --> d2d, wStreet or hBuidling not valid");
 			plumaLos = computePLumaLos(d3d, d2d);
 			plumaNlos = 161.04 - 7.1 * log10(wStreet_) + 7.5 * log10(hBuilding_) - (24.37 - 3.7 * pow(hBuilding_ / hNodeB_, 2)) * log10(hNodeB_) + (43.42 - 3.1 * log10(hNodeB_)) * (log10(d3d) - 3)
@@ -1756,7 +1764,7 @@ bool NRRealisticChannelModel::computeDownlinkInterference(MacNodeId eNbId, MacNo
 
 		// initialize eNb data structures
 		Coord enbCoord;
-		if (!(*it)->init) {
+		if (true) {
 			// obtain a reference to enb phy and obtain tx power
 			ltePhy = check_and_cast<LtePhyBase*>(getSimulation()->getModule(binder_->getOmnetId(id))->getSubmodule("lteNic")->getSubmodule("phy"));
 			(*it)->txPwr = ltePhy->getTxPwr(); //dBm

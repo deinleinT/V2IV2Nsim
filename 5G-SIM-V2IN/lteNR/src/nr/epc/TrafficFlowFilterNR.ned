@@ -33,6 +33,8 @@ simple TrafficFlowFilterNR
         bool fastForwarding = default(true);
     gates:
         input internetFilterGateIn;
-        output gtpUserGateOut;    
+        output gtpUserGateOut;
+
+        inout fromToN9Interface[];
 }
 

@@ -36,7 +36,6 @@ INDOOR_HOTSPOT_EMMB: InH_A
 **.correlation_distance = 50 
 **.dynamic_los = false 
 **.dynamicNlos = true
-**.veinsObstacleShadowing = false 
 **.cqiFlag = false 
 -----------------------------------
 InH_B 	
@@ -73,7 +72,6 @@ InH_B
 **.correlation_distance = 50 
 **.dynamic_los = false 
 **.dynamicNlos = true
-**.veinsObstacleShadowing = false 
 **.cqiFlag = false 		
 ---------------------------------------
 ---------------------------------------
@@ -111,7 +109,6 @@ DENSE_URBAN_EMBB: UMa_A
 **.correlation_distance = 50 
 **.dynamic_los = false 
 **.dynamicNlos = true
-**.veinsObstacleShadowing = false 
 **.cqiFlag = false 
 ----------------------------------
 UMa_B 
@@ -148,7 +145,6 @@ UMa_B
 **.correlation_distance = 50 
 **.dynamic_los = false 
 **.dynamicNlos = true
-**.veinsObstacleShadowing = false 
 **.cqiFlag = false 
 -----------------------------------------
 UMi_A 
@@ -185,7 +181,6 @@ UMi_A
 **.correlation_distance = 50 
 **.dynamic_los = false 
 **.dynamicNlos = true
-**.veinsObstacleShadowing = false 
 **.cqiFlag = false 
 
 UMi_B	
@@ -221,7 +216,6 @@ UMi_B
 **.correlation_distance = 50 
 **.dynamic_los = false 
 **.dynamicNlos = true
-**.veinsObstacleShadowing = false 
 **.cqiFlag = false 
 ----------------------------------------------
 ----------------------------------------------
@@ -262,7 +256,6 @@ RMa_A
 **.correlation_distance = 50 
 **.dynamic_los = false 
 **.dynamicNlos = true
-**.veinsObstacleShadowing = false 
 **.cqiFlag = false 	
 
 RMa_B
@@ -299,7 +292,6 @@ RMa_B
 **.correlation_distance = 50 
 **.dynamic_los = false 
 **.dynamicNlos = true
-**.veinsObstacleShadowing = false 
 **.cqiFlag = false 						
 
 URBAN_MACRO_MMTC: 
@@ -338,7 +330,6 @@ UMa_A
 **.correlation_distance = 50 
 **.dynamic_los = false 
 **.dynamicNlos = true
-**.veinsObstacleShadowing = false 
 **.cqiFlag = false 	
 
 UMa_B	
@@ -375,7 +366,6 @@ UMa_B
 **.correlation_distance = 50 
 **.dynamic_los = false 
 **.dynamicNlos = true
-**.veinsObstacleShadowing = false 
 **.cqiFlag = false 
 
 URBAN_MACRO_URLLC: 
@@ -414,7 +404,6 @@ UMa_A
 **.correlation_distance = 50 
 **.dynamic_los = false 
 **.dynamicNlos = true
-**.veinsObstacleShadowing = false 
 **.cqiFlag = false 
 
 UMa_B
@@ -453,6 +442,5 @@ UMa_A
 **.correlation_distance = 50 
 **.dynamic_los = false 
 **.dynamicNlos = true
-**.veinsObstacleShadowing = false 
 **.cqiFlag = false 	
 

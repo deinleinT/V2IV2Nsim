@@ -241,7 +241,7 @@ std::vector<std::pair<veins::Obstacle*, std::vector<double>>> ObstacleControl::g
 double ObstacleControl::calculateAttenuation(const Coord &senderPos,
         const Coord &receiverPos) const {
     Enter_Method_Silent
-    ();
+    ("calculateAttenuation");
 
     if ((perCut.size() == 0) || (perMeter.size() == 0)) {
         throw cRuntimeError(
@@ -252,14 +252,14 @@ double ObstacleControl::calculateAttenuation(const Coord &senderPos,
                 "Unable to use SimpleObstacleShadowing: No obstacles have been added");
     }
 
-    // return cached result, if available
+// return cached result, if available
     CacheKey cacheKey(senderPos, receiverPos);
     CacheEntries::const_iterator cacheEntryIter = cacheEntries.find(cacheKey);
     if (cacheEntryIter != cacheEntries.end()) {
         return cacheEntryIter->second;
     }
 
-    // get intersections
+// get intersections
     auto intersections = getIntersections(senderPos, receiverPos);
 
     double factor = 1;
@@ -303,14 +303,13 @@ double ObstacleControl::calculateAttenuation(const Coord &senderPos,
             break;
     }
 
-    // cache result
+// cache result
     if (cacheEntries.size() >= 1000)
         cacheEntries.clear();
     cacheEntries[cacheKey] = factor;
 
     return factor;
 }
-
 
 /**
  * used in 5G-SIM-V2I/N for determining the LOS
@@ -403,7 +402,7 @@ double ObstacleControl::getAttenuationPerMeter(std::string type) {
 }
 
 bool ObstacleControl::isTypeSupported(std::string type) {
-    // the type of obstacle is supported if there are attenuation values for borders and interior
+// the type of obstacle is supported if there are attenuation values for borders and interior
     return (perCut.find(type) != perCut.end())
             && (perMeter.find(type) != perMeter.end());
 }

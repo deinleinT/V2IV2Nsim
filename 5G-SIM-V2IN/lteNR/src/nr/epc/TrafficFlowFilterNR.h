@@ -53,6 +53,8 @@ class TrafficFlowFilterNR : public cSimpleModule
     // must be re-sent down without going through the Internet
     bool fastForwarding_;
 
+    std::string connectedUPF_;
+
     TrafficFilterTemplateTable filterTable_;
 
     EpcNodeType selectOwnerType(const char * type);

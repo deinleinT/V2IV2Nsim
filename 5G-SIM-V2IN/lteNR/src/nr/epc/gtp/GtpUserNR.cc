@@ -25,9 +25,16 @@ void GtpUserNR::initialize(int stage) {
 
     tunnelPeerPort_ = par("tunnelPeerPort");
 
-    upfAddress_ = L3AddressResolver().resolve("upf");
+    //upfAddress_ = L3AddressResolver().resolve("upf");
 
     ownerType_ = selectOwnerType(getAncestorPar("nodeType"));
+
+    if(ownerType_ == ENB || ownerType_ == GNB){
+    	getParentModule()->gate("ppp$o")->getNextGate()->getOwnerModule()->getName();
+    	upfAddress_ = L3AddressResolver().resolve(getParentModule()->gate("ppp$o")->getNextGate()->getOwnerModule()->getName());
+    }else if(ownerType_ == USER_PLANE_FUNCTION){
+    	upfAddress_ = L3AddressResolver().resolve(getParentModule()->getName());
+    }
 }
 
 EpcNodeType GtpUserNR::selectOwnerType(const char * type) {

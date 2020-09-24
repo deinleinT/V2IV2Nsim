@@ -74,7 +74,7 @@ simple NRRealisticChannelModel extends LteRealisticChannelModel
     
 	tolerateMaxDistViolation = default(false);
 	// If true enable the possibility to switch dinamically the LOS/NLOS pathloss computation -->
-    dynamic_los = default(false);
+    dynamic_los = default(true);
     // If dynamic-los is false this parameter, if true, compute LOS pathloss otherwise compute NLOS pathloss -->
     fixed_los = default(false);
 	// Target bler used to compute feedback -->
@@ -87,8 +87,7 @@ simple NRRealisticChannelModel extends LteRealisticChannelModel
     lambdaRatioTh = default(20);
     correlation_distance = default(50);
 	
-	dynamic_los = default(false);
-	bool dynamicNlos = default(false);
+	bool dynamicNlos = default(true);
 	bool veinsObstacleShadowing = default(false);
 	bool isNodeB;
 	useTorus = default(false);

@@ -49,17 +49,7 @@ run: % : src/scripts/%.in.py out/config.py
 
 # legacy
 makefiles:
-	@echo
-	@echo '====================================================================='
-	@echo 'Warning: make makefiles has been deprecated in favor of ./configure'
-	@echo '====================================================================='
-	@echo
-	./configure
-	@echo
-	@echo '====================================================================='
-	@echo 'Warning: make makefiles has been deprecated in favor of ./configure'
-	@echo '====================================================================='
-	@echo
+	cd src && opp_makemake --make-so -f --deep -o veins_inet -O out -pVEINS_INET -KINET_PROJ=../../inet -KVEINS_PROJ=../../veins -DINET_IMPORT -DVEINS_IMPORT -I. -I$$\(INET_PROJ\)/src -I$$\(VEINS_PROJ\)/src -I. -L$$\(INET_PROJ\)/src -L$$\(VEINS_PROJ\)/src -lINET$$\(D\) -lveins$$\(D\)
 
 clean: src/Makefile
 ifdef MODE

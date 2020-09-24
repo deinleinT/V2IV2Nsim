@@ -50,7 +50,7 @@ module gNodeB
 {
     parameters:
         @networkNode();
-        @display("i=device/antennatower;bgb=800,500;bgl=2");
+        @display("i=device/antennatower;bgb=799.344,1003.968;bgl=2");
 
         //# Node specs
         string nodeType = "ENODEB";        // DO NOT CHANGE
@@ -100,15 +100,15 @@ module gNodeB
         lteNic: <nicType> like INRNic {
             nodeType = nodeType;
             //d2dCapable = d2dCapable;
-            @display("p=250,407");
+            @display("p=253.00801,878.976");
         }
 
         pppIf: PPPInterface {
-            @display("p=501,363");
+            @display("p=500.976,878.976");
         }
 
         x2ppp[sizeof(x2)]: PPPInterface {
-            @display("p=683,363");
+            @display("p=658.224,749.952");
         }
 
         //#
@@ -116,7 +116,7 @@ module gNodeB
         //#
         networkLayer: <networkLayerType> like INetworkLayer {
             parameters:
-                @display("p=501,269;q=queue");
+                @display("p=500.976,749.952;q=queue");
         }
 
         //#
@@ -124,26 +124,26 @@ module gNodeB
         //#
 		// =============== UDP ============== //
         udpApp[numUdpApps]: <> like IUDPApp {
-            @display("p=555,48,row");
+            @display("p=540.288,66.528,row");
         }
         udp: UDP {
-            @display("p=501,148");
+            @display("p=540.288,477.79202");
         }
 
         // =============== TCP ============== //
         tcpApp[numTcpApps]: <> like ITCPApp {
-            @display("p=683,48,row");
+            @display("p=704.59204,256.032,row");
         }
         tcp: TCP if numTcpApps>0 {
-            @display("p=683,148");
+            @display("p=704.59204,477.79202");
         }
 
 	    // =============== X2AP ============== //
         x2App[numX2Apps]: LteX2App {
-            @display("p=155,48,row");
+            @display("p=253.00801,174.384,row");
         }
         sctp: SCTP {
-            @display("p=275,148");
+            @display("p=437.47202,346.752");
         }
 
         //# 
@@ -151,14 +151,14 @@ module gNodeB
         //# 
         trafficFlowFilter: TrafficFlowFilterNR {
             ownerType = nodeType;
-            @display("p=330,48");
+            @display("p=162.28801,477.79202");
         }
         gtpUser: GtpUserNR {
-            @display("p=434,48");
+            @display("p=337.68002,477.79202");
         }
 
         gtpUserX2: GtpUserX2 {
-            @display("p=410,363");
+            @display("p=376.992,878.976");
         }
 
     connections allowunconnected:

@@ -256,7 +256,7 @@ const char* LteBinder::getModuleNameByMacNodeId(MacNodeId nodeId)
     return macNodeIdToModuleName_[nodeId];
 }
 
-ConnectedUesMap LteBinder::getDeployedUes(MacNodeId localId, Direction dir)
+ConnectedUesMap LteBinder::getDeployedUes(MacNodeId localId)
 {
     Enter_Method_Silent("getDeployedUes");
 

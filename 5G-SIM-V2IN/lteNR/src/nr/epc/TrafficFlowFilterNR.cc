@@ -34,22 +34,39 @@ void TrafficFlowFilterNR::initialize(int stage) {
 		return;
 
 	// get reference to the binder
-	binder_ = getNRBinder();
+	if (stage != inet::INITSTAGE_NETWORK_LAYER_3) {
+		binder_ = getNRBinder();
 
-	fastForwarding_ = par("fastForwarding");
+		fastForwarding_ = par("fastForwarding");
 
-	// reading and setting owner type
-	ownerType_ = selectOwnerType(par("ownerType"));
+		// reading and setting owner type
+		ownerType_ = selectOwnerType(par("ownerType"));
 
-   binder_->testPrintQosValues();
+		//binder_->testPrintQosValues();
 
-	if (ownerType_ == USER_PLANE_FUNCTION)
-		qosHandler = check_and_cast<QosHandler*>(getParentModule()->getSubmodule("qosHandler"));
-	else if (ownerType_ == GNB || ownerType_ == ENB)
-		qosHandler = check_and_cast<QosHandler*>(getParentModule()->getSubmodule("lteNic")->getSubmodule("qosHandler"));
+		if (ownerType_ == USER_PLANE_FUNCTION) {
+			qosHandler = check_and_cast<QosHandler*>(getParentModule()->getSubmodule("qosHandler"));
+		} else if (ownerType_ == GNB || ownerType_ == ENB) {
+			qosHandler = check_and_cast<QosHandler*>(getParentModule()->getSubmodule("lteNic")->getSubmodule("qosHandler"));
+		}
+
+		//TODO --> in Binder, to which gnb is the upf connected?
+		if (ownerType_ == GNB || ownerType_ == ENB) {
+			std::string moduleName = getParentModule()->gate("ppp$o")->getNextGate()->getOwnerModule()->getName();
+
+			if (moduleName.find("upf") != std::string::npos) {
+				LteMacBase *mac = check_and_cast<LteMacBase*>(getParentModule()->getSubmodule("lteNic")->getSubmodule("mac"));
+				MacNodeId gnbId = mac->getMacNodeId();
+				binder_->fillUpfGnbMap(gnbId, moduleName);
+			} else {
+				//not connected to a UPF
+			}
+		}
+	}
+	//
 }
 
-EpcNodeType TrafficFlowFilterNR::selectOwnerType(const char * type) {
+EpcNodeType TrafficFlowFilterNR::selectOwnerType(const char *type) {
 	//std::cout << "TrafficFlowFilterNR::selectOwnerType start at "<< simTime().dbl() << std::endl;
 
 	//EV << "TrafficFlowFilterNR::selectOwnerType - setting owner type to " << type << endl;
@@ -70,7 +87,7 @@ void TrafficFlowFilterNR::handleMessage(cMessage *msg) {
 	//EV << "name: " << msg->getFullName() << endl;
 
 	// receive and read IP datagram
-	IPv4Datagram * datagram = check_and_cast<IPv4Datagram *>(msg);
+	IPv4Datagram *datagram = check_and_cast<IPv4Datagram*>(msg);
 	IPv4Address &destAddr = datagram->getDestAddress();
 	IPv4Address &srcAddr = datagram->getSrcAddress();
 	std::string name = std::string(msg->getName());
@@ -84,10 +101,27 @@ void TrafficFlowFilterNR::handleMessage(cMessage *msg) {
 		// the destination has been removed from the simulation. Delete msg
 		//EV << "TrafficFlowFilterNR::handleMessage - Destination has been removed from the simulation. Delete packet." << endl;
 		delete msg;
+	} else if (tftId == -3) {
+		//need to send the packet to an other upf
+		//send to connectedUPF_ if connected, else send to random connected upf
+		int index = gateSize("fromToN9Interface");
+		std::string upfConnected;
+		int gateIndex = 0;
+		for (int i = 0; i < index; i++) {
+			std::string destinationName = gate("fromToN9Interface$o", i)->getNextGate()->getNextGate()->getOwnerModule()->getName();
+			gateIndex = i;
+			if (connectedUPF_ == destinationName) {
+				send(datagram, "fromToN9Interface$o", i);
+				connectedUPF_ = "";
+				return;
+			}
+		}
+		send(datagram, "fromToN9Interface$o", gateIndex);
+		connectedUPF_ = "";
 	} else {
 		//should never called in gnodeb in DL
 		// add control info to the normal ip datagram. This info will be read by the GTP-U application
-		TftControlInfo * tftInfo = new TftControlInfo();
+		TftControlInfo *tftInfo = new TftControlInfo();
 		tftInfo->setTft(tftId);
 		if (strcmp(name.c_str(), "V2X") == 0) {
 			tftInfo->setMsgCategory(V2X);
@@ -102,10 +136,10 @@ void TrafficFlowFilterNR::handleMessage(cMessage *msg) {
 			tftInfo->setQfi(qosHandler->getQfi(VOD));
 			tftInfo->setRadioBearerId(qosHandler->getRadioBearerId(tftInfo->getQfi()));
 		} else /*if (strcmp(name.c_str(), "Data") == 0 || strcmp(name.c_str(), "Data-frag") == 0) */{
-	        tftInfo->setMsgCategory(DATA_FLOW);
-	        tftInfo->setQfi(qosHandler->getQfi(DATA_FLOW));
-	        tftInfo->setRadioBearerId(qosHandler->getRadioBearerId(tftInfo->getQfi()));
-	    }
+			tftInfo->setMsgCategory(DATA_FLOW);
+			tftInfo->setQfi(qosHandler->getQfi(DATA_FLOW));
+			tftInfo->setRadioBearerId(qosHandler->getRadioBearerId(tftInfo->getQfi()));
+		}
 
 		if (getSystemModule()->par("v2vCooperativeLaneMerge").boolValue()) {
 			if (strcmp(name.c_str(), "status-update") == 0) {
@@ -161,6 +195,20 @@ TrafficFlowTemplateId TrafficFlowFilterNR::findTrafficFlow(L3Address srcAddress,
 		return -1;   // send the packet to the PGW
 	}
 
+	//if several upfs are in the scenario
+	if (ownerType_ == USER_PLANE_FUNCTION) {
+		//get local upf name
+		std::string localUPFname = getParentModule()->getName();
+		MacNodeId connectedGnbWithDestId = binder_->getConnectedGnb(destId);
+		std::string connectedUpfToMasterId = binder_->getConnectedUpf(destMaster);
+		if (connectedUpfToMasterId == localUPFname) {
+			return destMaster;
+		} else {
+			connectedUPF_ = connectedUpfToMasterId;
+			return -3;
+		}
+	}
+	//
 	//std::cout << "TrafficFlowFilterNR::findTrafficFlow end at " << simTime().dbl() << std::endl;
 
 	return destMaster;

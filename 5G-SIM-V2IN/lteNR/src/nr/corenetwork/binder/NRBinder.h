@@ -43,6 +43,14 @@ class NRBinder: public LteBinder {
 public:
     NRBinder();
     virtual ~NRBinder();
+    virtual MacNodeId getConnectedGnb(MacNodeId ueId);
+    virtual void fillUpfGnbMap(MacNodeId gnbId, std::string upfName){
+    	upfGnbMap[gnbId] = upfName;
+    }
+    virtual std::string getConnectedUpf(MacNodeId gnbId){
+        	return upfGnbMap[gnbId];
+    }
+
     void testPrintQosValues();
     virtual bool checkIsNLOS(const inet::Coord & sender, const inet::Coord & receiver, const double hBuilding){
         veins::ObstacleControl * tmp = check_and_cast<veins::ObstacleControl*>(getSimulation()->getModuleByPath("obstacles"));
@@ -64,6 +72,8 @@ public:
         return exchangeBuffersOnHandover;
     }
 protected:
+    //Gnb Id, the connected UPFs
+    std::map<MacNodeId,std::string> upfGnbMap;
     NRQosCharacteristics * qosChar;
     bool exchangeBuffersOnHandover;
     virtual void initialize(int stages);
