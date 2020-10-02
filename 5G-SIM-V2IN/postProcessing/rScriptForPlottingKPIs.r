@@ -162,7 +162,7 @@ pdf("Packet Delay 4 Applications Downlink and Uplink.pdf", width=11.0, height=7.
 par(mfrow=c(2,2))
 
 ########################################################
-theData <- list(delayV2xMW52rbDL4APPL$y,delayV2xMW52rbUL4APPL$y)
+theData <- list(delayV2xMWDL4APPL$y,delayV2xMWUL4APPL$y)
 MW25 <- boxplot(theData,
                 ylab = "Packet Delay in s",
                 names = c("Downlink","Uplink"),
@@ -187,8 +187,8 @@ abline(h=0.175,lty=3,lwd=0.5)
 median <- matrix(c(MW25$stats[3,]),nrow=1,byrow=TRUE)
 #text(x = col(median)+0.45, y = median, labels = round(median,digits=3), cex = 0.7, col="black")
 
-meanvalDL <- mean(delayV2xMW52rbDL4APPL$y)
-meanvalUL <- mean(delayV2xMW52rbUL4APPL$y)
+meanvalDL <- mean(delayV2xMWDL4APPL$y)
+meanvalUL <- mean(delayV2xMWUL4APPL$y)
 
 meansDL <- matrix(c(meanvalDL),nrow=1,byrow=TRUE)
 points(x = col(meansDL), y = meansDL, pch = 3, lwd = 2, col = "red")
@@ -216,7 +216,7 @@ UR270 <- NULL
 #######################################################
 
 ########################################################
-theData <- list(delayVoipMW52rbDL4APPL$y,delayVoipMW52rbUL4APPL$y)
+theData <- list(delayVoipMWDL4APPL$y,delayVoipMWUL4APPL$y)
 MW50 <- boxplot(theData,
                 ylab = "Packet Delay in s",
                 names = c("Downlink","Uplink"),
@@ -242,8 +242,8 @@ abline(h=0.25,lty=3,lwd=0.5)
 median <- matrix(c(MW50$stats[3,]),nrow=1,byrow=TRUE)
 #text(x = col(median)+0.45, y = median, labels = round(median,digits=3), cex = 0.7, col="black")
 
-meanvalDL <- mean(delayVoipMW52rbDL4APPL$y)
-meanvalUL <- mean(delayVoipMW52rbUL4APPL$y)
+meanvalDL <- mean(delayVoipMWDL4APPL$y)
+meanvalUL <- mean(delayVoipMWUL4APPL$y)
 meansDL <- matrix(c(meanvalDL),nrow=1,byrow=TRUE)
 points(x = col(meansDL), y = meansDL, pch = 3, lwd = 2, col = "red")
 #text(x = col(meansDL)+0.45, y = meansDL+0.005, labels = round(meansDL,digits=3),cex = 0.7, col="red")
@@ -270,7 +270,7 @@ UR270 <- NULL
 #######################################################
 
 ########################################################
-theData <- list(delayVideoMW52rbDL4APPL$y,delayVideoMW52rbUL4APPL$y)
+theData <- list(delayVideoMWDL4APPL$y,delayVideoMWUL4APPL$y)
 MW100 <- boxplot(theData,
                  ylab = "Packet Delay in s",
                  names = c("Downlink","Uplink"),
@@ -297,8 +297,8 @@ abline(h=0.7,lty=3,lwd=0.5)
 median <- matrix(c(MW100$stats[3,]),nrow=1,byrow=TRUE)
 #text(x = col(median)+0.45, y = median, labels = round(median,digits=3), cex = 0.7, col="black")
 
-meanvalDL <- mean(delayVideoMW52rbDL4APPL$y)
-meanvalUL <- mean(delayVideoMW52rbUL4APPL$y)
+meanvalDL <- mean(delayVideoMWDL4APPL$y)
+meanvalUL <- mean(delayVideoMWUL4APPL$y)
 meansDL <- matrix(c(meanvalDL),nrow=1,byrow=TRUE)
 points(x = col(meansDL), y = meansDL, pch = 3, lwd = 2, col = "red")
 #text(x = col(meansDL)+0.45, y = meansDL+0.012, labels = round(meansDL,digits=3),cex = 0.7, col="red")
@@ -325,7 +325,7 @@ UR270 <- NULL
 #######################################################
 
 ########################################################
-theData <- list(delayDataMW52rbDL4APPL$y,delayDataMW52rbUL4APPL$y)
+theData <- list(delayDataMWDL4APPL$y,delayDataMWUL4APPL$y)
 MW270 <- boxplot(theData,
                  ylab = "Packet Delay in s",
                  names = c("Downlink","Uplink"),
@@ -352,8 +352,8 @@ abline(h=1.5,lty=3,lwd=0.5)
 median <- matrix(c(MW270$stats[3,]),nrow=1,byrow=TRUE)
 #text(x = col(median)+0.45, y = median, labels = round(median,digits=3), cex = 0.7, col="black")
 
-meanvalDL <- mean(delayDataMW52rbDL4APPL$y)
-meanvalUL <- mean(delayDataMW52rbUL4APPL$y)
+meanvalDL <- mean(delayDataMWDL4APPL$y)
+meanvalUL <- mean(delayDataMWUL4APPL$y)
 meansDL <- matrix(c(meanvalDL),nrow=1,byrow=TRUE)
 points(x = col(meansDL), y = meansDL, pch = 3, lwd = 2, col = "red")
 #text(x = col(meansDL)+0.45, y = meansDL+0.005, labels = round(meansDL,digits=3),cex = 0.7, col="red")
