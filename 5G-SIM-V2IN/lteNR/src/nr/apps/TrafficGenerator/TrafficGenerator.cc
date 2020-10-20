@@ -2239,16 +2239,17 @@ void TrafficGeneratorServerDL::sendPacket() {
 
 	simtime_t nextSelfMsgTime = NOW + par("sendInterval").doubleValue() + uniform(0, par("resendingDelay").doubleValue());
 
-	for (auto &var : names) {
-
-		if (carsSendingTimes[var] == NOW) {
-
-			std::string carName = var;
+	auto itr = names.begin();
+	while (itr != names.end()) {
+		
+		std::string carName = *itr;
+		if (carsSendingTimes[carName] == NOW) {
 
 			cModule *mod = getSimulation()->getModuleByPath(carName.c_str());
 			if (!mod) {
-				names.erase(carName);
-				carsSendingTimes.erase(carName);carsSendingIntervalRemoteDrivingDL.erase(carName);
+				itr = names.erase(itr);
+				carsSendingTimes.erase(carName);
+				carsSendingIntervalRemoteDrivingDL.erase(carName);
 				carsByteLengthRemoteDrivingDL.erase(carName);
 				continue;
 			}
@@ -2256,9 +2257,9 @@ void TrafficGeneratorServerDL::sendPacket() {
 			//
 			if (getSimulation()->getSystemModule()->par("remoteDrivingDL")) {
 				//use the same random time
-				carsSendingTimes[var] = carsSendingIntervalRemoteDrivingDL[var] + NOW;
+				carsSendingTimes[carName] = carsSendingIntervalRemoteDrivingDL[carName] + NOW;
 			} else {
-				carsSendingTimes[var] = nextSelfMsgTime;
+				carsSendingTimes[carName] = nextSelfMsgTime;
 			}
 			//
 
@@ -2276,7 +2277,7 @@ void TrafficGeneratorServerDL::sendPacket() {
 					//check nodeId --> every ...th car is a remote car
 					if (!isRemoteCar(nodeId, getSystemModule()->par("remoteCarFactor").intValue())) {
 						//sendVideoPacket = false;
-						names.erase(carName);
+						itr = names.erase(itr);
 						carsSendingTimes.erase(carName);
 						carsByteLengthRemoteDrivingDL.erase(carName);
 						carsSendingIntervalRemoteDrivingDL.erase(carName);
@@ -2418,7 +2419,7 @@ void TrafficGeneratorServerDL::sendPacket() {
 					//check nodeId --> every 10th car is a remote car
 					if (isRemoteCar(nodeId, getSystemModule()->par("remoteCarFactor").intValue())) {
 						//sendVideoPacket = false;
-						names.erase(carName);
+						itr = names.erase(itr);
 						carsSendingTimes.erase(carName);
 						carsByteLengthRemoteDrivingDL.erase(carName);
 						carsSendingIntervalRemoteDrivingDL.erase(carName);
@@ -2477,6 +2478,8 @@ void TrafficGeneratorServerDL::sendPacket() {
 			}
 
 		}
+		
+		++itr;
 	}
 
 	selfMsg->setKind(START);
