@@ -222,12 +222,15 @@ void LtePf::prepareSchedule() //
 			if (!active) {
 				//EV << NOW << "LtePf::execSchedule NOT ACTIVE" << endl;
 				activeConnectionTempSet_.erase(current.x_);
-				//std::set<std::pair<unsigned int, unsigned int>> temp;
-				for (auto var : qfiNodeCidSizeMap) {
-					if (var.second.first == current.x_) {
-						//temp.insert(var.first);
-						qfiNodeCidSizeMap.erase(var.first);
-					}
+				
+				auto itr = qfiNodeCidSizeMap.begin();
+				while (itr != qfiNodeCidSizeMap.end()) {
+				    if (itr->second.first == current.x_) {
+				       itr = qfiNodeCidSizeMap.erase(itr);
+				    }
+				    else {
+				       ++itr;
+				    }
 				}
 
 			}
