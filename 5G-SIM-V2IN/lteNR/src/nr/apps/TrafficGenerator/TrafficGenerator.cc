@@ -86,11 +86,6 @@ void TrafficGenerator::initialize(int stage) {
 
 		v2vExchangeDelayReal = registerSignal("v2vExchangeDelayReal");
 
-		delayVoipVariationOut = 0;
-		delayV2XVariationOut = 0;
-		delayVideoVariationOut = 0;
-		delayDataVariationOut = 0;
-
 		lostPacketsV2X = 0;
 		lostPacketsVideo = 0;
 		lostPacketsVoip = 0;
@@ -274,7 +269,20 @@ void TrafficGenerator::finish() {
 			double recPacketsData = var.second.statReport.recPacketsData;
 
 			if (recPacketsData <= 0) {
-				//std::cout << "TrafficGenerator finish recording Data --> no packets arrived!" << std::endl;
+				reliabilityData10msVecDL.record(0);
+				reliabilityData20msVecDL.record(0);
+				reliabilityData50msVecDL.record(0);
+				reliabilityData100msVecDL.record(0);
+				reliabilityData200msVecDL.record(0);
+				reliabilityData500msVecDL.record(0);
+				reliabilityData1sVecDL.record(0);
+				recordScalar("reliabilityData10msDL", 0);
+				recordScalar("reliabilityData20msDL", 0);
+				recordScalar("reliabilityData50msDL", 0);
+				recordScalar("reliabilityData100msDL", 0);
+				recordScalar("reliabilityData200msDL", 0);
+				recordScalar("reliabilityData500msDL", 0);
+				recordScalar("reliabilityData1sDL", 0);
 			} else {
 
 				double reliabilityData10ms = 1.0 - double(recPacketsDataOutBudget10ms / recPacketsData);
@@ -309,7 +317,7 @@ void TrafficGenerator::finish() {
 				recordScalar("recPacketsData", recPacketsData);
 				recordScalar("sentPacketsData", sentPacketsData);
 				recordScalar("recPacketsDataOutBudget", recPacketsDataOutBudget);
-				recordScalar("delayDataVariationOut", delayDataVariationOut);
+
 			}
 			//
 
@@ -324,7 +332,20 @@ void TrafficGenerator::finish() {
 			double recPacketsV2X = var.second.statReport.recPacketsV2X;
 
 			if (recPacketsV2X <= 0) {
-//				std::cout << "TrafficGenerator finish recording V2X --> no packets arrived!" << std::endl;
+				reliabilityV2X10msVecDL.record(0);
+				reliabilityV2X20msVecDL.record(0);
+				reliabilityV2X50msVecDL.record(0);
+				reliabilityV2X100msVecDL.record(0);
+				reliabilityV2X200msVecDL.record(0);
+				reliabilityV2X500msVecDL.record(0);
+				reliabilityV2X1sVecDL.record(0);
+				recordScalar("reliabilityV2X10msDL", 0);
+				recordScalar("reliabilityV2X20msDL", 0);
+				recordScalar("reliabilityV2X50msDL", 0);
+				recordScalar("reliabilityV2X100msDL", 0);
+				recordScalar("reliabilityV2X200msDL", 0);
+				recordScalar("reliabilityV2X500msDL", 0);
+				recordScalar("reliabilityV2X1sDL", 0);
 			} else {
 
 				double reliabilityV2X10ms = 1.0 - double(recPacketsV2XOutBudget10ms / recPacketsV2X);
@@ -359,7 +380,7 @@ void TrafficGenerator::finish() {
 				recordScalar("recPacketsV2X", recPacketsV2X);
 				recordScalar("sentPacketsV2X", sentPacketsV2X);
 				recordScalar("recPacketsV2XOutBudget", recPacketsV2XOutBudget);
-				recordScalar("delayV2XVariationOut", delayV2XVariationOut);
+
 			}
 			//
 
@@ -374,7 +395,20 @@ void TrafficGenerator::finish() {
 			double recPacketsVoip = var.second.statReport.recPacketsVoip;
 
 			if (recPacketsVoip <= 0) {
-//				std::cout << "TrafficGenerator finish recording VoIP --> no packets arrived!" << std::endl;
+				reliabilityVoip10msVecDL.record(0);
+				reliabilityVoip20msVecDL.record(0);
+				reliabilityVoip50msVecDL.record(0);
+				reliabilityVoip100msVecDL.record(0);
+				reliabilityVoip200msVecDL.record(0);
+				reliabilityVoip500msVecDL.record(0);
+				reliabilityVoip1sVecDL.record(0);
+				recordScalar("reliabilityVoip10msDL", 0);
+				recordScalar("reliabilityVoip20msDL", 0);
+				recordScalar("reliabilityVoip50msDL", 0);
+				recordScalar("reliabilityVoip100msDL", 0);
+				recordScalar("reliabilityVoip200msDL", 0);
+				recordScalar("reliabilityVoip500msDL", 0);
+				recordScalar("reliabilityVoip1sDL", 0);
 			} else {
 
 				double reliabilityVoip10ms = 1.0 - double(recPacketsVoipOutBudget10ms / recPacketsVoip);
@@ -409,7 +443,6 @@ void TrafficGenerator::finish() {
 				recordScalar("recPacketsVoip", recPacketsVoip);
 				recordScalar("sentPacketsVoip", sentPacketsVoip);
 				recordScalar("recPacketsVoipOutBudget", recPacketsVoipOutBudget);
-				recordScalar("delayVideoVariationOut", delayVideoVariationOut);
 			}
 			//
 
@@ -424,7 +457,20 @@ void TrafficGenerator::finish() {
 			double recPacketsVideo = var.second.statReport.recPacketsVideo;
 
 			if (recPacketsVideo <= 0) {
-//				std::cout << "TrafficGenerator finish recording Video --> no packets arrived!" << std::endl;
+				reliabilityVideo10msVecDL.record(0);
+				reliabilityVideo20msVecDL.record(0);
+				reliabilityVideo50msVecDL.record(0);
+				reliabilityVideo100msVecDL.record(0);
+				reliabilityVideo200msVecDL.record(0);
+				reliabilityVideo500msVecDL.record(0);
+				reliabilityVideo1sVecDL.record(0);
+				recordScalar("reliabilityVideo10msDL", 0);
+				recordScalar("reliabilityVideo20msDL", 0);
+				recordScalar("reliabilityVideo50msDL", 0);
+				recordScalar("reliabilityVideo100msDL", 0);
+				recordScalar("reliabilityVideo200msDL", 0);
+				recordScalar("reliabilityVideo500msDL", 0);
+				recordScalar("reliabilityVideo1sDL", 0);
 			} else {
 
 				double reliabilityVideo10ms = 1.0 - double(recPacketsVideoOutBudget10ms / recPacketsVideo);
@@ -481,7 +527,20 @@ void TrafficGenerator::finish() {
 			double recPacketsData = var.second.statReport.recPacketsData;
 
 			if (recPacketsData <= 0) {
-//				std::cout << "TrafficGenerator Server finish recording Data --> no packets arrived!" << std::endl;
+				reliabilityData10msVecDL.record(0);
+				reliabilityData20msVecDL.record(0);
+				reliabilityData50msVecDL.record(0);
+				reliabilityData100msVecDL.record(0);
+				reliabilityData200msVecDL.record(0);
+				reliabilityData500msVecDL.record(0);
+				reliabilityData1sVecDL.record(0);
+				recordScalar("reliabilityData10msDL", 0);
+				recordScalar("reliabilityData20msDL", 0);
+				recordScalar("reliabilityData50msDL", 0);
+				recordScalar("reliabilityData100msDL", 0);
+				recordScalar("reliabilityData200msDL", 0);
+				recordScalar("reliabilityData500msDL", 0);
+				recordScalar("reliabilityData1sDL", 0);
 			} else {
 
 				double reliabilityData10ms = 1.0 - double(recPacketsDataOutBudget10ms / recPacketsData);
@@ -514,11 +573,11 @@ void TrafficGenerator::finish() {
 
 				recordScalar("numberCarsData", carsData.size());
 
-				recordScalar("lostPacketsData", lostPacketsData);
-				recordScalar("recPacketsData", recPacketsData);
-				recordScalar("sentPacketsData", sentPacketsData);
+				recordScalar("lostPacketsData", var.second.statReport.lostPacketsData);
+				recordScalar("recPacketsData", var.second.statReport.recPacketsData);
+				recordScalar("sentPacketsData", var.second.statReport.sentPacketsData);
 				recordScalar("recPacketsDataOutBudget", recPacketsDataOutBudget);
-				recordScalar("delayDataVariationOut", delayDataVariationOut);
+
 			}
 
 			//V2X
@@ -532,7 +591,20 @@ void TrafficGenerator::finish() {
 			double recPacketsV2X = var.second.statReport.recPacketsV2X;
 
 			if (recPacketsV2X <= 0) {
-//				std::cout << "TrafficGenerator Server finish recording V2X --> no packets arrived!" << std::endl;
+				reliabilityV2X10msVecDL.record(0);
+				reliabilityV2X20msVecDL.record(0);
+				reliabilityV2X50msVecDL.record(0);
+				reliabilityV2X100msVecDL.record(0);
+				reliabilityV2X200msVecDL.record(0);
+				reliabilityV2X500msVecDL.record(0);
+				reliabilityV2X1sVecDL.record(0);
+				recordScalar("reliabilityV2X10msDL", 0);
+				recordScalar("reliabilityV2X20msDL", 0);
+				recordScalar("reliabilityV2X50msDL", 0);
+				recordScalar("reliabilityV2X100msDL", 0);
+				recordScalar("reliabilityV2X200msDL", 0);
+				recordScalar("reliabilityV2X500msDL", 0);
+				recordScalar("reliabilityV2X1sDL", 0);
 			} else {
 
 				double reliabilityV2X10ms = 1.0 - double(recPacketsV2XOutBudget10ms / recPacketsV2X);
@@ -565,11 +637,11 @@ void TrafficGenerator::finish() {
 
 				recordScalar("numberCarsV2X", carsV2X.size());
 
-				recordScalar("lostPacketsV2X", lostPacketsV2X);
-				recordScalar("recPacketsV2X", recPacketsV2X);
-				recordScalar("sentPacketsV2X", sentPacketsV2X);
+				recordScalar("lostPacketsData", var.second.statReport.lostPacketsV2X);
+				recordScalar("recPacketsData", var.second.statReport.recPacketsV2X);
+				recordScalar("sentPacketsData", var.second.statReport.sentPacketsV2X);
 				recordScalar("recPacketsV2XOutBudget", recPacketsV2XOutBudget);
-				recordScalar("delayV2XVariationOut", delayV2XVariationOut);
+
 			}
 			//
 
@@ -584,7 +656,20 @@ void TrafficGenerator::finish() {
 			double recPacketsVoip = var.second.statReport.recPacketsVoip;
 
 			if (recPacketsVoip <= 0) {
-//				std::cout << "TrafficGenerator Server finish recording VoIP --> no packets arrived!" << std::endl;
+				reliabilityVoip10msVecDL.record(0);
+				reliabilityVoip20msVecDL.record(0);
+				reliabilityVoip50msVecDL.record(0);
+				reliabilityVoip100msVecDL.record(0);
+				reliabilityVoip200msVecDL.record(0);
+				reliabilityVoip500msVecDL.record(0);
+				reliabilityVoip1sVecDL.record(0);
+				recordScalar("reliabilityVoip10msDL", 0);
+				recordScalar("reliabilityVoip20msDL", 0);
+				recordScalar("reliabilityVoip50msDL", 0);
+				recordScalar("reliabilityVoip100msDL", 0);
+				recordScalar("reliabilityVoip200msDL", 0);
+				recordScalar("reliabilityVoip500msDL", 0);
+				recordScalar("reliabilityVoip1sDL", 0);
 			} else {
 
 				double reliabilityVoip10ms = 1.0 - double(recPacketsVoipOutBudget10ms / recPacketsVoip);
@@ -615,11 +700,11 @@ void TrafficGenerator::finish() {
 				recordScalar("reliabilityVoip1sUL", reliabilityVoip1s);
 				reliabilityVoip1sVecUL.record(reliabilityVoip1s);
 
-				recordScalar("lostPacketsVoip", lostPacketsVoip);
-				recordScalar("recPacketsVoip", recPacketsVoip);
-				recordScalar("sentPacketsVoip", sentPacketsVoip);
+				recordScalar("lostPacketsData", var.second.statReport.lostPacketsVoip);
+				recordScalar("recPacketsData", var.second.statReport.recPacketsVoip);
+				recordScalar("sentPacketsData", var.second.statReport.sentPacketsVoip);
 				recordScalar("recPacketsVoipOutBudget", recPacketsVoipOutBudget);
-				recordScalar("delayVideoVariationOut", delayVideoVariationOut);
+
 			}
 			//
 
@@ -634,7 +719,20 @@ void TrafficGenerator::finish() {
 			double recPacketsVideo = var.second.statReport.recPacketsVideo;
 
 			if (recPacketsVideo <= 0) {
-//				std::cout << "TrafficGenerator Server finish recording Video --> no packets arrived!" << std::endl;
+				reliabilityVideo10msVecDL.record(0);
+				reliabilityVideo20msVecDL.record(0);
+				reliabilityVideo50msVecDL.record(0);
+				reliabilityVideo100msVecDL.record(0);
+				reliabilityVideo200msVecDL.record(0);
+				reliabilityVideo500msVecDL.record(0);
+				reliabilityVideo1sVecDL.record(0);
+				recordScalar("reliabilityVideo10msDL", 0);
+				recordScalar("reliabilityVideo20msDL", 0);
+				recordScalar("reliabilityVideo50msDL", 0);
+				recordScalar("reliabilityVideo100msDL", 0);
+				recordScalar("reliabilityVideo200msDL", 0);
+				recordScalar("reliabilityVideo500msDL", 0);
+				recordScalar("reliabilityVideo1sDL", 0);
 			} else {
 
 				double reliabilityVideo10ms = 1.0 - double(recPacketsVideoOutBudget10ms / recPacketsVideo);
@@ -665,9 +763,9 @@ void TrafficGenerator::finish() {
 				recordScalar("reliabilityVideo1sUL", reliabilityVideo1s);
 				reliabilityVideo1sVecUL.record(reliabilityVideo1s);
 
-				recordScalar("lostPacketsVideo", lostPacketsVideo);
-				recordScalar("recPacketsVideo", recPacketsVideo);
-				recordScalar("sentPacketsVideo", sentPacketsVideo);
+				recordScalar("lostPacketsData", var.second.statReport.lostPacketsVideo);
+				recordScalar("recPacketsData", var.second.statReport.recPacketsVideo);
+				recordScalar("sentPacketsData", var.second.statReport.sentPacketsVideo);
 				recordScalar("recPacketsVideoOutBudget", recPacketsVideoOutBudget);
 			}
 			//
@@ -834,14 +932,16 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 
 			if ((connectionsUEtoServ[nodeId].statReport.lastV2X->getSequenceNumber() + 1) == number) {
 				//received the next packet
-				// packetDelayVariation
-				calcPVV2XUL(nodeId, temp);
+				// packetDelayVariationReal --> consecutive packets
+				calcPVV2XUL(nodeId, temp, true);
 
 			} else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsUEtoServ[nodeId].statReport.lastV2X->getSequenceNumber() + 1);
 				connectionsUEtoServ[nodeId].statReport.lostPacketsV2X += lostPackets; //lost packets from this node
 				lostPacketsV2X = connectionsUEtoServ[nodeId].statReport.lostPacketsV2X; //all over summary of lost packets
+
+				calcPVV2XUL(nodeId, temp, false);
 			}
 
 			if (NOW - pk->getCreationTime() > v2xDelayBudget) {
@@ -940,13 +1040,15 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 			if ((connectionsUEtoServ[nodeId].statReport.lastVideo->getSequenceNumber() + 1) == number) {
 				//received the next packet
 				// packetDelayVariation
-				calcPVVideoUL(nodeId, temp);
+				calcPVVideoUL(nodeId, temp, true);
 
 			} else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsUEtoServ[nodeId].statReport.lastVideo->getSequenceNumber() + 1);
 				connectionsUEtoServ[nodeId].statReport.lostPacketsVideo += lostPackets; //lost packets from this node
 				lostPacketsVideo = connectionsUEtoServ[nodeId].statReport.lostPacketsVideo; //all over summary of lost packets
+
+				calcPVVideoUL(nodeId, temp, false);
 
 			}
 			//Reliability
@@ -1046,13 +1148,15 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 			if ((connectionsUEtoServ[nodeId].statReport.lastVoIP->getSequenceNumber() + 1) == number) {
 				//received the next packet
 				// packetDelayVariation
-				calcPVVoipUL(nodeId, temp);
+				calcPVVoipUL(nodeId, temp, true);
 
 			} else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsUEtoServ[nodeId].statReport.lastVoIP->getSequenceNumber() + 1);
 				connectionsUEtoServ[nodeId].statReport.lostPacketsVoip += lostPackets; //lost packets from this node
 				lostPacketsVoip = connectionsUEtoServ[nodeId].statReport.lostPacketsVoip; //all over summary of lost packets
+
+				calcPVVoipUL(nodeId, temp, false);
 
 			}
 			//Reliability
@@ -1191,13 +1295,15 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 			if ((connectionsUEtoServ[nodeId].statReport.lastData->getSequenceNumber() + 1) == number) {
 				//received the next packet
 				// packetDelayVariation
-				calcPVDataUL(nodeId, temp);
+				calcPVDataUL(nodeId, temp, true);
 
 			} else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsUEtoServ[nodeId].statReport.lastData->getSequenceNumber() + 1);
 				connectionsUEtoServ[nodeId].statReport.lostPacketsData += lostPackets; //lost packets from this node
 				lostPacketsData = connectionsUEtoServ[nodeId].statReport.lostPacketsData; //all over summary of lost packets
+
+				calcPVDataUL(nodeId, temp, false);
 
 			}
 
@@ -1345,7 +1451,7 @@ void TrafficGeneratorCarUL::sendPacket() {
 
 		socket.sendTo(payload, destAddress_, destPort);
 
-		//send the request at the same tim
+		//send the request at the same time
 		if (getSystemModule()->par("v2vCooperativeLaneMerge")) {
 			V2XMessage *payloadReq = new V2XMessage("request-to-merge");
 			payloadReq->setByteLength(messageLength);
@@ -1704,13 +1810,15 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 			if ((connectionsServToUE[nodeId].statReport.lastV2X->getSequenceNumber() + 1) == number) {
 				//received the next packet
 				// packetDelayVariation
-				calcPVV2XDL(nodeId, temp);
+				calcPVV2XDL(nodeId, temp, true);
 
 			} else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsServToUE[nodeId].statReport.lastV2X->getSequenceNumber() + 1);
 				connectionsServToUE[nodeId].statReport.lostPacketsV2X += lostPackets; //lost packets from this node
 				lostPacketsV2X = connectionsServToUE[nodeId].statReport.lostPacketsV2X; //all over summary of lost packets
+
+				calcPVV2XDL(nodeId, temp, false);
 
 			}
 			//
@@ -1875,13 +1983,15 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 			if ((connectionsServToUE[nodeId].statReport.lastVideo->getSequenceNumber() + 1) == number) {
 				//received the next packet
 				// packetDelayVariation
-				calcPVVideoDL(nodeId, temp);
+				calcPVVideoDL(nodeId, temp, true);
 
 			} else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsServToUE[nodeId].statReport.lastVideo->getSequenceNumber() + 1);
 				connectionsServToUE[nodeId].statReport.lostPacketsVideo += lostPackets; //lost packets from this node
 				lostPacketsVideo = connectionsServToUE[nodeId].statReport.lostPacketsVideo; //all over summary of lost packets
+
+				calcPVVideoDL(nodeId, temp, false);
 
 			}
 
@@ -1981,15 +2091,16 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 
 			if ((connectionsServToUE[nodeId].statReport.lastVoIP->getSequenceNumber() + 1) == number) {
 				//received the next packet
-				// packetDelayVariation
-				calcPVVoipDL(nodeId, temp);
+				// packetDelayVariationReal
+				calcPVVoipDL(nodeId, temp, true);
 
 			} else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsServToUE[nodeId].statReport.lastVoIP->getSequenceNumber() + 1);
 				connectionsServToUE[nodeId].statReport.lostPacketsVoip += lostPackets; //lost packets from this node
 				lostPacketsVoip = connectionsServToUE[nodeId].statReport.lostPacketsVoip; //all over summary of lost packets
-
+				//packetDelayVariation
+				calcPVVoipDL(nodeId, temp, false);
 			}
 
 			if (NOW - pk->getCreationTime() > voipDelayBudget) {
@@ -2132,7 +2243,7 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 			if ((connectionsServToUE[nodeId].statReport.lastData->getSequenceNumber() + 1) == number) {
 				//received the next packet
 				// packetDelayVariation
-				calcPVDataDL(nodeId, temp);
+				calcPVDataDL(nodeId, temp, true);
 
 			} else {
 				//some packet lost on the way
@@ -2140,6 +2251,7 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 				connectionsServToUE[nodeId].statReport.lostPacketsData += lostPackets; //lost packets from this node
 				lostPacketsData = connectionsServToUE[nodeId].statReport.lostPacketsData; //all over summary of lost packets
 
+				calcPVDataDL(nodeId, temp, false);
 			}
 
 			delete connectionsServToUE[nodeId].statReport.lastData;
@@ -2241,7 +2353,7 @@ void TrafficGeneratorServerDL::sendPacket() {
 
 	auto itr = names.begin();
 	while (itr != names.end()) {
-		
+
 		std::string carName = *itr;
 		if (carsSendingTimes[carName] == NOW) {
 
@@ -2478,7 +2590,7 @@ void TrafficGeneratorServerDL::sendPacket() {
 			}
 
 		}
-		
+
 		++itr;
 	}
 
