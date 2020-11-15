@@ -220,7 +220,7 @@ void UDPBasicApp::refreshDisplay() const
 void UDPBasicApp::processPacket(cPacket *pk)
 {
     emit(rcvdPkSignal, pk);
-    EV_INFO << "Received packet: " << UDPSocket::getReceivedPacketInfo(pk) << endl;
+    //EV_INFO << "Received packet: " << UDPSocket::getReceivedPacketInfo(pk) << endl;
     delete pk;
     numReceived++;
 }

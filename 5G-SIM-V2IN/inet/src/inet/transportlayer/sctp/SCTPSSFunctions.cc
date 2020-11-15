@@ -45,7 +45,7 @@ void SCTPAssociation::initStreams(uint32 inStreams, uint32 outStreams)
 {
     uint32 i;
 
-    EV_INFO << "initStreams instreams=" << inStreams << "  outstream=" << outStreams << "\n";
+    //EV_INFO << "initStreams instreams=" << inStreams << "  outstream=" << outStreams << "\n";
     if (receiveStreams.size() == 0 && sendStreams.size() == 0) {
         for (i = 0; i < inStreams; i++) {
             SCTPReceiveStream *rcvStream = new SCTPReceiveStream(this);
@@ -66,7 +66,7 @@ void SCTPAssociation::addInStreams(uint32 inStreams)
 {
     uint32 i, j;
     char vectorName[128];
-    EV_INFO << "Add " << inStreams << " inbound streams" << endl;
+    //EV_INFO << "Add " << inStreams << " inbound streams" << endl;
     for (i = receiveStreams.size(), j = 0; j < inStreams; i++, j++) {
         SCTPReceiveStream *rcvStream = new SCTPReceiveStream(this);
         this->receiveStreams[i] = rcvStream;
@@ -80,7 +80,7 @@ void SCTPAssociation::addInStreams(uint32 inStreams)
 void SCTPAssociation::addOutStreams(uint32 outStreams)
 {
     uint32 i, j;
-    EV_INFO << "Add " << outStreams << " outbound streams" << endl;
+    //EV_INFO << "Add " << outStreams << " outbound streams" << endl;
     for (i = sendStreams.size(), j = 0; j < outStreams; i++, j++) {
         SCTPSendStream *sendStream = new SCTPSendStream(this, i);
         sendStream->setStreamId(i);
@@ -102,7 +102,7 @@ int32 SCTPAssociation::streamScheduler(SCTPPathVariables *path, bool peek)    //
 {
     int32 sid, testsid;
 
-    EV_INFO << "Stream Scheduler: RoundRobin\n";
+    //EV_INFO << "Stream Scheduler: RoundRobin\n";
 
     sid = -1;
 
@@ -110,7 +110,7 @@ int32 SCTPAssociation::streamScheduler(SCTPPathVariables *path, bool peek)    //
         (sendStreams.find(state->lastStreamScheduled)->second->getUnorderedStreamQ()->getLength() > 0 ||
          sendStreams.find(state->lastStreamScheduled)->second->getStreamQ()->getLength() > 0)) {
         sid = state->lastStreamScheduled;
-        EV_DETAIL << "Stream Scheduler: again sid " << sid << ".\n";
+        //EV_DETAIL << "Stream Scheduler: again sid " << sid << ".\n";
         state->ssNextStream = true;
     } else {
         testsid = state->lastStreamScheduled;
@@ -122,7 +122,7 @@ int32 SCTPAssociation::streamScheduler(SCTPPathVariables *path, bool peek)    //
                 sendStreams.find(testsid)->second->getStreamQ()->getLength() > 0)
             {
                 sid = testsid;
-                EV_DETAIL << "Stream Scheduler: chose sid " << sid << ".\n";
+                //EV_DETAIL << "Stream Scheduler: chose sid " << sid << ".\n";
 
                 if (!peek) {
                     state->lastStreamScheduled = sid;
@@ -132,7 +132,7 @@ int32 SCTPAssociation::streamScheduler(SCTPPathVariables *path, bool peek)    //
         } while (sid == -1 && testsid != (int32)state->lastStreamScheduled);
     }
 
-    EV_INFO << "streamScheduler sid=" << sid << " lastStream=" << state->lastStreamScheduled << " outboundStreams=" << outboundStreams << " next=" << state->ssNextStream << "\n";
+    //EV_INFO << "streamScheduler sid=" << sid << " lastStream=" << state->lastStreamScheduled << " outboundStreams=" << outboundStreams << " next=" << state->ssNextStream << "\n";
 
     if (sid >= 0 && !peek)
         state->ssLastDataChunkSizeSet = false;
@@ -155,7 +155,7 @@ int32 SCTPAssociation::streamSchedulerRoundRobinPacket(SCTPPathVariables *path, 
 {
     int32 sid, testsid, lastsid = state->lastStreamScheduled;
 
-    EV_INFO << "Stream Scheduler: RoundRobinPacket (peek: " << peek << ")" << endl;
+    //EV_INFO << "Stream Scheduler: RoundRobinPacket (peek: " << peek << ")" << endl;
 
     sid = -1;
 
@@ -169,7 +169,7 @@ int32 SCTPAssociation::streamSchedulerRoundRobinPacket(SCTPPathVariables *path, 
                 sendStreams.find(testsid)->second->getStreamQ()->getLength() > 0)
             {
                 sid = testsid;
-                EV_DETAIL << "Stream Scheduler: chose sid " << sid << ".\n";
+                //EV_DETAIL << "Stream Scheduler: chose sid " << sid << ".\n";
 
                 if (!peek)
                     state->lastStreamScheduled = sid;
@@ -181,11 +181,11 @@ int32 SCTPAssociation::streamSchedulerRoundRobinPacket(SCTPPathVariables *path, 
             sendStreams.find(state->lastStreamScheduled)->second->getStreamQ()->getLength() > 0)
         {
             sid = state->lastStreamScheduled;
-            EV_DETAIL << "Stream Scheduler: again sid " << sid << ".\n";
+            //EV_DETAIL << "Stream Scheduler: again sid " << sid << ".\n";
         }
     }
 
-    EV_INFO << "streamScheduler sid=" << sid << " lastStream=" << lastsid << " outboundStreams=" << outboundStreams << " next=" << state->ssNextStream << "\n";
+    //EV_INFO << "streamScheduler sid=" << sid << " lastStream=" << lastsid << " outboundStreams=" << outboundStreams << " next=" << state->ssNextStream << "\n";
 
     if (sid >= 0 && !peek)
         state->ssNextStream = false;
@@ -195,7 +195,7 @@ int32 SCTPAssociation::streamSchedulerRoundRobinPacket(SCTPPathVariables *path, 
 
 int32 SCTPAssociation::streamSchedulerRandom(SCTPPathVariables *path, bool peek)    //peek indicates that no data is sent, but we just want to peek
 {
-    EV_INFO << "Stream Scheduler: Random (peek: " << peek << ")" << endl;
+    //EV_INFO << "Stream Scheduler: Random (peek: " << peek << ")" << endl;
     state->ssNextStream = true;
     return streamSchedulerRandomPacket(path, peek);
 }
@@ -206,7 +206,7 @@ int32 SCTPAssociation::streamSchedulerRandomPacket(SCTPPathVariables *path, bool
     uint32 lastsid = state->lastStreamScheduled;
     std::vector<uint32> SCTPWaitingSendStreamsList;
 
-    EV_INFO << "Stream Scheduler: RandomPacket (peek: " << peek << ")" << endl;
+    //EV_INFO << "Stream Scheduler: RandomPacket (peek: " << peek << ")" << endl;
 
     if (state->ssNextStream) {
         for (auto & elem : sendStreams) {
@@ -214,16 +214,16 @@ int32 SCTPAssociation::streamSchedulerRandomPacket(SCTPPathVariables *path, bool
                 elem.second->getStreamQ()->getLength() > 0)
             {
                 SCTPWaitingSendStreamsList.push_back(elem.first);
-                EV_DETAIL << "Stream Scheduler: add sid " << elem.first << " to list of waiting streams.\n";
+                //EV_DETAIL << "Stream Scheduler: add sid " << elem.first << " to list of waiting streams.\n";
             }
         }
         if (SCTPWaitingSendStreamsList.size() > 0) {
             rnd = (int)(ceil(RNGCONTEXT uniform(1, SCTPWaitingSendStreamsList.size()) - 0.5));
-            EV_DETAIL << "Stream Scheduler: go to " << rnd << ". element of waiting stream list.\n";
+            //EV_DETAIL << "Stream Scheduler: go to " << rnd << ". element of waiting stream list.\n";
             sid = SCTPWaitingSendStreamsList[rnd - 1];
             if (!peek)
                 state->lastStreamScheduled = sid;
-            EV_DETAIL << "Stream Scheduler: chose sid " << sid << ".\n";
+            //EV_DETAIL << "Stream Scheduler: chose sid " << sid << ".\n";
         }
     }
     else {
@@ -231,11 +231,11 @@ int32 SCTPAssociation::streamSchedulerRandomPacket(SCTPPathVariables *path, bool
             sendStreams.find(state->lastStreamScheduled)->second->getStreamQ()->getLength() > 0)
         {
             sid = state->lastStreamScheduled;
-            EV_DETAIL << "Stream Scheduler: again sid " << sid << ".\n";
+            //EV_DETAIL << "Stream Scheduler: again sid " << sid << ".\n";
         }
     }
 
-    EV_INFO << "streamScheduler sid=" << sid << " lastStream=" << lastsid << " outboundStreams=" << outboundStreams << " next=" << state->ssNextStream << "\n";
+    //EV_INFO << "streamScheduler sid=" << sid << " lastStream=" << lastsid << " outboundStreams=" << outboundStreams << " next=" << state->ssNextStream << "\n";
 
     if (sid >= 0 && !peek)
         state->ssNextStream = false;
@@ -249,7 +249,7 @@ int32 SCTPAssociation::streamSchedulerPriority(SCTPPathVariables *path, bool pee
     std::list<uint32> PriorityList;
     std::list<uint32> StreamList;
 
-    EV_INFO << "Stream Scheduler: Priority (peek: " << peek << ")" << endl;
+    //EV_INFO << "Stream Scheduler: Priority (peek: " << peek << ")" << endl;
 
     sid = -1;
 
@@ -258,7 +258,7 @@ int32 SCTPAssociation::streamSchedulerPriority(SCTPPathVariables *path, bool pee
          sendStreams.find(state->lastStreamScheduled)->second->getStreamQ()->getLength() > 0))
     {
         sid = state->lastStreamScheduled;
-        EV_DETAIL << "Stream Scheduler: again sid " << sid << ".\n";
+        //EV_DETAIL << "Stream Scheduler: again sid " << sid << ".\n";
 
         return sid;
     }
@@ -278,7 +278,7 @@ int32 SCTPAssociation::streamSchedulerPriority(SCTPPathVariables *path, bool pee
         {
             if (sid < 0 || state->ssPriorityMap[testsid] < state->ssPriorityMap[sid]) {
                 sid = testsid;
-                EV_DETAIL << "Stream Scheduler: chose sid " << sid << ".\n";
+                //EV_DETAIL << "Stream Scheduler: chose sid " << sid << ".\n";
             }
         }
     } while (testsid != (int32)state->lastStreamScheduled);
@@ -293,7 +293,7 @@ int32 SCTPAssociation::streamSchedulerPriority(SCTPPathVariables *path, bool pee
 
 int32 SCTPAssociation::streamSchedulerFairBandwidth(SCTPPathVariables *path, bool peek)    //peek indicates that no data is sent, but we just want to peek
 {
-    EV_INFO << "Stream Scheduler: FairBandwidth (peek: " << peek << ")" << endl;
+    //EV_INFO << "Stream Scheduler: FairBandwidth (peek: " << peek << ")" << endl;
     state->ssNextStream = true;
     return streamSchedulerFairBandwidthPacket(path, peek);
 }
@@ -305,17 +305,17 @@ int32 SCTPAssociation::streamSchedulerFairBandwidthPacket(SCTPPathVariables *pat
     std::map<uint16, int32> peekMap;
     std::map<uint16, int32> *mapPointer = &(state->ssFairBandwidthMap);
 
-    EV_INFO << "Stream Scheduler: FairBandwidthPacket (peek: " << peek << ")" << endl;
+    //EV_INFO << "Stream Scheduler: FairBandwidthPacket (peek: " << peek << ")" << endl;
 
     if (state->ssFairBandwidthMap.empty()) {
         for (auto & elem : sendStreams) {
             state->ssFairBandwidthMap[elem.first] = -1;
-            EV_DETAIL << "initialize sid " << elem.first << " in fb map." << endl;
+            //EV_DETAIL << "initialize sid " << elem.first << " in fb map." << endl;
         }
     }
 
     if (peek) {
-        EV_DETAIL << "just peeking, use duplicate fb map." << endl;
+        //EV_DETAIL << "just peeking, use duplicate fb map." << endl;
         for (auto & elem : state->ssFairBandwidthMap) {
             peekMap[elem.first] = elem.second;
         }
@@ -339,8 +339,9 @@ int32 SCTPAssociation::streamSchedulerFairBandwidthPacket(SCTPPathVariables *pat
             if ((*mapPointer)[elem.first] < 0) {
                 if (packetsize > 0) {
                     (*mapPointer)[elem.first] = packetsize;
-                    if (!peek)
-                        EV_DETAIL << "Stream Scheduler: add sid " << elem.first << " with size " << packetsize << " to fair bandwidth map.\n";
+                    if (!peek){
+                        //EV_DETAIL << "Stream Scheduler: add sid " << elem.first << " with size " << packetsize << " to fair bandwidth map.\n";
+                    }
                 }
             }
             /* This stream is already in the map, so update it if necessary */
@@ -353,19 +354,22 @@ int32 SCTPAssociation::streamSchedulerFairBandwidthPacket(SCTPPathVariables *pat
                 /* We sent from this stream the last time, so add a new message to it */
                 if (elem.first == state->lastStreamScheduled) {
                     (*mapPointer)[elem.first] += packetsize;
-                    if (!peek)
-                        EV_DETAIL << "Stream Scheduler: updated sid " << elem.first << " with new packet of size " << packetsize << endl;
+                    if (!peek){
+                        //EV_DETAIL << "Stream Scheduler: updated sid " << elem.first << " with new packet of size " << packetsize << endl;
+                    }
                 }
 
-                if (!peek)
-                    EV_DETAIL << "Stream Scheduler: updated sid " << elem.first << " entry to size " << (*mapPointer)[elem.first] << endl;
+                if (!peek){
+                    //EV_DETAIL << "Stream Scheduler: updated sid " << elem.first << " entry to size " << (*mapPointer)[elem.first] << endl;
+                }
             }
         }
         /* There is no data in this stream, so delete it from map */
         else {
             (*mapPointer)[elem.first] = -1;
-            if (!peek)
-                EV_DETAIL << "Stream Scheduler: sid " << elem.first << " removed from fb map" << endl;
+            if (!peek){
+                //EV_DETAIL << "Stream Scheduler: sid " << elem.first << " removed from fb map" << endl;
+            }
         }
     }
 
@@ -378,8 +382,9 @@ int32 SCTPAssociation::streamSchedulerFairBandwidthPacket(SCTPPathVariables *pat
             if ((sid < 0 || (uint32)elem.second < bandwidth) && elem.second >= 0) {
                 sid = elem.first;
                 bandwidth = elem.second;
-                if (!peek)
-                    EV_DETAIL << "Stream Scheduler: chose sid " << sid << ".\n";
+                if (!peek){
+                    //EV_DETAIL << "Stream Scheduler: chose sid " << sid << ".\n";
+                }
             }
         }
     }
@@ -388,8 +393,9 @@ int32 SCTPAssociation::streamSchedulerFairBandwidthPacket(SCTPPathVariables *pat
             sendStreams.find(state->lastStreamScheduled)->second->getStreamQ()->getLength() > 0)
         {
             sid = state->lastStreamScheduled;
-            if (!peek)
-                EV_DETAIL << "Stream Scheduler: again sid " << sid << ".\n";
+            if (!peek){
+                //EV_DETAIL << "Stream Scheduler: again sid " << sid << ".\n";
+            }
         }
     }
 
@@ -406,7 +412,7 @@ int32 SCTPAssociation::streamSchedulerFCFS(SCTPPathVariables *path, bool peek)  
     int32 sid, testsid;
     simtime_t oldestEnqueuing, testTime;
 
-    EV_INFO << "Stream Scheduler: First-come, first-serve (peek: " << peek << ")" << endl;
+    //EV_INFO << "Stream Scheduler: First-come, first-serve (peek: " << peek << ")" << endl;
 
     sid = -1;
 
@@ -425,7 +431,7 @@ int32 SCTPAssociation::streamSchedulerFCFS(SCTPPathVariables *path, bool peek)  
             if (sid < 0 || oldestEnqueuing > testTime) {
                 oldestEnqueuing = testTime;
                 sid = testsid;
-                EV_DETAIL << "Stream Scheduler: chose sid " << sid << ".\n";
+                //EV_DETAIL << "Stream Scheduler: chose sid " << sid << ".\n";
             }
         }
 
@@ -434,7 +440,7 @@ int32 SCTPAssociation::streamSchedulerFCFS(SCTPPathVariables *path, bool peek)  
             if (sid < 0 || oldestEnqueuing > testTime) {
                 oldestEnqueuing = testTime;
                 sid = testsid;
-                EV_DETAIL << "Stream Scheduler: chose sid " << sid << ".\n";
+                //EV_DETAIL << "Stream Scheduler: chose sid " << sid << ".\n";
             }
         }
     } while (testsid != (int32)state->lastStreamScheduled);
@@ -451,7 +457,7 @@ int32 SCTPAssociation::pathStreamSchedulerManual(SCTPPathVariables *path, bool p
     int32 testsid, sid = -1;
     uint32 lastsid = state->lastStreamScheduled;
 
-    EV_INFO << "Stream Scheduler: path-aware Manual (peek: " << peek << ")" << endl;
+    //EV_INFO << "Stream Scheduler: path-aware Manual (peek: " << peek << ")" << endl;
 
     if (state->ssStreamToPathMap.empty()) {
         for (uint16 str = 0; str < outboundStreams; str++) {
@@ -475,7 +481,7 @@ int32 SCTPAssociation::pathStreamSchedulerManual(SCTPPathVariables *path, bool p
             break;
         pathNo++;
     }
-    EV_INFO << "Stream Scheduler: about to send on " << pathNo + 1 << ". path" << endl;
+    //EV_INFO << "Stream Scheduler: about to send on " << pathNo + 1 << ". path" << endl;
 
     testsid = state->lastStreamScheduled;
 
@@ -484,13 +490,13 @@ int32 SCTPAssociation::pathStreamSchedulerManual(SCTPPathVariables *path, bool p
 
         if (state->ssStreamToPathMap[testsid] == (int32)pathNo) {
             sid = testsid;
-            EV_DETAIL << "Stream Scheduler: chose sid " << sid << ".\n";
+            //EV_DETAIL << "Stream Scheduler: chose sid " << sid << ".\n";
             if (!peek)
                 state->lastStreamScheduled = sid;
         }
     } while (sid == -1 && testsid != (int32)state->lastStreamScheduled);
 
-    EV_INFO << "streamScheduler sid=" << sid << " lastStream=" << lastsid << " outboundStreams=" << outboundStreams << " next=" << state->ssNextStream << "\n";
+    //EV_INFO << "streamScheduler sid=" << sid << " lastStream=" << lastsid << " outboundStreams=" << outboundStreams << " next=" << state->ssNextStream << "\n";
 
     return sid;
 }
@@ -529,10 +535,7 @@ int32 SCTPAssociation::pathStreamSchedulerMapToPath(SCTPPathVariables *path, boo
         }
     }
 
-    EV_INFO << "pathStreamSchedulerMapToPath sid=" << sid
-            << " path=" << path->remoteAddress
-            << " (path " << (1 + thisPath)
-            << " of " << workingPaths << ")" << endl;
+    //EV_INFO << "pathStreamSchedulerMapToPath sid=" << sid << " path=" << path->remoteAddress<< " (path " << (1 + thisPath)<< " of " << workingPaths << ")" << endl;
     return sid;
 }
 

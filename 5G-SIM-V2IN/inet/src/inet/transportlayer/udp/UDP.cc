@@ -314,10 +314,10 @@ void UDP::processUDPPacket(UDPPacket *udpPacket)
     emit(rcvdPkSignal, udpPacket);
 
     // simulate checksum: discard packet if it has bit error
-    EV_INFO << "Packet " << udpPacket->getName() << " received from network, dest port " << udpPacket->getDestinationPort() << "\n";
+    //EV_INFO << "Packet " << udpPacket->getName() << " received from network, dest port " << udpPacket->getDestinationPort() << "\n";
 
     if (udpPacket->hasBitError()) {
-        EV_WARN << "Packet has bit error, discarding\n";
+        //EV_WARN << "Packet has bit error, discarding\n";
         emit(droppedPkBadChecksumSignal, udpPacket);
         numDroppedBadChecksum++;
         delete udpPacket;
@@ -378,7 +378,7 @@ void UDP::processUDPPacket(UDPPacket *udpPacket)
         // unicast packet, there must be only one socket listening
         SockDesc *sd = findSocketForUnicastPacket(destAddr, destPort, srcAddr, srcPort);
         if (!sd) {
-            EV_WARN << "No socket registered on port " << destPort << "\n";
+            //EV_WARN << "No socket registered on port " << destPort << "\n";
             processUndeliverablePacket(udpPacket, ctrl);
             return;
         }
@@ -393,7 +393,7 @@ void UDP::processUDPPacket(UDPPacket *udpPacket)
         // multicast packet: find all matching sockets, and send up a copy to each
         std::vector<SockDesc *> sds = findSocketsForMcastBcastPacket(destAddr, destPort, srcAddr, srcPort, isMulticast, isBroadcast);
         if (sds.empty()) {
-            EV_WARN << "No socket registered on port " << destPort << "\n";
+            //EV_WARN << "No socket registered on port " << destPort << "\n";
             processUndeliverablePacket(udpPacket, ctrl);
             return;
         }
@@ -467,22 +467,21 @@ void UDP::processICMPError(cPacket *pk)
 
     // identify socket and report error to it
     if (udpHeaderAvailable) {
-        EV_WARN << "ICMP error received: type=" << type << " code=" << code
-                << " about packet " << localAddr << ":" << localPort << " > "
-                << remoteAddr << ":" << remotePort << "\n";
+        //EV_WARN << "ICMP error received: type=" << type << " code=" << code                << " about packet " << localAddr << ":" << localPort << " > "                << remoteAddr << ":" << remotePort << "\n";
 
         SockDesc *sd = findSocketForUnicastPacket(localAddr, localPort, remoteAddr, remotePort);
         if (sd) {
             // send UDP_I_ERROR to socket
-            EV_DETAIL << "Source socket is sockId=" << sd->sockId << ", notifying.\n";
+            //EV_DETAIL << "Source socket is sockId=" << sd->sockId << ", notifying.\n";
             sendUpErrorIndication(sd, localAddr, localPort, remoteAddr, remotePort);
         }
         else {
-            EV_WARN << "No socket on that local port, ignoring ICMP error\n";
+            //EV_WARN << "No socket on that local port, ignoring ICMP error\n";
         }
     }
-    else
-        EV_WARN << "UDP header not available, ignoring ICMP error\n";
+    else{
+        //EV_WARN << "UDP header not available, ignoring ICMP error\n";
+    }
 
     delete pk;
 }
@@ -579,7 +578,7 @@ void UDP::connect(int sockId, int gateIndex, const L3Address& remoteAddr, int re
     sd->remotePort = remotePort;
     sd->onlyLocalPortIsSet = false;
 
-    EV_INFO << "Socket connected: " << *sd << "\n";
+    //EV_INFO << "Socket connected: " << *sd << "\n";
 }
 
 UDP::SockDesc *UDP::createSocket(int sockId, int gateIndex, const L3Address& localAddr, int localPort)
@@ -598,7 +597,7 @@ UDP::SockDesc *UDP::createSocket(int sockId, int gateIndex, const L3Address& loc
     SockDescList& list = socketsByPortMap[sd->localPort];    // create if doesn't exist
     list.push_back(sd);
 
-    EV_INFO << "Socket created: " << *sd << "\n";
+    //EV_INFO << "Socket created: " << *sd << "\n";
     return sd;
 }
 
@@ -611,7 +610,7 @@ void UDP::close(int sockId)
     SockDesc *sd = it->second;
     socketsByIdMap.erase(it);
 
-    EV_INFO << "Closing socket: " << *sd << "\n";
+    //EV_INFO << "Closing socket: " << *sd << "\n";
 
     // remove from socketsByPortMap
     SockDescList& list = socketsByPortMap[sd->localPort];
@@ -627,7 +626,7 @@ void UDP::close(int sockId)
 
 void UDP::clearAllSockets()
 {
-    EV_INFO << "Clear all sockets\n";
+    //EV_INFO << "Clear all sockets\n";
 
     for (auto & elem : socketsByPortMap) {
         elem.second.clear();
@@ -728,7 +727,7 @@ std::vector<UDP::SockDesc *> UDP::findSocketsForMcastBcastPacket(const L3Address
 
 void UDP::sendUp(cPacket *payload, SockDesc *sd, const L3Address& srcAddr, ushort srcPort, const L3Address& destAddr, ushort destPort, int interfaceId, int ttl, unsigned char tos)
 {
-    EV_INFO << "Sending payload up to socket sockId=" << sd->sockId << "\n";
+    //EV_INFO << "Sending payload up to socket sockId=" << sd->sockId << "\n";
 
     // send payload with UDPControlInfo up to the application
     UDPDataIndication *udpCtrl = new UDPDataIndication();
@@ -781,7 +780,7 @@ void UDP::sendDown(cPacket *appData, const L3Address& srcAddr, ushort srcPort, c
 
     if (destAddr.getType() == L3Address::IPv4) {
         // send to IPv4
-        EV_INFO << "Sending app packet " << appData->getName() << " over IPv4.\n";
+        //EV_INFO << "Sending app packet " << appData->getName() << " over IPv4.\n";
         IPv4ControlInfo *ipControlInfo = new IPv4ControlInfo();
         ipControlInfo->setProtocol(IP_PROT_UDP);
         ipControlInfo->setSrcAddr(srcAddr.toIPv4());
@@ -798,7 +797,7 @@ void UDP::sendDown(cPacket *appData, const L3Address& srcAddr, ushort srcPort, c
     }
     else if (destAddr.getType() == L3Address::IPv6) {
         // send to IPv6
-        EV_INFO << "Sending app packet " << appData->getName() << " over IPv6.\n";
+        //EV_INFO << "Sending app packet " << appData->getName() << " over IPv6.\n";
         IPv6ControlInfo *ipControlInfo = new IPv6ControlInfo();
         ipControlInfo->setProtocol(IP_PROT_UDP);
         ipControlInfo->setSrcAddr(srcAddr.toIPv6());
@@ -815,7 +814,7 @@ void UDP::sendDown(cPacket *appData, const L3Address& srcAddr, ushort srcPort, c
     }
     else {
         // send to generic
-        EV_INFO << "Sending app packet " << appData->getName() << endl;
+        //EV_INFO << "Sending app packet " << appData->getName() << endl;
         IL3AddressType *addressType = destAddr.getAddressType();
         INetworkProtocolControlInfo *ipControlInfo = addressType->createNetworkProtocolControlInfo();
         ipControlInfo->setTransportProtocol(IP_PROT_UDP);

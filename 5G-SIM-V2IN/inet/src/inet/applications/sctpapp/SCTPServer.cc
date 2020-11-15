@@ -35,7 +35,7 @@ Define_Module(SCTPServer);
 
 void SCTPServer::initialize(int stage)
 {
-    EV_DEBUG << "initialize SCTP Server stage " << stage << endl;
+    //EV_DEBUG << "initialize SCTP Server stage " << stage << endl;
 
     cSimpleModule::initialize(stage);
 
@@ -84,7 +84,7 @@ void SCTPServer::initialize(int stage)
             socket->bindx(addresses, port);
 
         socket->listen(true, par("streamReset").boolValue(), par("numPacketsToSendPerClient").intValue(), messagesToPush);
-        EV_INFO << "SCTPServer::initialized listen port=" << port << "\n";
+        //EV_INFO << "SCTPServer::initialized listen port=" << port << "\n";
         cStringTokenizer tokenizer(par("streamPriorities").stringValue());
         for (unsigned int streamNum = 0; tokenizer.hasMoreTokens(); streamNum++) {
             const char *token = tokenizer.nextToken();
@@ -283,7 +283,7 @@ void SCTPServer::handleMessage(cMessage *msg)
                             scheduleAt(simTime() + par("waitToClose"), abortMsg);
                         }
                         else {
-                            EV_INFO << "no more packets to send, call shutdown for assoc " << assocId << "\n";
+                            //EV_INFO << "no more packets to send, call shutdown for assoc " << assocId << "\n";
                             cMessage *cmsg = new cMessage("ShutdownRequest");
                             SCTPCommand *cmd = new SCTPCommand("Send5");
                             cmsg->setKind(SCTP_C_SHUTDOWN);
@@ -317,7 +317,7 @@ void SCTPServer::handleMessage(cMessage *msg)
                     }
                 }
                 else {
-                    EV_INFO << simTime() << " makeReceiveRequest\n";
+                    //EV_INFO << simTime() << " makeReceiveRequest\n";
                     cmsg = makeReceiveRequest(msg);
                     sendOrSchedule(cmsg);
                 }
@@ -328,7 +328,7 @@ void SCTPServer::handleMessage(cMessage *msg)
             case SCTP_I_DATA: {
                 notificationsReceived--;
                 packetsRcvd++;
-                EV_INFO << simTime() << " server: data arrived. " << packetsRcvd << " Packets received now\n";
+                //EV_INFO << simTime() << " server: data arrived. " << packetsRcvd << " Packets received now\n";
                 SCTPRcvInfo *ind = check_and_cast<SCTPRcvInfo *>(msg->removeControlInfo());
                 id = ind->getAssocId();
                 auto j = serverAssocStatMap.find(id);
@@ -345,7 +345,7 @@ void SCTPServer::handleMessage(cMessage *msg)
                         SCTPSimpleMessage *smsg = check_and_cast<SCTPSimpleMessage *>(msg);
                         auto m = endToEndDelay.find(id);
                         m->second->record(simTime() - smsg->getCreationTime());
-                        EV_INFO << "server: Data received. Left packets to receive=" << j->second.rcvdPackets << "\n";
+                        //EV_INFO << "server: Data received. Left packets to receive=" << j->second.rcvdPackets << "\n";
 
                         if (j->second.rcvdPackets == 0) {
                             if (serverAssocStatMap[assocId].peerClosed == true && serverAssocStatMap[assocId].abortSent == false) {
@@ -396,7 +396,7 @@ void SCTPServer::handleMessage(cMessage *msg)
             case SCTP_I_SHUTDOWN_RECEIVED: {
                 SCTPCommand *command = check_and_cast<SCTPCommand *>(msg->removeControlInfo());
                 id = command->getAssocId();
-                EV_INFO << "server: SCTP_I_SHUTDOWN_RECEIVED for assoc " << id << "\n";
+                //EV_INFO << "server: SCTP_I_SHUTDOWN_RECEIVED for assoc " << id << "\n";
                 auto i = serverAssocStatMap.find(id);
                 if (i->second.sentPackets == 0 || par("numPacketsToSendPerClient").intValue() == 0) {
                     cMessage *cmsg = new cMessage("SCTP_C_NO_OUTSTANDING");
@@ -416,7 +416,7 @@ void SCTPServer::handleMessage(cMessage *msg)
 
             case SCTP_I_SEND_STREAMS_RESETTED:
             case SCTP_I_RCV_STREAMS_RESETTED: {
-                EV_INFO << "Streams have been resetted\n";
+                //EV_INFO << "Streams have been resetted\n";
                 delete msg;
                 break;
             }
@@ -424,7 +424,7 @@ void SCTPServer::handleMessage(cMessage *msg)
             case SCTP_I_CLOSED: {
                 SCTPCommand *command = check_and_cast<SCTPCommand *>(msg->removeControlInfo());
                 id = command->getAssocId();
-                EV_INFO << "server: SCTP_I_CLOSED for assoc "  << id << endl;
+                //EV_INFO << "server: SCTP_I_CLOSED for assoc "  << id << endl;
                 ServerAssocStatMap::iterator i = serverAssocStatMap.find(id);
                 i->second.stop = simTime();
                 i->second.lifeTime = i->second.stop - i->second.start;
@@ -447,7 +447,7 @@ void SCTPServer::handleMessage(cMessage *msg)
 void SCTPServer::handleTimer(cMessage *msg)
 {
     if (msg == delayTimer) {
-        EV_INFO << simTime() << " delayTimer expired\n";
+        //EV_INFO << simTime() << " delayTimer expired\n";
         sendOrSchedule(makeDefaultReceive());
         scheduleAt(simTime() + par("readingInterval"), delayTimer);
         return;
@@ -484,7 +484,7 @@ void SCTPServer::handleTimer(cMessage *msg)
         break;
 
         case SCTP_C_RECEIVE:
-            EV_INFO << simTime() << " SCTPServer:SCTP_C_RECEIVE\n";
+            //EV_INFO << simTime() << " SCTPServer:SCTP_C_RECEIVE\n";
             if (readInt || delayFirstRead > 0)
                 schedule = false;
             else
@@ -493,28 +493,28 @@ void SCTPServer::handleTimer(cMessage *msg)
             break;
 
         default:
-            EV_INFO << "MsgKind =" << msg->getKind() << " unknown\n";
+            //EV_INFO << "MsgKind =" << msg->getKind() << " unknown\n";
             break;
     }
 }
 
 void SCTPServer::finish()
 {
-    EV_INFO << getFullPath() << ": opened " << numSessions << " sessions\n";
-    EV_INFO << getFullPath() << ": sent " << bytesSent << " bytes in " << packetsSent << " packets\n";
+    //EV_INFO << getFullPath() << ": opened " << numSessions << " sessions\n";
+    //EV_INFO << getFullPath() << ": sent " << bytesSent << " bytes in " << packetsSent << " packets\n";
     for (auto & elem : serverAssocStatMap) {
-        EV_DETAIL << getFullPath() << " Assoc: " << elem.first << "\n";
-        EV_DETAIL << "\tstart time: " << elem.second.start << "\n";
-        EV_DETAIL << "\tstop time: " << elem.second.stop << "\n";
-        EV_DETAIL << "\tlife time: " << elem.second.lifeTime << "\n";
-        EV_DETAIL << "\treceived bytes:" << elem.second.rcvdBytes << "\n";
-        EV_DETAIL << "\tthroughput: " << (elem.second.rcvdBytes / elem.second.lifeTime.dbl()) * 8 << " bit/sec\n";
+        //EV_DETAIL << getFullPath() << " Assoc: " << elem.first << "\n";
+        //EV_DETAIL << "\tstart time: " << elem.second.start << "\n";
+        //EV_DETAIL << "\tstop time: " << elem.second.stop << "\n";
+        //EV_DETAIL << "\tlife time: " << elem.second.lifeTime << "\n";
+        //EV_DETAIL << "\treceived bytes:" << elem.second.rcvdBytes << "\n";
+        //EV_DETAIL << "\tthroughput: " << (elem.second.rcvdBytes / elem.second.lifeTime.dbl()) * 8 << " bit/sec\n";
         recordScalar("bytes rcvd", elem.second.rcvdBytes);
         recordScalar("throughput", (elem.second.rcvdBytes / elem.second.lifeTime.dbl()) * 8);
     }
-    EV_INFO << getFullPath() << "Over all " << packetsRcvd << " packets received\n ";
-    EV_INFO << getFullPath() << "Over all " << notificationsReceived << " notifications received\n ";
-    EV_INFO << "Server finished\n";
+    //EV_INFO << getFullPath() << "Over all " << packetsRcvd << " packets received\n ";
+    //EV_INFO << getFullPath() << "Over all " << notificationsReceived << " notifications received\n ";
+    //EV_INFO << "Server finished\n";
 }
 
 SCTPServer::~SCTPServer()

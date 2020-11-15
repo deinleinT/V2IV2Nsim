@@ -191,7 +191,7 @@ void IPvXTrafGen::sendPacket()
     controlInfo->setTransportProtocol(protocol);
     payload->setControlInfo(check_and_cast<cObject *>(controlInfo));
 
-    EV_INFO << "Sending packet: ";
+    //EV_INFO << "Sending packet: ";
     printPacket(payload);
     emit(sentPkSignal, payload);
     send(payload, "ipOut");
@@ -210,17 +210,18 @@ void IPvXTrafGen::printPacket(cPacket *msg)
         protocol = ctrl->getTransportProtocol();
     }
 
-    EV_INFO << msg << endl;
-    EV_INFO << "Payload length: " << msg->getByteLength() << " bytes" << endl;
+    //EV_INFO << msg << endl;
+    //EV_INFO << "Payload length: " << msg->getByteLength() << " bytes" << endl;
 
-    if (protocol != -1)
-        EV_INFO << "src: " << src << "  dest: " << dest << "  protocol=" << protocol << "\n";
+    if (protocol != -1){
+        //EV_INFO << "src: " << src << "  dest: " << dest << "  protocol=" << protocol << "\n";
+    }
 }
 
 void IPvXTrafGen::processPacket(cPacket *msg)
 {
     emit(rcvdPkSignal, msg);
-    EV_INFO << "Received packet: ";
+    //EV_INFO << "Received packet: ";
     printPacket(msg);
     delete msg;
     numReceived++;

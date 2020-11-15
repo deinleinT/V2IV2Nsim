@@ -268,21 +268,8 @@ void TrafficGenerator::finish() {
 			double recPacketsDataOutBudget1s = var.second.statReport.recPacketsDataOutBudget1s;
 			double recPacketsData = var.second.statReport.recPacketsData;
 
-			if (recPacketsData <= 0) {
-				reliabilityData10msVecDL.record(0);
-				reliabilityData20msVecDL.record(0);
-				reliabilityData50msVecDL.record(0);
-				reliabilityData100msVecDL.record(0);
-				reliabilityData200msVecDL.record(0);
-				reliabilityData500msVecDL.record(0);
-				reliabilityData1sVecDL.record(0);
-				recordScalar("reliabilityData10msDL", 0);
-				recordScalar("reliabilityData20msDL", 0);
-				recordScalar("reliabilityData50msDL", 0);
-				recordScalar("reliabilityData100msDL", 0);
-				recordScalar("reliabilityData200msDL", 0);
-				recordScalar("reliabilityData500msDL", 0);
-				recordScalar("reliabilityData1sDL", 0);
+			if (recPacketsData < 0) {
+
 			} else {
 
 				double reliabilityData10ms = 1.0 - double(recPacketsDataOutBudget10ms / recPacketsData);
@@ -331,21 +318,8 @@ void TrafficGenerator::finish() {
 			double recPacketsV2XOutBudget1s = var.second.statReport.recPacketsV2XOutBudget1s;
 			double recPacketsV2X = var.second.statReport.recPacketsV2X;
 
-			if (recPacketsV2X <= 0) {
-				reliabilityV2X10msVecDL.record(0);
-				reliabilityV2X20msVecDL.record(0);
-				reliabilityV2X50msVecDL.record(0);
-				reliabilityV2X100msVecDL.record(0);
-				reliabilityV2X200msVecDL.record(0);
-				reliabilityV2X500msVecDL.record(0);
-				reliabilityV2X1sVecDL.record(0);
-				recordScalar("reliabilityV2X10msDL", 0);
-				recordScalar("reliabilityV2X20msDL", 0);
-				recordScalar("reliabilityV2X50msDL", 0);
-				recordScalar("reliabilityV2X100msDL", 0);
-				recordScalar("reliabilityV2X200msDL", 0);
-				recordScalar("reliabilityV2X500msDL", 0);
-				recordScalar("reliabilityV2X1sDL", 0);
+			if (recPacketsV2X < 0) {
+
 			} else {
 
 				double reliabilityV2X10ms = 1.0 - double(recPacketsV2XOutBudget10ms / recPacketsV2X);
@@ -394,21 +368,8 @@ void TrafficGenerator::finish() {
 			double recPacketsVoipOutBudget1s = var.second.statReport.recPacketsVoipOutBudget1s;
 			double recPacketsVoip = var.second.statReport.recPacketsVoip;
 
-			if (recPacketsVoip <= 0) {
-				reliabilityVoip10msVecDL.record(0);
-				reliabilityVoip20msVecDL.record(0);
-				reliabilityVoip50msVecDL.record(0);
-				reliabilityVoip100msVecDL.record(0);
-				reliabilityVoip200msVecDL.record(0);
-				reliabilityVoip500msVecDL.record(0);
-				reliabilityVoip1sVecDL.record(0);
-				recordScalar("reliabilityVoip10msDL", 0);
-				recordScalar("reliabilityVoip20msDL", 0);
-				recordScalar("reliabilityVoip50msDL", 0);
-				recordScalar("reliabilityVoip100msDL", 0);
-				recordScalar("reliabilityVoip200msDL", 0);
-				recordScalar("reliabilityVoip500msDL", 0);
-				recordScalar("reliabilityVoip1sDL", 0);
+			if (recPacketsVoip < 0) {
+
 			} else {
 
 				double reliabilityVoip10ms = 1.0 - double(recPacketsVoipOutBudget10ms / recPacketsVoip);
@@ -456,21 +417,8 @@ void TrafficGenerator::finish() {
 			double recPacketsVideoOutBudget1s = var.second.statReport.recPacketsVideoOutBudget1s;
 			double recPacketsVideo = var.second.statReport.recPacketsVideo;
 
-			if (recPacketsVideo <= 0) {
-				reliabilityVideo10msVecDL.record(0);
-				reliabilityVideo20msVecDL.record(0);
-				reliabilityVideo50msVecDL.record(0);
-				reliabilityVideo100msVecDL.record(0);
-				reliabilityVideo200msVecDL.record(0);
-				reliabilityVideo500msVecDL.record(0);
-				reliabilityVideo1sVecDL.record(0);
-				recordScalar("reliabilityVideo10msDL", 0);
-				recordScalar("reliabilityVideo20msDL", 0);
-				recordScalar("reliabilityVideo50msDL", 0);
-				recordScalar("reliabilityVideo100msDL", 0);
-				recordScalar("reliabilityVideo200msDL", 0);
-				recordScalar("reliabilityVideo500msDL", 0);
-				recordScalar("reliabilityVideo1sDL", 0);
+			if (recPacketsVideo < 0) {
+
 			} else {
 
 				double reliabilityVideo10ms = 1.0 - double(recPacketsVideoOutBudget10ms / recPacketsVideo);
@@ -526,21 +474,8 @@ void TrafficGenerator::finish() {
 			double recPacketsDataOutBudget1s = var.second.statReport.recPacketsDataOutBudget1s;
 			double recPacketsData = var.second.statReport.recPacketsData;
 
-			if (recPacketsData <= 0) {
-				reliabilityData10msVecDL.record(0);
-				reliabilityData20msVecDL.record(0);
-				reliabilityData50msVecDL.record(0);
-				reliabilityData100msVecDL.record(0);
-				reliabilityData200msVecDL.record(0);
-				reliabilityData500msVecDL.record(0);
-				reliabilityData1sVecDL.record(0);
-				recordScalar("reliabilityData10msDL", 0);
-				recordScalar("reliabilityData20msDL", 0);
-				recordScalar("reliabilityData50msDL", 0);
-				recordScalar("reliabilityData100msDL", 0);
-				recordScalar("reliabilityData200msDL", 0);
-				recordScalar("reliabilityData500msDL", 0);
-				recordScalar("reliabilityData1sDL", 0);
+			if (recPacketsData < 0) {
+
 			} else {
 
 				double reliabilityData10ms = 1.0 - double(recPacketsDataOutBudget10ms / recPacketsData);
@@ -590,21 +525,8 @@ void TrafficGenerator::finish() {
 			double recPacketsV2XOutBudget1s = var.second.statReport.recPacketsV2XOutBudget1s;
 			double recPacketsV2X = var.second.statReport.recPacketsV2X;
 
-			if (recPacketsV2X <= 0) {
-				reliabilityV2X10msVecDL.record(0);
-				reliabilityV2X20msVecDL.record(0);
-				reliabilityV2X50msVecDL.record(0);
-				reliabilityV2X100msVecDL.record(0);
-				reliabilityV2X200msVecDL.record(0);
-				reliabilityV2X500msVecDL.record(0);
-				reliabilityV2X1sVecDL.record(0);
-				recordScalar("reliabilityV2X10msDL", 0);
-				recordScalar("reliabilityV2X20msDL", 0);
-				recordScalar("reliabilityV2X50msDL", 0);
-				recordScalar("reliabilityV2X100msDL", 0);
-				recordScalar("reliabilityV2X200msDL", 0);
-				recordScalar("reliabilityV2X500msDL", 0);
-				recordScalar("reliabilityV2X1sDL", 0);
+			if (recPacketsV2X < 0) {
+
 			} else {
 
 				double reliabilityV2X10ms = 1.0 - double(recPacketsV2XOutBudget10ms / recPacketsV2X);
@@ -637,9 +559,9 @@ void TrafficGenerator::finish() {
 
 				recordScalar("numberCarsV2X", carsV2X.size());
 
-				recordScalar("lostPacketsData", var.second.statReport.lostPacketsV2X);
-				recordScalar("recPacketsData", var.second.statReport.recPacketsV2X);
-				recordScalar("sentPacketsData", var.second.statReport.sentPacketsV2X);
+				recordScalar("lostPacketsV2X", var.second.statReport.lostPacketsV2X);
+				recordScalar("recPacketsV2X", var.second.statReport.recPacketsV2X);
+				recordScalar("sentPacketsV2X", var.second.statReport.sentPacketsV2X);
 				recordScalar("recPacketsV2XOutBudget", recPacketsV2XOutBudget);
 
 			}
@@ -655,21 +577,8 @@ void TrafficGenerator::finish() {
 			double recPacketsVoipOutBudget1s = var.second.statReport.recPacketsVoipOutBudget1s;
 			double recPacketsVoip = var.second.statReport.recPacketsVoip;
 
-			if (recPacketsVoip <= 0) {
-				reliabilityVoip10msVecDL.record(0);
-				reliabilityVoip20msVecDL.record(0);
-				reliabilityVoip50msVecDL.record(0);
-				reliabilityVoip100msVecDL.record(0);
-				reliabilityVoip200msVecDL.record(0);
-				reliabilityVoip500msVecDL.record(0);
-				reliabilityVoip1sVecDL.record(0);
-				recordScalar("reliabilityVoip10msDL", 0);
-				recordScalar("reliabilityVoip20msDL", 0);
-				recordScalar("reliabilityVoip50msDL", 0);
-				recordScalar("reliabilityVoip100msDL", 0);
-				recordScalar("reliabilityVoip200msDL", 0);
-				recordScalar("reliabilityVoip500msDL", 0);
-				recordScalar("reliabilityVoip1sDL", 0);
+			if (recPacketsVoip < 0) {
+
 			} else {
 
 				double reliabilityVoip10ms = 1.0 - double(recPacketsVoipOutBudget10ms / recPacketsVoip);
@@ -700,9 +609,9 @@ void TrafficGenerator::finish() {
 				recordScalar("reliabilityVoip1sUL", reliabilityVoip1s);
 				reliabilityVoip1sVecUL.record(reliabilityVoip1s);
 
-				recordScalar("lostPacketsData", var.second.statReport.lostPacketsVoip);
-				recordScalar("recPacketsData", var.second.statReport.recPacketsVoip);
-				recordScalar("sentPacketsData", var.second.statReport.sentPacketsVoip);
+				recordScalar("lostPacketsVoip", var.second.statReport.lostPacketsVoip);
+				recordScalar("recPacketsVoip", var.second.statReport.recPacketsVoip);
+				recordScalar("sentPacketsVoip", var.second.statReport.sentPacketsVoip);
 				recordScalar("recPacketsVoipOutBudget", recPacketsVoipOutBudget);
 
 			}
@@ -718,21 +627,8 @@ void TrafficGenerator::finish() {
 			double recPacketsVideoOutBudget1s = var.second.statReport.recPacketsVideoOutBudget1s;
 			double recPacketsVideo = var.second.statReport.recPacketsVideo;
 
-			if (recPacketsVideo <= 0) {
-				reliabilityVideo10msVecDL.record(0);
-				reliabilityVideo20msVecDL.record(0);
-				reliabilityVideo50msVecDL.record(0);
-				reliabilityVideo100msVecDL.record(0);
-				reliabilityVideo200msVecDL.record(0);
-				reliabilityVideo500msVecDL.record(0);
-				reliabilityVideo1sVecDL.record(0);
-				recordScalar("reliabilityVideo10msDL", 0);
-				recordScalar("reliabilityVideo20msDL", 0);
-				recordScalar("reliabilityVideo50msDL", 0);
-				recordScalar("reliabilityVideo100msDL", 0);
-				recordScalar("reliabilityVideo200msDL", 0);
-				recordScalar("reliabilityVideo500msDL", 0);
-				recordScalar("reliabilityVideo1sDL", 0);
+			if (recPacketsVideo < 0) {
+
 			} else {
 
 				double reliabilityVideo10ms = 1.0 - double(recPacketsVideoOutBudget10ms / recPacketsVideo);
@@ -763,9 +659,9 @@ void TrafficGenerator::finish() {
 				recordScalar("reliabilityVideo1sUL", reliabilityVideo1s);
 				reliabilityVideo1sVecUL.record(reliabilityVideo1s);
 
-				recordScalar("lostPacketsData", var.second.statReport.lostPacketsVideo);
-				recordScalar("recPacketsData", var.second.statReport.recPacketsVideo);
-				recordScalar("sentPacketsData", var.second.statReport.sentPacketsVideo);
+				recordScalar("lostPacketsVideo", var.second.statReport.lostPacketsVideo);
+				recordScalar("recPacketsVideo", var.second.statReport.recPacketsVideo);
+				recordScalar("sentPacketsVideo", var.second.statReport.sentPacketsVideo);
 				recordScalar("recPacketsVideoOutBudget", recPacketsVideoOutBudget);
 			}
 			//

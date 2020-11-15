@@ -298,8 +298,9 @@ void PacketDrillScript::readScript()
         int fd = -1;
 
         /* Allocate a buffer big enough for the whole file. */
-        if (stat(scriptPath, &script_info) != 0)
-            EV_INFO << "parse error: stat() of script file '" << scriptPath << "': " << strerror(errno) << endl;
+        if (stat(scriptPath, &script_info) != 0){
+            //EV_INFO << "parse error: stat() of script file '" << scriptPath << "': " << strerror(errno) << endl;
+        }
 
         /* Pick a buffer size larger than the file, so we'll
          * know if the file grew.
@@ -311,12 +312,14 @@ void PacketDrillScript::readScript()
 
         /* Read the file into our buffer. */
         fd = open(scriptPath, O_RDONLY);
-        if (fd < 0)
-            EV_INFO << "parse error opening script file '" << scriptPath << "': " << strerror(errno) << endl;
+        if (fd < 0){
+            //EV_INFO << "parse error opening script file '" << scriptPath << "': " << strerror(errno) << endl;
+        }
 
         length = read(fd, buffer, size);
-        if (length < 0)
-            EV_INFO << "parse error reading script file '" << scriptPath << "': " << strerror(errno) << endl;
+        if (length < 0){
+            //EV_INFO << "parse error reading script file '" << scriptPath << "': " << strerror(errno) << endl;
+        }
 
         /* If we filled the buffer, then probably another
          * process wrote more to the file since our stat call,
@@ -328,10 +331,11 @@ void PacketDrillScript::readScript()
             length = 0;
         }
 
-        if (close(fd))
-            EV_INFO << "File destriptor was closed\n";
+        if (close(fd)){
+            //EV_INFO << "File destriptor was closed\n";
+        }
     }
-    EV_INFO << "Script " << scriptPath << " was read with " << length << " length\n";
+    //EV_INFO << "Script " << scriptPath << " was read with " << length << " length\n";
 }
 
 int PacketDrillScript::parseScriptAndSetConfig(PacketDrillConfig *config, const char *script_buffer)

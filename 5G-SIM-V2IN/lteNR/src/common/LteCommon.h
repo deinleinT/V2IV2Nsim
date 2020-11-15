@@ -775,6 +775,7 @@ struct EnbInfo
     LteRealisticChannelModel * realChan;
     cModule * eNodeB;
     int x2;
+    inet::Coord position;
 };
 
 struct UeInfo

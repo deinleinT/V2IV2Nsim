@@ -92,17 +92,18 @@ void IPvXTrafSink::printPacket(cPacket *msg)
         protocol = ctrl->getTransportProtocol();
     }
 
-    EV_INFO << msg << endl;
-    EV_INFO << "Payload length: " << msg->getByteLength() << " bytes" << endl;
+    //EV_INFO << msg << endl;
+    //EV_INFO << "Payload length: " << msg->getByteLength() << " bytes" << endl;
 
-    if (ctrl != nullptr)
-        EV_INFO << "src: " << src << "  dest: " << dest << "  protocol=" << protocol << endl;
+    if (ctrl != nullptr){
+        //EV_INFO << "src: " << src << "  dest: " << dest << "  protocol=" << protocol << endl;
+    }
 }
 
 void IPvXTrafSink::processPacket(cPacket *msg)
 {
     emit(rcvdPkSignal, msg);
-    EV_INFO << "Received packet: ";
+    //EV_INFO << "Received packet: ";
     printPacket(msg);
     delete msg;
     numReceived++;

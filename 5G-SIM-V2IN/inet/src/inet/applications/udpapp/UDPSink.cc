@@ -89,7 +89,7 @@ void UDPSink::refreshDisplay() const
 void UDPSink::finish()
 {
     ApplicationBase::finish();
-    EV_INFO << getFullPath() << ": received " << numReceived << " packets\n";
+    //EV_INFO << getFullPath() << ": received " << numReceived << " packets\n";
 }
 
 void UDPSink::setSocketOptions()

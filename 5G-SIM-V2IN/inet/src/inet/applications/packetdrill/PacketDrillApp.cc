@@ -239,7 +239,9 @@ void PacketDrillApp::handleMessage(cMessage *msg)
                     msgArrived = true;
                     delete msg;
                     break;
-                default: EV_INFO << "Message kind not supported (yet)";
+                default:
+                    //EV_INFO << "Message kind not supported (yet)";
+                    break;
             }
         } else if (msg->getArrivalGate()->isName("sctpIn")) {
             switch (msg->getKind()) {
@@ -524,8 +526,7 @@ void PacketDrillApp::runEvent(PacketDrillEvent* event)
         } else
             throw cRuntimeError("Invalid direction");
     } else if (event->getType() == SYSCALL_EVENT) {
-        EV_INFO << "syscallEvent: time_type = " << event->getTimeType() << " event time = " << event->getEventTime()
-                << " end event time = " << event->getEventTimeEnd() << endl;
+        //EV_INFO << "syscallEvent: time_type = " << event->getTimeType() << " event time = " << event->getEventTime() << " end event time = " << event->getEventTimeEnd() << endl;
         runSystemCallEvent(event, event->getSyscall());
     } else if (event->getType() == COMMAND_EVENT) {
         eventCounter++;
@@ -659,7 +660,7 @@ void PacketDrillApp::runSystemCallEvent(PacketDrillEvent* event, struct syscall_
     } else if (!strcmp(name, "sctp_send")) {
         syscallSctpSend(syscall, args, &error);
     } else {
-        EV_INFO << "System call %s not known (yet)." << name;
+        //EV_INFO << "System call %s not known (yet)." << name;
     }
     args->clear();
     delete(args);
@@ -864,7 +865,9 @@ int PacketDrillApp::syscallWrite(struct syscall_spec *syscall, cQueue *args, cha
             sctpSocket.sendMsg(cmsg);
             break;
         }
-        default: EV_INFO << "Protocol not supported for this socket call";
+        default:
+            //EV_INFO << "Protocol not supported for this socket call";
+            break;
     }
 
     return STATUS_OK;
@@ -1351,7 +1354,9 @@ int PacketDrillApp::syscallRead(PacketDrillEvent *event, struct syscall_spec *sy
                     send(pkt, "sctpOut");
                     break;
                 }
-                default: EV_INFO << "Protocol not supported for this system call.";
+                default:
+                    //EV_INFO << "Protocol not supported for this system call.";
+                    break;
             }
             msgArrived = false;
             expectedMessageSize = syscall->result->getNum();
@@ -1455,7 +1460,8 @@ int PacketDrillApp::syscallClose(struct syscall_spec *syscall, cQueue *args, cha
             break;
         }
         default:
-            EV_INFO << "Protocol " << protocol << " is not supported for this system call\n";
+            //EV_INFO << "Protocol " << protocol << " is not supported for this system call\n";
+            break;
     }
     return STATUS_OK;
 }
@@ -1476,14 +1482,15 @@ printf("syscallShutdown\n");
             break;
         }
         default:
-            EV_INFO << "Protocol " << protocol << " is not supported for this system call\n";
+            //EV_INFO << "Protocol " << protocol << " is not supported for this system call\n";
+            break;
     }
     return STATUS_OK;
 }
 
 void PacketDrillApp::finish()
 {
-    EV_INFO << "PacketDrillApp finished\n";
+    //EV_INFO << "PacketDrillApp finished\n";
 }
 
 PacketDrillApp::~PacketDrillApp()
@@ -1516,12 +1523,9 @@ int PacketDrillApp::verifyTime(enum eventTime_t timeType, simtime_t scriptTime, 
     if (timeType == ABSOLUTE_RANGE_TIME || timeType == RELATIVE_RANGE_TIME) {
         if (actualTime < (expectedTime - tolerance) || actualTime > (expectedTimeEnd + tolerance)) {
             if (timeType == ABSOLUTE_RANGE_TIME) {
-                EV_INFO << "timing error: expected " << description << " in time range " << scriptTime << " ~ "
-                        << scriptTimeEnd << " sec, but happened at " << actualTime << " sec" << endl;
+                //EV_INFO << "timing error: expected " << description << " in time range " << scriptTime << " ~ " << scriptTimeEnd << " sec, but happened at " << actualTime << " sec" << endl;
             } else if (timeType == RELATIVE_RANGE_TIME) {
-                EV_INFO << "timing error: expected " << description << " in relative time range +"
-                        << scriptTime - offset << " ~ " << scriptTimeEnd - offset << " sec, but happened at +"
-                        << actualTime - offset << " sec" << endl;
+                //EV_INFO << "timing error: expected " << description << " in relative time range +" << scriptTime - offset << " ~ " << scriptTimeEnd - offset << " sec, but happened at +" << actualTime - offset << " sec" << endl;
             }
             return STATUS_ERR;
         } else {
@@ -1530,8 +1534,7 @@ int PacketDrillApp::verifyTime(enum eventTime_t timeType, simtime_t scriptTime, 
     }
 
     if ((actualTime < (expectedTime - tolerance)) || (actualTime > (expectedTime + tolerance))) {
-        EV_INFO << "timing error: expected " << description << " at " << scriptTime << " sec, but happened at "
-                << actualTime << " sec" << endl;
+        //EV_INFO << "timing error: expected " << description << " at " << scriptTime << " sec, but happened at " << actualTime << " sec" << endl;
         return STATUS_ERR;
     } else {
         return STATUS_OK;
@@ -1605,7 +1608,9 @@ bool PacketDrillApp::compareDatagram(IPv4Datagram *storedDatagram, IPv4Datagram 
             delete liveSctp;
             break;
         }
-        default: EV_INFO << "Transport protocol %d is not supported yet" << storedDatagram->getTransportProtocol();
+        default:
+            //EV_INFO << "Transport protocol %d is not supported yet" << storedDatagram->getTransportProtocol();
+            break;
     }
     return true;
 }
@@ -1693,10 +1698,12 @@ bool PacketDrillApp::compareTcpPacket(TCPSegment *storedTcp, TCPSegment *liveTcp
                                 return false;
                             }
                             break;
-                        default: EV_INFO << "Option not supported";
+                        default:
+                            //EV_INFO << "Option not supported";
+                            break;
                     }
                 } else {
-                    EV_INFO << "Wrong sequence or option kind not present";
+                    //EV_INFO << "Wrong sequence or option kind not present";
                     return false;
                 }
             }

@@ -62,10 +62,10 @@ struct StatReport {
 	unsigned int lostPacketsData = 0;
 
 	//total received Packets
-	unsigned int recPacketsVideo = 0;
-	unsigned int recPacketsV2X = 0;
-	unsigned int recPacketsVoip = 0;
-	unsigned int recPacketsData = 0;
+	int recPacketsVideo = -1;
+	int recPacketsV2X = -1;
+	int recPacketsVoip = -1;
+	int recPacketsData = -1;
 
 	//total sent Packets
 	unsigned int sentPacketsVideo = 0;

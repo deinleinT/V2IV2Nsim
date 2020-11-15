@@ -30,7 +30,7 @@ void SCTPAssociation::sendAsconf(const char *type, const bool remote)
     uint16 chunkLength = 0;
 
     if (state->asconfOutstanding == false) {
-        EV_DEBUG << "sendAsconf\n";
+        //EV_DEBUG << "sendAsconf\n";
         SCTPMessage *sctpAsconf = new SCTPMessage("ASCONF-MSG");
         sctpAsconf->setByteLength(SCTP_COMMON_HEADER);
         sctpAsconf->setSrcPort(localPort);
@@ -39,7 +39,7 @@ void SCTPAssociation::sendAsconf(const char *type, const bool remote)
         asconfChunk->setChunkType(ASCONF);
         asconfChunk->setSerialNumber(state->asconfSn);
         chunkLength = SCTP_ADD_IP_CHUNK_LENGTH;
-        EV_INFO << "localAddr=" << localAddr << ", remoteAddr=" << remoteAddr << "\n";
+        //EV_INFO << "localAddr=" << localAddr << ", remoteAddr=" << remoteAddr << "\n";
         if (getAddressLevel(localAddr) == 3 && getAddressLevel(remoteAddr) == 4 && (bool)sctpMain->par("natFriendly")) {
             asconfChunk->setAddressParam(L3Address("0.0.0.0"));
             asconfChunk->setPeerVTag(peerVTag);

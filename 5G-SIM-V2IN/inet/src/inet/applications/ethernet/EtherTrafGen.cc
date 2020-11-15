@@ -187,7 +187,7 @@ void EtherTrafGen::sendBurstPackets()
         etherctrl->setDest(destMACAddress);
         datapacket->setControlInfo(etherctrl);
 
-        EV_INFO << "Send packet `" << msgname << "' dest=" << destMACAddress << " length=" << len << "B type=" << etherType << "\n";
+        //EV_INFO << "Send packet `" << msgname << "' dest=" << destMACAddress << " length=" << len << "B type=" << etherType << "\n";
         emit(sentPkSignal, datapacket);
         send(datapacket, "out");
         packetsSent++;
@@ -196,7 +196,7 @@ void EtherTrafGen::sendBurstPackets()
 
 void EtherTrafGen::receivePacket(cPacket *msg)
 {
-    EV_INFO << "Received packet `" << msg->getName() << "' length= " << msg->getByteLength() << "B\n";
+    //EV_INFO << "Received packet `" << msg->getName() << "' length= " << msg->getByteLength() << "B\n";
 
     packetsReceived++;
     emit(rcvdPkSignal, msg);

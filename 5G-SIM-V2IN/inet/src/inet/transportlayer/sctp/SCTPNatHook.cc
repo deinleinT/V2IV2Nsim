@@ -58,7 +58,7 @@ INetfilter::IHook::Result SCTPNatHook::datagramForwardHook(INetworkDatagram *dat
         chunk = (SCTPChunk *)(sctpMsg->peekFirstChunk());
     else
         chunk = (SCTPChunk *)(sctpMsg->peekLastChunk());
-    EV << "findEntry for " << dgram->getSrcAddress() << ":" << sctpMsg->getSrcPort() << " to " << dgram->getDestAddress() << ":" << sctpMsg->getDestPort() << " vTag=" << sctpMsg->getTag() << " natAddr=" << outIE->ipv4Data()->getIPAddress() << "\n";
+    //EV << "findEntry for " << dgram->getSrcAddress() << ":" << sctpMsg->getSrcPort() << " to " << dgram->getDestAddress() << ":" << sctpMsg->getDestPort() << " vTag=" << sctpMsg->getTag() << " natAddr=" << outIE->ipv4Data()->getIPAddress() << "\n";
     if (chunk->getChunkType() == INIT || chunk->getChunkType() == INIT_ACK || chunk->getChunkType() == ASCONF) {
         entry = new SCTPNatEntry();
         entry->setLocalAddress(dgram->getSrcAddress());
@@ -85,13 +85,13 @@ INetfilter::IHook::Result SCTPNatHook::datagramForwardHook(INetworkDatagram *dat
         natTable->natEntries.push_back(entry);
     }
     else {
-        EV << "other chunkType: " << (chunk->getChunkType() == COOKIE_ECHO ? "Cookie_Echo" : "other") << ", VTag=" << sctpMsg->getTag() << "\n";
+        //EV << "other chunkType: " << (chunk->getChunkType() == COOKIE_ECHO ? "Cookie_Echo" : "other") << ", VTag=" << sctpMsg->getTag() << "\n";
         entry = natTable->findNatEntry(dgram->getSrcAddress(), sctpMsg->getSrcPort(), dgram->getDestAddress(), sctpMsg->getDestPort(), sctpMsg->getTag());
         if (entry == nullptr) {
-            EV << "no entry found\n";
+            //EV << "no entry found\n";
             entry = natTable->findNatEntry(dgram->getSrcAddress(), sctpMsg->getSrcPort(), dgram->getDestAddress(), sctpMsg->getDestPort(), 0);
             if (entry == nullptr) {
-                EV << "send back error message dgram=" << dgram << "\n";
+                //EV << "send back error message dgram=" << dgram << "\n";
                 sendBackError(dgram);
                 nextHopAddr = dgram->getDestAddress();
                 const InterfaceEntry *tmpIE = inIE;
@@ -100,17 +100,17 @@ INetfilter::IHook::Result SCTPNatHook::datagramForwardHook(INetworkDatagram *dat
                 return INetfilter::IHook::ACCEPT;
             }
             else {
-                EV << "VTag doesn't match: old VTag=" << entry->getLocalVTag() << ", new VTag=" << sctpMsg->getTag() << "\n";
+                //EV << "VTag doesn't match: old VTag=" << entry->getLocalVTag() << ", new VTag=" << sctpMsg->getTag() << "\n";
                 entry->setLocalVTag(sctpMsg->getTag());
                 dgram->setSrcAddress(outIE->ipv4Data()->getIPAddress());
                 sctpMsg->setSrcPort(entry->getNattedPort());
-                EV << "srcAddress set to " << dgram->getSrcAddress() << ", srcPort set to " << sctpMsg->getSrcPort() << "\n";
+                //EV << "srcAddress set to " << dgram->getSrcAddress() << ", srcPort set to " << sctpMsg->getSrcPort() << "\n";
             }
         }
         else {
             dgram->setSrcAddress(outIE->ipv4Data()->getIPAddress());
             sctpMsg->setSrcPort(entry->getNattedPort());
-            EV << "srcAddress set to " << dgram->getSrcAddress() << ", srcPort set to " << sctpMsg->getSrcPort() << "\n";
+            //EV << "srcAddress set to " << dgram->getSrcAddress() << ", srcPort set to " << sctpMsg->getSrcPort() << "\n";
         }
     }
     nattedPackets++;
@@ -137,22 +137,22 @@ INetfilter::IHook::Result SCTPNatHook::datagramPreRoutingHook(INetworkDatagram *
         chunk = (SCTPChunk *)(sctpMsg->peekLastChunk());
     if (!local) {
         entry = natTable->getEntry(dgram->getSrcAddress(), sctpMsg->getSrcPort(), dgram->getDestAddress(), sctpMsg->getDestPort(), sctpMsg->getTag());
-        EV << "getEntry for " << dgram->getSrcAddress() << ":" << sctpMsg->getSrcPort() << " to " << dgram->getDestAddress() << ":" << sctpMsg->getDestPort() << " peerVTag=" << sctpMsg->getTag() << "\n";
+        //EV << "getEntry for " << dgram->getSrcAddress() << ":" << sctpMsg->getSrcPort() << " to " << dgram->getDestAddress() << ":" << sctpMsg->getDestPort() << " peerVTag=" << sctpMsg->getTag() << "\n";
         uint32 numberOfChunks = sctpMsg->getChunksArraySize();
         if (entry == nullptr) {
-            EV << "no entry found\n";
+            //EV << "no entry found\n";
             if (numberOfChunks == 1)
                 chunk = (SCTPChunk *)(sctpMsg->peekFirstChunk());
             else
                 chunk = (SCTPChunk *)(sctpMsg->peekLastChunk());
             if (chunk->getChunkType() == INIT || chunk->getChunkType() == ASCONF) {
-                EV << "could be an Init collision\n";
+                //EV << "could be an Init collision\n";
                 entry = natTable->getSpecialEntry(dgram->getSrcAddress(), sctpMsg->getSrcPort(), dgram->getDestAddress(), sctpMsg->getDestPort());
                 if (entry != nullptr) {
                     if (chunk->getChunkType() == INIT) {
                         SCTPInitChunk *initChunk = check_and_cast<SCTPInitChunk *>(chunk);
                         entry->setLocalVTag(initChunk->getInitTag());
-                        EV << "InitTag=" << initChunk->getInitTag() << "\n";
+                        //EV << "InitTag=" << initChunk->getInitTag() << "\n";
                     }
                     else if (chunk->getChunkType() == ASCONF) {
                         SCTPAsconfChunk *asconfChunk = check_and_cast<SCTPAsconfChunk *>(chunk);
@@ -160,7 +160,7 @@ INetfilter::IHook::Result SCTPNatHook::datagramPreRoutingHook(INetworkDatagram *
                     }
                     dgram->setDestAddress(entry->getLocalAddress().toIPv4());
                     sctpMsg->setDestPort(entry->getLocalPort());
-                    EV << "destAddress set to " << dgram->getDestAddress() << ", destPort set to " << sctpMsg->getDestPort() << "\n";
+                    //EV << "destAddress set to " << dgram->getDestAddress() << ", destPort set to " << sctpMsg->getDestPort() << "\n";
                 }
                 else {
                     return INetfilter::IHook::DROP;
@@ -169,12 +169,12 @@ INetfilter::IHook::Result SCTPNatHook::datagramPreRoutingHook(INetworkDatagram *
             else {
                 SCTPChunk *schunk;
                 if (numberOfChunks > 0) {
-                    EV << "number of chunks=" << numberOfChunks << "\n";
+                    //EV << "number of chunks=" << numberOfChunks << "\n";
                     for (uint32 i = 0; i < numberOfChunks; i++) {
                         schunk = (SCTPChunk *)(sctpMsg->removeChunk());
                         if (schunk->getChunkType() == DATA)
                             delete (SCTPSimpleMessage *)schunk->decapsulate();
-                        EV << "delete chunk " << schunk->getName() << "\n";
+                        //EV << "delete chunk " << schunk->getName() << "\n";
                         delete schunk;
                     }
                 }
@@ -188,12 +188,12 @@ INetfilter::IHook::Result SCTPNatHook::datagramPreRoutingHook(INetworkDatagram *
                 SCTPInitAckChunk *initAckChunk = check_and_cast<SCTPInitAckChunk *>(chunk);
                 entry->setGlobalVTag(initAckChunk->getInitTag());
             }
-            EV << "destAddress set to " << dgram->getDestAddress() << ", destPort set to " << sctpMsg->getDestPort() << "\n";
+            //EV << "destAddress set to " << dgram->getDestAddress() << ", destPort set to " << sctpMsg->getDestPort() << "\n";
         }
     }
     else {
         if (chunk->getChunkType() == INIT) {
-            EV << "getLocALEntry for " << dgram->getSrcAddress() << ":" << sctpMsg->getSrcPort() << " to " << dgram->getDestAddress() << ":" << sctpMsg->getDestPort() << " peerVTag=" << sctpMsg->getTag() << "\n";
+            //EV << "getLocALEntry for " << dgram->getSrcAddress() << ":" << sctpMsg->getSrcPort() << " to " << dgram->getDestAddress() << ":" << sctpMsg->getDestPort() << " peerVTag=" << sctpMsg->getTag() << "\n";
             entry = natTable->getLocalInitEntry(dgram->getDestAddress(), sctpMsg->getSrcPort(), sctpMsg->getDestPort());
             if (entry == nullptr) {
                 entry = new SCTPNatEntry();
@@ -206,7 +206,7 @@ INetfilter::IHook::Result SCTPNatHook::datagramPreRoutingHook(INetworkDatagram *
                 SCTPInitChunk *initChunk = check_and_cast<SCTPInitChunk *>(chunk);
                 entry->setGlobalVTag(initChunk->getInitTag());
                 natTable->natEntries.push_back(entry);
-                EV << "added entry for local deliver\n";
+                //EV << "added entry for local deliver\n";
                 natTable->printNatTable();
                 return INetfilter::IHook::DROP;
             }
@@ -225,13 +225,13 @@ INetfilter::IHook::Result SCTPNatHook::datagramPreRoutingHook(INetworkDatagram *
                 sctpMsg->setDestPort(entry->getLocalPort());
                 dgram->setSrcAddress(entry->getGlobalAddress().toIPv4());
                 sctpMsg->setSrcPort(entry->getGlobalPort());
-                EV << "added additional entry for local deliver\n";
+                //EV << "added additional entry for local deliver\n";
                 natTable->printNatTable();
-                EV << "destAddress set to " << dgram->getDestAddress() << ", destPort set to " << sctpMsg->getDestPort() << "\n";
+                //EV << "destAddress set to " << dgram->getDestAddress() << ", destPort set to " << sctpMsg->getDestPort() << "\n";
             }
         }
         else {
-            EV << "no INIT: destAddr=" << dgram->getDestAddress() << " destPort=" << sctpMsg->getDestPort() << " srcPort=" << sctpMsg->getSrcPort() << " vTag=" << sctpMsg->getTag() << "\n";
+            //EV << "no INIT: destAddr=" << dgram->getDestAddress() << " destPort=" << sctpMsg->getDestPort() << " srcPort=" << sctpMsg->getSrcPort() << " vTag=" << sctpMsg->getTag() << "\n";
             entry = natTable->getLocalEntry(dgram->getDestAddress(), sctpMsg->getSrcPort(), sctpMsg->getDestPort(), sctpMsg->getTag());
             if (entry != nullptr) {
                 dgram->setDestAddress(entry->getLocalAddress().toIPv4());
@@ -240,7 +240,7 @@ INetfilter::IHook::Result SCTPNatHook::datagramPreRoutingHook(INetworkDatagram *
                 sctpMsg->setSrcPort(entry->getGlobalPort());
             }
             else {
-                EV << "no entry found\n";
+                //EV << "no entry found\n";
                 return INetfilter::IHook::DROP;
             }
         }
@@ -302,7 +302,7 @@ void SCTPNatHook::finish()
     if (ipLayer)
         ipLayer->unregisterHook(0, this);
     ipLayer = nullptr;
-    EV_INFO<< getFullPath() << ": Natted packets: " << nattedPackets << "\n";
+    //EV_INFO<< getFullPath() << ": Natted packets: " << nattedPackets << "\n";
 }
 
 } // namespace sctp

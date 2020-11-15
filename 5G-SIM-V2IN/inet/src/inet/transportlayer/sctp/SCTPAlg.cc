@@ -32,7 +32,7 @@ SCTPAlg::SCTPAlg() : SCTPAlgorithm()
 
 SCTPAlg::~SCTPAlg()
 {
-    EV_DEBUG << "Destructor SCTPAlg" << endl;
+    //EV_DEBUG << "Destructor SCTPAlg" << endl;
     // Note: don't delete "state" here, it'll be deleted from SCTPAssociation
 }
 
@@ -46,7 +46,7 @@ SCTPStateVariables *SCTPAlg::createStateVariables()
 void SCTPAlg::established(bool active)
 {
     if (active) {
-        EV_INFO << "Completing connection: sending DATA" << endl;
+        //EV_INFO << "Completing connection: sending DATA" << endl;
     }
 }
 
@@ -56,7 +56,7 @@ void SCTPAlg::connectionClosed()
 
 void SCTPAlg::processTimer(cMessage *timer, SCTPEventCode& event)
 {
-    EV_INFO << "no extra timers in this SCTP variant" << endl;
+    //EV_INFO << "no extra timers in this SCTP variant" << endl;
 }
 
 void SCTPAlg::sendCommandInvoked(SCTPPathVariables *path)
@@ -75,12 +75,12 @@ void SCTPAlg::receivedDataAck(uint32)
 
 void SCTPAlg::receivedDuplicateAck()
 {
-    EV_INFO << "Duplicate ACK #" << endl;
+    //EV_INFO << "Duplicate ACK #" << endl;
 }
 
 void SCTPAlg::receivedAckForDataNotYetSent(uint32 seq)
 {
-    EV_INFO << "ACK acks something not yet sent, sending immediate ACK" << endl;
+    //EV_INFO << "ACK acks something not yet sent, sending immediate ACK" << endl;
 }
 
 void SCTPAlg::sackSent()

@@ -129,7 +129,7 @@ void SCTPPeer::initialize(int stage)
             clientSocket.bindx(addresses, port);
         }
         listeningSocket.listen(true, par("streamReset").boolValue(), par("numPacketsToSendPerClient").intValue());
-        EV_DEBUG << "SCTPPeer::initialized listen port=" << port << "\n";
+        //EV_DEBUG << "SCTPPeer::initialized listen port=" << port << "\n";
         clientSocket.setCallbackObject(this);
         clientSocket.setOutputGate(gate("sctpOut"));
 
@@ -198,14 +198,15 @@ void SCTPPeer::connect()
     int outStreams = par("outboundStreams");
     clientSocket.setOutboundStreams(outStreams);
 
-    EV_INFO << "issuing OPEN command\n";
-    EV_INFO << "Assoc " << clientSocket.getConnectionId() << "::connect to address " << connectAddress << ", port " << connectPort << "\n";
+    //EV_INFO << "issuing OPEN command\n";
+    //EV_INFO << "Assoc " << clientSocket.getConnectionId() << "::connect to address " << connectAddress << ", port " << connectPort << "\n";
     numSessions++;
     bool streamReset = par("streamReset");
     L3Address destination;
     L3AddressResolver().tryResolve(connectAddress, destination);
-    if (destination.isUnspecified())
-        EV << "cannot resolve destination address: " << connectAddress << endl;
+    if (destination.isUnspecified()){
+        //EV << "cannot resolve destination address: " << connectAddress << endl;
+    }
     else {
         clientSocket.connect(destination, connectPort, streamReset, (int)par("prMethod"), (unsigned int)par("numRequestsPerSession"));
     }
@@ -213,7 +214,7 @@ void SCTPPeer::connect()
     if (streamReset) {
         cMessage *cmsg = new cMessage("StreamReset");
         cmsg->setKind(MSGKIND_RESET);
-        EV_INFO << "StreamReset Timer scheduled at " << simTime() << "\n";
+        //EV_INFO << "StreamReset Timer scheduled at " << simTime() << "\n";
         scheduleAt(simTime() + par("streamRequestTime"), cmsg);
     }
 
@@ -310,7 +311,7 @@ void SCTPPeer::handleMessage(cMessage *msg)
                             sendOrSchedule(cmsg);
                         }
 
-                        EV_INFO << "!!!!!!!!!!!!!!!All data sent from Server !!!!!!!!!!\n";
+                        //EV_INFO << "!!!!!!!!!!!!!!!All data sent from Server !!!!!!!!!!\n";
 
                         auto j = rcvdPacketsPerAssoc.find(serverAssocId);
                         if (j->second == 0 && par("waitToClose").doubleValue() > 0) {
@@ -321,7 +322,7 @@ void SCTPPeer::handleMessage(cMessage *msg)
                             scheduleAt(simTime() + par("waitToClose"), abortMsg);
                         }
                         else {
-                            EV_INFO << "no more packets to send, call shutdown for assoc " << serverAssocId << "\n";
+                            //EV_INFO << "no more packets to send, call shutdown for assoc " << serverAssocId << "\n";
                             cMessage *cmsg = new cMessage("SCTP_C_SHUTDOWN");
                             SCTPCommand *cmd = new SCTPCommand();
                             cmsg->setKind(SCTP_C_SHUTDOWN);
@@ -421,7 +422,7 @@ void SCTPPeer::handleMessage(cMessage *msg)
         case SCTP_I_SHUTDOWN_RECEIVED: {
             SCTPCommand *command = check_and_cast<SCTPCommand *>(msg->removeControlInfo());
             id = command->getAssocId();
-            EV_INFO << "server: SCTP_I_SHUTDOWN_RECEIVED for assoc " << id << "\n";
+            //EV_INFO << "server: SCTP_I_SHUTDOWN_RECEIVED for assoc " << id << "\n";
             auto i = rcvdPacketsPerAssoc.find(id);
 
             if (i == rcvdPacketsPerAssoc.end() && (clientSocket.getState() == SCTPSocket::CONNECTED))
@@ -445,7 +446,7 @@ void SCTPPeer::handleMessage(cMessage *msg)
 
         case SCTP_I_SEND_STREAMS_RESETTED:
         case SCTP_I_RCV_STREAMS_RESETTED: {
-            EV_INFO << "Streams have been resetted\n";
+            //EV_INFO << "Streams have been resetted\n";
             break;
         }
 
@@ -464,13 +465,13 @@ void SCTPPeer::handleMessage(cMessage *msg)
 
 void SCTPPeer::handleTimer(cMessage *msg)
 {
-    EV_TRACE << "SCTPPeer::handleTimer\n";
+    //EV_TRACE << "SCTPPeer::handleTimer\n";
 
     SCTPConnectInfo *connectInfo = dynamic_cast<SCTPConnectInfo *>(msg->getControlInfo());
 
     switch (msg->getKind()) {
         case MSGKIND_CONNECT:
-            EV_INFO << "starting session call connect\n";
+            //EV_INFO << "starting session call connect\n";
             connect();
             break;
 
@@ -521,7 +522,7 @@ void SCTPPeer::socketPeerClosed(int, void *)
 {
     // close the connection (if not already closed)
     if (clientSocket.getState() == SCTPSocket::PEER_CLOSED) {
-        EV_INFO << "remote SCTP closed, closing here as well\n";
+        //EV_INFO << "remote SCTP closed, closing here as well\n";
         setStatusString("closing");
         clientSocket.close();
     }
@@ -530,14 +531,14 @@ void SCTPPeer::socketPeerClosed(int, void *)
 void SCTPPeer::socketClosed(int, void *)
 {
     // *redefine* to start another session etc.
-    EV_INFO << "connection closed\n";
+    //EV_INFO << "connection closed\n";
     setStatusString("closed");
 }
 
 void SCTPPeer::socketFailure(int, void *, int code)
 {
     // subclasses may override this function, and add code try to reconnect after a delay.
-    EV_WARN << "connection broken\n";
+    //EV_WARN << "connection broken\n";
     setStatusString("broken");
     // reconnect after a delay
     timeMsg->setKind(MSGKIND_CONNECT);
@@ -569,13 +570,13 @@ void SCTPPeer::setStatusString(const char *s)
 
 void SCTPPeer::sendRequest(bool last)
 {
-    EV_INFO << "sending request, " << numRequestsToSend - 1 << " more to go\n";
+    //EV_INFO << "sending request, " << numRequestsToSend - 1 << " more to go\n";
     long numBytes = par("requestLength");
 
     if (numBytes < 1)
         numBytes = 1;
 
-    EV_INFO << "SCTPClient: sending " << numBytes << " data bytes\n";
+    //EV_INFO << "SCTPClient: sending " << numBytes << " data bytes\n";
 
     cPacket *cmsg = new cPacket("SCTP_C_SEND");
     SCTPSimpleMessage *msg = new SCTPSimpleMessage("data");
@@ -606,7 +607,7 @@ void SCTPPeer::socketEstablished(int, void *)
 {
     int count = 0;
     // *redefine* to perform or schedule first sending
-    EV_INFO << "SCTPClient: connected\n";
+    //EV_INFO << "SCTPClient: connected\n";
     setStatusString("connected");
     // determine number of requests in this session
     numRequestsToSend = par("numRequestsPerSession");
@@ -649,7 +650,7 @@ void SCTPPeer::socketEstablished(int, void *)
             }
 
             if (numRequestsToSend == 0 && par("waitToClose").doubleValue() == 0) {
-                EV_INFO << "socketEstablished:no more packets to send, call shutdown\n";
+                //EV_INFO << "socketEstablished:no more packets to send, call shutdown\n";
                 clientSocket.shutdown();
             }
         }
@@ -671,13 +672,13 @@ void SCTPPeer::sendRequestArrived()
 {
     int count = 0;
 
-    EV_INFO << "sendRequestArrived numRequestsToSend=" << numRequestsToSend << "\n";
+    //EV_INFO << "sendRequestArrived numRequestsToSend=" << numRequestsToSend << "\n";
 
     while (numRequestsToSend > 0 && count++ < queueSize && sendAllowed) {
         numRequestsToSend--;
         sendRequest(count == queueSize || numRequestsToSend == 0);
         if (numRequestsToSend == 0) {
-            EV_INFO << "no more packets to send, call shutdown\n";
+            //EV_INFO << "no more packets to send, call shutdown\n";
             clientSocket.shutdown();
         }
     }
@@ -688,7 +689,7 @@ void SCTPPeer::socketDataArrived(int, void *, cPacket *msg, bool)
     // *redefine* to perform or schedule next sending
     packetsRcvd++;
 
-    EV_INFO << "Client received packet Nr " << packetsRcvd << " from SCTP\n";
+    //EV_INFO << "Client received packet Nr " << packetsRcvd << " from SCTP\n";
 
     SCTPCommand *ind = check_and_cast<SCTPCommand *>(msg->getControlInfo());
 
@@ -739,14 +740,15 @@ void SCTPPeer::sendqueueFullArrived(int assocId)
 
 void SCTPPeer::finish()
 {
-    EV_INFO << getFullPath() << ": opened " << numSessions << " sessions\n";
-    EV_INFO << getFullPath() << ": sent " << bytesSent << " bytes in " << packetsSent << " packets\n";
+    //EV_INFO << getFullPath() << ": opened " << numSessions << " sessions\n";
+    //EV_INFO << getFullPath() << ": sent " << bytesSent << " bytes in " << packetsSent << " packets\n";
 
-    for (auto & elem : rcvdBytesPerAssoc)
-        EV_DETAIL << getFullPath() << ": received " << elem.second << " bytes in assoc " << elem.first << "\n";
+    for (auto & elem : rcvdBytesPerAssoc){
+        //EV_DETAIL << getFullPath() << ": received " << elem.second << " bytes in assoc " << elem.first << "\n";
+    }
 
-    EV_INFO << getFullPath() << "Over all " << packetsRcvd << " packets received\n ";
-    EV_INFO << getFullPath() << "Over all " << notificationsReceived << " notifications received\n ";
+    //EV_INFO << getFullPath() << "Over all " << packetsRcvd << " packets received\n ";
+    //EV_INFO << getFullPath() << "Over all " << notificationsReceived << " notifications received\n ";
 }
 
 } // namespace inet

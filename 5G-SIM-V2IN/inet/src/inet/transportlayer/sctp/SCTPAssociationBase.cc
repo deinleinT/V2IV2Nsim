@@ -622,8 +622,7 @@ SCTPAssociation::SCTPAssociation(SCTP *_module, int32 _appGateIndex, int32 _asso
     ssFunctions.ssGetNextSid = nullptr;
     ssFunctions.ssUsableStreams = nullptr;
 
-    EV_INFO << "SCTPAssociationBase::SCTPAssociation(): new assocId="
-            << assocId << endl;
+    //EV_INFO << "SCTPAssociationBase::SCTPAssociation(): new assocId="<< assocId << endl;
 
     // ====== FSM ============================================================
     char fsmName[64];
@@ -744,7 +743,7 @@ SCTPAssociation::SCTPAssociation(SCTP *_module, int32 _appGateIndex, int32 _asso
             ssFunctions.ssAddOutStreams = &SCTPAssociation::addOutStreams;
             ssFunctions.ssGetNextSid = &SCTPAssociation::streamScheduler;
             ssFunctions.ssUsableStreams = &SCTPAssociation::numUsableStreams;
-            EV_DETAIL << "Setting Stream Scheduler: ROUND_ROBIN" << endl;
+            //EV_DETAIL << "Setting Stream Scheduler: ROUND_ROBIN" << endl;
             break;
 
         case ROUND_ROBIN_PACKET:
@@ -753,7 +752,7 @@ SCTPAssociation::SCTPAssociation(SCTP *_module, int32 _appGateIndex, int32 _asso
             ssFunctions.ssAddOutStreams = &SCTPAssociation::addOutStreams;
             ssFunctions.ssGetNextSid = &SCTPAssociation::streamSchedulerRoundRobinPacket;
             ssFunctions.ssUsableStreams = &SCTPAssociation::numUsableStreams;
-            EV_DETAIL << "Setting Stream Scheduler: ROUND_ROBIN_PACKET" << endl;
+            //EV_DETAIL << "Setting Stream Scheduler: ROUND_ROBIN_PACKET" << endl;
             break;
 
         case RANDOM_SCHEDULE:
@@ -762,7 +761,7 @@ SCTPAssociation::SCTPAssociation(SCTP *_module, int32 _appGateIndex, int32 _asso
             ssFunctions.ssAddOutStreams = &SCTPAssociation::addOutStreams;
             ssFunctions.ssGetNextSid = &SCTPAssociation::streamSchedulerRandom;
             ssFunctions.ssUsableStreams = &SCTPAssociation::numUsableStreams;
-            EV_DETAIL << "Setting Stream Scheduler: RANDOM_SCHEDULE" << endl;
+            //EV_DETAIL << "Setting Stream Scheduler: RANDOM_SCHEDULE" << endl;
             break;
 
         case RANDOM_SCHEDULE_PACKET:
@@ -771,7 +770,7 @@ SCTPAssociation::SCTPAssociation(SCTP *_module, int32 _appGateIndex, int32 _asso
             ssFunctions.ssAddOutStreams = &SCTPAssociation::addOutStreams;
             ssFunctions.ssGetNextSid = &SCTPAssociation::streamSchedulerRandomPacket;
             ssFunctions.ssUsableStreams = &SCTPAssociation::numUsableStreams;
-            EV_DETAIL << "Setting Stream Scheduler: RANDOM_SCHEDULE_PACKET" << endl;
+            //EV_DETAIL << "Setting Stream Scheduler: RANDOM_SCHEDULE_PACKET" << endl;
             break;
 
         case FAIR_BANDWITH:
@@ -780,7 +779,7 @@ SCTPAssociation::SCTPAssociation(SCTP *_module, int32 _appGateIndex, int32 _asso
             ssFunctions.ssAddOutStreams = &SCTPAssociation::addOutStreams;
             ssFunctions.ssGetNextSid = &SCTPAssociation::streamSchedulerFairBandwidth;
             ssFunctions.ssUsableStreams = &SCTPAssociation::numUsableStreams;
-            EV_DETAIL << "Setting Stream Scheduler: FAIR_BANDWITH" << endl;
+            //EV_DETAIL << "Setting Stream Scheduler: FAIR_BANDWITH" << endl;
             break;
 
         case FAIR_BANDWITH_PACKET:
@@ -789,7 +788,7 @@ SCTPAssociation::SCTPAssociation(SCTP *_module, int32 _appGateIndex, int32 _asso
             ssFunctions.ssAddOutStreams = &SCTPAssociation::addOutStreams;
             ssFunctions.ssGetNextSid = &SCTPAssociation::streamSchedulerFairBandwidthPacket;
             ssFunctions.ssUsableStreams = &SCTPAssociation::numUsableStreams;
-            EV_DETAIL << "Setting Stream Scheduler: FAIR_BANDWITH_PACKET" << endl;
+            //EV_DETAIL << "Setting Stream Scheduler: FAIR_BANDWITH_PACKET" << endl;
             break;
 
         case PRIORITY:
@@ -798,14 +797,14 @@ SCTPAssociation::SCTPAssociation(SCTP *_module, int32 _appGateIndex, int32 _asso
             ssFunctions.ssAddOutStreams = &SCTPAssociation::addOutStreams;
             ssFunctions.ssGetNextSid = &SCTPAssociation::streamSchedulerPriority;
             ssFunctions.ssUsableStreams = &SCTPAssociation::numUsableStreams;
-            EV_DETAIL << "Setting Stream Scheduler: PRIORITY" << endl;
+            //EV_DETAIL << "Setting Stream Scheduler: PRIORITY" << endl;
             break;
 
         case FCFS:
             ssFunctions.ssInitStreams = &SCTPAssociation::initStreams;
             ssFunctions.ssGetNextSid = &SCTPAssociation::streamSchedulerFCFS;
             ssFunctions.ssUsableStreams = &SCTPAssociation::numUsableStreams;
-            EV_DETAIL << "Setting Stream Scheduler: FCFS" << endl;
+            //EV_DETAIL << "Setting Stream Scheduler: FCFS" << endl;
             break;
 
         case PATH_MANUAL:
@@ -814,7 +813,7 @@ SCTPAssociation::SCTPAssociation(SCTP *_module, int32 _appGateIndex, int32 _asso
             ssFunctions.ssAddOutStreams = &SCTPAssociation::addOutStreams;
             ssFunctions.ssGetNextSid = &SCTPAssociation::pathStreamSchedulerManual;
             ssFunctions.ssUsableStreams = &SCTPAssociation::numUsableStreams;
-            EV_DETAIL << "Setting Stream Scheduler: PATH_MANUAL" << endl;
+            //EV_DETAIL << "Setting Stream Scheduler: PATH_MANUAL" << endl;
             break;
 
         case PATH_MAP_TO_PATH:
@@ -823,14 +822,14 @@ SCTPAssociation::SCTPAssociation(SCTP *_module, int32 _appGateIndex, int32 _asso
             ssFunctions.ssAddOutStreams = &SCTPAssociation::addOutStreams;
             ssFunctions.ssGetNextSid = &SCTPAssociation::pathStreamSchedulerMapToPath;
             ssFunctions.ssUsableStreams = &SCTPAssociation::numUsableStreams;
-            EV_DETAIL << "Setting Stream Scheduler: PATH_MAP_TO_PATH" << endl;
+            //EV_DETAIL << "Setting Stream Scheduler: PATH_MAP_TO_PATH" << endl;
             break;
     }
 }
 
 SCTPAssociation::~SCTPAssociation()
 {
-    EV_TRACE << "Destructor SCTPAssociation " << assocId << endl;
+    //EV_TRACE << "Destructor SCTPAssociation " << assocId << endl;
 
     delete T1_InitTimer;
     delete T2_ShutdownTimer;
@@ -890,7 +889,7 @@ bool SCTPAssociation::processTimer(cMessage *msg)
 {
     SCTPPathVariables *path = nullptr;
 
-    EV_INFO << msg->getName() << " timer expired at " << simTime() << "\n";
+    //EV_INFO << msg->getName() << " timer expired at " << simTime() << "\n";
 
     SCTPPathInfo *pinfo = check_and_cast<SCTPPathInfo *>(msg->getControlInfo());
     L3Address addr = pinfo->getRemoteAddress();
@@ -906,7 +905,7 @@ bool SCTPAssociation::processTimer(cMessage *msg)
         process_TIMEOUT_INIT_REXMIT(event);
     }
     else if (msg == SackTimer) {
-        EV_DETAIL << simTime() << " delayed Sack: cTsnAck=" << state->gapList.getCumAckTSN() << " highestTsnReceived=" << state->gapList.getHighestTSNReceived() << " lastTsnReceived=" << state->lastTsnReceived << " ackState=" << state->ackState << " numGaps=" << state->gapList.getNumGaps(SCTPGapList::GT_Any) << "\n";
+        //EV_DETAIL << simTime() << " delayed Sack: cTsnAck=" << state->gapList.getCumAckTSN() << " highestTsnReceived=" << state->gapList.getHighestTSNReceived() << " lastTsnReceived=" << state->lastTsnReceived << " ackState=" << state->ackState << " numGaps=" << state->gapList.getNumGaps(SCTPGapList::GT_Any) << "\n";
         sendSack();
     }
     else if (msg == T2_ShutdownTimer) {
@@ -940,7 +939,7 @@ bool SCTPAssociation::processTimer(cMessage *msg)
         //if (sctpMain->testing == false)
         //{
         //sctpMain->testing = true;
-        EV_DEBUG << "set testing to true\n";
+        //EV_DEBUG << "set testing to true\n";
         //}
         // todo: testing was removed.
     }
@@ -999,7 +998,7 @@ bool SCTPAssociation::processSCTPMessage(SCTPMessage *sctpmsg,
             }
         }
         if (!found) {
-            EV_INFO << "destAddr " << msgDestAddr << " is not bound to host\n";
+            //EV_INFO << "destAddr " << msgDestAddr << " is not bound to host\n";
             return true;
         }
     }
@@ -1071,7 +1070,7 @@ SCTPEventCode SCTPAssociation::preanalyseAppCommandEvent(int32 commandCode)
             return SCTP_E_SET_RTO_INFO;
 
         default:
-            EV_DETAIL << "commandCode=" << commandCode << "\n";
+            //EV_DETAIL << "commandCode=" << commandCode << "\n";
             throw cRuntimeError("Unknown message kind in app command");
     }
 }
@@ -1084,7 +1083,7 @@ bool SCTPAssociation::processAppCommand(cMessage *msg)
     SCTPCommand *sctpCommand = (SCTPCommand *)(msg->removeControlInfo());
     SCTPEventCode event = preanalyseAppCommandEvent(msg->getKind());
 
-    EV_INFO << "App command: " << eventName(event) << "\n";
+    //EV_INFO << "App command: " << eventName(event) << "\n";
 
     switch (event) {
         case SCTP_E_ASSOCIATE:
@@ -1146,10 +1145,10 @@ bool SCTPAssociation::processAppCommand(cMessage *msg)
             /* fall through */
 
         case SCTP_E_SHUTDOWN:    /*sendShutdown*/
-            EV_INFO << "SCTP_E_SHUTDOWN in state " << stateName(fsm->getState()) << "\n";
+            //EV_INFO << "SCTP_E_SHUTDOWN in state " << stateName(fsm->getState()) << "\n";
 
             if (fsm->getState() == SCTP_S_SHUTDOWN_RECEIVED) {
-                EV_INFO << "send shutdown ack\n";
+                //EV_INFO << "send shutdown ack\n";
                 sendShutdownAck(remoteAddr);
             }
             break;
@@ -1162,7 +1161,7 @@ bool SCTPAssociation::processAppCommand(cMessage *msg)
 
         case SCTP_E_ACCEPT:
             fd = sctpCommand->getFd();
-            EV_DETAIL << "Accepted fd " << fd << " for assoc " << assocId << endl;
+            //EV_DETAIL << "Accepted fd " << fd << " for assoc " << assocId << endl;
             break;
 
         case SCTP_E_SET_RTO_INFO:
@@ -1181,10 +1180,10 @@ bool SCTPAssociation::processAppCommand(cMessage *msg)
 
 bool SCTPAssociation::performStateTransition(const SCTPEventCode& event)
 {
-    EV_TRACE << "performStateTransition\n";
+    //EV_TRACE << "performStateTransition\n";
 
     if (event == SCTP_E_IGNORE) {    // e.g. discarded segment
-        EV_DETAIL << "Staying in state: " << stateName(fsm->getState()) << " (no FSM event)\n";
+        //EV_DETAIL << "Staying in state: " << stateName(fsm->getState()) << " (no FSM event)\n";
         return true;
     }
 
@@ -1398,22 +1397,19 @@ bool SCTPAssociation::performStateTransition(const SCTPEventCode& event)
     }
 
     if (oldState != fsm->getState()) {
-        EV_DETAIL << "Transition: " << stateName(oldState) << " --> " << stateName(fsm->getState())
-                  << "    (event was: " << eventName(event) << ")\n";
-        EV_DETAIL << sctpMain->getName() << ": " << stateName(oldState) << " --> "
-                  << stateName(fsm->getState()) << "  (on " << eventName(event) << ")\n";
+        //EV_DETAIL << "Transition: " << stateName(oldState) << " --> " << stateName(fsm->getState())                  << "    (event was: " << eventName(event) << ")\n";
+        //EV_DETAIL << sctpMain->getName() << ": " << stateName(oldState) << " --> "                  << stateName(fsm->getState()) << "  (on " << eventName(event) << ")\n";
         stateEntered(fsm->getState());
     }
     else {
-        EV << "Staying in state: " << stateName(fsm->getState())
-           << " (event was: " << eventName(event) << ")\n";
+        //EV << "Staying in state: " << stateName(fsm->getState())           << " (event was: " << eventName(event) << ")\n";
     }
 
     if (event == SCTP_E_ABORT && oldState == fsm->getState() && fsm->getState() == SCTP_S_CLOSED)
         return true;
 
     if (oldState != fsm->getState() && fsm->getState() == SCTP_S_CLOSED) {
-        EV_DETAIL << "return false because oldState=" << oldState << " and new state is closed\n";
+        //EV_DETAIL << "return false because oldState=" << oldState << " and new state is closed\n";
         return false;
     }
     else
@@ -1427,7 +1423,7 @@ void SCTPAssociation::stateEntered(int32 status)
             break;
 
         case SCTP_S_ESTABLISHED: {
-            EV_INFO << "State ESTABLISHED entered" << endl;
+            //EV_INFO << "State ESTABLISHED entered" << endl;
             stopTimer(T1_InitTimer);
 
             if (state->initChunk) {
@@ -1731,9 +1727,9 @@ void SCTPAssociation::stateEntered(int32 status)
             sendEstabIndicationToApp();
             if (sctpMain->hasPar("addIP")) {
                 const bool addIP = (bool)sctpMain->par("addIP");
-                EV_DETAIL << getFullPath() << ": addIP = " << addIP << " time = " << (double)sctpMain->par("addTime") << "\n";
+                //EV_DETAIL << getFullPath() << ": addIP = " << addIP << " time = " << (double)sctpMain->par("addTime") << "\n";
                 if (addIP == true && (double)sctpMain->par("addTime") > 0) {
-                    EV_DETAIL << "startTimer addTime to expire at " << simTime() + (double)sctpMain->par("addTime") << "\n";
+                    //EV_DETAIL << "startTimer addTime to expire at " << simTime() + (double)sctpMain->par("addTime") << "\n";
 
                     scheduleTimeout(StartAddIP, (double)sctpMain->par("addTime"));
                 }
@@ -1772,9 +1768,7 @@ void SCTPAssociation::stateEntered(int32 status)
         }
 
         case SCTP_S_SHUTDOWN_RECEIVED: {
-            EV_INFO << "Entered state SHUTDOWN_RECEIVED, osb=" << getOutstandingBytes()
-                    << ", transQ=" << transmissionQ->getQueueSize()
-                    << ", scount=" << qCounter.roomSumSendStreams << endl;
+            //EV_INFO << "Entered state SHUTDOWN_RECEIVED, osb=" << getOutstandingBytes()<< ", transQ=" << transmissionQ->getQueueSize()<< ", scount=" << qCounter.roomSumSendStreams << endl;
 
             if (getOutstandingBytes() == 0 && transmissionQ->getQueueSize() == 0 && qCounter.roomSumSendStreams == 0) {
                 sendShutdownAck(remoteAddr);
@@ -1798,7 +1792,7 @@ void SCTPAssociation::removePath()
                 break;
             }
         }
-        EV_INFO << getFullPath() << " remove path " << path->remoteAddress << endl;
+        //EV_INFO << getFullPath() << " remove path " << path->remoteAddress << endl;
         stopTimer(path->HeartbeatTimer);
         delete path->HeartbeatTimer;
         stopTimer(path->HeartbeatIntervalTimer);

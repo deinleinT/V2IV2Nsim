@@ -249,7 +249,7 @@ void UDPBasicBurst::processPacket(cPacket *pk)
         }
     }
 
-    EV_INFO << "Received packet: " << UDPSocket::getReceivedPacketInfo(pk) << endl;
+    //EV_INFO << "Received packet: " << UDPSocket::getReceivedPacketInfo(pk) << endl;
     emit(rcvdPkSignal, pk);
     numReceived++;
     delete pk;

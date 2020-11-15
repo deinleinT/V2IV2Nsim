@@ -45,7 +45,7 @@ uint32 SCTPReceiveStream::reassemble(SCTPQueue *queue, uint32 tsn)
 {
     uint32 begintsn = tsn, endtsn = 0;
 
-    EV_INFO << "Trying to reassemble message..." << endl;
+    //EV_INFO << "Trying to reassemble message..." << endl;
 
     /* test if we have all fragments down to the first */
     while (queue->getChunk(begintsn) && !(queue->getChunk(begintsn))->bbit)
@@ -59,18 +59,18 @@ uint32 SCTPReceiveStream::reassemble(SCTPQueue *queue, uint32 tsn)
             endtsn++;
 
         if (queue->getChunk(endtsn)) {
-            EV_INFO << "All fragments found, now reassembling..." << endl;
+            //EV_INFO << "All fragments found, now reassembling..." << endl;
 
             SCTPDataVariables *firstVar = queue->getChunk(begintsn), *processVar;
             SCTPSimpleMessage *firstSimple = check_and_cast<SCTPSimpleMessage *>(firstVar->userData);
 
-            EV_INFO << "First fragment has " << firstVar->len / 8 << " bytes." << endl;
+            //EV_INFO << "First fragment has " << firstVar->len / 8 << " bytes." << endl;
 
             while (++begintsn <= endtsn) {
                 processVar = queue->getAndExtractChunk(begintsn);
                 SCTPSimpleMessage *processSimple = check_and_cast<SCTPSimpleMessage *>(processVar->userData);
 
-                EV_INFO << "Adding fragment with " << processVar->len / 8 << " bytes." << endl;
+                //EV_INFO << "Adding fragment with " << processVar->len / 8 << " bytes." << endl;
 
                 if ((firstSimple->getDataArraySize() > 0) && (processSimple->getDataArraySize() > 0)) {
                     firstSimple->setDataArraySize(firstSimple->getDataArraySize() + processSimple->getDataArraySize());
@@ -89,7 +89,7 @@ uint32 SCTPReceiveStream::reassemble(SCTPQueue *queue, uint32 tsn)
 
             firstVar->ebit = 1;
 
-            EV_INFO << "Reassembly done. Length=" << firstVar->len << "\n";
+            //EV_INFO << "Reassembly done. Length=" << firstVar->len << "\n";
             return firstVar->tsn;
         }
     }

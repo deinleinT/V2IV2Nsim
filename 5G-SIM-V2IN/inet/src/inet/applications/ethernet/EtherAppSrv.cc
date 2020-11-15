@@ -61,7 +61,7 @@ bool EtherAppSrv::isNodeUp()
 
 void EtherAppSrv::startApp()
 {
-    EV_INFO << "Starting application\n";
+    //EV_INFO << "Starting application\n";
     bool registerSAP = par("registerSAP");
     if (registerSAP)
         registerDSAP(localSAP);
@@ -69,7 +69,7 @@ void EtherAppSrv::startApp()
 
 void EtherAppSrv::stopApp()
 {
-    EV_INFO << "Stop the application\n";
+    //EV_INFO << "Stop the application\n";
 }
 
 void EtherAppSrv::handleMessage(cMessage *msg)
@@ -77,7 +77,7 @@ void EtherAppSrv::handleMessage(cMessage *msg)
     if (!isNodeUp())
         throw cRuntimeError("Application is not running");
 
-    EV_INFO << "Received packet `" << msg->getName() << "'\n";
+    //EV_INFO << "Received packet `" << msg->getName() << "'\n";
     EtherAppReq *req = check_and_cast<EtherAppReq *>(msg);
     packetsReceived++;
     emit(rcvdPkSignal, req);
@@ -101,7 +101,7 @@ void EtherAppSrv::handleMessage(cMessage *msg)
         datapacket->setRequestId(requestId);
         datapacket->setByteLength(l);
 
-        EV_INFO << "Send response `" << datapacket->getName() << "' to " << srcAddr << " ssap=" << localSAP << " dsap=" << srcSap << " length=" << l << "B requestId=" << requestId << "\n";
+        //EV_INFO << "Send response `" << datapacket->getName() << "' to " << srcAddr << " ssap=" << localSAP << " dsap=" << srcSap << " length=" << l << "B requestId=" << requestId << "\n";
 
         sendPacket(datapacket, srcAddr, srcSap);
     }

@@ -159,7 +159,7 @@ TCPOption *setOptionValues(PacketDrillTcpOption* opt)
             }
             break;
         default:
-            EV_INFO << "TCP option is not supported (yet).";
+            //EV_INFO << "TCP option is not supported (yet).";
             break;
     } // switch
     auto *option = new TCPOptionUnknown();
@@ -1679,7 +1679,8 @@ int PacketDrill::evaluate(PacketDrillExpression *in, PacketDrillExpression *out,
         break;
 
     default:
-        EV_INFO << "type " << in->getType() << " not implemented\n";
+        //EV_INFO << "type " << in->getType() << " not implemented\n";
+        break;
     }
     return result;
 }

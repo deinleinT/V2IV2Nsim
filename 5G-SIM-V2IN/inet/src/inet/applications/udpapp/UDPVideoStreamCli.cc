@@ -72,7 +72,7 @@ void UDPVideoStreamCli::requestStream()
         return;
     }
 
-    EV_INFO << "Requesting video stream from " << svrAddr << ":" << svrPort << "\n";
+    //EV_INFO << "Requesting video stream from " << svrAddr << ":" << svrPort << "\n";
 
     socket.setOutputGate(gate("udpOut"));
     socket.bind(localPort);
@@ -84,7 +84,7 @@ void UDPVideoStreamCli::requestStream()
 
 void UDPVideoStreamCli::receiveStream(cPacket *pk)
 {
-    EV_INFO << "Video stream packet: " << UDPSocket::getReceivedPacketInfo(pk) << endl;
+    //EV_INFO << "Video stream packet: " << UDPSocket::getReceivedPacketInfo(pk) << endl;
     emit(rcvdPkSignal, pk);
     delete pk;
 }
