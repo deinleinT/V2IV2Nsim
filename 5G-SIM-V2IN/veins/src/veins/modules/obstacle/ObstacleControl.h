@@ -67,7 +67,8 @@ public:
     double getAttenuationPerCut(std::string type);
     double getAttenuationPerMeter(std::string type);
     //for 5G-SIM-V2I/N
-    bool isNLOS(const Coord& senderPos, const Coord& receiverPos, const double hBuilding);
+    bool isNLOS(const Coord &senderPos, const Coord &receiverPos,
+            const double hBuilding, bool NlosEvaluationIn3D);
 
     /**
      * get hit obstacles (along with a list of points (in [0, 1]) along the line between sender and receiver where the beam intersects with the respective obstacle) as well as any obstacle that contains the sender or receiver (with a list of potentially 0 points)

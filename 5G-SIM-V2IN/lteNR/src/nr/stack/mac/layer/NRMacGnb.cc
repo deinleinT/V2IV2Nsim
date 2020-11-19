@@ -85,6 +85,225 @@ void NRMacGnb::handleMessage(cMessage *msg) {
 	//std::cout << "NRMacGnbRealistic::handleMessage end at " << simTime().dbl() << std::endl;
 }
 
+void NRMacGnb::handleSelfMessage() {
+	//std::cout << "NRMacGnb::handleSelfMessage start at " << simTime().dbl() << std::endl;
+
+	/***************
+	 *  MAIN LOOP  *
+	 ***************/
+	EnbType nodeType = cellInfo_->getEnbType();
+
+	//EV << "-----" << ((nodeType==MACRO_ENB)?"MACRO":"MICRO") << " ENB MAIN LOOP -----" << endl;
+
+	/*************
+	 * END DEBUG
+	 *************/
+
+	/* Reception */
+
+	// extract pdus from all harqrxbuffers and pass them to unmaker
+	HarqRxBuffers::iterator hit = harqRxBuffers_.begin();
+	HarqRxBuffers::iterator het = harqRxBuffers_.end();
+	LteMacPdu *pdu = NULL;
+	std::list<LteMacPdu*> pduList;
+
+	for (; hit != het; hit++) {
+		pduList = hit->second->extractCorrectPdus();
+		while (!pduList.empty()) {
+			pdu = pduList.front();
+			pduList.pop_front();
+			macPduUnmake(pdu);
+		}
+	}
+
+	/*UPLINK*/
+	//EV << "============================================== UPLINK ==============================================" << endl;
+	if (binder_->getLastUpdateUlTransmissionInfo() < NOW)  // once per TTI, even in case of multicell scenarios
+		binder_->initAndResetUlTransmissionInfo();
+
+	//TODO enable sleep mode also for UPLINK???
+	(enbSchedulerUl_->resourceBlocks()) = getNumRbUl();
+
+	enbSchedulerUl_->updateHarqDescs();
+
+	LteMacScheduleListWithSizes *scheduleListUl = enbSchedulerUl_->schedule();
+	// send uplink grants to PHY layer
+	if (!scheduleListUl->empty())
+		sendGrants(scheduleListUl);
+	//EV << "============================================ END UPLINK ============================================" << endl;
+
+	//EV << "============================================ DOWNLINK ==============================================" << endl;
+	/*DOWNLINK*/
+	// Set current available OFDM space
+	(enbSchedulerDl_->resourceBlocks()) = getNumRbDl();
+
+	// use this flag to enable/disable scheduling...don't look at me, this is very useful!!!
+//    bool activation = true;
+//
+//    if (activation) {
+	// clear previous schedule list
+	if (scheduleListDl_ != NULL)
+		scheduleListDl_->clear();
+
+	// perform Downlink scheduling
+	scheduleListDl_ = enbSchedulerDl_->schedule();        //--> ok
+
+	// requests SDUs to the RLC layer
+	if (!scheduleListDl_->empty())
+		macSduRequest();
+//    }
+	//EV << "========================================== END DOWNLINK ============================================" << endl;
+
+	// purge from corrupted PDUs all Rx H-HARQ buffers for all users
+	for (hit = harqRxBuffers_.begin(); hit != het; ++hit) {
+		hit->second->purgeCorruptedPdus();
+	}
+
+	// Message that triggers flushing of Tx H-ARQ buffers for all users
+	// This way, flushing is performed after the (possible) reception of new MAC PDUs
+	cMessage *flushHarqMsg = new cMessage("flushHarqMsg");
+	flushHarqMsg->setSchedulingPriority(1);        // after other messages
+	scheduleAt(NOW, flushHarqMsg);
+
+	//EV << "--- END " << ((nodeType == MACRO_ENB) ? "MACRO" : "MICRO") << " ENB MAIN LOOP ---" << endl;
+
+	//std::cout << "NRMacGnb::handleSelfMessage end at " << simTime().dbl() << std::endl;
+}
+
+void NRMacGnb::sendGrants(LteMacScheduleListWithSizes *scheduleList) {
+	//std::cout << "LteMacEnb::sendGrants start at " << simTime().dbl() << std::endl;
+
+	//EV << NOW << "LteMacEnb::sendGrants " << endl;
+
+	while (!scheduleList->empty()) {
+		LteMacScheduleListWithSizes::iterator it, ot;
+		it = scheduleList->begin();
+
+		Codeword cw = it->first.second;
+		Codeword otherCw = MAX_CODEWORDS - cw;
+
+		MacCid cid = it->first.first;
+		LogicalCid lcid = MacCidToLcid(cid);
+		MacNodeId nodeId = MacCidToNodeId(cid);
+
+		unsigned int granted = it->second.first;        //blocks
+		unsigned int codewords = 0;
+
+		// removing visited element from scheduleList.
+		scheduleList->erase(it);
+
+		if (granted > 0) {
+			// increment number of allocated Cw
+			++codewords;
+		} else {
+			// active cw becomes the "other one"
+			cw = otherCw;
+		}
+
+		std::pair<unsigned int, Codeword> otherPair(nodeId, otherCw);
+
+		if ((ot = (scheduleList->find(otherPair))) != (scheduleList->end())) {
+			// increment number of allocated Cw
+			++codewords;
+
+			// removing visited element from scheduleList.
+			scheduleList->erase(ot);
+		}
+
+		if (granted == 0)
+			continue; // avoiding transmission of 0 grant (0 grant should not be created)
+
+		//EV << NOW << " LteMacEnb::sendGrants Node[" << getMacNodeId() << "] - " << granted << " blocks to grant for user " << nodeId << " on " << codewords << " codewords. CW[" << cw << "\\" << otherCw << "]" << endl;
+
+		// TODO Grant is set aperiodic as default
+		LteSchedulingGrant *grant = new LteSchedulingGrant("LteGrant");
+
+		grant->setDirection(UL);
+
+		grant->setCodewords(codewords);
+
+		// set total granted blocks
+		grant->setTotalGrantedBlocks(granted);
+
+		UserControlInfo *uinfo = new UserControlInfo();
+		uinfo->setSourceId(getMacNodeId());
+		uinfo->setDestId(nodeId);
+		uinfo->setFrameType(GRANTPKT);
+		uinfo->setCid(cid);
+		uinfo->setLcid(lcid);
+
+		grant->setControlInfo(uinfo);
+		if (rtxMap[nodeId].size() == 1) {
+			//one rtx scheduled
+			auto temp = rtxMap[nodeId];
+			unsigned short lastProcess = temp.begin()->second.processId;
+			grant->setProcessId(lastProcess);
+			grant->setNewTx(false);
+			rtxMap[nodeId].erase(temp.begin()->second.processId);
+			rtxMap.erase(nodeId);
+		} else if (rtxMap[nodeId].size() == 0) {
+			//no rtx
+			grant->setNewTx(true);
+			grant->setProcessId(-1);
+
+		} else {
+			auto & temp = rtxMap[nodeId];
+			unsigned short order = 17;
+			for(auto & var : temp){
+				if(var.second.order < order){
+					order = var.second.order;
+				}
+			}
+
+			unsigned short processId = temp.at(order).processId;
+			grant->setProcessId(processId);
+			grant->setNewTx(false);
+			rtxMap[nodeId].erase(temp.erase(order));
+			//rtxMap.erase(nodeId);
+		}
+
+		// get and set the user's UserTxParams
+		const UserTxParams &ui = getAmc()->computeTxParams(nodeId, UL);
+		UserTxParams *txPara = new UserTxParams(ui);
+		grant->setUserTxParams(txPara);
+
+		// acquiring remote antennas set from user info
+		const std::set<Remote> &antennas = ui.readAntennaSet();
+		std::set<Remote>::const_iterator antenna_it, antenna_et = antennas.end();
+		const unsigned int logicalBands = cellInfo_->getNumBands();
+
+		//  HANDLE MULTICW
+		for (; cw < codewords; ++cw) {
+			unsigned int grantedBytes = 0;
+
+			for (Band b = 0; b < logicalBands; ++b) {
+				unsigned int bandAllocatedBlocks = 0;
+
+				for (antenna_it = antennas.begin(); antenna_it != antenna_et; ++antenna_it) {
+					bandAllocatedBlocks += enbSchedulerUl_->readPerUeAllocatedBlocks(nodeId, *antenna_it, b);
+				}
+
+				grantedBytes += amc_->computeBytesOnNRbs(nodeId, b, cw, bandAllocatedBlocks, UL);
+			}
+
+			grant->setGrantedCwBytes(cw, grantedBytes);
+			//EV << NOW << " LteMacEnb::sendGrants - granting " << grantedBytes << " on cw " << cw << endl;
+		}
+
+		RbMap map;
+
+		enbSchedulerUl_->readRbOccupation(nodeId, map);
+
+		grant->setGrantedBlocks(map);
+
+		// send grant to PHY layer
+		sendLowerPackets(grant);
+	}
+
+	//std::cout << "LteMacEnb::sendGrants end at " << simTime().dbl() << std::endl;
+}
+
+
 void NRMacGnb::fromPhy(cPacket *pkt) {
 	//std::cout << "NRMacGnbRealistic::fromPhy start at " << simTime().dbl() << std::endl;
 
@@ -413,224 +632,6 @@ void NRMacGnb::macSduRequest() {
 	//EV << "------ END NRMacGnb::macSduRequest ------\n";
 
 	//std::cout << "NRMacGnb::macSduRequest end at " << simTime().dbl() << std::endl;
-}
-
-void NRMacGnb::handleSelfMessage() {
-	//std::cout << "NRMacGnb::handleSelfMessage start at " << simTime().dbl() << std::endl;
-
-	/***************
-	 *  MAIN LOOP  *
-	 ***************/
-	EnbType nodeType = cellInfo_->getEnbType();
-
-	//EV << "-----" << ((nodeType==MACRO_ENB)?"MACRO":"MICRO") << " ENB MAIN LOOP -----" << endl;
-
-	/*************
-	 * END DEBUG
-	 *************/
-
-	/* Reception */
-
-	// extract pdus from all harqrxbuffers and pass them to unmaker
-	HarqRxBuffers::iterator hit = harqRxBuffers_.begin();
-	HarqRxBuffers::iterator het = harqRxBuffers_.end();
-	LteMacPdu *pdu = NULL;
-	std::list<LteMacPdu*> pduList;
-
-	for (; hit != het; hit++) {
-		pduList = hit->second->extractCorrectPdus();
-		while (!pduList.empty()) {
-			pdu = pduList.front();
-			pduList.pop_front();
-			macPduUnmake(pdu);
-		}
-	}
-
-	/*UPLINK*/
-	//EV << "============================================== UPLINK ==============================================" << endl;
-	if (binder_->getLastUpdateUlTransmissionInfo() < NOW)  // once per TTI, even in case of multicell scenarios
-		binder_->initAndResetUlTransmissionInfo();
-
-	//TODO enable sleep mode also for UPLINK???
-	(enbSchedulerUl_->resourceBlocks()) = getNumRbUl();
-
-	enbSchedulerUl_->updateHarqDescs();
-
-	LteMacScheduleListWithSizes *scheduleListUl = enbSchedulerUl_->schedule();
-	// send uplink grants to PHY layer
-	if (!scheduleListUl->empty())
-		sendGrants(scheduleListUl);
-	//EV << "============================================ END UPLINK ============================================" << endl;
-
-	//EV << "============================================ DOWNLINK ==============================================" << endl;
-	/*DOWNLINK*/
-	// Set current available OFDM space
-	(enbSchedulerDl_->resourceBlocks()) = getNumRbDl();
-
-	// use this flag to enable/disable scheduling...don't look at me, this is very useful!!!
-//    bool activation = true;
-//
-//    if (activation) {
-	// clear previous schedule list
-	if (scheduleListDl_ != NULL)
-		scheduleListDl_->clear();
-
-	// perform Downlink scheduling
-	scheduleListDl_ = enbSchedulerDl_->schedule();        //--> ok
-
-	// requests SDUs to the RLC layer
-	if (!scheduleListDl_->empty())
-		macSduRequest();
-//    }
-	//EV << "========================================== END DOWNLINK ============================================" << endl;
-
-	// purge from corrupted PDUs all Rx H-HARQ buffers for all users
-	for (hit = harqRxBuffers_.begin(); hit != het; ++hit) {
-		hit->second->purgeCorruptedPdus();
-	}
-
-	// Message that triggers flushing of Tx H-ARQ buffers for all users
-	// This way, flushing is performed after the (possible) reception of new MAC PDUs
-	cMessage *flushHarqMsg = new cMessage("flushHarqMsg");
-	flushHarqMsg->setSchedulingPriority(1);        // after other messages
-	scheduleAt(NOW, flushHarqMsg);
-
-	//EV << "--- END " << ((nodeType == MACRO_ENB) ? "MACRO" : "MICRO") << " ENB MAIN LOOP ---" << endl;
-
-	//std::cout << "NRMacGnb::handleSelfMessage end at " << simTime().dbl() << std::endl;
-}
-
-void NRMacGnb::sendGrants(LteMacScheduleListWithSizes *scheduleList) {
-	//std::cout << "LteMacEnb::sendGrants start at " << simTime().dbl() << std::endl;
-
-	//EV << NOW << "LteMacEnb::sendGrants " << endl;
-
-	while (!scheduleList->empty()) {
-		LteMacScheduleListWithSizes::iterator it, ot;
-		it = scheduleList->begin();
-
-		Codeword cw = it->first.second;
-		Codeword otherCw = MAX_CODEWORDS - cw;
-
-		MacCid cid = it->first.first;
-		LogicalCid lcid = MacCidToLcid(cid);
-		MacNodeId nodeId = MacCidToNodeId(cid);
-
-		unsigned int granted = it->second.first;        //blocks
-		unsigned int codewords = 0;
-
-		// removing visited element from scheduleList.
-		scheduleList->erase(it);
-
-		if (granted > 0) {
-			// increment number of allocated Cw
-			++codewords;
-		} else {
-			// active cw becomes the "other one"
-			cw = otherCw;
-		}
-
-		std::pair<unsigned int, Codeword> otherPair(nodeId, otherCw);
-
-		if ((ot = (scheduleList->find(otherPair))) != (scheduleList->end())) {
-			// increment number of allocated Cw
-			++codewords;
-
-			// removing visited element from scheduleList.
-			scheduleList->erase(ot);
-		}
-
-		if (granted == 0)
-			continue; // avoiding transmission of 0 grant (0 grant should not be created)
-
-		//EV << NOW << " LteMacEnb::sendGrants Node[" << getMacNodeId() << "] - " << granted << " blocks to grant for user " << nodeId << " on " << codewords << " codewords. CW[" << cw << "\\" << otherCw << "]" << endl;
-
-		// TODO Grant is set aperiodic as default
-		LteSchedulingGrant *grant = new LteSchedulingGrant("LteGrant");
-
-		grant->setDirection(UL);
-
-		grant->setCodewords(codewords);
-
-		// set total granted blocks
-		grant->setTotalGrantedBlocks(granted);
-
-		UserControlInfo *uinfo = new UserControlInfo();
-		uinfo->setSourceId(getMacNodeId());
-		uinfo->setDestId(nodeId);
-		uinfo->setFrameType(GRANTPKT);
-		uinfo->setCid(cid);
-		uinfo->setLcid(lcid);
-
-		grant->setControlInfo(uinfo);
-		if (rtxMap[nodeId].size() == 1) {
-			//one rtx scheduled
-			auto temp = rtxMap[nodeId];
-			unsigned short lastProcess = temp.begin()->second.processId;
-			grant->setProcessId(lastProcess);
-			grant->setNewTx(false);
-			rtxMap[nodeId].erase(temp.begin()->second.processId);
-			rtxMap.erase(nodeId);
-		} else if (rtxMap[nodeId].size() == 0) {
-			//no rtx
-			grant->setNewTx(true);
-			grant->setProcessId(-1);
-
-		} else {
-			auto & temp = rtxMap[nodeId];
-			unsigned short order = 17;
-			for(auto & var : temp){
-				if(var.second.order < order){
-					order = var.second.order;
-				}
-			}
-
-			unsigned short processId = temp.at(order).processId;
-			grant->setProcessId(processId);
-			grant->setNewTx(false);
-			rtxMap[nodeId].erase(temp.erase(order));
-			//rtxMap.erase(nodeId);
-		}
-
-		// get and set the user's UserTxParams
-		const UserTxParams &ui = getAmc()->computeTxParams(nodeId, UL);
-		UserTxParams *txPara = new UserTxParams(ui);
-		grant->setUserTxParams(txPara);
-
-		// acquiring remote antennas set from user info
-		const std::set<Remote> &antennas = ui.readAntennaSet();
-		std::set<Remote>::const_iterator antenna_it, antenna_et = antennas.end();
-		const unsigned int logicalBands = cellInfo_->getNumBands();
-
-		//  HANDLE MULTICW
-		for (; cw < codewords; ++cw) {
-			unsigned int grantedBytes = 0;
-
-			for (Band b = 0; b < logicalBands; ++b) {
-				unsigned int bandAllocatedBlocks = 0;
-
-				for (antenna_it = antennas.begin(); antenna_it != antenna_et; ++antenna_it) {
-					bandAllocatedBlocks += enbSchedulerUl_->readPerUeAllocatedBlocks(nodeId, *antenna_it, b);
-				}
-
-				grantedBytes += amc_->computeBytesOnNRbs(nodeId, b, cw, bandAllocatedBlocks, UL);
-			}
-
-			grant->setGrantedCwBytes(cw, grantedBytes);
-			//EV << NOW << " LteMacEnb::sendGrants - granting " << grantedBytes << " on cw " << cw << endl;
-		}
-
-		RbMap map;
-
-		enbSchedulerUl_->readRbOccupation(nodeId, map);
-
-		grant->setGrantedBlocks(map);
-
-		// send grant to PHY layer
-		sendLowerPackets(grant);
-	}
-
-	//std::cout << "LteMacEnb::sendGrants end at " << simTime().dbl() << std::endl;
 }
 
 void NRMacGnb::macPduMake(MacCid cid) {

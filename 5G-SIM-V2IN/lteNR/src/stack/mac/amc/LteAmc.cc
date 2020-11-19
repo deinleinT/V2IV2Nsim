@@ -665,9 +665,13 @@ unsigned int LteAmc::computeReqRbs(MacNodeId id, Band b, Codeword cw,
     	}
     }
 
-    if(numRBs == 0){
-    	numRBs = availableBlocks;
+    if(numRBs == 0 && availableBlocks > 0){
+    	numRBs = availableBlocks; //at least one RB should be required, happens due to bad channel conditions
     }
+    if(numRBs == 0 && availableBlocks == 0){
+    	throw cRuntimeError("LteAmc computeReqRbs --> should not happen");
+    }
+
 
     return numRBs;
 

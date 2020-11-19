@@ -83,10 +83,10 @@ void LtePf::prepareSchedule() //
 			LteMacBufferMap *tmp = mac_->getMacBuffers();
 			LteMacBuffer *tempBuffer = (*tmp)[cid];
 			if (tempBuffer != nullptr) {
-				std::pair<unsigned int, unsigned int> value(cid, tempBuffer->getQueueOccupancy());
+				std::pair<unsigned int, unsigned int> value = std::make_pair(cid, tempBuffer->getQueueOccupancy());
 				qfiNodeCidSizeMap[key] = value;
 			} else {
-				std::pair<unsigned int, unsigned int> value(cid, 0);
+				std::pair<unsigned int, unsigned int> value = std::make_pair(cid, 0);
 				qfiNodeCidSizeMap[key] = value;
 			}
 		}
@@ -111,9 +111,13 @@ void LtePf::prepareSchedule() //
 				// node has left the simulation - erase corresponding CIDs
 				activeConnectionSet_.erase(cid);
 				activeConnectionTempSet_.erase(cid);
-				for (auto var : qfiNodeCidSizeMap) {
-					if (var.second.first == cid)
-						qfiNodeCidSizeMap.erase(var.first);
+				auto itr = qfiNodeCidSizeMap.begin();
+				while (itr != qfiNodeCidSizeMap.end()) {
+					if (itr->second.first == cid) {
+						itr = qfiNodeCidSizeMap.erase(itr);
+					} else {
+						++itr;
+					}
 				}
 				continue;
 			}
@@ -222,15 +226,14 @@ void LtePf::prepareSchedule() //
 			if (!active) {
 				//EV << NOW << "LtePf::execSchedule NOT ACTIVE" << endl;
 				activeConnectionTempSet_.erase(current.x_);
-				
+
 				auto itr = qfiNodeCidSizeMap.begin();
 				while (itr != qfiNodeCidSizeMap.end()) {
-				    if (itr->second.first == current.x_) {
-				       itr = qfiNodeCidSizeMap.erase(itr);
-				    }
-				    else {
-				       ++itr;
-				    }
+					if (itr->second.first == current.x_) {
+						itr = qfiNodeCidSizeMap.erase(itr);
+					} else {
+						++itr;
+					}
 				}
 
 			}

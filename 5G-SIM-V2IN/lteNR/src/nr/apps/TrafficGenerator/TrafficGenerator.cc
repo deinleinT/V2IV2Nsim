@@ -1572,7 +1572,18 @@ void TrafficGeneratorCarDL::initialize(int stage) {
 		carNameSignal = registerSignal("carName");
 		subscribe(carNameSignal, listener0);
 
-		if (getAncestorPar("numUdpApps").intValue() == 4) {
+		if (getSimulation()->getSystemModule()->par("remoteDrivingUL").boolValue() && getSimulation()->getSystemModule()->par("remoteDrivingDL").boolValue()
+				&& getAncestorPar("numUdpApps").intValue() == 4) {
+			unsigned short tmpGate = 0;
+			if (getAncestorPar("oneServer").boolValue())
+				tmpGate = 1;
+			TrafficGeneratorServerDL *tmp1 = check_and_cast<TrafficGeneratorServerDL*>(
+					getSimulation()->getModuleByPath(par("destAddresses").stdstringValue().c_str())->getSubmodule("udpApp", tmpGate));
+
+			listener1 = new Listener(tmp1);
+			subscribe(carNameSignal, listener1);
+
+		} else if (getAncestorPar("numUdpApps").intValue() == 4) {
 
 			unsigned short tmpGate = 0;
 			unsigned short tmpGateTwo = 0;

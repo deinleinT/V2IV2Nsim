@@ -55,6 +55,8 @@ public:
      * get a list of points (in [0, 1]) along the line between sender and receiver where the beam intersects with this obstacle
      */
     std::vector<double> getIntersections(const Coord& senderPos, const Coord& receiverPos) const;
+//    std::vector<std::pair<Coord,double>>
+    bool checkIntersectionWithObstacle(const Coord& senderPos, const Coord& receiverPos, const double hBuilding, AnnotationManager * annotations) const;
 
     AnnotationManager::Annotation* visualRepresentation;
 

@@ -786,6 +786,7 @@ double linearToDb(double linear)
     return 10 * log10(linear);
 }
 
+//returns result in W!
 double dBmToLinear(double db)
 {
     //std::cout << "LteCommon::dBmToLinear at " << simTime().dbl() << std::endl;

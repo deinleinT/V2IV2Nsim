@@ -123,12 +123,12 @@ void NRPhyUe::initialize(int stage) {
 				cInfo->setTxPower(cellTxPower);
 				cInfo->setCoord(cellPos);
 				cInfo->setDirection(DL);
-//				cInfo->setFrameType(FEEDBACKPKT);
+				cInfo->setFrameType(FEEDBACKPKT);
 
 				// get RSSI from the eNB
 				std::vector<double>::iterator it;
 				double rssi = 0;
-				std::vector<double> rssiV = channelModel_->getSINR(frame, cInfo);
+				std::vector<double> rssiV = channelModel_->getSINR(frame, cInfo, false);
 				for (it = rssiV.begin(); it != rssiV.end(); ++it)
 					rssi += *it;
 				rssi /= rssiV.size();   // compute the mean over all RBs

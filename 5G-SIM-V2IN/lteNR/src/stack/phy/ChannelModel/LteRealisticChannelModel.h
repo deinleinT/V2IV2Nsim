@@ -194,7 +194,7 @@ public:
    * @param frame pointer to the packet
    * @param lteinfo pointer to the user control info
    */
-  virtual std::vector<double> getSINR(LteAirFrame *frame, UserControlInfo* lteInfo);
+  virtual std::vector<double> getSINR(LteAirFrame *frame, UserControlInfo* lteInfo, bool recordStats);
   /*
    * Compute Received useful signal for D2D transmissions
    */
@@ -325,7 +325,7 @@ protected:
    * @param nodeid mac node id of UE
    * @return the speed in m/s
    */
-  double computeSpeed(const MacNodeId nodeId, const inet::Coord coord, double & mov);
+  virtual double computeSpeed(const MacNodeId nodeId, const inet::Coord coord, double & mov);
 
   /*
    * Updates position for a given node

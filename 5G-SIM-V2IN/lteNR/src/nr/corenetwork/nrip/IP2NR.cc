@@ -25,6 +25,7 @@
 */
 
 #include "nr/corenetwork/nrip/IP2NR.h"
+#include "inet/common/ModuleAccess.h"
 
 Define_Module(IP2NR);
 
@@ -48,6 +49,27 @@ void IP2NR::toIpEnb(cMessage * msg)
 	send(msg,ipGateOut_);
 
     //std::cout << "IP2NR::toIpEnb end at " << simTime().dbl() << std::endl;
+}
+
+void IP2NR::registerInterface()
+{
+    //std::cout << "IP2NR::registerInterface start at " << simTime().dbl() << std::endl;
+
+    InterfaceEntry * interfaceEntry;
+    inet::IInterfaceTable *ift = inet::getModuleFromPar<IInterfaceTable>(par("interfaceTableModule"), this);
+    if (!ift)
+        return;
+    interfaceEntry = new InterfaceEntry(this);
+    interfaceEntry->setName("wlan");
+    interfaceEntry->setBroadcast(true);
+    interfaceEntry->setMulticast(true);
+    //from inherit class
+    //changed the setting of the mtu
+    interfaceEntry->setMtu(getSystemModule()->par("mtu").intValue());
+    ift->addInterface(interfaceEntry);
+
+
+    //std::cout << "IP2NR::registerInterface end at " << simTime().dbl() << std::endl;
 }
 
 void IP2NR::handleMessage(cMessage *msg) {

@@ -388,7 +388,7 @@ double LteRealisticChannelModel::computeAngolarAttenuation(double angle) {
 
    return angolarAtt;
 }
-std::vector<double> LteRealisticChannelModel::getSINR(LteAirFrame *frame, UserControlInfo* lteInfo)
+std::vector<double> LteRealisticChannelModel::getSINR(LteAirFrame *frame, UserControlInfo* lteInfo, bool recordStats)
 {
    //get tx power
    double recvPower = lteInfo->getTxPower(); // dBm
@@ -1284,7 +1284,7 @@ bool LteRealisticChannelModel::isCorrupted(LteAirFrame *frame,
    }
    else
    {
-       snrV = getSINR(frame, lteInfo);
+       snrV = getSINR(frame, lteInfo, true);
    }
 
    //Get the resource Block id used to transmist this packet
@@ -1436,7 +1436,7 @@ bool LteRealisticChannelModel::error_D2D(LteAirFrame *frame, UserControlInfo* lt
        }
    }
    //ROSSALI-------END------------------------------------------------
-   else  snrV = getSINR(frame, lteInfo); // Take SINR
+   else  snrV = getSINR(frame, lteInfo, true); // Take SINR
 
    //Get the resource Block id used to transmit this packet
    RbMap rbmap = lteInfo->getGrantedBlocks();

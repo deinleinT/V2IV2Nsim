@@ -266,10 +266,13 @@ void LtePhyEnb::requestFeedback(UserControlInfo* lteinfo, LteAirFrame* frame,
     //get UE Position
     Coord sendersPos = lteinfo->getCoord();
     cellInfo_->setUePosition(lteinfo->getSourceId(), sendersPos);
+    lteinfo->setTxPower(txPower_);
+    lteinfo->setDirection(DL);
+    lteinfo->setFrameType(FEEDBACKPKT);
 
     //Apply analog model (pathloss)
     //
-    std::vector<double> snr = channelModel_->getSINR(frame, lteinfo);
+    std::vector<double> snr = channelModel_->getSINR(frame, lteinfo, true);
     FeedbackRequest req = lteinfo->feedbackReq;
     //Feedback computation
     fb_.clear();
@@ -325,10 +328,11 @@ void LtePhyEnb::requestFeedback(UserControlInfo* lteinfo, LteAirFrame* frame,
             pkt->setLteFeedbackDoubleVectorUl(fb_);
             //Prepare  parameters for next loop iteration - in order to compute SNR in DL
             lteinfo->setTxPower(txPower_);
-            lteinfo->setDirection(DL);
+            lteinfo->setDirection(DL); //we just want to evaluate the DL Feedback!
+            lteinfo->setFrameType(FEEDBACKPKT);
 
             //Get snr for DL direction
-            snr = channelModel_->getSINR(frame, lteinfo);
+            snr = channelModel_->getSINR(frame, lteinfo, false);
         }
         else{
             pkt->setLteFeedbackDoubleVectorDl(fb_);

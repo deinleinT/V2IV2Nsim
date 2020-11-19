@@ -18,7 +18,7 @@ void LteDummyChannelModel::initialize()
 }
 
 
-std::vector<double> LteDummyChannelModel::getSINR(LteAirFrame *frame, UserControlInfo* lteInfo)
+std::vector<double> LteDummyChannelModel::getSINR(LteAirFrame *frame, UserControlInfo* lteInfo, bool recordStats)
 {
    std::vector<double> tmp;
    tmp.push_back(10000);

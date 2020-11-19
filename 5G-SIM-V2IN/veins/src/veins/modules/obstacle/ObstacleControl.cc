@@ -238,6 +238,38 @@ std::vector<std::pair<veins::Obstacle*, std::vector<double>>> ObstacleControl::g
     return allIntersections;
 }
 
+bool ObstacleControl::checkNLOS3D(const Coord &senderPos,
+        const Coord &receiverPos, const double hBuilding) const {
+    bool result = false;
+
+    // rebuild bounding box lookup structure if dirty (new obstacles added recently)
+    if (isBboxLookupDirty) {
+        bboxLookup = rebuildBBoxLookup(obstacleOwner);
+        isBboxLookupDirty = false;
+    }
+
+    auto candidateObstacles = bboxLookup.findOverlapping( { senderPos.x,
+            senderPos.y }, { receiverPos.x, receiverPos.y });
+
+    // remove duplicates
+    sort(candidateObstacles.begin(), candidateObstacles.end());
+    candidateObstacles.erase(
+            unique(candidateObstacles.begin(), candidateObstacles.end()),
+            candidateObstacles.end());
+
+    for (Obstacle *o : candidateObstacles) {
+        // if obstacles has neither borders nor matter: bail.
+        if (o->getShape().size() < 2)
+            continue;
+        auto foundIntersection = o->checkIntersectionWithObstacle(senderPos,
+                receiverPos, hBuilding, annotations);
+
+        if (foundIntersection)
+            return true;
+    }
+    return result;
+}
+
 double ObstacleControl::calculateAttenuation(const Coord &senderPos,
         const Coord &receiverPos) const {
     Enter_Method_Silent
@@ -315,8 +347,9 @@ double ObstacleControl::calculateAttenuation(const Coord &senderPos,
  * used in 5G-SIM-V2I/N for determining the LOS
  */
 bool ObstacleControl::isNLOS(const Coord &senderPos, const Coord &receiverPos,
-        const double hBuilding) {
-    Enter_Method_Silent("isNLOS");
+        const double hBuilding, bool NlosEvaluationIn3D) {
+    Enter_Method_Silent
+    ("isNLOS");
 
     if ((perCut.size() == 0) || (perMeter.size() == 0)) {
         throw cRuntimeError(
@@ -333,51 +366,17 @@ bool ObstacleControl::isNLOS(const Coord &senderPos, const Coord &receiverPos,
         return cacheEntryIter->second;
     }
 
+    if (NlosEvaluationIn3D) {
+        return checkNLOS3D(senderPos, receiverPos, hBuilding);
+    }
+
+    //2D case, return true if any intersection is detected (i.e., we are in the NLOS case)
     // get intersections
     auto intersections = getIntersections(senderPos, receiverPos);
 
-    double factor = 1;
-    for (auto i = intersections.begin(); i != intersections.end(); ++i) {
-        auto o = i->first;
-        auto intersectAt = i->second;
-
-        // if beam interacts with neither borders nor matter: bail.
-        bool senderInside = o->containsPoint(senderPos);
-        bool receiverInside = o->containsPoint(receiverPos);
-        if ((intersectAt.size() == 0) && !senderInside && !receiverInside)
-            continue;
-
-        // remember number of cuts before messing with intersection points
-        double numCuts = intersectAt.size();
-
-        // for distance calculation, make sure every other pair of points marks transition through matter and void, respectively.
-        if (senderInside)
-            intersectAt.insert(intersectAt.begin(), 0);
-        if (receiverInside)
-            intersectAt.push_back(1);
-        ASSERT((intersectAt.size() % 2) == 0);
-
-        // sum up distances in matter.
-        double fractionInObstacle = 0;
-        for (auto i = intersectAt.begin(); i != intersectAt.end();) {
-            double p1 = *(i++);
-            double p2 = *(i++);
-            fractionInObstacle += (p2 - p1);
-        }
-
-        // calculate attenuation
-        double totalDistance = senderPos.distance(receiverPos);
-        double attenuation = (o->getAttenuationPerCut() * numCuts)
-                + (o->getAttenuationPerMeter() * fractionInObstacle
-                        * totalDistance);
-        factor *= pow(10.0, -attenuation / 10.0);
-
-        // draw a "hit!" bubble
-        if (annotations && (factor != 1)) {
-            annotations->drawBubble(o->getBboxP1(), "hit");
-            return true;
-        }
-
+    if (intersections.size() > 0) {
+        annotations->drawBubble(senderPos, "hit");
+        return true;
     }
 
     return false;

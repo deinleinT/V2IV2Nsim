@@ -60,7 +60,7 @@ double DasFilter::receiveBroadcast(LteAirFrame* frame, UserControlInfo* lteInfo)
     for (unsigned int i=0; i<ruSet_->getAntennaSetSize(); i++)
     {
         // equal bitrate mapping
-        std::vector<double> rssiV = ltePhy_->getChannelModel()->getSINR(frame,lteInfo);
+        std::vector<double> rssiV = ltePhy_->getChannelModel()->getSINR(frame,lteInfo, true);
         std::vector<double>::iterator it;
         double rssi = 0;
         for (it=rssiV.begin();it!=rssiV.end();++it)

@@ -39,10 +39,11 @@ simple ChannelControl
 {
     parameters:
         bool coreDebug = default(false); // debug switch for core framework
-        double pMax @unit("mW") = default(20mW); // maximum sending power used for this network (in mW)
-        double sat @unit("dBm") = default(-110dBm); // signal attenuation threshold (in dBm)
+        double pMax @unit("mW") = default(100000mW); // maximum sending power used for this network (in mW) --> 100000mW ~ 50dBm
+        double sat @unit("dBm") = default(-80dBm); // signal attenuation threshold (in dBm)
         double alpha = default(2); // path loss coefficient
-        double carrierFrequency @unit("Hz") = default(2.4GHz); // base carrier frequency of all the channels (in Hz)
+        //double carrierFrequency = default(2.4); // base carrier frequency of all the channels (in Hz)
+//        double carrierFrequency = default(2.4); // base carrier frequency of all the channels (in Hz)
         int numChannels = default(1); // number of radio channels (frequencies)
         string propagationModel @enum("FreeSpaceModel","TwoRayGroundModel","RiceModel","RayleighModel","NakagamiModel","LogNormalShadowingModel") = default("FreeSpaceModel");
         @display("i=misc/sun");

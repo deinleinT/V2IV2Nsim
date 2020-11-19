@@ -124,7 +124,7 @@ void LtePhyUe::initialize(int stage)
                 // get RSSI from the eNB
                 std::vector<double>::iterator it;
                 double rssi = 0;
-                std::vector<double> rssiV = channelModel_->getSINR(frame, cInfo);
+                std::vector<double> rssiV = channelModel_->getSINR(frame, cInfo, false);
                 for (it = rssiV.begin(); it != rssiV.end(); ++it)
                     rssi += *it;
                 rssi /= rssiV.size();   // compute the mean over all RBs
@@ -223,7 +223,7 @@ void LtePhyUe::handoverHandler(LteAirFrame* frame, UserControlInfo* lteInfo) {
         // Broadcast message from relay or not-master enb
         std::vector<double>::iterator it;
         rssi = 0;
-        std::vector<double> rssiV = channelModel_->getSINR(frame, lteInfo);
+        std::vector<double> rssiV = channelModel_->getSINR(frame, lteInfo, false);
         for (it = rssiV.begin(); it != rssiV.end(); ++it)
             rssi += *it;
         rssi /= rssiV.size();

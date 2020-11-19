@@ -43,4 +43,6 @@ protected:
 	//virtual void fromIpUe(IPv4Datagram * datagram);
 
 	virtual void toStackUe(IPv4Datagram* datagram);
+
+	virtual void registerInterface();
 };

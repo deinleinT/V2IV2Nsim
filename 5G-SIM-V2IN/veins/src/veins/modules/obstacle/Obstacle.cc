@@ -101,6 +101,35 @@ double segmentsIntersectAt(const Coord &p1From, const Coord &p1To,
 
     return p1Frac;
 }
+
+Coord segmentsIntersectAtCoord(const Coord &sender, const Coord &receiver,
+        const Coord &c1, const Coord &c2) {
+
+    //ascent mOne/mTwo of the functional equation
+    double denominatorOne = receiver.x - sender.x;
+    double mOne = (receiver.y - sender.y) / (denominatorOne);
+    if (denominatorOne == 0)
+        mOne = 0;
+
+    double denominatorTwo = c2.x - c1.x;
+    double mTwo = (c2.y - c1.y) / (denominatorTwo);
+    if (denominatorTwo == 0)
+        mTwo = 0;
+
+    //n --> y-axis intercept
+    double nOne = receiver.y - (mOne * receiver.x);
+    double nTwo = c2.y - (mTwo * c2.x);
+
+    //intersection calculation
+    double x = (nTwo - nOne) / (mOne - mTwo);
+    double y = (mOne * nTwo - mTwo * nOne) / (mOne - mTwo);
+
+    if (x < 0 || y < 0)
+        return Coord(-1, -1, -1);
+
+    return Coord(x, y, 0);
+}
+
 } // namespace
 
 std::vector<double> Obstacle::getIntersections(const Coord &senderPos,
@@ -122,7 +151,61 @@ std::vector<double> Obstacle::getIntersections(const Coord &senderPos,
     return intersectAt;
 }
 
-std::string Obstacle::getType() const{
+bool Obstacle::checkIntersectionWithObstacle(const Coord &senderPos,
+        const Coord &receiverPos, const double hBuilding, AnnotationManager * annotations) const {
+
+    bool result = false;
+    const Obstacle::Coords &shape = getShape();
+    Obstacle::Coords::const_iterator i = shape.begin();
+    Obstacle::Coords::const_iterator j = (shape.rbegin() + 1).base();
+    for (; i != shape.end(); j = i++) {
+        const Coord &c1 = *i;
+        const Coord &c2 = *j;
+        ASSERT(c1.z == c2.z); //for the case the poly-buildings have a z-coordinate
+
+        double i = segmentsIntersectAt(senderPos, receiverPos, c1, c2);
+        if (i != -1) {
+            Coord coord = segmentsIntersectAtCoord(senderPos, receiverPos, c1,
+                    c2);
+            if (coord.x != -1) {
+                //find out the height of the
+                Coord locationVector(senderPos.x, senderPos.y, senderPos.z);
+                Coord directionVector(receiverPos.x - senderPos.x,
+                        receiverPos.y - senderPos.y,
+                        receiverPos.z - senderPos.z);
+
+                //lambda has to be equal for all three equations
+                double lambdaX = (coord.x - locationVector.x)
+                        / directionVector.x;
+                double lambdaY = (coord.y - locationVector.y)
+                        / directionVector.y;
+                ASSERT(abs(lambdaY - lambdaX) <= 0.0000001);
+                //calculate the height where the intersection occurs in 3D
+                double theHeight = locationVector.z
+                        + lambdaX * directionVector.z; // the height of the intersection
+
+                //we have to check whether the height is above the building height, if no, NLOS case is detected and no further checks have to be considered, if yes, continue
+
+                //either hBuilding or the z-coordinate from
+                double compareWith = (c1.z > 0) ? c1.z : hBuilding;
+
+                if (theHeight < compareWith) {
+                    //hit the building
+                    if (annotations) {
+                        coord.z = theHeight;
+                        annotations->drawBubble(coord, "hit");
+                    }
+                    return true;
+
+                }
+                //
+            }
+        }
+    }
+    return result;
+}
+
+std::string Obstacle::getType() const {
     return type;
 }
 

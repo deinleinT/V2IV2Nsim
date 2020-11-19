@@ -34,6 +34,7 @@
 #include "nr/apps/TrafficGenerator/packet/VideoMessage_m.h"
 #include "nr/apps/TrafficGenerator/packet/VoIPMessage_m.h"
 #include "nr/apps/TrafficGenerator/packet/DataMessage_m.h"
+#include "veins/modules/mobility/traci/TraCIScenarioManager.h"
 
 using namespace omnetpp;
 using namespace inet;
@@ -337,6 +338,11 @@ protected:
 	 * @param remoteCarFactor value which defines how often a remote vehicle is added to the simulation (e.g., 5 meants every fifth car is a remote car)
 	 */
 	virtual bool isRemoteCar(unsigned short ueId, unsigned int remoteCarFactor) {
+
+		if (getSystemModule()->par("remoteCarByColour")) {
+			veins::TraCIScenarioManager *vinetmanager = check_and_cast<veins::TraCIScenarioManager*>(getSimulation()->getModuleByPath("veinsManager"));
+			return vinetmanager->isRemoteVehicle(getBinder()->getMacFromMacNodeId(ueId)->getParentModule()->getParentModule()->getFullName());
+		}
 
 		//if remoteCarJustOne is true, only one remote vehicle is added to the simulation
 		//its id is determined by the remoteCarFactor (e.g., remoteCarFactor=0 --> the remote car is the one with the ueId 1025)

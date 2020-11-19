@@ -31,4 +31,8 @@ simple NRChannelControl extends LteChannelControl
         @display("i=misc/sun");
         @labels(node);
         @class("NRChannelControl");
+        double carrierfrequency = default(2.4);
+        pMax @unit("mW") = default(100000mW); // maximum sending power used for this network (in mW) --> 100000mW ~ 50dBm
+        sat @unit("dBm") = default(-80dBm); // signal attenuation threshold (in dBm)
+        alpha = default(2); // path loss coefficient
 }

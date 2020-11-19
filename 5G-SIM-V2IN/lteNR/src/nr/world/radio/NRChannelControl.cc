@@ -39,8 +39,28 @@ void NRChannelControl::initialize() {
     LteChannelControl::initialize();
 }
 
-double NRChannelControl::calcInterfDist() {
-    return LteChannelControl::calcInterfDist();
+double NRChannelControl::calcInterfDist()
+{
+    double interfDistance;
+
+    //the carrier frequency used
+    double carrierFrequency = par("carrierfrequency").doubleValue() * 1000000000;
+    //maximum transmission power possible
+    double pMax = par("pMax");
+    //signal attenuation threshold
+    double sat = par("sat");
+    //path loss coefficient
+    double alpha = par("alpha");
+
+    double waveLength = (SPEED_OF_LIGHT / carrierFrequency);
+    //minimum power level to be able to physically receive a signal
+    double minReceivePower = pow(10.0, sat / 10.0);
+
+    interfDistance = pow(waveLength * waveLength * pMax / (16.0 * M_PI * M_PI * minReceivePower), 1.0 / alpha);
+
+    //EV << "max interference distance:" << interfDistance << endl;
+
+    return interfDistance;
 }
 
 void NRChannelControl::sendToChannel(RadioRef srcRadio, AirFrame *airFrame) {
@@ -50,4 +70,25 @@ void NRChannelControl::sendToChannel(RadioRef srcRadio, AirFrame *airFrame) {
 
     //std::cout << "NRChannelControl::sendToChannel end at " << simTime().dbl() << std::endl;
 
+}
+
+double NRChannelControl::calcInterfDist(double pMax){
+    double interfDistance;
+
+    //the carrier frequency used
+    double carrierFrequency = par("carrierfrequency").doubleValue() * 1000000000;
+    //signal attenuation threshold
+    double sat = par("sat");
+    //path loss coefficient
+    double alpha = par("alpha");
+
+    double waveLength = (SPEED_OF_LIGHT / carrierFrequency);
+    //minimum power level to be able to physically receive a signal
+    double minReceivePower = pow(10.0, sat / 10.0);
+
+    interfDistance = pow(waveLength * waveLength * pMax / (16.0 * M_PI * M_PI * minReceivePower), 1.0 / alpha);
+
+    //EV << "max interference distance:" << interfDistance << endl;
+
+    return interfDistance;
 }

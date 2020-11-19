@@ -1,4 +1,3 @@
-
 //
 // SPDX-FileCopyrightText: 2020 Friedrich-Alexander University Erlangen-Nuernberg (FAU), Computer Science 7 - Computer Networks and Communication Systems
 //
@@ -35,9 +34,13 @@ NRBinder::NRBinder() {
 
 }
 
-NRBinder::~NRBinder()
-{
-    delete qosChar;
+NRBinder::~NRBinder() {
+	delete qosChar;
+}
+
+void NRBinder::finish(){
+	recordScalar("losDetected",losDetected);
+	recordScalar("nlosDetected",nlosDetected);
 }
 
 MacNodeId NRBinder::getConnectedGnb(MacNodeId ueid) {
@@ -131,6 +134,9 @@ void NRBinder::initialize(int stages) {
 			qosChar->getValues()[qiValue[i]] = QosCharacteristic(convertStringToResourceType(resourceType[i]), priorityLevel[i], packetDelayBudgetNR[i], packetErrorRate[i], maxDataBurstVolume[i],
 					defAveragingWindow[i]);
 		}
+
+		losDetected = 0;
+		nlosDetected = 0;
 	}
 }
 

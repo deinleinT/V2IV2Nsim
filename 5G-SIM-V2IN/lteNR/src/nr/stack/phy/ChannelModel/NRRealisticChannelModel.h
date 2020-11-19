@@ -22,7 +22,7 @@
  * Part of 5G-Sim-V2I/N
  *
  *
-*/
+ */
 
 #pragma once
 
@@ -35,7 +35,7 @@
 #include "nr/stack/phy/layer/NRPhyUe.h"
 #include "nr/stack/phy/layer/NRPhyGnb.h"
 #include "../../mac/layer/NRMacGnb.h"
-
+#include "nr/world/radio/NRChannelControl.h"
 
 /*
  * Realistic Channel Model taken from
@@ -85,9 +85,9 @@ protected:
 
 	double antennaGainGnB_;
 
-	virtual std::vector<double> getSINR(LteAirFrame *frame, UserControlInfo *lteInfo);
+	virtual std::vector<double> getSINR(LteAirFrame *frame, UserControlInfo *lteInfo, bool recordStats);
 
-	virtual double getAttenuationNR(const MacNodeId &nodeId, const Direction &dir, const inet::Coord &uecoord, const inet::Coord &enodebcoord);
+	virtual double getAttenuationNR(const MacNodeId &nodeId, const Direction &dir, const inet::Coord &uecoord, const inet::Coord &enodebcoord, bool recordStats);
 
 	virtual double getAttenuation_D2D(MacNodeId nodeId, Direction dir, inet::Coord coord, MacNodeId node2_Id, inet::Coord coord_2);
 
@@ -111,7 +111,7 @@ protected:
 
 	void checkScenarioAndChannelModel();
 
-	void computeLosProbabilityNR(const double &d2ddistance, const MacNodeId &nodeId);
+	void computeLosProbabilityNR(const double &d2ddistance, const MacNodeId &nodeId, bool recordStats);
 
 	double calcDistanceBreakPoint(const double &d2d);
 
@@ -144,8 +144,14 @@ protected:
 	bool computeMultiCellInterferenceNR(const MacNodeId &eNbId, const MacNodeId &ueId, const inet::Coord &uecoord, bool isCqi, std::vector<double> &interference, Direction dir,
 			const Coord &enodebcoord);
 
-	virtual bool computeUplinkInterference(MacNodeId eNbId, MacNodeId senderId, bool isCqi, const RbMap &rbmap, std::vector<double> *interference);
-	virtual bool computeDownlinkInterference(MacNodeId eNbId, MacNodeId ueId, inet::Coord coord, bool isCqi, const RbMap& rbmap, std::vector<double> * interference);
+	 /* compute speed (m/s) for a given node
+	   * @param nodeid mac node id of UE
+	   * @return the speed in m/s
+	   */
+	virtual double computeSpeed(const MacNodeId nodeId, const inet::Coord coord, double & mov);
+
+	virtual bool computeUplinkInterference(MacNodeId eNbId, MacNodeId senderId, bool isCqi, RbMap rbmap, std::vector<double> *interference);
+	virtual bool computeDownlinkInterference(MacNodeId eNbId, MacNodeId ueId, inet::Coord ueCoord, bool isCqi, RbMap rbmap, std::vector<double> *interference);
 
 	bool computeExtCellInterferenceNR(const MacNodeId &eNbId, const MacNodeId &nodeId, const Coord &uecoord, bool isCqi, std::vector<double> &interference, const Coord &enodebcoord);
 };

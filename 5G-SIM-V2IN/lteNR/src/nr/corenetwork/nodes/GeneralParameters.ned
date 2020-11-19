@@ -36,6 +36,9 @@ network GeneralParameters{
         bool remoteDrivingDL = default(false); //not implemented so far
         int remoteCarFactor = default(10); // controls the remote car penetration rate (e.g., set to 10 --> each 10th car is a remote vehicle)
         bool remoteCarJustOne = default(false); // if true, just one car is a remote vehicle --> the car identity can set via the parameter remoteCarFactor, e.g., this flag is true and remoteCarFactor = 10 --> the car with MacNodeId 1035 (or car[9]) is a remoteVehicle
+        bool remoteCarByColour = default(false);
+        
+        int mtu @unit("B") = default(1500B);
         
         bool nrHarq = default(false); //if true, the NR HarqProcess-procedure is activeted (shorter intervals for scheduling grant and HARQ ACK/NACK)
         int numberHarqProcesses = default(8); //Number of LTE HarqProcesses

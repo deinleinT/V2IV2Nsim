@@ -572,6 +572,7 @@ void TraCIScenarioManager::deleteManagedModule(std::string nodeId)
         }
     }
 
+    deleteRemoteVehicle(mod->getFullName());
     hosts.erase(nodeId);
     mod->callFinish();
     mod->deleteModule();
@@ -608,7 +609,7 @@ void TraCIScenarioManager::subscribeToVehicleVariables(std::string vehicleId)
     simtime_t beginTime = 0;
     simtime_t endTime = SimTime::getMaxTime();
     std::string objectId = vehicleId;
-    uint8_t variableNumber = 8;
+    uint8_t variableNumber = 9;
     uint8_t variable1 = VAR_POSITION;
     uint8_t variable2 = VAR_ROAD_ID;
     uint8_t variable3 = VAR_SPEED;
@@ -617,8 +618,9 @@ void TraCIScenarioManager::subscribeToVehicleVariables(std::string vehicleId)
     uint8_t variable6 = VAR_LENGTH;
     uint8_t variable7 = VAR_HEIGHT;
     uint8_t variable8 = VAR_WIDTH;
+    uint8_t variable9 = VAR_COLOR;
 
-    TraCIBuffer buf = connection->query(CMD_SUBSCRIBE_VEHICLE_VARIABLE, TraCIBuffer() << beginTime << endTime << objectId << variableNumber << variable1 << variable2 << variable3 << variable4 << variable5 << variable6 << variable7 << variable8);
+    TraCIBuffer buf = connection->query(CMD_SUBSCRIBE_VEHICLE_VARIABLE, TraCIBuffer() << beginTime << endTime << objectId << variableNumber << variable1 << variable2 << variable3 << variable4 << variable5 << variable6 << variable7 << variable8 << variable9);
     processSubcriptionResult(buf);
     ASSERT(buf.eof());
 }
@@ -873,6 +875,9 @@ void TraCIScenarioManager::processSimSubscription(std::string objectId, TraCIBuf
     }
 }
 
+/*
+ * modified for 5G-Sim-V2I/N, enhanced, reads also the colour of a vehicle
+ */
 void TraCIScenarioManager::processVehicleSubscription(std::string objectId, TraCIBuffer& buf)
 {
     bool isSubscribed = (subscribedVehicles.find(objectId) != subscribedVehicles.end());
@@ -885,7 +890,12 @@ void TraCIScenarioManager::processVehicleSubscription(std::string objectId, TraC
     double length;
     double height;
     double width;
+    uint8_t colourR;
+    uint8_t colourG;
+    uint8_t colourB;
+    uint8_t colourA;
     int numRead = 0;
+    std::string colour = "";
 
     uint8_t variableNumber_resp;
     buf >> variableNumber_resp;
@@ -992,6 +1002,15 @@ void TraCIScenarioManager::processVehicleSubscription(std::string objectId, TraC
             ASSERT(varType == TYPE_DOUBLE);
             buf >> width;
             numRead++;
+        }else if (variable1_resp == VAR_COLOR) {
+            uint8_t varType;
+            buf >> varType;
+            ASSERT(varType == TYPE_COLOR);
+            buf >> colourR;
+            buf >> colourG;
+            buf >> colourB;
+            buf >> colourA;
+            numRead++;
         }
         else {
             throw cRuntimeError("Received unhandled vehicle subscription result");
@@ -1002,7 +1021,7 @@ void TraCIScenarioManager::processVehicleSubscription(std::string objectId, TraC
     if (!isSubscribed) return;
 
     // make sure we got updates for all attributes
-    if (numRead != 8) return;
+    if (numRead != 9) return;
 
     Coord p = connection->traci2omnet(TraCICoord(px, py));
     if ((p.x < 0) || (p.y < 0)) throw cRuntimeError("received bad node position (%.2f, %.2f), translated to (%.2f, %.2f)", px, py, p.x, p.y);
@@ -1049,6 +1068,7 @@ void TraCIScenarioManager::processVehicleSubscription(std::string objectId, TraC
             if (iName == moduleName.end()) throw cRuntimeError("cannot find a module name for vehicle type \"%s\"", vType.c_str());
         }
         mName = iName->second;
+
         if (moduleDisplayString.size() != 0) {
             iDisplayString = moduleDisplayString.find(vType);
             if (iDisplayString == moduleDisplayString.end()) {
@@ -1070,6 +1090,12 @@ void TraCIScenarioManager::processVehicleSubscription(std::string objectId, TraC
         // module existed - update position
         EV_DEBUG << "module " << objectId << " moving to " << p.x << "," << p.y << endl;
         updateModulePosition(mod, p, edge, speed, heading, VehicleSignalSet(signals));
+
+        //if the colour is red, add the car to remoteVehicles
+        if (colourA == 255 && colourG == 0 && colourB == 0) {
+            remoteVehicles.insert(std::string(mod->getFullName()));
+        }
+
     }
 }
 

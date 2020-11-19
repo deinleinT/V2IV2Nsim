@@ -105,7 +105,7 @@ bool NRSchedulerGnbDl::rtxschedule() {
 		//EV << NOW << " NRSchedulerGnbDl::rtxschedule Number of codewords: " << codewords << endl;
 		unsigned int process = 0;
 		unsigned int maxProcesses = currHarq->getNumProcesses();
-		std::map<simtime_t,unsigned int>rtxProcesses;
+		std::map<simtime_t, unsigned int> rtxProcesses;
 
 		//find longest waiting process
 		for (process = 0; process < maxProcesses; ++process) {
@@ -117,21 +117,18 @@ bool NRSchedulerGnbDl::rtxschedule() {
 			for (Codeword cw = 0; cw < codewords; ++cw) {
 				if (allocatedCws_[nodeId] == codewords)
 					break;
-				//EV << NOW << " NRSchedulerGnbDl::rtxschedule process " << process << endl;
-				//EV << NOW << " NRSchedulerGnbDl::rtxschedule ------- CODEWORD " << cw << endl;
 
 				// skip processes which are not in rtx status
 				if (currProc->getUnitStatus(cw) == TXHARQ_PDU_BUFFERED) {
 					rtxProcesses[currProc->getOldestUnitTxTime()] = process;
-				}else{
+				} else {
 					continue;
 				}
 			}
 		}
 
-
 //		for (process = 0; process < maxProcesses; ++process) {
-		for (auto & process : rtxProcesses) {
+		for (auto &process : rtxProcesses) {
 			// for each HARQ process
 			LteHarqProcessTx *currProc = (*processes)[process.second];
 
@@ -301,8 +298,8 @@ unsigned int NRSchedulerGnbDl::schedulePerAcidRtx(MacNodeId nodeId, Codeword cw,
 		}
 
 		if ((allocatedCw == 0)) {
-			unsigned int blocks = mac_->getAmc()->computeReqRbs(nodeId, b, remappedCw, allocation, direction_, allocator_->getBlocks(antenna, b, nodeId));
-			//unsigned int blocks = mac_->getAmc()->computeReqRbs(nodeId, b, remappedCw, allocation, direction_,allocator_->availableBlocks(nodeId,antenna,b)) + 1;
+			//unsigned int blocks = mac_->getAmc()->computeReqRbs(nodeId, b, remappedCw, allocation, direction_, allocator_->getBlocks(antenna, b, nodeId));
+			unsigned int blocks = mac_->getAmc()->computeReqRbs(nodeId, b, remappedCw, allocation, direction_, allocator_->availableBlocks(nodeId, antenna, b));
 
 			//EV << NOW << "NRSchedulerGnbDl::rtxAcid Assigned blocks: " << blocks << "  blocks" << endl;
 

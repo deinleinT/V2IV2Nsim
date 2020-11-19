@@ -282,11 +282,11 @@ bool NRSchedulerGnbUl::rtxscheduleWithNRHarq() {
 	//std::cout << "NRSchedulerGnbUl::rtxscheduleWithNRHarq start at " << simTime().dbl() << std::endl;
 
 	if (getSimulation()->getSystemModule()->par("newTxbeforeRtx").boolValue()) {
-		if (racschedule())
+		if (racschedule())//racschedule() returns true if no resource blocks are available
 			return true;
 	}
 
-	try {
+	try { // TODO Check behaviour with more than one active Process
 		//EV << NOW << " NRSchedulerGnbUl::rtxscheduleWithNRHarq --------------------::[ START RTX-SCHEDULE ]::--------------------" << endl;
 		//EV << NOW << " NRSchedulerGnbUl::rtxscheduleWithNRHarq eNodeB: " << mac_->getMacCellId() << endl;
 		//EV << NOW << " NRSchedulerGnbUl::rtxscheduleWithNRHarq Direction: " << (direction_ == UL ? "UL" : "DL") << endl;

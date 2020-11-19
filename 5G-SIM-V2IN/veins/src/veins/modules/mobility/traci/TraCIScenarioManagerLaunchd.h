@@ -20,6 +20,12 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
+//
+// This file has been modified/enhanced for 5G-SIM-V2I/N.
+// Date: 2020
+// Author: Thomas Deinlein
+//
+
 #pragma once
 
 #include "veins/veins.h"
@@ -45,25 +51,26 @@ namespace veins {
  * @see TraCIScenarioManager
  *
  */
-class VEINS_API TraCIScenarioManagerLaunchd : public TraCIScenarioManager {
+class VEINS_API TraCIScenarioManagerLaunchd: public TraCIScenarioManager {
 public:
     ~TraCIScenarioManagerLaunchd() override;
     void initialize(int stage) override;
     void finish() override;
 
 protected:
-    cXMLElement* launchConfig; /**< launch configuration to send to sumo-launchd */
+    cXMLElement *launchConfig; /**< launch configuration to send to sumo-launchd */
     int seed; /**< seed value to set in launch configuration, if missing (-1: current run number) */
 
     void init_traci() override;
+
 };
 
 class VEINS_API TraCIScenarioManagerLaunchdAccess {
 public:
-    TraCIScenarioManagerLaunchd* get()
-    {
+    TraCIScenarioManagerLaunchd* get() {
         return FindModule<TraCIScenarioManagerLaunchd*>::findGlobalModule();
-    };
+    }
+    ;
 };
 
 } // namespace veins

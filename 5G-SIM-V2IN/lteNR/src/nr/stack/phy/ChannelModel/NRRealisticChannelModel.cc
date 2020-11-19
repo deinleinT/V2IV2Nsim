@@ -42,7 +42,7 @@ void NRRealisticChannelModel::initialize(int stage) {
 	if (stage == inet::INITSTAGE_PHYSICAL_ENVIRONMENT_2) {
 		scenario_ = aToDeploymentScenario(par("scenario").stringValue());
 		hNodeB_ = par("nodeb_height").doubleValue();
-		carrierFrequency_ = par("carrierFrequency").doubleValue();
+		carrierFrequency_ = par("carrierfrequency").doubleValue();
 		shadowing_ = par("shadowing").boolValue();
 		hBuilding_ = par("building_height").doubleValue();
 
@@ -113,10 +113,10 @@ void NRRealisticChannelModel::initialize(int stage) {
 
 		if (dynamicNlos_) {
 			veinsObstacleShadowing = par("veinsObstacleShadowing").boolValue();
-			
+			NlosEvaluationIn3D = par("NlosEvaluationIn3D").boolValue();
 		} else {
 			veinsObstacleShadowing = false;
-			
+			NlosEvaluationIn3D = false;
 		}
 
 		errorCount = 0;
@@ -199,7 +199,7 @@ double NRRealisticChannelModel::getStdDevNR(const double &d3d, const double &d2d
 		} else {
 			//NLOS
 			if (0.5 <= carrierFrequency_ && carrierFrequency_ <= 6) {
-				if (!(10 < d2d && d2d < 5000))
+				if (!(10 <= d2d && d2d <= 5000))
 					throw cRuntimeError("Error NLOS UMa_A path loss model is not valid");
 				else
 					return 6.0;
@@ -359,7 +359,39 @@ double computeAngularAttenuation(double angle) {
 	return angularAtt;
 }
 
-std::vector<double> NRRealisticChannelModel::getSINR(LteAirFrame *frame, UserControlInfo *lteInfo) {
+double NRRealisticChannelModel::computeSpeed(const MacNodeId nodeId, const Coord coord, double &mov) {
+	double speed = 0.0;
+	double movement = 0.0;
+	mov = movement;
+
+	if (positionHistory_.find(nodeId) == positionHistory_.end()) {
+		// no entries
+		return speed;
+	} else {
+		//compute distance traveled from last update by UE (eNodeB position is fixed)
+
+		if (positionHistory_[nodeId].size() == 1) {
+			//  the only element refers to present , return 0
+			return speed;
+		}
+
+		movement = positionHistory_[nodeId].front().second.distance(coord);
+		mov = movement;
+
+		if (movement <= 0.0)
+			return speed;
+		else {
+			double time = (NOW.dbl()) - (positionHistory_[nodeId].front().first.dbl());
+			if (time <= 0.0) // time not updated since last speed call
+				throw cRuntimeError("Multiple entries detected in position history referring to same time");
+			// compute speed
+			speed = (movement) / (time);
+		}
+	}
+	return speed;
+}
+
+std::vector<double> NRRealisticChannelModel::getSINR(LteAirFrame *frame, UserControlInfo *lteInfo, bool recordStats) {
 	//std::cout << "NRRealisticChannelModel::getSINR start at " << simTime().dbl() << std::endl;
 
 	//init myCoord
@@ -414,12 +446,40 @@ std::vector<double> NRRealisticChannelModel::getSINR(LteAirFrame *frame, UserCon
 	//std::cout << "------------ GET SINR ----------------" << endl;
 	//===================== PARAMETERS SETUP ============================
 	/*
+	 * if NRPhyUe calls this method during initialize (dynamicCellAssociation) or Handover
+	 */
+	if (dir == DL && (lteInfo->getFrameType() == FEEDBACKPKT || lteInfo->getFrameType() == HANDOVERPKT) && !isNodeB_) {
+		noiseFigure = ueNoiseFigure_; //dB
+		//set antenna gain Figure
+		antennaGainTx = antennaGainGnB_; //dB
+		antennaGainRx = antennaGainUe_;  //dB
+
+		// get MacId for Ue and eNb
+		ueId = lteInfo->getDestId();
+		eNbId = lteInfo->getSourceId();
+
+		// get position of Ue and eNb
+		ueCoord = myCoord_;
+		ueCoord.z = hUe_;
+		myCoord3d = ueCoord;
+
+		enbCoord = lteInfo->getCoord();
+		enbCoord.z = hNodeB_;
+		coord.z = hNodeB_;
+
+		d3d = ueCoord.distance(enbCoord);
+		d2d = sqrt(pow(ueCoord.x - enbCoord.x, 2) + pow(ueCoord.y - enbCoord.y, 2));
+
+		//cqiDl = true;
+		speed = computeSpeed(ueId, ueCoord, movement);
+	}
+	/*
 	 * if direction is DL and this is not a feedback packet,
-	 * this function has been called by NRRealisticChannelModel::error() in the UE
+	 * this function has been called by NRRealisticChannelModel::isCorrupted() in the UE
 	 *
 	 *         DownLink error computation
 	 */
-	if (dir == DL && (lteInfo->getFrameType() != FEEDBACKPKT)) {
+	else if (dir == DL && (lteInfo->getFrameType() != FEEDBACKPKT)) {
 		//assert(recvPower == 46);
 		//set noise Figure
 		noiseFigure = ueNoiseFigure_; //dB
@@ -455,7 +515,7 @@ std::vector<double> NRRealisticChannelModel::getSINR(LteAirFrame *frame, UserCon
 	 * Hence the UE macNodeId can be taken by the sourceId of the lteInfo
 	 * and the speed of the UE is contained by the Move object associated to the lteinfo
 	 */
-	else // UL/DL CQI & UL error computation
+	else // UL/DL CQI & UL error computation (isCorrupted) --> requestFeedback in LtePhyEnb
 	{
 		// get MacId for Ue and eNb
 		ueId = lteInfo->getSourceId();
@@ -501,7 +561,7 @@ std::vector<double> NRRealisticChannelModel::getSINR(LteAirFrame *frame, UserCon
 
 	double attenuation;
 
-	attenuation = getAttenuationNR(ueId, dir, ueCoord, enbCoord); // dB
+	attenuation = getAttenuationNR(ueId, dir, ueCoord, enbCoord, recordStats); // dB
 
 	//compute attenuation (PATHLOSS + SHADOWING)
 	recvPower -= attenuation; // (dBm-dB)=dBm
@@ -588,9 +648,9 @@ std::vector<double> NRRealisticChannelModel::getSINR(LteAirFrame *frame, UserCon
 	// prepare data structure
 	multiCellInterference.resize(band_, 0);
 	if (enableDownlinkInterference_ && dir == DL) {
-		computeDownlinkInterference(eNbId, ueId, ueCoord, (lteInfo->getFrameType() == FEEDBACKPKT), rbmap, &multiCellInterference);
+		computeDownlinkInterference(eNbId, ueId, ueCoord, (lteInfo->getFrameType() == FEEDBACKPKT || lteInfo->getFrameType() == HANDOVERPKT), rbmap, &multiCellInterference);
 	} else if (enableUplinkInterference_ && dir == UL) {
-		computeUplinkInterference(eNbId, ueId, (lteInfo->getFrameType() == FEEDBACKPKT), rbmap, &multiCellInterference);
+		computeUplinkInterference(eNbId, ueId, (lteInfo->getFrameType() == FEEDBACKPKT || lteInfo->getFrameType() == HANDOVERPKT), rbmap, &multiCellInterference);
 	}
 
 	//============ EXTCELL INTERFERENCE COMPUTATION =================
@@ -626,11 +686,13 @@ std::vector<double> NRRealisticChannelModel::getSINR(LteAirFrame *frame, UserCon
 		snrVector[i] -= den;
 	}
 
-	updatePositionHistory(ueId, ueCoord);
+	if (ueId >= UE_MIN_ID && ueId <= UE_MAX_ID) {
+		updatePositionHistory(ueId, ueCoord);
+	}
 
 	if (lastStatisticRecord != NOW) {
 		lastStatisticRecord = NOW;
-		if (ueId != 0) {
+		if (ueId != 0 && recordStats) {
 			if (isNodeB_) {
 
 				NRPhyGnb *nrPhy = check_and_cast<NRPhyGnb*>(getSimulation()->getModule(binder_->getOmnetId(eNbId))->getSubmodule("lteNic")->getSubmodule("phy"));
@@ -663,7 +725,7 @@ std::vector<double> NRRealisticChannelModel::getSINR(LteAirFrame *frame, UserCon
 	return snrVector;
 }
 
-void NRRealisticChannelModel::computeLosProbabilityNR(const double &d2d, const MacNodeId &nodeId) {
+void NRRealisticChannelModel::computeLosProbabilityNR(const double &d2d, const MacNodeId &nodeId, bool recordStats) {
 	//std::cout << "NRRealisticChannelModel::computeLosProbabilityNR start at " << simTime().dbl() << std::endl;
 
 	double p = 0;
@@ -713,7 +775,7 @@ void NRRealisticChannelModel::computeLosProbabilityNR(const double &d2d, const M
 	case RMa_B:
 		if (d2d <= 10)
 			p = 1;
-		else if (10 <= d2d)
+		else if (10 < d2d)
 			p = exp(-((d2d - 10) / 1000));
 		else
 			throw cRuntimeError("Error NLOS RMaA/RMaB loss model wrong distance (2d)");
@@ -723,15 +785,22 @@ void NRRealisticChannelModel::computeLosProbabilityNR(const double &d2d, const M
 		throw cRuntimeError("Wrong path-loss scenario value %d", scenario_);
 	}
 	double random = omnetpp::uniform(getEnvir()->getRNG(0), 0.0, 1.0);
-	if (random <= p)
+	if (random <= p) {
 		losMap_[nodeId] = true;
-	else
+		if (recordStats)
+			getNRBinder()->incrementLosDetected();
+	} else {
 		losMap_[nodeId] = false;
+		if (recordStats)
+			getNRBinder()->incrementNlosDetected();
+	}
 
 	//std::cout << "NRRealisticChannelModel::computeLosProbabilityNR end at " << simTime().dbl() << std::endl;
 }
-
-double NRRealisticChannelModel::getAttenuationNR(const MacNodeId &nodeId, const Direction &dir, const Coord &uecoord, const Coord &enodebcoord) {
+/*
+ *
+ */
+double NRRealisticChannelModel::getAttenuationNR(const MacNodeId &nodeId, const Direction &dir, const Coord &uecoord, const Coord &enodebcoord, bool recordStats) {
 	//std::cout << "NRRealisticChannelModel::getAttenuationNR start at " << simTime().dbl() << std::endl;
 
 	double movement = .0;
@@ -739,23 +808,29 @@ double NRRealisticChannelModel::getAttenuationNR(const MacNodeId &nodeId, const 
 
 	double d3ddistance = enodebcoord.distance(uecoord);
 	double d2ddistance = sqrt(pow(enodebcoord.x - uecoord.x, 2) + pow(enodebcoord.y - uecoord.y, 2));
-	losMap_.erase(nodeId); //ensure that no old LOS evaluation is used
 
-	if (dir == DL)
-		speed = computeSpeed(nodeId, uecoord, movement);
-	else
-		speed = computeSpeed(nodeId, enodebcoord, movement);
+	speed = computeSpeed(nodeId, uecoord, movement);
 
 	//If traveled distance is greater than correlation distance UE could have changed its state and
 	// its visibility from eNodeb, hence it is correct to recompute the los probability
-	if (dynamicNlos_) {
-		//todo 2D / 3D
-		bool nlos = getNRBinder()->checkIsNLOS(uecoord, enodebcoord, hBuilding_);
-		losMap_[nodeId] = !nlos;
-	}
+	if (dynamicNlos_ && (movement >= correlationDistance_ || losMap_.find(nodeId) == losMap_.end())) {
+		bool nlos;
 
-	if (movement > correlationDistance_ || losMap_.find(nodeId) == losMap_.end()) { // use NLOS Probability of the ITU-ChannelModels
-		computeLosProbabilityNR(d2ddistance, nodeId);
+		if (dir == DL) {
+			nlos = getNRBinder()->checkIsNLOS(enodebcoord, uecoord, hBuilding_, NlosEvaluationIn3D);	//use veinsObstacleControl for NLOS evaluation
+		} else {
+			nlos = getNRBinder()->checkIsNLOS(uecoord, enodebcoord, hBuilding_, NlosEvaluationIn3D);	//use veinsObstacleControl for NLOS evaluation
+		}
+
+		losMap_[nodeId] = !nlos;
+		if (recordStats) {
+			if (nlos)
+				getNRBinder()->incrementNlosDetected();
+			else
+				getNRBinder()->incrementLosDetected();
+		}
+	} else if (movement >= correlationDistance_ || losMap_.find(nodeId) == losMap_.end()) { // use NLOS Probability of the ITU-ChannelModels
+		computeLosProbabilityNR(d2ddistance, nodeId, recordStats);
 	}
 
 	double attenuation = 0.0;
@@ -840,7 +915,9 @@ double NRRealisticChannelModel::getAttenuationNR(const MacNodeId &nodeId, const 
 
 // update current user position
 
-	updatePositionHistory(nodeId, uecoord);
+	if (nodeId >= UE_MIN_ID && nodeId <= UE_MAX_ID) {
+		updatePositionHistory(nodeId, uecoord);
+	}
 
 	//EV << "NRRealisticChannelModel::getAttenuation - computed attenuation at distance(2d) " << d2ddistance << " (3d) " << d3ddistance << " for eNb is " << attenuation << endl;
 
@@ -1336,7 +1413,7 @@ double NRRealisticChannelModel::computeUMaA(double &d3d, double &d2d, const MacN
 		double plumaNlos;
 
 		if (0.5 <= carrierFrequency_ && carrierFrequency_ <= 6) {
-			if (!(10 < d2d && d2d < 5000 && wStreet_ == 20 /*&& hBuilding_ == 20*/))
+			if (!(10 <= d2d && d2d <= 5000 && wStreet_ == 20 /*&& hBuilding_ == 20*/))
 				throw cRuntimeError("Error LOS UMaA path loss model --> d2d, wStreet or hBuidling not valid");
 			plumaLos = computePLumaLos(d3d, d2d);
 			plumaNlos = 161.04 - 7.1 * log10(wStreet_) + 7.5 * log10(hBuilding_) - (24.37 - 3.7 * pow(hBuilding_ / hNodeB_, 2)) * log10(hNodeB_) + (43.42 - 3.1 * log10(hNodeB_)) * (log10(d3d) - 3)
@@ -1488,7 +1565,7 @@ bool NRRealisticChannelModel::isCorrupted(LteAirFrame *frame, UserControlInfo *l
 		MacNodeId enbId = binder_->getNextHop(lteInfo->getSourceId());
 		snrV = getSINR_D2D(frame, lteInfo, destId, destCoord, enbId);
 	} else {
-		snrV = getSINR(frame, lteInfo);
+		snrV = getSINR(frame, lteInfo, true);
 	}
 
 	//Get the resource Block id used to transmist this packet
@@ -1683,7 +1760,7 @@ bool NRRealisticChannelModel::computeMultiCellInterferenceNR(const MacNodeId &eN
 
 		// compute attenuation using data structures within the cell
 
-		att = dynamic_cast<NRRealisticChannelModel*>((*it)->realChan)->getAttenuationNR(ueId, UL, ueCoord, enbCoord);
+		att = dynamic_cast<NRRealisticChannelModel*>((*it)->realChan)->getAttenuationNR(ueId, UL, ueCoord, enbCoord, false);
 		//EV << "EnbId [" << id << "] - attenuation [" << att << "]" << endl;
 
 		//=============== angular ATTENUATION =================
@@ -1740,7 +1817,7 @@ bool NRRealisticChannelModel::computeMultiCellInterferenceNR(const MacNodeId &eN
 }
 
 //NEW
-bool NRRealisticChannelModel::computeDownlinkInterference(MacNodeId eNbId, MacNodeId ueId, Coord ueCoord, bool isCqi, const RbMap &rbmap, std::vector<double> *interference) {
+bool NRRealisticChannelModel::computeDownlinkInterference(MacNodeId eNbId, MacNodeId ueId, Coord ueCoord, bool isCqi, RbMap rbmap, std::vector<double> *interference) {
 	//EV << "**** Downlink Interference ****" << endl;
 
 	// reference to the mac/phy/channel of each cell
@@ -1763,8 +1840,7 @@ bool NRRealisticChannelModel::computeDownlinkInterference(MacNodeId eNbId, MacNo
 		}
 
 		// initialize eNb data structures
-		Coord enbCoord;
-		if (true) {
+		if (!(*it)->init) {
 			// obtain a reference to enb phy and obtain tx power
 			ltePhy = check_and_cast<LtePhyBase*>(getSimulation()->getModule(binder_->getOmnetId(id))->getSubmodule("lteNic")->getSubmodule("phy"));
 			(*it)->txPwr = ltePhy->getTxPwr(); //dBm
@@ -1777,7 +1853,8 @@ bool NRRealisticChannelModel::computeDownlinkInterference(MacNodeId eNbId, MacNo
 
 			// get real Channel
 			(*it)->realChan = dynamic_cast<NRRealisticChannelModel*>(ltePhy->getChannelModel());
-			enbCoord = dynamic_cast<NRRealisticChannelModel*>((*it)->realChan)->getMyPosition();
+
+			(*it)->position = dynamic_cast<NRRealisticChannelModel*>((*it)->realChan)->getMyPosition();
 
 			//get reference to mac layer
 			(*it)->mac = check_and_cast<NRMacGnb*>(getMacByMacNodeId(id));
@@ -1786,7 +1863,7 @@ bool NRRealisticChannelModel::computeDownlinkInterference(MacNodeId eNbId, MacNo
 		}
 
 		// compute attenuation using data structures within the cell
-		att = dynamic_cast<NRRealisticChannelModel*>((*it)->realChan)->getAttenuationNR(ueId, UL, ueCoord, enbCoord);
+		att = dynamic_cast<NRRealisticChannelModel*>((*it)->realChan)->getAttenuationNR(ueId, DL, ueCoord, (*it)->position, false);
 		//EV << "EnbId [" << id << "] - attenuation [" << att << "]" << endl;
 
 		//=============== ANGOLAR ATTENUATION =================
@@ -1796,7 +1873,7 @@ bool NRRealisticChannelModel::computeDownlinkInterference(MacNodeId eNbId, MacNo
 			double txAngle = (*it)->txAngle;
 
 			// compute the angle between uePosition and reference axis, considering the eNb as center
-			double ueAngle = computeAngle(dynamic_cast<NRRealisticChannelModel*>((*it)->realChan)->myCoord3d, ueCoord);
+			double ueAngle = computeAngle((*it)->position, ueCoord);
 
 			// compute the reception angle between ue and eNb
 			double recvAngle = fabs(txAngle - ueAngle);
@@ -1816,7 +1893,6 @@ bool NRRealisticChannelModel::computeDownlinkInterference(MacNodeId eNbId, MacNo
 		{
 			for (unsigned int i = 0; i < band_; i++) {
 				// compute the number of occupied slot (unnecessary)
-//               temp = (*it)->mac->getDlBandStatus(i);
 				temp = (*it)->mac->getDlBandStatus(i);
 				if (temp != 0)
 					(*interference)[i] += dBmToLinear(txPwr - att);       //(dBm-dB)=dBm
@@ -1828,11 +1904,10 @@ bool NRRealisticChannelModel::computeDownlinkInterference(MacNodeId eNbId, MacNo
 			for (unsigned int i = 0; i < band_; i++) {
 				// if we are decoding a data transmission and this RB has not been used, skip it
 				// TODO fix for multi-antenna case
-//               if (rbmap.at(MACRO).at(i) == 0)
-//                   continue;
+				if (rbmap[MACRO][i] == 0)
+					continue;
 
 				// compute the number of occupied slot (unnecessary)
-//               temp = (*it)->mac->getDlPrevBandStatus(i);
 				temp = (*it)->mac->getDlPrevBandStatus(i);
 				if (temp != 0)
 					(*interference)[i] += dBmToLinear(txPwr - att);               //(dBm-dB)=dBm
@@ -1846,7 +1921,7 @@ bool NRRealisticChannelModel::computeDownlinkInterference(MacNodeId eNbId, MacNo
 	return true;
 }
 
-bool NRRealisticChannelModel::computeUplinkInterference(MacNodeId eNbId, MacNodeId senderId, bool isCqi, const RbMap &rbmap, std::vector<double> *interference) {
+bool NRRealisticChannelModel::computeUplinkInterference(MacNodeId eNbId, MacNodeId senderId, bool isCqi, RbMap rbmap, std::vector<double> *interference) {
 //   EV << "**** Uplink Interference for cellId[" << eNbId << "] node["<<senderId<<"] ****" << endl;
 
 	const std::vector<UeAllocationInfo> *allocatedUes;
@@ -1869,7 +1944,7 @@ bool NRRealisticChannelModel::computeUplinkInterference(MacNodeId eNbId, MacNode
 				if (binder_->getOmnetId(ueId) == 0)
 					continue;
 
-				LtePhyBase *uePhy = check_and_cast<LtePhyBase*>(ue_it->phy);
+				LtePhyUe *uePhy = check_and_cast<LtePhyUe*>(ue_it->phy);
 				Direction dir = ue_it->dir;
 
 				// no self interference
@@ -1884,8 +1959,9 @@ bool NRRealisticChannelModel::computeUplinkInterference(MacNodeId eNbId, MacNode
 
 				// get tx power and attenuation from this UE
 				double txPwr = uePhy->getTxPwr(dir) - cableLoss_ + antennaGainUe_ + antennaGainEnB_;
-				LtePhyBase *gNodeBPhy = check_and_cast<LtePhyBase*>(getBinder()->getMacFromMacNodeId(cellId)->getParentModule()->getSubmodule("phy", 0));
-				double att = getAttenuationNR(ueId, UL, uePhy->getCoord(), gNodeBPhy->getCoord());
+				LtePhyBase *gNodeBPhy = check_and_cast<LtePhyBase*>(getBinder()->getMacFromMacNodeId(eNbId)->getParentModule()->getSubmodule("phy", 0));
+				double att = getAttenuationNR(ueId, UL, check_and_cast<NRRealisticChannelModel*>(uePhy->getChannelModel())->getMyPosition(),
+						check_and_cast<NRRealisticChannelModel*>(gNodeBPhy->getChannelModel())->getMyPosition(), false);
 				(*interference)[i] += dBmToLinear(txPwr - att); //(dBm-dB)=dBm
 
 				//EV << "\t band " << i << "/pwr[" << txPwr-att << "]-int[" << (*interference)[i] << "]" << endl;
@@ -1897,10 +1973,11 @@ bool NRRealisticChannelModel::computeUplinkInterference(MacNodeId eNbId, MacNode
 		for (unsigned int i = 0; i < band_; i++) {
 			// if we are decoding a data transmission and this RB has not been used, skip it
 			// TODO fix for multi-antenna case
-			if (rbmap.at(MACRO).at(i) == 0)
+			if (rbmap[MACRO][i] == 0)
 				continue;
 
 			allocatedUes = binder_->getUlTransmissionMap(PREV_TTI, i);
+
 			if (allocatedUes->empty()) // no UEs allocated on this band
 				continue;
 
@@ -1928,8 +2005,9 @@ bool NRRealisticChannelModel::computeUplinkInterference(MacNodeId eNbId, MacNode
 
 				// get tx power and attenuation from this UE
 				double txPwr = uePhy->getTxPwr(dir) - cableLoss_ + antennaGainUe_ + antennaGainEnB_;
-				LtePhyBase *gNodeBPhy = check_and_cast<LtePhyBase*>(getBinder()->getMacFromMacNodeId(cellId)->getParentModule()->getSubmodule("phy", 0));
-				double att = getAttenuationNR(ueId, UL, uePhy->getCoord(), gNodeBPhy->getCoord());
+				LtePhyBase *gNodeBPhy = check_and_cast<LtePhyBase*>(getBinder()->getMacFromMacNodeId(eNbId)->getParentModule()->getSubmodule("phy", 0));
+				double att = getAttenuationNR(ueId, UL, check_and_cast<NRRealisticChannelModel*>(uePhy->getChannelModel())->getMyPosition(),
+						check_and_cast<NRRealisticChannelModel*>(gNodeBPhy->getChannelModel())->getMyPosition(), false);
 				(*interference)[i] += dBmToLinear(txPwr - att); //(dBm-dB)=dBm
 
 				//EV << "\t band " << i << "/pwr[" << txPwr-att << "]-int[" << (*interference)[i] << "]" << endl;

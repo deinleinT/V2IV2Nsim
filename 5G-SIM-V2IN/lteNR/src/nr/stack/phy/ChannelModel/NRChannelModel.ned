@@ -43,7 +43,7 @@ simple NRRealisticChannelModel extends LteRealisticChannelModel
     street_wide = default(20);
     ue_height = default(1.5);
     // Carrier Frequency (GHz) -->
-    carrierFrequency = default(4);
+    double carrierfrequency = default(4);
     // Antenna Gain of UE -->
     antennaGainUe = default(0);
     // Antenna Gain of eNodeB -->
@@ -88,6 +88,7 @@ simple NRRealisticChannelModel extends LteRealisticChannelModel
     correlation_distance = default(50);
 	
 	bool dynamicNlos = default(true);
+	bool NlosEvaluationIn3D = default(false);
 	bool veinsObstacleShadowing = default(false);
 	bool isNodeB;
 	useTorus = default(false);

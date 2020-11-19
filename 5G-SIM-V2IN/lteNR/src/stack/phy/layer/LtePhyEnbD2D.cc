@@ -38,7 +38,7 @@ void LtePhyEnbD2D::requestFeedback(UserControlInfo* lteinfo, LteAirFrame* frame,
 
     //Apply analog model (pathloss)
     //Get snr for UL direction
-    std::vector<double> snr = channelModel_->getSINR(frame, lteinfo);
+    std::vector<double> snr = channelModel_->getSINR(frame, lteinfo, true);
     FeedbackRequest req = lteinfo->feedbackReq;
     //Feedback computation
     fb_.clear();
@@ -94,7 +94,7 @@ void LtePhyEnbD2D::requestFeedback(UserControlInfo* lteinfo, LteAirFrame* frame,
             lteinfo->setDirection(DL);
 
             //Get snr for DL direction
-            snr = channelModel_->getSINR(frame, lteinfo);
+            snr = channelModel_->getSINR(frame, lteinfo, false);
 
             dir = DL;
         }

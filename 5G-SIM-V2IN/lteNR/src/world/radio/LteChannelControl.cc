@@ -51,7 +51,7 @@ double LteChannelControl::calcInterfDist()
     double interfDistance;
 
     //the carrier frequency used
-    double carrierFrequency = par("carrierFrequency");
+    double carrierFrequency = par("carrierFrequency").doubleValue() * 1000000000;
     //maximum transmission power possible
     double pMax = par("pMax");
     //signal attenuation threshold
