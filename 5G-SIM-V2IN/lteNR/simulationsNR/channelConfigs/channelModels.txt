@@ -9,7 +9,7 @@ INDOOR_HOTSPOT_EMMB: InH_A
 **.shadowing = true 
 **.nodeb_height = 3 
 **.ue_height = 1.5 
-**.channelModel.carrierFrequency = 4 
+**.carrierfrequency = 4 
 **.building_height = 20 
 **.street_wide = 20 
 **.antennaGainUe = 0 
@@ -45,7 +45,7 @@ InH_B
 **.shadowing = true 
 **.nodeb_height = 3 
 **.ue_height = 1.5 
-**.channelModel.carrierFrequency = 4 
+**.carrierfrequency = 4 
 **.building_height = 20 
 **.street_wide = 20 
 **.antennaGainUe = 0 
@@ -82,7 +82,7 @@ DENSE_URBAN_EMBB: UMa_A
 **.shadowing = true 
 **.nodeb_height = 25 
 **.ue_height = 1.5 
-**.channelModel.carrierFrequency = 2 
+**.carrierfrequency = 2 
 **.building_height = 20 
 **.street_wide = 20 
 **.antennaGainUe = 0 
@@ -118,7 +118,7 @@ UMa_B
 **.shadowing = true 
 **.nodeb_height = 25 
 **.ue_height = 1.5 
-**.channelModel.carrierFrequency = 4 
+**.carrierfrequency = 4 
 **.building_height = 20 
 **.street_wide = 20 
 **.antennaGainUe = 0 
@@ -154,7 +154,7 @@ UMi_A
 **.shadowing = true 
 **.nodeb_height = 25 
 **.ue_height = 1.5 
-**.channelModel.carrierFrequency = 2 
+**.carrierfrequency = 2 
 **.building_height = 20 
 **.street_wide = 20 
 **.antennaGainUe = 0 
@@ -189,7 +189,7 @@ UMi_B
 **.shadowing = true 
 **.nodeb_height = 10 
 **.ue_height = 5 
-**.channelModel.carrierFrequency = 4 
+**.carrierfrequency = 4 
 **.building_height = 20 
 **.street_wide = 20 
 **.antennaGainUe = 0 
@@ -229,7 +229,7 @@ RMa_A
 **.shadowing = true 
 **.nodeb_height = 35 
 **.ue_height = 1.5 
-**.channelModel.carrierFrequency = 4 
+**.carrierfrequency = 4 
 **.building_height = 5 
 **.street_wide = 20 
 **.antennaGainUe = 0 
@@ -265,7 +265,7 @@ RMa_B
 **.shadowing = true 
 **.nodeb_height = 35 
 **.ue_height = 1.5 
-**.channelModel.carrierFrequency = 4 
+**.carrierfrequency = 4 
 **.building_height = 5 
 **.street_wide = 20 
 **.antennaGainUe = 0 
@@ -303,7 +303,7 @@ UMa_A
 **.shadowing = true 
 **.nodeb_height = 25 
 **.ue_height = 1.5 
-**.channelModel.carrierFrequency = 0.7 
+**.carrierfrequency = 0.7 
 **.building_height = 20 
 **.street_wide = 20 
 **.antennaGainUe = 0 
@@ -339,7 +339,7 @@ UMa_B
 **.shadowing = true 
 **.nodeb_height = 25 
 **.ue_height = 1.5 
-**.channelModel.carrierFrequency = 0.7 
+**.carrierfrequency = 0.7 
 **.building_height = 20 
 **.street_wide = 20 
 **.antennaGainUe = 0 
@@ -377,7 +377,7 @@ UMa_A
 **.shadowing = true 
 **.nodeb_height = 25 
 **.ue_height = 1.5 
-**.channelModel.carrierFrequency = 4 
+**.carrierfrequency = 4 
 **.building_height = 20 
 **.street_wide = 20 
 **.antennaGainUe = 0 
@@ -415,7 +415,7 @@ UMa_A
 **.shadowing = true 
 **.nodeb_height = 25 
 **.ue_height = 1.5 
-**.channelModel.carrierFrequency = 4 
+**.carrierfrequency = 4 
 **.building_height = 20 
 **.street_wide = 20 
 **.antennaGainUe = 0 
