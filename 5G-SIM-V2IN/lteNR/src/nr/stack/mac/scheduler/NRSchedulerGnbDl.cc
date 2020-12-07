@@ -74,8 +74,8 @@ bool NRSchedulerGnbDl::rtxschedule() {
 	// retrieving reference to HARQ entities
 	HarqTxBuffers *harqQueues = mac_->getHarqTxBuffers();
 
-	HarqTxBuffers::iterator it = harqQueues->begin();
-	HarqTxBuffers::iterator et = harqQueues->end();
+	HarqTxBuffers::const_iterator it = harqQueues->begin();
+	HarqTxBuffers::const_iterator et = harqQueues->end();
 
 	std::vector<BandLimit> usableBands;
 

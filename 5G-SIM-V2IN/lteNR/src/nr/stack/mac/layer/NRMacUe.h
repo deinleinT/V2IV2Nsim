@@ -69,10 +69,10 @@ public:
 		Enter_Method_Silent
 		();
 
-		std::map<unsigned char, LteSchedulingGrant*>::iterator it;
+		std::map<unsigned char, LteSchedulingGrant*>::const_iterator it;
 		for (it = schedulingGrantMap.begin(); it != schedulingGrantMap.end();) {
 			delete it->second;
-			schedulingGrantMap.erase(it++);
+			it = schedulingGrantMap.erase(it);
 		}
 
 		if (schedulingGrant_ != NULL) {

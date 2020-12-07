@@ -188,11 +188,11 @@ void NRPdcpRrcGnb::resetConnectionTable(MacNodeId masterId, MacNodeId nodeId) {
     //dir --> UL: UE is source, gNB is dest
     //    --> DL: UD is dest, gNB is
 
-    PdcpEntities::iterator it;
+    PdcpEntities::const_iterator it;
     for(it = entities_.begin();it != entities_.end();){
         if (nodeId == it->second->getUeId()) {
             delete it->second;
-            entities_.erase(it++);
+            it = entities_.erase(it);
         } else {
             ++it;
         }

@@ -2258,7 +2258,7 @@ void TrafficGeneratorServerDL::sendPacket() {
 
 	simtime_t nextSelfMsgTime = NOW + par("sendInterval").doubleValue() + uniform(0, par("resendingDelay").doubleValue());
 
-	auto itr = names.begin();
+	std::set<std::string>::const_iterator itr = names.begin();
 	while (itr != names.end()) {
 
 		std::string carName = *itr;
