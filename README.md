@@ -44,7 +44,7 @@ We tested the framework with Linux Mint 18.3, 19.3 and Ubuntu 18.04 (we use gcc/
 3. 3D-Evaluation: In the first place, the 2D evaluation is used to detect buildings in 2D (see 2.). Each coordinate where a 2D intersection with a building edge between sender and receiver is detected, will be checked in the 3D case. The channel model needs the building height to calculate the path loss. Sender and receiver have 3D-coordinates, because the heigth of antennas is also considered for the path loss calculation. If the determined z-coordinate of the intersection is lower than the building height, the sender and the receiver are in the NLos case, vice-versa otherwise. Usage: Set *dynamicNlos = true and NlosEvaluationIn3D = true* in omnetpp.ini.
 
 ### Change log v0.3.1:
-* Upgrade Veins to version 5.1 and integrated the roadCanvasVisualizer into the default scenarios.
+* Upgraded Veins to version 5.1 and integrated the roadCanvasVisualizer into the default scenarios.
 
 **MORE INFORMATION IS COMING SOON**
 
