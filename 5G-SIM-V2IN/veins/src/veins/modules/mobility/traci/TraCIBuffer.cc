@@ -99,6 +99,16 @@ void TraCIBuffer::write(std::string inv)
 }
 
 template <>
+void TraCIBuffer::write(std::list<std::string> inv)
+{
+    int32_t numElem = inv.size();
+    write(numElem);
+    for (std::list<std::string>::const_iterator i = inv.begin(); i != inv.end(); ++i) {
+        write(static_cast<std::string>(*i));
+    }
+}
+
+template <>
 std::string TraCIBuffer::read()
 {
     uint32_t length = read<uint32_t>();
@@ -114,7 +124,9 @@ std::string TraCIBuffer::read()
 template <>
 void TraCIBuffer::write(TraCICoord inv)
 {
+#if (VEINS_VERSION_MAJOR == 5)
     write<uint8_t>(POSITION_2D);
+#endif
     write<double>(inv.x);
     write<double>(inv.y);
 }
@@ -122,8 +134,10 @@ void TraCIBuffer::write(TraCICoord inv)
 template <>
 TraCICoord TraCIBuffer::read()
 {
+#if (VEINS_VERSION_MAJOR == 5)
     uint8_t posType = read<uint8_t>();
     ASSERT(posType == POSITION_2D);
+#endif
 
     TraCICoord p;
     p.x = read<double>();

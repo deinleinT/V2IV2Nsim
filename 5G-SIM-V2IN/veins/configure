@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 #
 # Copyright (C) 2013-2019 Christoph Sommer <sommer@ccs-labs.org>
@@ -29,17 +29,24 @@ Creates Makefile(s) for building this project.
 import os
 import sys
 import subprocess
+import logging
 from logging import info, warning, error
 from optparse import OptionParser
 
-
-if sys.version_info[0] == 3:
-    warning("Warning: running configure with python3 might result in subtle errors.")
+# check python version
+if sys.version_info[0] < 3:
+    warning("Warning: running configure with Python 2 might result in subtle errors.")
 
 # Option handling
 parser = OptionParser()
+parser.add_option("-v", "--verbose", dest="count_verbose", default=0, action="count", help="increase verbosity [default: don't log infos, debug]")
+parser.add_option("-q", "--quiet", dest="count_quiet", default=0, action="count", help="decrease verbosity [default: log warnings, errors]")
 parser.add_option("--with-inet", dest="inet", help='Option discontinued in favor of a subproject in subprojects/veins_inet/')
 (options, args) = parser.parse_args()
+
+_LOGLEVELS = (logging.ERROR, logging.WARN, logging.INFO, logging.DEBUG)
+loglevel = _LOGLEVELS[max(0, min(1 + options.count_verbose - options.count_quiet, len(_LOGLEVELS)-1))]
+logging.basicConfig(level=loglevel)
 
 if args:
     warning("Superfluous command line arguments: \"%s\"" % " ".join(args))

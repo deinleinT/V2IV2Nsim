@@ -64,9 +64,10 @@ class MobileHostObstacle;
  * @see TraCIScenarioManagerLaunchd
  *
  */
-class VEINS_API TraCIScenarioManager: public cSimpleModule {
+class VEINS_API TraCIScenarioManager : public cSimpleModule {
 public:
     static const simsignal_t traciInitializedSignal;
+    static const simsignal_t traciModulePreInitSignal;
     static const simsignal_t traciModuleAddedSignal;
     static const simsignal_t traciModuleRemovedSignal;
     static const simsignal_t traciTimestepBeginSignal;
@@ -80,26 +81,31 @@ public:
     }
     void initialize(int stage) override;
     void finish() override;
-    void handleMessage(cMessage *msg) override;
-    virtual void handleSelfMsg(cMessage *msg);
+    void handleMessage(cMessage* msg) override;
+    virtual void handleSelfMsg(cMessage* msg);
 
-    bool isConnected() const {
+    bool isConnected() const
+    {
         return static_cast<bool>(connection);
     }
 
-    TraCICommandInterface* getCommandInterface() const {
+    TraCICommandInterface* getCommandInterface() const
+    {
         return commandIfc.get();
     }
 
-    TraCIConnection* getConnection() const {
+    TraCIConnection* getConnection() const
+    {
         return connection.get();
     }
 
-    bool getAutoShutdownTriggered() {
+    bool getAutoShutdownTriggered()
+    {
         return autoShutdownTriggered;
     }
 
-    const std::map<std::string, cModule*>& getManagedHosts() {
+    const std::map<std::string, cModule*>& getManagedHosts()
+    {
         return hosts;
     }
 
@@ -108,7 +114,8 @@ public:
      *
      * @note Once the connection has been established, this will return true even when the connection has been torn down again.
      */
-    bool isUsable() const {
+    bool isUsable() const
+    {
         return traciInitialized;
     }
 
@@ -123,16 +130,19 @@ public:
         }
         return false;
     }
+
     virtual bool deleteRemoteVehicle(std::string carName) {
-        std::set<std::string>::iterator it = remoteVehicles.begin();
+        std::set<std::string>::const_iterator it = remoteVehicles.begin();
+        //auto it=remoteVehicles.begin();
         while (it != remoteVehicles.end()) {
             if (carName.compare(*it) == 0) {
-                remoteVehicles.erase(carName);
-                it = remoteVehicles.begin();
-            } else{
+                it = remoteVehicles.erase(it);
+                return true;
+            } else {
                 ++it;
             }
         }
+        return false;
     }
 
 protected:
@@ -159,7 +169,7 @@ protected:
     TraCIRegionOfInterest roi; /**< Can return whether a given position lies within the simulation's region of interest. Modules are destroyed and re-created as managed vehicles leave and re-enter the ROI */
     double areaSum;
 
-    AnnotationManager *annotations;
+    AnnotationManager* annotations;
     std::unique_ptr<TraCIConnection> connection;
     std::unique_ptr<TraCICommandInterface> commandIfc;
 
@@ -172,29 +182,20 @@ protected:
     uint32_t parkingVehicleCount; /**< number of parking vehicles, derived from parking start/end events */
     uint32_t drivingVehicleCount; /**< number of driving, as reported by sumo */
     bool autoShutdownTriggered;
-    cMessage *connectAndStartTrigger; /**< self-message scheduled for when to connect to TraCI server and start running */
-    cMessage *executeOneTimestepTrigger; /**< self-message scheduled for when to next call executeOneTimestep */
+    cMessage* connectAndStartTrigger; /**< self-message scheduled for when to connect to TraCI server and start running */
+    cMessage* executeOneTimestepTrigger; /**< self-message scheduled for when to next call executeOneTimestep */
 
-    BaseWorldUtility *world;
+    BaseWorldUtility* world;
     std::map<const BaseMobility*, const MobileHostObstacle*> vehicleObstacles;
-    VehicleObstacleControl *vehicleObstacleControl;
+    VehicleObstacleControl* vehicleObstacleControl;
 
     void executeOneTimestep(); /**< read and execute all commands for the next timestep */
 
     virtual void init_traci();
 
-    virtual void preInitializeModule(cModule *mod, const std::string &nodeId,
-            const Coord &position, const std::string &road_id, double speed,
-            Heading heading, VehicleSignalSet signals);
-    virtual void updateModulePosition(cModule *mod, const Coord &p,
-            const std::string &edge, double speed, Heading heading,
-            VehicleSignalSet signals);
-    void addModule(std::string nodeId, std::string type, std::string name,
-            std::string displayString, const Coord &position,
-            std::string road_id = "", double speed = -1, Heading heading =
-                    Heading::nan, VehicleSignalSet signals = {
-                    VehicleSignal::undefined }, double length = 0,
-            double height = 0, double width = 0);
+    virtual void preInitializeModule(cModule* mod, const std::string& nodeId, const Coord& position, const std::string& road_id, double speed, Heading heading, VehicleSignalSet signals);
+    virtual void updateModulePosition(cModule* mod, const Coord& p, const std::string& edge, double speed, Heading heading, VehicleSignalSet signals);
+    void addModule(std::string nodeId, std::string type, std::string name, std::string displayString, const Coord& position, std::string road_id = "", double speed = -1, Heading heading = Heading::nan, VehicleSignalSet signals = {VehicleSignal::undefined}, double length = 0, double height = 0, double width = 0);
     cModule* getManagedModule(std::string nodeId); /**< returns a pointer to the managed module named moduleName, or 0 if no module can be found */
     void deleteManagedModule(std::string nodeId);
 
@@ -202,14 +203,13 @@ protected:
 
     void subscribeToVehicleVariables(std::string vehicleId);
     void unsubscribeFromVehicleVariables(std::string vehicleId);
-    void processSimSubscription(std::string objectId, TraCIBuffer &buf);
-    void processVehicleSubscription(std::string objectId, TraCIBuffer &buf);
-    void processSubcriptionResult(TraCIBuffer &buf);
+    void processSimSubscription(std::string objectId, TraCIBuffer& buf);
+    void processVehicleSubscription(std::string objectId, TraCIBuffer& buf);
+    void processSubcriptionResult(TraCIBuffer& buf);
 
     void subscribeToTrafficLightVariables(std::string tlId);
     void unsubscribeFromTrafficLightVariables(std::string tlId);
-    void processTrafficLightSubscription(std::string objectId,
-            TraCIBuffer &buf);
+    void processTrafficLightSubscription(std::string objectId, TraCIBuffer& buf);
     /**
      * parses the vector of module types in ini file
      *
@@ -220,8 +220,7 @@ protected:
     /**
      * transforms a list of mappings of an omnetpp.ini parameter in a list
      */
-    TypeMapping parseMappings(std::string parameter, std::string parameterName,
-            bool allowEmpty = false);
+    TypeMapping parseMappings(std::string parameter, std::string parameterName, bool allowEmpty = false);
 
     virtual int getPortNumber() const;
 
@@ -232,10 +231,10 @@ protected:
 
 class VEINS_API TraCIScenarioManagerAccess {
 public:
-    TraCIScenarioManager* get() {
+    TraCIScenarioManager* get()
+    {
         return FindModule<TraCIScenarioManager*>::findGlobalModule();
-    }
-    ;
+    };
 };
 
 } // namespace veins

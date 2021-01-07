@@ -28,13 +28,17 @@ using namespace veins;
 
 using veins::Obstacle;
 
-Obstacle::Obstacle(std::string id, std::string type, double attenuationPerCut,
-        double attenuationPerMeter) :
-        visualRepresentation(nullptr), id(id), type(type), attenuationPerCut(
-                attenuationPerCut), attenuationPerMeter(attenuationPerMeter) {
+Obstacle::Obstacle(std::string id, std::string type, double attenuationPerCut, double attenuationPerMeter)
+    : visualRepresentation(nullptr)
+    , id(id)
+    , type(type)
+    , attenuationPerCut(attenuationPerCut)
+    , attenuationPerMeter(attenuationPerMeter)
+{
 }
 
-void Obstacle::setShape(Coords shape) {
+void Obstacle::setShape(Coords shape)
+{
     coords = shape;
     bboxP1 = Coord(1e7, 1e7);
     bboxP2 = Coord(-1e7, -1e7);
@@ -46,33 +50,34 @@ void Obstacle::setShape(Coords shape) {
     }
 }
 
-const Obstacle::Coords& Obstacle::getShape() const {
+const Obstacle::Coords& Obstacle::getShape() const
+{
     return coords;
 }
 
-const Coord Obstacle::getBboxP1() const {
+const Coord Obstacle::getBboxP1() const
+{
     return bboxP1;
 }
 
-const Coord Obstacle::getBboxP2() const {
+const Coord Obstacle::getBboxP2() const
+{
     return bboxP2;
 }
 
-bool Obstacle::containsPoint(Coord point) const {
+bool Obstacle::containsPoint(Coord point) const
+{
     bool isInside = false;
-    const Obstacle::Coords &shape = getShape();
+    const Obstacle::Coords& shape = getShape();
     Obstacle::Coords::const_iterator i = shape.begin();
     Obstacle::Coords::const_iterator j = (shape.rbegin() + 1).base();
     for (; i != shape.end(); j = i++) {
         bool inYRangeUp = (point.y >= i->y) && (point.y < j->y);
         bool inYRangeDown = (point.y >= j->y) && (point.y < i->y);
         bool inYRange = inYRangeUp || inYRangeDown;
-        if (!inYRange)
-            continue;
-        bool intersects = point.x
-                < (i->x + ((point.y - i->y) * (j->x - i->x) / (j->y - i->y)));
-        if (!intersects)
-            continue;
+        if (!inYRange) continue;
+        bool intersects = point.x < (i->x + ((point.y - i->y) * (j->x - i->x) / (j->y - i->y)));
+        if (!intersects) continue;
         isInside = !isInside;
     }
     return isInside;
@@ -80,8 +85,8 @@ bool Obstacle::containsPoint(Coord point) const {
 
 namespace {
 
-double segmentsIntersectAt(const Coord &p1From, const Coord &p1To,
-        const Coord &p2From, const Coord &p2To) {
+double segmentsIntersectAt(const Coord& p1From, const Coord& p1To, const Coord& p2From, const Coord& p2To)
+{
     double p1x = p1To.x - p1From.x;
     double p1y = p1To.y - p1From.y;
     double p2x = p2To.x - p2From.x;
@@ -92,12 +97,10 @@ double segmentsIntersectAt(const Coord &p1From, const Coord &p1To,
     double D = (p1x * p2y - p1y * p2x);
 
     double p1Frac = (p2x * p1p2y - p2y * p1p2x) / D;
-    if (p1Frac < 0 || p1Frac > 1)
-        return -1;
+    if (p1Frac < 0 || p1Frac > 1) return -1;
 
     double p2Frac = (p1x * p1p2y - p1y * p1p2x) / D;
-    if (p2Frac < 0 || p2Frac > 1)
-        return -1;
+    if (p2Frac < 0 || p2Frac > 1) return -1;
 
     return p1Frac;
 }
@@ -132,15 +135,15 @@ Coord segmentsIntersectAtCoord(const Coord &sender, const Coord &receiver,
 
 } // namespace
 
-std::vector<double> Obstacle::getIntersections(const Coord &senderPos,
-        const Coord &receiverPos) const {
+std::vector<double> Obstacle::getIntersections(const Coord& senderPos, const Coord& receiverPos) const
+{
     std::vector<double> intersectAt;
-    const Obstacle::Coords &shape = getShape();
+    const Obstacle::Coords& shape = getShape();
     Obstacle::Coords::const_iterator i = shape.begin();
     Obstacle::Coords::const_iterator j = (shape.rbegin() + 1).base();
     for (; i != shape.end(); j = i++) {
-        const Coord &c1 = *i;
-        const Coord &c2 = *j;
+        const Coord& c1 = *i;
+        const Coord& c2 = *j;
 
         double i = segmentsIntersectAt(senderPos, receiverPos, c1, c2);
         if (i != -1) {
@@ -209,14 +212,17 @@ std::string Obstacle::getType() const {
     return type;
 }
 
-std::string Obstacle::getId() const {
+std::string Obstacle::getId() const
+{
     return id;
 }
 
-double Obstacle::getAttenuationPerCut() const {
+double Obstacle::getAttenuationPerCut() const
+{
     return attenuationPerCut;
 }
 
-double Obstacle::getAttenuationPerMeter() const {
+double Obstacle::getAttenuationPerMeter() const
+{
     return attenuationPerMeter;
 }

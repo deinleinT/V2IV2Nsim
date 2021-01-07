@@ -46,6 +46,7 @@ using veins::TraCITrafficLightInterface;
 Define_Module(veins::TraCIScenarioManager);
 
 const simsignal_t TraCIScenarioManager::traciInitializedSignal = registerSignal("org_car2x_veins_modules_mobility_traciInitialized");
+const simsignal_t TraCIScenarioManager::traciModulePreInitSignal = registerSignal("org_car2x_veins_modules_mobility_traciModulePreInit");
 const simsignal_t TraCIScenarioManager::traciModuleAddedSignal = registerSignal("org_car2x_veins_modules_mobility_traciModuleAdded");
 const simsignal_t TraCIScenarioManager::traciModuleRemovedSignal = registerSignal("org_car2x_veins_modules_mobility_traciModuleRemoved");
 const simsignal_t TraCIScenarioManager::traciTimestepBeginSignal = registerSignal("org_car2x_veins_modules_mobility_traciTimestepBegin");
@@ -65,8 +66,14 @@ TraCIScenarioManager::~TraCIScenarioManager()
     if (connection) {
         TraCIBuffer buf = connection->query(CMD_CLOSE, TraCIBuffer());
     }
-    cancelAndDelete(connectAndStartTrigger);
-    cancelAndDelete(executeOneTimestepTrigger);
+    if (connectAndStartTrigger) {
+        cancelAndDelete(connectAndStartTrigger);
+        connectAndStartTrigger = nullptr;
+    }
+    if (executeOneTimestepTrigger) {
+        cancelAndDelete(executeOneTimestepTrigger);
+        executeOneTimestepTrigger = nullptr;
+    }
 }
 
 namespace {
@@ -299,7 +306,7 @@ void TraCIScenarioManager::init_traci()
         // query and set road network boundaries
         auto networkBoundaries = commandInterface->initNetworkBoundaries(par("margin"));
         if (world != nullptr && ((connection->traci2omnet(networkBoundaries.second).x > world->getPgs()->x) || (connection->traci2omnet(networkBoundaries.first).y > world->getPgs()->y))) {
-            EV_DEBUG << "WARNING: Playground size (" << world->getPgs()->x << ", " << world->getPgs()->y << ") might be too small for vehicle at network bounds (" << connection->traci2omnet(networkBoundaries.second).x << ", " << connection->traci2omnet(networkBoundaries.first).y << ")" << endl;
+            EV_WARN << "WARNING: Playground size (" << world->getPgs()->x << ", " << world->getPgs()->y << ") might be too small for vehicle at network bounds (" << connection->traci2omnet(networkBoundaries.second).x << ", " << connection->traci2omnet(networkBoundaries.first).y << ")" << endl;
         }
     }
 
@@ -390,6 +397,11 @@ void TraCIScenarioManager::init_traci()
                 std::list<Coord> coords = commandInterface->polygon(id).getShape();
                 std::vector<Coord> shape;
                 std::copy(coords.begin(), coords.end(), std::back_inserter(shape));
+                for (auto p : shape) {
+                    if ((p.x < 0) || (p.y < 0) || (p.x > world->getPgs()->x) || (p.y > world->getPgs()->y)) {
+                        EV_WARN << "WARNING: Playground (" << world->getPgs()->x << ", " << world->getPgs()->y << ") will not fit radio obstacle at (" << p.x << ", " << p.y << ")" << endl;
+                    }
+                }
                 obstacles->addFromTypeAndShape(id, typeId, shape);
             }
         }
@@ -511,6 +523,8 @@ void TraCIScenarioManager::addModule(std::string nodeId, std::string type, std::
     mod->scheduleStart(simTime() + updateInterval);
 
     preInitializeModule(mod, nodeId, position, road_id, speed, heading, signals);
+
+    emit(traciModulePreInitSignal, mod);
 
     mod->callInitialize();
     hosts[nodeId] = mod;
@@ -865,7 +879,7 @@ void TraCIScenarioManager::processSimSubscription(std::string objectId, TraCIBuf
             ASSERT(varType == getCommandInterface()->getTimeType());
             simtime_t serverTimestep;
             buf >> serverTimestep;
-            EV_DEBUG << "TraCI reports current time step as " << serverTimestep << "ms." << endl;
+            EV_DEBUG << "TraCI reports current time step as " << serverTimestep << " s." << endl;
             simtime_t omnetTimestep = simTime();
             ASSERT(omnetTimestep == serverTimestep);
         }

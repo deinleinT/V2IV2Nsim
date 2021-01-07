@@ -125,7 +125,7 @@ public:
      * @param emitLane The new vehicle's lane. Special Also accepts special values from DepartLane.
      * @return Success indication
      */
-    bool addVehicle(std::string vehicleId, std::string vehicleTypeId, std::string routeId, simtime_t emitTime_st = DEPART_TIME_TRIGGERED, double emitPosition = DEPART_POSITION_BASE, double emitSpeed = DEPART_SPEED_MAX, int8_t emitLane = DEPART_LANE_BEST);
+    bool addVehicle(std::string vehicleId, std::string vehicleTypeId, std::string routeId, simtime_t emitTime_st = 0, double emitPosition = DEPART_POSITION_BASE, double emitSpeed = DEPART_SPEED_MAX, int8_t emitLane = DEPART_LANE_BEST);
     class VEINS_API Vehicle {
     public:
         Vehicle(TraCICommandInterface* traci, std::string nodeId)
@@ -159,6 +159,10 @@ public:
         double getHeight();
         double getAccel();
         double getDeccel();
+        double getSpeed();
+        double getAngle();
+        double getAcceleration();
+        double getDistanceTravelled();
 
         void setParameter(const std::string& parameter, int value);
         void setParameter(const std::string& parameter, double value);
@@ -246,6 +250,8 @@ public:
          */
         double getAccumulatedWaitingTime() const;
 
+        std::pair<std::string, double> getLeader(const double distance);
+
     protected:
         TraCICommandInterface* traci;
         TraCIConnection* connection;
@@ -296,6 +302,7 @@ public:
         double getLength();
         double getMaxSpeed();
         double getMeanSpeed();
+        void setDisallowed(std::list<std::string> disallowedClasses);
 
     protected:
         TraCICommandInterface* traci;
@@ -405,6 +412,7 @@ public:
             connection = &traci->connection;
         }
 
+        Coord getPosition();
         void remove(int32_t layer);
 
     protected:
@@ -465,6 +473,8 @@ public:
 
     // Vehicletype methods
     std::list<std::string> getVehicleTypeIds();
+    double getVehicleTypeMaxSpeed(std::string typeId);
+    void setVehicleTypeMaxSpeed(std::string typeId, double maxSpeed);
 
     // GuiView methods
     std::list<std::string> getGuiViewIds();
@@ -516,6 +526,7 @@ private:
     std::string genericGetString(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId, TraCIConnection::Result* result = nullptr);
     Coord genericGetCoord(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId, TraCIConnection::Result* result = nullptr);
     double genericGetDouble(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId, TraCIConnection::Result* result = nullptr);
+    void genericSetDouble(uint8_t commandId, std::string objectId, uint8_t variableId, double value);
     simtime_t genericGetTime(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId, TraCIConnection::Result* result = nullptr);
     int32_t genericGetInt(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId, TraCIConnection::Result* result = nullptr);
     std::list<std::string> genericGetStringList(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId, TraCIConnection::Result* result = nullptr);

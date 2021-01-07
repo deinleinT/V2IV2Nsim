@@ -66,11 +66,24 @@ simple Mac1609_4 extends BaseMacLayer
         int dot11LongRetryLimit = default(4);
         int ackLength @unit(bit) = default(112bit);
         bool useAcks = default(false);
-        double ackErrorRate = default(0.20);
+        // artificial drop rates for data frames and acknowledgements for testing purposes
+        double frameErrorRate = default(0);
+        double ackErrorRate = default(0);
 
         // signal informing interested application about channel busy state
         @signal[org_car2x_veins_modules_mac_sigChannelBusy](type=bool);
+        @statistic[channelBusy](source=org_car2x_veins_modules_mac_sigChannelBusy; record=timeavg, vector?);
         // signal informing interested application about a collision
         @signal[org_car2x_veins_modules_mac_sigCollision](type=bool);
+        @statistic[collisions](source=org_car2x_veins_modules_mac_sigCollision; record=count, vector?);
+        // signal informing interested application about a sent packet
+        @signal[org_car2x_veins_modules_mac_sigSentPacket](type=bool);
+        @statistic[sentPackets](source=org_car2x_veins_modules_mac_sigSentPacket; record=count, vector?);
+        // signal informing interested application about a sent ackknowledgement
+        @signal[org_car2x_veins_modules_mac_sigSentAck](type=bool);
+        @statistic[sentAcks](source=org_car2x_veins_modules_mac_sigSentAck; record=count, vector?);
+        // signal informing interested application about a failed unicast transmission, passing the frame for which transmission has failed
+        @signal[org_car2x_veins_modules_mac_sigRetriesExceeded](type=BaseFrame1609_4);
+        @statistic[retriesExceeded](source=org_car2x_veins_modules_mac_sigRetriesExceeded; record=count, vector?);
 
 }

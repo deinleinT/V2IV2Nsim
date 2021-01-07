@@ -20,16 +20,37 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-package org.car2x.veins.subprojects.veins_inet.example;
+package org.car2x.veins.subprojects.veins_inet.examples.veins_inet;
 
-import inet.physicallayer.ieee80211.packetlevel.Ieee80211ScalarRadioMedium;
+import inet.physicallayer.ieee80211.packetlevel.Ieee80211DimensionalRadioMedium;
 import org.car2x.veins.subprojects.veins_inet.VeinsInetCar;
 import org.car2x.veins.subprojects.veins_inet.VeinsInetManager;
+import inet.visualizer.integrated.IntegratedVisualizer;
+import inet.environment.common.PhysicalEnvironment;
+import org.car2x.veins.visualizer.roads.RoadsCanvasVisualizer;
+import org.car2x.veins.visualizer.roads.RoadsOsgVisualizer;
 
 network Scenario
 {
+    @display("bgb=319,384");
     submodules:
-        radioMedium: Ieee80211ScalarRadioMedium;
-        manager: VeinsInetManager;
+        radioMedium: Ieee80211DimensionalRadioMedium {
+            @display("p=64,224");
+        }
+        manager: VeinsInetManager {
+            @display("p=192,320");
+        }
+        visualizer: IntegratedVisualizer {
+            @display("p=64,320");
+        }
+        physicalEnvironment: PhysicalEnvironment {
+            @display("p=192,224");
+        }
+        roadsCanvasVisualizer: RoadsCanvasVisualizer {
+            @display("p=64,416");
+        }
+        roadsOsgVisualizer: RoadsOsgVisualizer {
+            @display("p=192,416");
+        }
         node[0]: VeinsInetCar;
 }

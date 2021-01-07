@@ -106,8 +106,19 @@ public:
      */
     const LAddress::L2Type& getMACAddress()
     {
+        Enter_Method_Silent();
         ASSERT(myMacAddr != LAddress::L2NULL());
         return myMacAddr;
+    }
+
+    /**
+     * @brief Sets the MAC address of this MAC module.
+     */
+    void setMACAddress(LAddress::L2Type macAddr)
+    {
+        Enter_Method_Silent();
+        ASSERT(macAddr != LAddress::L2BROADCAST() && macAddr != LAddress::L2NULL());
+        myMacAddr = macAddr;
     }
 
 protected:

@@ -39,7 +39,7 @@ BaseConnectionManager* ChannelAccess::getConnectionManager(cModule* nic)
 {
     std::string cmName = nic->hasPar("connectionManagerName") ? nic->par("connectionManagerName").stringValue() : "";
     if (cmName != "") {
-        cModule* ccModule = cSimulation::getActiveSimulation()->getModuleByPath(cmName.c_str());
+        cModule* ccModule = veins::findModuleByPath(cmName.c_str());
 
         return dynamic_cast<BaseConnectionManager*>(ccModule);
     }
@@ -82,56 +82,25 @@ void ChannelAccess::initialize(int stage)
 
 void ChannelAccess::sendToChannel(cPacket* msg)
 {
-    const NicEntry::GateList& gateList = cc->getGateList(getParentModule()->getId());
-    NicEntry::GateList::const_iterator i = gateList.begin();
+    EV_TRACE << "sendToChannel: sending to gates\n";
 
-    if (useSendDirect) {
-        // use Andras stuff
-        if (i != gateList.end()) {
-            simtime_t delay = SIMTIME_ZERO;
-            for (; i != --gateList.end(); ++i) {
-                // calculate delay (Propagation) to this receiving nic
-                delay = calculatePropagationDelay(i->first);
+    const auto& gateList = cc->getGateList(getParentModule()->getId());
 
-                int radioStart = i->second->getId();
-                int radioEnd = radioStart + i->second->size();
-                for (int g = radioStart; g != radioEnd; ++g) sendDirect(static_cast<cPacket*>(msg->dup()), delay, msg->getDuration(), i->second->getOwnerModule(), g);
+    for (auto&& entry : gateList) {
+        const auto gate = entry.second;
+        const auto propagationDelay = calculatePropagationDelay(entry.first);
+
+        if (useSendDirect) {
+            for (int gateIndex = gate->getBaseId(); gateIndex < gate->getBaseId() + gate->size(); gateIndex++) {
+                sendDirect(msg->dup(), propagationDelay, msg->getDuration(), gate->getOwnerModule(), gateIndex);
             }
-            // calculate delay (Propagation) to this receiving nic
-            delay = calculatePropagationDelay(i->first);
-
-            int radioStart = i->second->getId();
-            int radioEnd = radioStart + i->second->size();
-            for (int g = radioStart; g != --radioEnd; ++g) sendDirect(static_cast<cPacket*>(msg->dup()), delay, msg->getDuration(), i->second->getOwnerModule(), g);
-
-            sendDirect(msg, delay, msg->getDuration(), i->second->getOwnerModule(), radioEnd);
         }
         else {
-            EV_WARN << "Nic is not connected to any gates!" << endl;
-            delete msg;
+            sendDelayed(msg->dup(), propagationDelay, gate);
         }
     }
-    else {
-        // use our stuff
-        EV_TRACE << "sendToChannel: sending to gates\n";
-        if (i != gateList.end()) {
-            simtime_t delay = SIMTIME_ZERO;
-            for (; i != --gateList.end(); ++i) {
-                // calculate delay (Propagation) to this receiving nic
-                delay = calculatePropagationDelay(i->first);
-
-                sendDelayed(static_cast<cPacket*>(msg->dup()), delay, i->second);
-            }
-            // calculate delay (Propagation) to this receiving nic
-            delay = calculatePropagationDelay(i->first);
-
-            sendDelayed(msg, delay, i->second);
-        }
-        else {
-            EV_WARN << "Nic is not connected to any gates!" << endl;
-            delete msg;
-        }
-    }
+    // Original message no longer needed, copies have been sent to all possible receivers.
+    delete msg;
 }
 
 simtime_t ChannelAccess::calculatePropagationDelay(const NicEntry* nic)

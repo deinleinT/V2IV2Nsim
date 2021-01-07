@@ -31,6 +31,7 @@
 #include "veins_inet/veins_inet.h"
 
 #include "veins/modules/mobility/traci/TraCIScenarioManagerLaunchd.h"
+#include "veins/modules/utility/SignalManager.h"
 
 namespace veins {
 
@@ -43,25 +44,25 @@ namespace veins {
  * @author Christoph Sommer
  *
  */
-class VEINS_INET_API VeinsInetManager: public TraCIScenarioManagerLaunchd {
+class VEINS_INET_API VeinsInetManager : public TraCIScenarioManagerLaunchd {
 public:
     virtual ~VeinsInetManager();
-    virtual void preInitializeModule(cModule *mod, const std::string &nodeId,
-            const Coord &position, const std::string &road_id, double speed,
-            Heading heading, VehicleSignalSet signals) override;
-    virtual void updateModulePosition(cModule *mod, const Coord &p,
-            const std::string &edge, double speed, Heading heading,
-            VehicleSignalSet signals) override;
+
+    void initialize(int stage) override;
+
+    virtual void preInitializeModule(cModule* mod, const std::string& nodeId, const Coord& position, const std::string& road_id, double speed, Heading heading, VehicleSignalSet signals) override;
+    virtual void updateModulePosition(cModule* mod, const Coord& p, const std::string& edge, double speed, Heading heading, VehicleSignalSet signals) override;
 
 protected:
+    SignalManager signalManager;
 };
 
 class VEINS_INET_API VeinsInetManagerAccess {
 public:
-    VeinsInetManager* get() {
+    VeinsInetManager* get()
+    {
         return FindModule<VeinsInetManager*>::findGlobalModule();
-    }
-    ;
+    };
 };
 
 } // namespace veins

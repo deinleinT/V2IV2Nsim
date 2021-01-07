@@ -72,6 +72,12 @@ public:
     static const simsignal_t sigChannelBusy;
     // tell to anybody which is interested when a collision occurred
     static const simsignal_t sigCollision;
+    // tell to anybody which is interested when a packet was sent
+    static const simsignal_t sigSentPacket;
+    // tell to anybody which is interested when a acknowledgement was sent
+    static const simsignal_t sigSentAck;
+    // tell to anybody which is interested when a failed unicast transmission occurred
+    static const simsignal_t sigRetriesExceeded;
 
     // Access categories in increasing order of priority (see IEEE Std 802.11-2012, Table 9-1)
     enum t_access_category {
@@ -274,6 +280,7 @@ protected:
     long statsReceivedBroadcasts;
     long statsSentPackets;
     long statsSentAcks;
+    long statsRetriesExceeded;
     long statsTXRXLostPackets;
     long statsSNIRLostPackets;
     long statsDroppedPackets;
@@ -292,6 +299,7 @@ protected:
     std::string myId;
 
     bool useAcks;
+    double frameErrorRate;
     double ackErrorRate;
     int dot11RTSThreshold;
     int dot11ShortRetryLimit;

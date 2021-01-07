@@ -46,7 +46,7 @@ namespace veins {
  * Transmissions that cross one of the polygon's lines will have
  * their receive power set to zero.
  */
-class VEINS_API ObstacleControl: public cSimpleModule {
+class VEINS_API ObstacleControl : public cSimpleModule {
 public:
     ~ObstacleControl() override;
     void initialize(int stage) override;
@@ -55,14 +55,13 @@ public:
         return 2;
     }
     void finish() override;
-    void handleMessage(cMessage *msg) override;
-    void handleSelfMsg(cMessage *msg);
+    void handleMessage(cMessage* msg) override;
+    void handleSelfMsg(cMessage* msg);
 
-    void addFromXml(cXMLElement *xml);
-    void addFromTypeAndShape(std::string id, std::string typeId,
-            std::vector<Coord> shape);
+    void addFromXml(cXMLElement* xml);
+    void addFromTypeAndShape(std::string id, std::string typeId, std::vector<Coord> shape);
     void add(Obstacle obstacle);
-    void erase(const Obstacle *obstacle);
+    void erase(const Obstacle* obstacle);
     bool isTypeSupported(std::string type);
     double getAttenuationPerCut(std::string type);
     double getAttenuationPerMeter(std::string type);
@@ -80,47 +79,41 @@ public:
     /**
      * calculate additional attenuation by obstacles, return multiplicative factor
      */
-    double calculateAttenuation(const Coord &senderPos,
-            const Coord &receiverPos) const;
+    double calculateAttenuation(const Coord& senderPos, const Coord& receiverPos) const;
 
 protected:
     struct CacheKey {
         const Coord senderPos;
         const Coord receiverPos;
 
-        CacheKey(const Coord &senderPos, const Coord &receiverPos) :
-                senderPos(senderPos), receiverPos(receiverPos) {
+        CacheKey(const Coord& senderPos, const Coord& receiverPos)
+            : senderPos(senderPos)
+            , receiverPos(receiverPos)
+        {
         }
 
-        bool operator<(const CacheKey &o) const {
-            if (senderPos.x < o.senderPos.x)
-                return true;
-            if (senderPos.x > o.senderPos.x)
-                return false;
-            if (senderPos.y < o.senderPos.y)
-                return true;
-            if (senderPos.y > o.senderPos.y)
-                return false;
-            if (receiverPos.x < o.receiverPos.x)
-                return true;
-            if (receiverPos.x > o.receiverPos.x)
-                return false;
-            if (receiverPos.y < o.receiverPos.y)
-                return true;
-            if (receiverPos.y > o.receiverPos.y)
-                return false;
+        bool operator<(const CacheKey& o) const
+        {
+            if (senderPos.x < o.senderPos.x) return true;
+            if (senderPos.x > o.senderPos.x) return false;
+            if (senderPos.y < o.senderPos.y) return true;
+            if (senderPos.y > o.senderPos.y) return false;
+            if (receiverPos.x < o.receiverPos.x) return true;
+            if (receiverPos.x > o.receiverPos.x) return false;
+            if (receiverPos.y < o.receiverPos.y) return true;
+            if (receiverPos.y > o.receiverPos.y) return false;
             return false;
         }
     };
 
     typedef std::map<CacheKey, double> CacheEntries;
 
-    cXMLElement *obstaclesXml; /**< obstacles to add at startup */
+    cXMLElement* obstaclesXml; /**< obstacles to add at startup */
     int gridCellSize = 250; /**< size of square grid tiles for obstacle store */
 
     std::vector<std::unique_ptr<Obstacle>> obstacleOwner;
-    AnnotationManager *annotations;
-    AnnotationManager::Group *annotationGroup;
+    AnnotationManager* annotations;
+    AnnotationManager::Group* annotationGroup;
     std::map<std::string, double> perCut;
     std::map<std::string, double> perMeter;
     mutable CacheEntries cacheEntries;
@@ -130,12 +123,13 @@ protected:
 
 class VEINS_API ObstacleControlAccess {
 public:
-    ObstacleControlAccess() {
+    ObstacleControlAccess()
+    {
     }
 
-    ObstacleControl* getIfExists() {
-        return dynamic_cast<ObstacleControl*>(getSimulation()->getModuleByPath(
-                "obstacles"));
+    ObstacleControl* getIfExists()
+    {
+        return dynamic_cast<ObstacleControl*>(veins::findModuleByPath("obstacles"));
     }
 };
 

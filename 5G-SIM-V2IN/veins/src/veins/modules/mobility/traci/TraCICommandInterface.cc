@@ -235,6 +235,16 @@ std::list<std::string> TraCICommandInterface::getVehicleTypeIds()
     return genericGetStringList(CMD_GET_VEHICLETYPE_VARIABLE, "", ID_LIST, RESPONSE_GET_VEHICLETYPE_VARIABLE);
 }
 
+double TraCICommandInterface::getVehicleTypeMaxSpeed(std::string typeId)
+{
+    return genericGetDouble(CMD_GET_VEHICLETYPE_VARIABLE, typeId, VAR_MAXSPEED, RESPONSE_GET_VEHICLETYPE_VARIABLE);
+}
+
+void TraCICommandInterface::setVehicleTypeMaxSpeed(std::string typeId, double maxSpeed)
+{
+    genericSetDouble(CMD_SET_VEHICLETYPE_VARIABLE, typeId, VAR_MAXSPEED, maxSpeed);
+}
+
 std::list<std::string> TraCICommandInterface::getRouteIds()
 {
     return genericGetStringList(CMD_GET_ROUTE_VARIABLE, "", ID_LIST, RESPONSE_GET_ROUTE_VARIABLE);
@@ -356,6 +366,26 @@ double TraCICommandInterface::Vehicle::getDeccel()
     return traci->genericGetDouble(CMD_GET_VEHICLE_VARIABLE, nodeId, VAR_DECEL, RESPONSE_GET_VEHICLE_VARIABLE);
 }
 
+double TraCICommandInterface::Vehicle::getSpeed()
+{
+    return traci->genericGetDouble(CMD_GET_VEHICLE_VARIABLE, nodeId, VAR_SPEED, RESPONSE_GET_VEHICLE_VARIABLE);
+}
+
+double TraCICommandInterface::Vehicle::getAngle()
+{
+    return traci->genericGetDouble(CMD_GET_VEHICLE_VARIABLE, nodeId, VAR_ANGLE, RESPONSE_GET_VEHICLE_VARIABLE);
+}
+
+double TraCICommandInterface::Vehicle::getAcceleration()
+{
+    return traci->genericGetDouble(CMD_GET_VEHICLE_VARIABLE, nodeId, VAR_ACCELERATION, RESPONSE_GET_VEHICLE_VARIABLE);
+}
+
+double TraCICommandInterface::Vehicle::getDistanceTravelled()
+{
+    return traci->genericGetDouble(CMD_GET_VEHICLE_VARIABLE, nodeId, VAR_DISTANCE, RESPONSE_GET_VEHICLE_VARIABLE);
+}
+
 double TraCICommandInterface::Vehicle::getCO2Emissions() const
 {
     return traci->genericGetDouble(CMD_GET_VEHICLE_VARIABLE, nodeId, VAR_CO2EMISSION, RESPONSE_GET_VEHICLE_VARIABLE);
@@ -419,7 +449,11 @@ double TraCICommandInterface::getDistance(const Coord& p1, const Coord& p2, bool
     uint8_t dType = static_cast<uint8_t>(returnDrivingDistance ? REQUEST_DRIVINGDIST : REQUEST_AIRDIST);
 
     // query road network boundaries
+#if (VEINS_VERSION_MAJOR == 5)
     TraCIBuffer buf = connection.query(CMD_GET_SIM_VARIABLE, TraCIBuffer() << variable << simId << variableType << count << connection.omnet2traci(p1) << connection.omnet2traci(p2) << dType);
+#else
+    TraCIBuffer buf = connection.query(CMD_GET_SIM_VARIABLE, TraCIBuffer() << variable << simId << variableType << count << static_cast<uint8_t>(POSITION_2D) << connection.omnet2traci(p1) << static_cast<uint8_t>(POSITION_2D) << connection.omnet2traci(p2) << dType);
+#endif
     uint8_t cmdLength_resp;
     buf >> cmdLength_resp;
     uint8_t commandId_resp;
@@ -458,6 +492,48 @@ void TraCICommandInterface::Vehicle::stopAt(std::string roadId, double pos, uint
 
     TraCIBuffer buf = connection->query(CMD_SET_VEHICLE_VARIABLE, TraCIBuffer() << variableId << nodeId << variableType << count << edgeIdT << edgeId << stopPosT << stopPos << stopLaneT << stopLane << durationT << duration);
     ASSERT(buf.eof());
+}
+
+std::pair<std::string, double> TraCICommandInterface::Vehicle::getLeader(const double distance)
+{
+    TraCIBuffer request = TraCIBuffer() << VAR_LEADER << nodeId << TYPE_DOUBLE << distance;
+    TraCIBuffer response = connection->query(CMD_GET_VEHICLE_VARIABLE, request);
+
+    uint8_t cmdLength;
+    response >> cmdLength;
+    if (cmdLength == 0) {
+        uint32_t cmdLengthX;
+        response >> cmdLengthX;
+    }
+    uint8_t responseId;
+    response >> responseId;
+    ASSERT(responseId == RESPONSE_GET_VEHICLE_VARIABLE);
+    uint8_t variableType;
+    response >> variableType;
+    ASSERT(variableType == VAR_LEADER);
+    std::string rspNodeId;
+    response >> rspNodeId;
+    ASSERT(strcmp(rspNodeId.c_str(), nodeId.c_str()) == 0);
+    uint8_t responseType;
+    response >> responseType;
+    ASSERT(responseType == TYPE_COMPOUND);
+    uint32_t numElements;
+    response >> numElements;
+    ASSERT(numElements == 2);
+    uint8_t leaderType;
+    response >> leaderType;
+    ASSERT(leaderType == TYPE_STRING);
+    std::string leaderId;
+    response >> leaderId;
+    uint8_t distanceType;
+    response >> distanceType;
+    ASSERT(distanceType == TYPE_DOUBLE);
+    double distanceToLeader;
+    response >> distanceToLeader;
+
+    ASSERT(response.eof());
+
+    return std::make_pair(leaderId, distanceToLeader);
 }
 
 std::list<std::string> TraCICommandInterface::getTrafficlightIds()
@@ -881,10 +957,19 @@ void TraCICommandInterface::addPoi(std::string poiId, std::string poiType, const
     p << static_cast<uint8_t>(TYPE_STRING) << poiType;
     p << static_cast<uint8_t>(TYPE_COLOR) << color.red << color.green << color.blue << color.alpha;
     p << static_cast<uint8_t>(TYPE_INTEGER) << layer;
+#if (VEINS_VERSION_MAJOR == 5)
     p << pos;
+#else
+    p << static_cast<uint8_t>(POSITION_2D) << pos;
+#endif
 
     TraCIBuffer buf = connection.query(CMD_SET_POI_VARIABLE, p);
     ASSERT(buf.eof());
+}
+
+Coord TraCICommandInterface::Poi::getPosition()
+{
+    return traci->genericGetCoord(CMD_GET_POI_VARIABLE, poiId, VAR_POSITION, RESPONSE_GET_POI_VARIABLE);
 }
 
 void TraCICommandInterface::Poi::remove(int32_t layer)
@@ -928,6 +1013,16 @@ double TraCICommandInterface::Lane::getMeanSpeed()
     return traci->genericGetDouble(CMD_GET_LANE_VARIABLE, laneId, LAST_STEP_MEAN_SPEED, RESPONSE_GET_LANE_VARIABLE);
 }
 
+void TraCICommandInterface::Lane::setDisallowed(std::list<std::string> disallowedClasses)
+{
+    uint8_t variableId = LANE_DISALLOWED;
+    uint8_t variableType = TYPE_STRINGLIST;
+    TraCIBuffer buf;
+    buf << variableId << laneId << variableType << disallowedClasses;
+    TraCIBuffer obuf = connection->query(CMD_SET_LANE_VARIABLE, buf);
+    ASSERT(obuf.eof());
+}
+
 std::list<std::string> TraCICommandInterface::getLaneAreaDetectorIds()
 {
     return genericGetStringList(CMD_GET_LANEAREA_VARIABLE, "", ID_LIST, RESPONSE_GET_LANEAREA_VARIABLE);
@@ -968,14 +1063,7 @@ bool TraCICommandInterface::Vehicle::changeVehicleRoute(const std::list<std::str
     if (edges.front().compare(getRoadId()) != 0) return false;
     uint8_t variableId = VAR_ROUTE;
     uint8_t variableType = TYPE_STRINGLIST;
-    TraCIBuffer buf;
-    buf << variableId << nodeId << variableType;
-    int32_t numElem = edges.size();
-    buf << numElem;
-    for (std::list<std::string>::const_iterator i = edges.begin(); i != edges.end(); ++i) {
-        buf << static_cast<std::string>(*i);
-    }
-    TraCIBuffer obuf = connection->query(CMD_SET_VEHICLE_VARIABLE, buf);
+    TraCIBuffer obuf = connection->query(CMD_SET_VEHICLE_VARIABLE, TraCIBuffer() << variableId << nodeId << variableType << static_cast<std::list<std::string>>(edges));
     ASSERT(obuf.eof());
     return true;
 }
@@ -1039,7 +1127,11 @@ void TraCICommandInterface::Vehicle::getParameter(const std::string& parameter, 
 std::pair<double, double> TraCICommandInterface::getLonLat(const Coord& coord)
 {
     TraCIBuffer request;
+#if (VEINS_VERSION_MAJOR == 5)
     request << static_cast<uint8_t>(POSITION_CONVERSION) << std::string("sim0") << static_cast<uint8_t>(TYPE_COMPOUND) << static_cast<int32_t>(2) << connection.omnet2traci(coord) << static_cast<uint8_t>(TYPE_UBYTE) << static_cast<uint8_t>(POSITION_LON_LAT);
+#else
+    request << static_cast<uint8_t>(POSITION_CONVERSION) << std::string("sim0") << static_cast<uint8_t>(TYPE_COMPOUND) << static_cast<int32_t>(2) << static_cast<uint8_t>(POSITION_2D) << connection.omnet2traci(coord) << static_cast<uint8_t>(TYPE_UBYTE) << static_cast<uint8_t>(POSITION_LON_LAT);
+#endif
     TraCIBuffer response = connection.query(CMD_GET_SIM_VARIABLE, request);
 
     uint8_t cmdLength;
@@ -1070,7 +1162,11 @@ std::pair<double, double> TraCICommandInterface::getLonLat(const Coord& coord)
 std::tuple<std::string, double, uint8_t> TraCICommandInterface::getRoadMapPos(const Coord& coord)
 {
     TraCIBuffer request;
+#if (VEINS_VERSION_MAJOR == 5)
     request << static_cast<uint8_t>(POSITION_CONVERSION) << std::string("sim0") << static_cast<uint8_t>(TYPE_COMPOUND) << static_cast<int32_t>(2) << connection.omnet2traci(coord) << static_cast<uint8_t>(TYPE_UBYTE) << static_cast<uint8_t>(POSITION_ROADMAP);
+#else
+    request << static_cast<uint8_t>(POSITION_CONVERSION) << std::string("sim0") << static_cast<uint8_t>(TYPE_COMPOUND) << static_cast<int32_t>(2) << static_cast<uint8_t>(POSITION_2D) << connection.omnet2traci(coord) << static_cast<uint8_t>(TYPE_UBYTE) << static_cast<uint8_t>(POSITION_ROADMAP);
+#endif
     TraCIBuffer response = connection.query(CMD_GET_SIM_VARIABLE, request);
 
     uint8_t cmdLength;
@@ -1328,6 +1424,13 @@ double TraCICommandInterface::genericGetDouble(uint8_t commandId, std::string ob
     ASSERT(buf.eof());
 
     return res;
+}
+
+void TraCICommandInterface::genericSetDouble(uint8_t commandId, std::string objectId, uint8_t variableId, double value)
+{
+    uint8_t variableType = TYPE_DOUBLE;
+    TraCIBuffer buf = connection.query(commandId, TraCIBuffer() << variableId << objectId << variableType << value);
+    ASSERT(buf.eof());
 }
 
 simtime_t TraCICommandInterface::genericGetTime(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId, TraCIConnection::Result* result)

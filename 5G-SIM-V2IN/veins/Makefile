@@ -27,7 +27,7 @@
 ADDL_TARGETS =
 ifeq ($(wildcard out/config.py),)
 else
-    ADDL_TARGETS += run
+    ADDL_TARGETS += bin/veins_run
 endif
 
 # default target
@@ -40,11 +40,9 @@ else
 endif
 
 # command line scripts
-run: % : src/scripts/%.in.py out/config.py
-	@echo "Creating script \"./$@\""
-	@head -n1 "$<" > "$@"
-	@cat out/config.py >> "$@"
-	@tail -n+2 "$<" >> "$@"
+bin/veins_run: src/scripts/veins_run.in.py out/config.py
+	@echo "Creating script \"$@\""
+	@sed '/# v-- contents of out\/config.py go here/r out/config.py' "$<" > "$@"
 	@chmod a+x "$@"
 
 # legacy
@@ -72,7 +70,7 @@ endif
 cleanall: clean
 	rm -f src/Makefile
 	rm -f out/config.py
-	rm -f run
+	rm -f bin/veins_run
 
 src/Makefile:
 	@echo
@@ -100,9 +98,9 @@ doxyshow: doxy
 	xdg-open doc/doxy/index.html
 
 formatting:
-	./format-code.sh src
-	./format-code.sh subprojects
+	bin/veins_format_code src
+	bin/veins_format_code subprojects
 
 formatting-strict:
-	./format-code.sh --strict src
-	./format-code.sh --strict subprojects
+	bin/veins_format_code --strict src
+	bin/veins_format_code --strict subprojects

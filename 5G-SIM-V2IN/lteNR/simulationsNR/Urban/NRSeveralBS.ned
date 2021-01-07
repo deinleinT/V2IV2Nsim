@@ -33,6 +33,7 @@ import org.car2x.veins.subprojects.veins_inet.VeinsInetManager;
 import org.car2x.veins.modules.obstacle.ObstacleControl;
 import org.car2x.veins.modules.world.annotations.AnnotationManager;
 import org.car2x.veins.base.modules.BaseWorldUtility;
+import org.car2x.veins.visualizer.roads.RoadsCanvasVisualizer;
 
 import nr.corenetwork.nodes.UPF;
 import nr.corenetwork.nodes.gNodeB;
@@ -46,7 +47,7 @@ network NRSeveralBS extends GeneralParameters
         double playgroundSizeY @unit(m); // y size of the area the nodes are in (in meters)
         double playgroundSizeZ @unit(m); // z size of the area the nodes are in (in meters)
         @display("bgb=5000,5000");
-        
+
     submodules:
 
         world: BaseWorldUtility {
@@ -65,6 +66,10 @@ network NRSeveralBS extends GeneralParameters
         configurator: IPv4NetworkConfigurator {
             @display("p=3941.2021,1188.118");
             config = xmldoc("demo.xml");
+        }
+
+        roadsCanvasVisualizer: RoadsCanvasVisualizer {
+            @display("p=3933.144,2852.28");
         }
 
         //# Veins manager module

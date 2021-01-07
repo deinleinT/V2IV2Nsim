@@ -24,7 +24,7 @@ PROJECTRELATIVE_PATH = src
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cc, .msg and .sm files
-OBJS = $O/veins_inet/VeinsInetManager.o $O/veins_inet/VeinsInetMobility.o
+OBJS = $O/veins_inet/VeinsInetManager.o $O/veins_inet/VeinsInetManagerBase.o $O/veins_inet/VeinsInetManagerForker.o $O/veins_inet/VeinsInetMobility.o
 
 # Message files
 MSGFILES =
