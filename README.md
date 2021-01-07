@@ -1,6 +1,6 @@
 # 5G-Sim-V2I/N
 Open Source 5G V2I / V2N Application-Level Simulation OMNeT++-framework. 
-We tested the framework with Linux Mint 18.3, 19.3, Ubuntu 18.04 and 20.04 (we use gcc/g++ in version 7.5 for compiling). We could also successfully test the framework on Windows 10. For our tests we used OMNeT++ version 5.6.2.
+We tested the framework with Linux Mint 18.3, 19.3 and Ubuntu 18.04 (we use gcc/g++ in version 7.5 for compiling). We could also successfully test the framework on Windows 10. For our tests we used OMNeT++ version 5.6.2.
 
 ### Features
 * Covers the 5G User Plane (3GPP Release 15) for simulating use cases in the context of V2I / N.
@@ -42,6 +42,9 @@ We tested the framework with Linux Mint 18.3, 19.3, Ubuntu 18.04 and 20.04 (we u
 1. Using the probability formulas from ITU-R M.2412-0. Buildings (if included in your simulated scenario) are not considered dynamically for the LoS/NLoS-evaluation. The building height is used for the path loss calculation. Appropriate for the motorway scenario and all other scenarios without information about buildings. Usage: Set *dynamicNlos = false* in omnetpp.ini.
 2. 2D-Evaluation: The Veins obstacle control is used to detect buildings (see the poly.xml file in the Urban-Scneario-Folder) and determines the LoS with the 2D coordinates of sender and receiver. If one edge of a building intersects with the line of sight between sender and receiver, the NLos case will be considered. Appropriate for motorway and urban scenario. Usage: Set *dynamicNlos = true* in omnetpp.ini.
 3. 3D-Evaluation: In the first place, the 2D evaluation is used to detect buildings in 2D (see 2.). Each coordinate where a 2D intersection with a building edge between sender and receiver is detected, will be checked in the 3D case. The channel model needs the building height to calculate the path loss. Sender and receiver have 3D-coordinates, because the heigth of antennas is also considered for the path loss calculation. If the determined z-coordinate of the intersection is lower than the building height, the sender and the receiver are in the NLos case, vice-versa otherwise. Usage: Set *dynamicNlos = true and NlosEvaluationIn3D = true* in omnetpp.ini.
+
+### Change log v0.3.1:
+* Upgrade Veins to version 5.1 and integrated the roadCanvasVisualizer into the default scenarios.
 
 **MORE INFORMATION IS COMING SOON**
 
