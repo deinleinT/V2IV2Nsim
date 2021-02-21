@@ -206,7 +206,7 @@ void ConvolutionalCoder::initParameters()
 
 BitVector ConvolutionalCoder::encode(const BitVector& informationBits) const
 {
-    EV_DEBUG << "Encoding the following bits: " << informationBits << endl;
+    //EV_DEBUG << "Encoding the following bits: " << informationBits << endl;
     if (informationBits.getSize() % codeRateParamaterK)
         throw cRuntimeError("Length of informationBits must be a multiple of codeRateParamaterK = %d", codeRateParamaterK);
     BitVector encodedInformationBits;
@@ -222,7 +222,7 @@ BitVector ConvolutionalCoder::encode(const BitVector& informationBits) const
             encodedInformationBits.appendBit(encodedSymbol.getBit(j));
     }
     BitVector puncturedEncodedInformationBits = puncturing(encodedInformationBits);
-    EV_DEBUG << "The encoded bits are: " << puncturedEncodedInformationBits << endl;
+    //EV_DEBUG << "The encoded bits are: " << puncturedEncodedInformationBits << endl;
     return puncturedEncodedInformationBits;
 }
 
@@ -457,7 +457,7 @@ std::pair<BitVector, bool> ConvolutionalCoder::decode(const BitVector& encodedBi
             trellisGraph[i][j] = TrellisGraphNode(-1, -1, -1, INT32_MAX, 0, 0);
     }
     trellisGraph[0][0].state = 0;
-    EV_DEBUG << "Decoding the following bits: " << depuncturedEncodedBits << endl;
+    //EV_DEBUG << "Decoding the following bits: " << depuncturedEncodedBits << endl;
     ShortBitVector countsOnHammingDistance;
     countsOnHammingDistance.appendBit(true, codeRateParamaterN);
     ShortBitVector nextOutputSymbol = giveNextOutputSymbol(depuncturedEncodedBits, 0, isPunctured, countsOnHammingDistance);
@@ -483,13 +483,12 @@ std::pair<BitVector, bool> ConvolutionalCoder::decode(const BitVector& encodedBi
     std::pair<BitVector, bool> result = traversePath(bestNode, trellisGraph, isTruncatedMode);
     if (result.second)
     {
-        EV_DEBUG << "Recovered message: " << result.first << endl;
-        EV_DEBUG << "Number of errors: " << bestNode.numberOfErrors
-                 << " Cumulative error (Hamming distance): " << bestNode.comulativeHammingDistance
-                 << " End state: " << bestNode.state << endl;
+        ////EV_DEBUG << "Recovered message: " << result.first << endl;
+        //EV_DEBUG << "Number of errors: " << bestNode.numberOfErrors                 << " Cumulative error (Hamming distance): " << bestNode.comulativeHammingDistance                 << " End state: " << bestNode.state << endl;
     }
-    else
-        EV_DEBUG << "None of the paths in the trellis graph lead to the all-zeros state" << endl;
+    else{
+        //EV_DEBUG << "None of the paths in the trellis graph lead to the all-zeros state" << endl;
+    }
     for (int i = 0; i < numberOfStates; i++)
         delete[] trellisGraph[i];
     delete[] trellisGraph;

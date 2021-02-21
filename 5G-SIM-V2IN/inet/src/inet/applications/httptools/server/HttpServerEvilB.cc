@@ -31,8 +31,8 @@ void HttpServerEvilB::initialize(int stage)
         badLow = par("minBadRequests");
         badHigh = par("maxBadRequests");
 
-        EV_INFO << "Badguy " << hostName << " was initialized to launch an attack on www.good.com" << endl;
-        EV_INFO << "Minimum " << badLow << " and maximum " << badHigh << " bad requests for each hit." << endl;
+        //EV_INFO << "Badguy " << hostName << " was initialized to launch an attack on www.good.com" << endl;
+        //EV_INFO << "Minimum " << badLow << " and maximum " << badHigh << " bad requests for each hit." << endl;
     }
 }
 

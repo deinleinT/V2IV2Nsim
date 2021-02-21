@@ -161,7 +161,7 @@ void SCTPClient::connect()
     L3Address destination;
     L3AddressResolver().tryResolve(connectAddress, destination);
     if (destination.isUnspecified()){
-        //EV << "cannot resolve destination address: " << connectAddress << endl;
+        //EV << "cannot resolve destinaion address: " << connectAddress << endl;
     }
     else {
         socket.connect(destination, connectPort, streamReset, (int)par("prMethod"), (unsigned int)par("numRequestsPerSession"));

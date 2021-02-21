@@ -43,7 +43,7 @@ void DropTailQueue::initialize()
 cMessage *DropTailQueue::enqueue(cMessage *msg)
 {
     if (frameCapacity && queue.getLength() >= frameCapacity) {
-        EV << "Queue full, dropping packet.\n";
+        //EV << "Queue full, dropping packet.\n";
         return msg;
     }
     else {

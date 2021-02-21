@@ -41,14 +41,14 @@ void MessageHandler::messageReceived(cMessage *message)
         handleTimer(message);
     }
     else if (dynamic_cast<ICMPMessage *>(message)) {
-        EV_ERROR << "ICMP error received -- discarding\n";
+        //EV_ERROR << "ICMP error received -- discarding\n";
         delete message;
     }
     else {
         OSPFPacket *packet = check_and_cast<OSPFPacket *>(message);
-        EV_INFO << "Received packet: (" << packet->getClassName() << ")" << packet->getName() << "\n";
+        //EV_INFO << "Received packet: (" << packet->getClassName() << ")" << packet->getName() << "\n";
         if (packet->getRouterID() == IPv4Address(router->getRouterID())) {
-            EV_INFO << "This packet is from ourselves, discarding.\n";
+            //EV_INFO << "This packet is from ourselves, discarding.\n";
             delete message;
         }
         else {
@@ -64,7 +64,7 @@ void MessageHandler::handleTimer(cMessage *timer)
             Interface *intf;
             if (!(intf = reinterpret_cast<Interface *>(timer->getContextPointer()))) {
                 // should not reach this point
-                EV_INFO << "Discarding invalid InterfaceHelloTimer.\n";
+                //EV_INFO << "Discarding invalid InterfaceHelloTimer.\n";
                 delete timer;
             }
             else {
@@ -78,7 +78,7 @@ void MessageHandler::handleTimer(cMessage *timer)
             Interface *intf;
             if (!(intf = reinterpret_cast<Interface *>(timer->getContextPointer()))) {
                 // should not reach this point
-                EV_INFO << "Discarding invalid InterfaceWaitTimer.\n";
+                //EV_INFO << "Discarding invalid InterfaceWaitTimer.\n";
                 delete timer;
             }
             else {
@@ -92,7 +92,7 @@ void MessageHandler::handleTimer(cMessage *timer)
             Interface *intf;
             if (!(intf = reinterpret_cast<Interface *>(timer->getContextPointer()))) {
                 // should not reach this point
-                EV_INFO << "Discarding invalid InterfaceAcknowledgementTimer.\n";
+                //EV_INFO << "Discarding invalid InterfaceAcknowledgementTimer.\n";
                 delete timer;
             }
             else {
@@ -106,7 +106,7 @@ void MessageHandler::handleTimer(cMessage *timer)
             Neighbor *neighbor;
             if (!(neighbor = reinterpret_cast<Neighbor *>(timer->getContextPointer()))) {
                 // should not reach this point
-                EV_INFO << "Discarding invalid NeighborInactivityTimer.\n";
+                //EV_INFO << "Discarding invalid NeighborInactivityTimer.\n";
                 delete timer;
             }
             else {
@@ -120,7 +120,7 @@ void MessageHandler::handleTimer(cMessage *timer)
             Neighbor *neighbor;
             if (!(neighbor = reinterpret_cast<Neighbor *>(timer->getContextPointer()))) {
                 // should not reach this point
-                EV_INFO << "Discarding invalid NeighborInactivityTimer.\n";
+                //EV_INFO << "Discarding invalid NeighborInactivityTimer.\n";
                 delete timer;
             }
             else {
@@ -134,7 +134,7 @@ void MessageHandler::handleTimer(cMessage *timer)
             Neighbor *neighbor;
             if (!(neighbor = reinterpret_cast<Neighbor *>(timer->getContextPointer()))) {
                 // should not reach this point
-                EV_INFO << "Discarding invalid NeighborDDRetransmissionTimer.\n";
+                //EV_INFO << "Discarding invalid NeighborDDRetransmissionTimer.\n";
                 delete timer;
             }
             else {
@@ -148,7 +148,7 @@ void MessageHandler::handleTimer(cMessage *timer)
             Neighbor *neighbor;
             if (!(neighbor = reinterpret_cast<Neighbor *>(timer->getContextPointer()))) {
                 // should not reach this point
-                EV_INFO << "Discarding invalid NeighborUpdateRetransmissionTimer.\n";
+                //EV_INFO << "Discarding invalid NeighborUpdateRetransmissionTimer.\n";
                 delete timer;
             }
             else {
@@ -162,7 +162,7 @@ void MessageHandler::handleTimer(cMessage *timer)
             Neighbor *neighbor;
             if (!(neighbor = reinterpret_cast<Neighbor *>(timer->getContextPointer()))) {
                 // should not reach this point
-                EV_INFO << "Discarding invalid NeighborRequestRetransmissionTimer.\n";
+                //EV_INFO << "Discarding invalid NeighborRequestRetransmissionTimer.\n";
                 delete timer;
             }
             else {
@@ -376,191 +376,171 @@ void MessageHandler::startTimer(cMessage *timer, simtime_t delay)
 
 void MessageHandler::printEvent(const char *eventString, const Interface *onInterface, const Neighbor *forNeighbor    /*= nullptr*/) const
 {
-    EV_DETAIL << eventString;
+    //EV_DETAIL << eventString;
     if ((onInterface != nullptr) || (forNeighbor != nullptr)) {
-        EV_DETAIL << ": ";
+        //EV_DETAIL << ": ";
     }
     if (forNeighbor != nullptr) {
-        EV_DETAIL << "neighbor["
-                  << forNeighbor->getNeighborID()
-                  << "] (state: "
-                  << forNeighbor->getStateString(forNeighbor->getState())
-                  << "); ";
+        //EV_DETAIL << "neighbor["                  << forNeighbor->getNeighborID()                  << "] (state: "                  << forNeighbor->getStateString(forNeighbor->getState())                  << "); ";
     }
     if (onInterface != nullptr) {
-        EV_DETAIL << "interface["
-                  << static_cast<short>(onInterface->getIfIndex())
-                  << "] ";
+        //EV_DETAIL << "interface["                  << static_cast<short>(onInterface->getIfIndex())                  << "] ";
         switch (onInterface->getType()) {
             case Interface::POINTTOPOINT:
-                EV_DETAIL << "(PointToPoint)";
+                //EV_DETAIL << "(PointToPoint)";
                 break;
 
             case Interface::BROADCAST:
-                EV_DETAIL << "(Broadcast)";
+                //EV_DETAIL << "(Broadcast)";
                 break;
 
             case Interface::NBMA:
-                EV_DETAIL << "(NBMA).\n";
+                //EV_DETAIL << "(NBMA).\n";
                 break;
 
             case Interface::POINTTOMULTIPOINT:
-                EV_DETAIL << "(PointToMultiPoint)";
+                //EV_DETAIL << "(PointToMultiPoint)";
                 break;
 
             case Interface::VIRTUAL:
-                EV_DETAIL << "(Virtual)";
+                //EV_DETAIL << "(Virtual)";
                 break;
 
             default:
-                EV_DETAIL << "(Unknown)";
+                //EV_DETAIL << "(Unknown)";
                 break;
         }
-        EV_DETAIL << " (state: "
-                  << onInterface->getStateString(onInterface->getState())
-                  << ")";
+        //EV_DETAIL << " (state: "                  << onInterface->getStateString(onInterface->getState())                  << ")";
     }
-    EV_DETAIL << ".\n";
+    //EV_DETAIL << ".\n";
 }
 
 void MessageHandler::printHelloPacket(const OSPFHelloPacket *helloPacket, IPv4Address destination, int outputIfIndex) const
 {
-    EV_INFO << "Sending Hello packet to " << destination << " on interface[" << outputIfIndex << "] with contents:\n";
-    EV_INFO << "  netMask=" << helloPacket->getNetworkMask() << "\n";
-    EV_INFO << "  DR=" << helloPacket->getDesignatedRouter() << "\n";
-    EV_INFO << "  BDR=" << helloPacket->getBackupDesignatedRouter() << "\n";
+    //EV_INFO << "Sending Hello packet to " << destination << " on interface[" << outputIfIndex << "] with contents:\n";
+    //EV_INFO << "  netMask=" << helloPacket->getNetworkMask() << "\n";
+    //EV_INFO << "  DR=" << helloPacket->getDesignatedRouter() << "\n";
+    //EV_INFO << "  BDR=" << helloPacket->getBackupDesignatedRouter() << "\n";
 
-    EV_DETAIL << "  neighbors:\n";
+    //EV_DETAIL << "  neighbors:\n";
 
     unsigned int neighborCount = helloPacket->getNeighborArraySize();
     for (unsigned int i = 0; i < neighborCount; i++) {
-        EV_DETAIL << "    " << helloPacket->getNeighbor(i) << "\n";
+        //EV_DETAIL << "    " << helloPacket->getNeighbor(i) << "\n";
     }
 }
 
 void MessageHandler::printDatabaseDescriptionPacket(const OSPFDatabaseDescriptionPacket *ddPacket, IPv4Address destination, int outputIfIndex) const
 {
-    EV_INFO << "Sending Database Description packet to " << destination << " on interface[" << outputIfIndex << "] with contents:\n";
+    //EV_INFO << "Sending Database Description packet to " << destination << " on interface[" << outputIfIndex << "] with contents:\n";
 
     const OSPFDDOptions& ddOptions = ddPacket->getDdOptions();
-    EV_INFO << "  ddOptions="
-            << ((ddOptions.I_Init) ? "I " : "_ ")
-            << ((ddOptions.M_More) ? "M " : "_ ")
-            << ((ddOptions.MS_MasterSlave) ? "MS" : "__")
-            << "\n";
-    EV_INFO << "  seqNumber=" << ddPacket->getDdSequenceNumber() << "\n";
-    EV_DETAIL << "  LSA headers:\n";
+    //EV_INFO << "  ddOptions="            << ((ddOptions.I_Init) ? "I " : "_ ")            << ((ddOptions.M_More) ? "M " : "_ ")            << ((ddOptions.MS_MasterSlave) ? "MS" : "__")            << "\n";
+    //EV_INFO << "  seqNumber=" << ddPacket->getDdSequenceNumber() << "\n";
+    //EV_DETAIL << "  LSA headers:\n";
 
     unsigned int lsaCount = ddPacket->getLsaHeadersArraySize();
     for (unsigned int i = 0; i < lsaCount; i++) {
-        EV_DETAIL << "    " << ddPacket->getLsaHeaders(i) << "\n";
+        //EV_DETAIL << "    " << ddPacket->getLsaHeaders(i) << "\n";
     }
 }
 
 void MessageHandler::printLinkStateRequestPacket(const OSPFLinkStateRequestPacket *requestPacket, IPv4Address destination, int outputIfIndex) const
 {
-    EV_INFO << "Sending Link State Request packet to " << destination << " on interface[" << outputIfIndex << "] with requests:\n";
+    //EV_INFO << "Sending Link State Request packet to " << destination << " on interface[" << outputIfIndex << "] with requests:\n";
 
     unsigned int requestCount = requestPacket->getRequestsArraySize();
     for (unsigned int i = 0; i < requestCount; i++) {
         const LSARequest& request = requestPacket->getRequests(i);
-        EV_DETAIL << "  type=" << request.lsType
-                  << ", LSID=" << request.linkStateID
-                  << ", advertisingRouter=" << request.advertisingRouter << "\n";
+        //EV_DETAIL << "  type=" << request.lsType                  << ", LSID=" << request.linkStateID                  << ", advertisingRouter=" << request.advertisingRouter << "\n";
     }
 }
 
 void MessageHandler::printLinkStateUpdatePacket(const OSPFLinkStateUpdatePacket *updatePacket, IPv4Address destination, int outputIfIndex) const
 {
-    EV_INFO << "Sending Link State Update packet to " << destination << " on interface[" << outputIfIndex << "] with updates:\n";
+    //EV_INFO << "Sending Link State Update packet to " << destination << " on interface[" << outputIfIndex << "] with updates:\n";
 
     unsigned int i = 0;
     unsigned int updateCount = updatePacket->getRouterLSAsArraySize();
 
     for (i = 0; i < updateCount; i++) {
         const OSPFRouterLSA& lsa = updatePacket->getRouterLSAs(i);
-        EV_DETAIL << "  " << lsa.getHeader() << "\n";
+        //EV_DETAIL << "  " << lsa.getHeader() << "\n";
 
-        EV_DETAIL << "  bits="
-                  << ((lsa.getV_VirtualLinkEndpoint()) ? "V " : "_ ")
-                  << ((lsa.getE_ASBoundaryRouter()) ? "E " : "_ ")
-                  << ((lsa.getB_AreaBorderRouter()) ? "B" : "_")
-                  << "\n";
-        EV_DETAIL << "  links:\n";
+        //EV_DETAIL << "  bits="                  << ((lsa.getV_VirtualLinkEndpoint()) ? "V " : "_ ")                  << ((lsa.getE_ASBoundaryRouter()) ? "E " : "_ ")                  << ((lsa.getB_AreaBorderRouter()) ? "B" : "_")                  << "\n";
+        //EV_DETAIL << "  links:\n";
 
         unsigned int linkCount = lsa.getLinksArraySize();
         for (unsigned int j = 0; j < linkCount; j++) {
             const Link& link = lsa.getLinks(j);
-            EV_DETAIL << "    ID=" << link.getLinkID();
-            EV_DETAIL << ", data="
-                      << link.getLinkData() << " (" << IPv4Address(link.getLinkData()) << ")"
-                      << ", type=";
+            ////EV_DETAIL << "    ID=" << link.getLinkID();
+            //EV_DETAIL << ", data="                      << link.getLinkData() << " (" << IPv4Address(link.getLinkData()) << ")"                      << ", type=";
             switch (link.getType()) {
                 case POINTTOPOINT_LINK:
-                    EV_INFO << "PointToPoint";
+                    //EV_INFO << "PointToPoint";
                     break;
 
                 case TRANSIT_LINK:
-                    EV_INFO << "Transit";
+                    //EV_INFO << "Transit";
                     break;
 
                 case STUB_LINK:
-                    EV_INFO << "Stub";
+                    //EV_INFO << "Stub";
                     break;
 
                 case VIRTUAL_LINK:
-                    EV_INFO << "Virtual";
+                    //EV_INFO << "Virtual";
                     break;
 
                 default:
-                    EV_INFO << "Unknown";
+                    //EV_INFO << "Unknown";
                     break;
             }
-            EV_DETAIL << ", cost=" << link.getLinkCost() << "\n";
+            //EV_DETAIL << ", cost=" << link.getLinkCost() << "\n";
         }
     }
 
     updateCount = updatePacket->getNetworkLSAsArraySize();
     for (i = 0; i < updateCount; i++) {
         const OSPFNetworkLSA& lsa = updatePacket->getNetworkLSAs(i);
-        EV_DETAIL << "  " << lsa.getHeader() << "\n";
-        EV_DETAIL << "  netMask=" << lsa.getNetworkMask() << "\n";
-        EV_DETAIL << "  attachedRouters:\n";
+        //EV_DETAIL << "  " << lsa.getHeader() << "\n";
+        //EV_DETAIL << "  netMask=" << lsa.getNetworkMask() << "\n";
+        //EV_DETAIL << "  attachedRouters:\n";
 
         unsigned int routerCount = lsa.getAttachedRoutersArraySize();
         for (unsigned int j = 0; j < routerCount; j++) {
-            EV_DETAIL << "    " << lsa.getAttachedRouters(j) << "\n";
+            //EV_DETAIL << "    " << lsa.getAttachedRouters(j) << "\n";
         }
     }
 
     updateCount = updatePacket->getSummaryLSAsArraySize();
     for (i = 0; i < updateCount; i++) {
         const OSPFSummaryLSA& lsa = updatePacket->getSummaryLSAs(i);
-        EV_DETAIL << "  " << lsa.getHeader() << "\n";
-        EV_DETAIL << "  netMask=" << lsa.getNetworkMask() << "\n";
-        EV_DETAIL << "  cost=" << lsa.getRouteCost() << "\n";
+        //EV_DETAIL << "  " << lsa.getHeader() << "\n";
+        //EV_DETAIL << "  netMask=" << lsa.getNetworkMask() << "\n";
+        //EV_DETAIL << "  cost=" << lsa.getRouteCost() << "\n";
     }
 
     updateCount = updatePacket->getAsExternalLSAsArraySize();
     for (i = 0; i < updateCount; i++) {
         const OSPFASExternalLSA& lsa = updatePacket->getAsExternalLSAs(i);
-        EV_DETAIL << "  " << lsa.getHeader() << "\n";
+        //EV_DETAIL << "  " << lsa.getHeader() << "\n";
 
         const OSPFASExternalLSAContents& contents = lsa.getContents();
-        EV_DETAIL << "  netMask=" << contents.getNetworkMask() << "\n";
-        EV_DETAIL << "  bits=" << ((contents.getE_ExternalMetricType()) ? "E\n" : "_\n");
-        EV_DETAIL << "  cost=" << contents.getRouteCost() << "\n";
-        EV_DETAIL << "  forward=" << contents.getForwardingAddress() << "\n";
+        //EV_DETAIL << "  netMask=" << contents.getNetworkMask() << "\n";
+        //EV_DETAIL << "  bits=" << ((contents.getE_ExternalMetricType()) ? "E\n" : "_\n");
+        //EV_DETAIL << "  cost=" << contents.getRouteCost() << "\n";
+        //EV_DETAIL << "  forward=" << contents.getForwardingAddress() << "\n";
     }
 }
 
 void MessageHandler::printLinkStateAcknowledgementPacket(const OSPFLinkStateAcknowledgementPacket *ackPacket, IPv4Address destination, int outputIfIndex) const
 {
-    EV_INFO << "Sending Link State Acknowledgement packet to " << destination << " on interface[" << outputIfIndex << "] with acknowledgements:\n";
+    //EV_INFO << "Sending Link State Acknowledgement packet to " << destination << " on interface[" << outputIfIndex << "] with acknowledgements:\n";
 
     unsigned int lsaCount = ackPacket->getLsaHeadersArraySize();
     for (unsigned int i = 0; i < lsaCount; i++) {
-        EV_DETAIL << "    " << ackPacket->getLsaHeaders(i) << "\n";
+        //EV_DETAIL << "    " << ackPacket->getLsaHeaders(i) << "\n";
     }
 }
 

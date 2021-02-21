@@ -701,14 +701,14 @@ cPacket* Ieee80211Serializer::deserialize(const Buffer &b, Context& c)
 
         default:
         {
-            EV_ERROR << "Cannot deserialize Ieee80211 packet: type " << type << " not supported.";
+            //EV_ERROR << "Cannot deserialize Ieee80211 packet: type " << type << " not supported.";
             b.setError();
             return nullptr;
         }
     }
     uint32_t calculatedCrc = ethernetCRC(b._getBuf(), b.getPos());
     uint32_t receivedCrc = b.readUint32();
-    EV_DEBUG << "Calculated CRC: " << calculatedCrc << ", received CRC: " << receivedCrc << endl;
+    //EV_DEBUG << "Calculated CRC: " << calculatedCrc << ", received CRC: " << receivedCrc << endl;
     if (receivedCrc != calculatedCrc)
         frame->setBitError(true);
 

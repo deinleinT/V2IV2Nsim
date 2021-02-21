@@ -36,7 +36,7 @@ void TurtleMobility::initialize(int stage)
 {
     LineSegmentsMobilityBase::initialize(stage);
 
-    EV_TRACE << "initializing TurtleMobility stage " << stage << endl;
+    //EV_TRACE << "initializing TurtleMobility stage " << stage << endl;
     if (stage == INITSTAGE_LOCAL) {
         WATCH(speed);
         WATCH(angle);
@@ -105,7 +105,7 @@ void TurtleMobility::executeStatement(cXMLElement *stmt)
     ASSERT(nextChange != -1);
     const char *tag = stmt->getTagName();
 
-    EV_DEBUG << "doing <" << tag << ">\n";
+    //EV_DEBUG << "doing <" << tag << ">\n";
 
     if (!strcmp(tag, "repeat")) {
         const char *nAttr = stmt->getAttribute("n");

@@ -37,7 +37,7 @@ double Ieee80211NistErrorModel::getBpskBer(double snr) const
 {
     double z = sqrt(snr);
     double ber = 0.5 * erfc(z);
-    EV << "bpsk snr=" << snr << " ber=" << ber << "\n";
+    //EV << "bpsk snr=" << snr << " ber=" << ber << "\n";
     return ber;
 }
 
@@ -45,7 +45,7 @@ double Ieee80211NistErrorModel::getQpskBer(double snr) const
 {
     double z = sqrt(snr / 2.0);
     double ber = 0.5 * erfc(z);
-    EV << "qpsk snr=" << snr << " ber=" << ber << "\n";
+    //EV << "qpsk snr=" << snr << " ber=" << ber << "\n";
     return ber;
 }
 
@@ -53,7 +53,7 @@ double Ieee80211NistErrorModel::get16QamBer(double snr) const
 {
     double z = sqrt(snr / (5.0 * 2.0));
     double ber = 0.75 * 0.5 * erfc(z);
-    EV << "16-Qam" << " snr=" << snr << " ber=" << ber << "\n";
+    //EV << "16-Qam" << " snr=" << snr << " ber=" << ber << "\n";
     return ber;
 }
 
@@ -61,7 +61,7 @@ double Ieee80211NistErrorModel::get64QamBer(double snr) const
 {
     double z = sqrt(snr / (21.0 * 2.0));
     double ber = 7.0 / 12.0 * 0.5 * erfc(z);
-    EV << "64-Qam" << " snr=" << snr << " ber=" << ber << "\n";
+    //EV << "64-Qam" << " snr=" << snr << " ber=" << ber << "\n";
     return ber;
 }
 
@@ -199,7 +199,7 @@ double Ieee80211NistErrorModel::getHeaderSuccessRate(const IIeee80211Mode* mode,
         successRate = getDSSSAndHrDSSSChunkSuccessRate(hrDsssMode->getHeaderMode()->getNetBitrate(), bitLength, snr);
     else
         throw cRuntimeError("Unsupported 802.11 mode");
-    EV_DEBUG << "Min SNIR = " << snr << ", bit length = " << bitLength << ", header error rate = " << 1 - successRate << endl;
+    //EV_DEBUG << "Min SNIR = " << snr << ", bit length = " << bitLength << ", header error rate = " << 1 - successRate << endl;
     if (successRate >= 1)
         successRate = 1;
     return successRate;
@@ -219,7 +219,7 @@ double Ieee80211NistErrorModel::getDataSuccessRate(const IIeee80211Mode* mode, u
         successRate = getDSSSAndHrDSSSChunkSuccessRate(hrDsssMode->getDataMode()->getNetBitrate(), bitLength, snr);
     else
         throw cRuntimeError("Unsupported 802.11 mode");
-    EV_DEBUG << "Min SNIR = " << snr << ", bit length = " << bitLength << ", data error rate = " << 1 - successRate << endl;
+    //EV_DEBUG << "Min SNIR = " << snr << ", bit length = " << bitLength << ", data error rate = " << 1 - successRate << endl;
     if (successRate >= 1)
         successRate = 1;
     return successRate;

@@ -47,16 +47,13 @@ void LinkStateRequestHandler::processPacket(OSPFPacket *packet, Interface *intf,
         bool error = false;
         std::vector<OSPFLSA *> lsas;
 
-        EV_INFO << "  Processing packet contents:\n";
+        //EV_INFO << "  Processing packet contents:\n";
 
         for (unsigned long i = 0; i < requestCount; i++) {
             LSARequest& request = lsRequestPacket->getRequests(i);
             LSAKeyType lsaKey;
 
-            EV_INFO << "    LSARequest: type=" << request.lsType
-                    << ", LSID=" << request.linkStateID
-                    << ", advertisingRouter=" << request.advertisingRouter
-                    << "\n";
+            //EV_INFO << "    LSARequest: type=" << request.lsType                    << ", LSID=" << request.linkStateID                    << ", advertisingRouter=" << request.advertisingRouter                    << "\n";
 
             lsaKey.linkStateID = request.linkStateID;
             lsaKey.advertisingRouter = request.advertisingRouter;

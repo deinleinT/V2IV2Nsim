@@ -143,13 +143,13 @@ void GPSR::processMessage(cMessage *message)
 
 void GPSR::scheduleBeaconTimer()
 {
-    EV_DEBUG << "Scheduling beacon timer" << endl;
+    //EV_DEBUG << "Scheduling beacon timer" << endl;
     scheduleAt(simTime() + beaconInterval, beaconTimer);
 }
 
 void GPSR::processBeaconTimer()
 {
-    EV_DEBUG << "Processing beacon timer" << endl;
+    //EV_DEBUG << "Processing beacon timer" << endl;
     L3Address selfAddress = getSelfAddress();
     if (!selfAddress.isUnspecified()) {
         sendBeacon(createBeacon(), uniform(0, maxJitter).dbl());
@@ -166,7 +166,7 @@ void GPSR::processBeaconTimer()
 
 void GPSR::schedulePurgeNeighborsTimer()
 {
-    EV_DEBUG << "Scheduling purge neighbors timer" << endl;
+    //EV_DEBUG << "Scheduling purge neighbors timer" << endl;
     simtime_t nextExpiration = getNextNeighborExpiration();
     if (nextExpiration == SimTime::getMaxTime()) {
         if (purgeNeighborsTimer->isScheduled())
@@ -186,7 +186,7 @@ void GPSR::schedulePurgeNeighborsTimer()
 
 void GPSR::processPurgeNeighborsTimer()
 {
-    EV_DEBUG << "Processing purge neighbors timer" << endl;
+    //EV_DEBUG << "Processing purge neighbors timer" << endl;
     purgeNeighbors();
     schedulePurgeNeighborsTimer();
 }
@@ -228,7 +228,7 @@ GPSRBeacon *GPSR::createBeacon()
 
 void GPSR::sendBeacon(GPSRBeacon *beacon, double delay)
 {
-    EV_INFO << "Sending beacon: address = " << beacon->getAddress() << ", position = " << beacon->getPosition() << endl;
+    //EV_INFO << "Sending beacon: address = " << beacon->getAddress() << ", position = " << beacon->getPosition() << endl;
     INetworkProtocolControlInfo *networkProtocolControlInfo = addressType->createNetworkProtocolControlInfo();
     networkProtocolControlInfo->setTransportProtocol(IP_PROT_MANET);
     networkProtocolControlInfo->setHopLimit(255);
@@ -244,7 +244,7 @@ void GPSR::sendBeacon(GPSRBeacon *beacon, double delay)
 
 void GPSR::processBeacon(GPSRBeacon *beacon)
 {
-    EV_INFO << "Processing beacon: address = " << beacon->getAddress() << ", position = " << beacon->getPosition() << endl;
+    //EV_INFO << "Processing beacon: address = " << beacon->getAddress() << ", position = " << beacon->getPosition() << endl;
     neighborPositionTable.setPosition(beacon->getAddress(), beacon->getPosition());
     delete beacon;
 }
@@ -452,7 +452,7 @@ std::vector<L3Address> GPSR::getPlanarNeighbors()
 
 L3Address GPSR::getNextPlanarNeighborCounterClockwise(const L3Address& startNeighborAddress, double startNeighborAngle)
 {
-    EV_DEBUG << "Finding next planar neighbor (counter clockwise): startAddress = " << startNeighborAddress << ", startAngle = " << startNeighborAngle << endl;
+    //EV_DEBUG << "Finding next planar neighbor (counter clockwise): startAddress = " << startNeighborAddress << ", startAngle = " << startNeighborAngle << endl;
     L3Address bestNeighborAddress = startNeighborAddress;
     double bestNeighborAngleDifference = 2 * M_PI;
     std::vector<L3Address> neighborAddresses = getPlanarNeighbors();
@@ -461,7 +461,7 @@ L3Address GPSR::getNextPlanarNeighborCounterClockwise(const L3Address& startNeig
         double neighborAngleDifference = neighborAngle - startNeighborAngle;
         if (neighborAngleDifference < 0)
             neighborAngleDifference += 2 * M_PI;
-        EV_DEBUG << "Trying next planar neighbor (counter clockwise): address = " << neighborAddress << ", angle = " << neighborAngle << endl;
+        //EV_DEBUG << "Trying next planar neighbor (counter clockwise): address = " << neighborAddress << ", angle = " << neighborAngle << endl;
         if (neighborAngleDifference != 0 && neighborAngleDifference < bestNeighborAngleDifference) {
             bestNeighborAngleDifference = neighborAngleDifference;
             bestNeighborAddress = neighborAddress;
@@ -486,7 +486,7 @@ L3Address GPSR::findNextHop(INetworkDatagram *datagram, const L3Address& destina
 
 L3Address GPSR::findGreedyRoutingNextHop(INetworkDatagram *datagram, const L3Address& destination)
 {
-    EV_DEBUG << "Finding next hop using greedy routing: destination = " << destination << endl;
+    //EV_DEBUG << "Finding next hop using greedy routing: destination = " << destination << endl;
     GPSROption *gpsrOption = getGpsrOptionFromNetworkDatagram(datagram);
     L3Address selfAddress = getSelfAddress();
     Coord selfPosition = mobility->getCurrentPosition();
@@ -503,7 +503,7 @@ L3Address GPSR::findGreedyRoutingNextHop(INetworkDatagram *datagram, const L3Add
         }
     }
     if (bestNeighbor.isUnspecified()) {
-        EV_DEBUG << "Switching to perimeter routing: destination = " << destination << endl;
+        //EV_DEBUG << "Switching to perimeter routing: destination = " << destination << endl;
         gpsrOption->setRoutingMode(GPSR_PERIMETER_ROUTING);
         gpsrOption->setPerimeterRoutingStartPosition(selfPosition);
         gpsrOption->setCurrentFaceFirstSenderAddress(selfAddress);
@@ -516,7 +516,7 @@ L3Address GPSR::findGreedyRoutingNextHop(INetworkDatagram *datagram, const L3Add
 
 L3Address GPSR::findPerimeterRoutingNextHop(INetworkDatagram *datagram, const L3Address& destination)
 {
-    EV_DEBUG << "Finding next hop using perimeter routing: destination = " << destination << endl;
+    //EV_DEBUG << "Finding next hop using perimeter routing: destination = " << destination << endl;
     GPSROption *gpsrOption = getGpsrOptionFromNetworkDatagram(datagram);
     L3Address selfAddress = getSelfAddress();
     Coord selfPosition = mobility->getCurrentPosition();
@@ -525,7 +525,7 @@ L3Address GPSR::findPerimeterRoutingNextHop(INetworkDatagram *datagram, const L3
     double selfDistance = (destinationPosition - selfPosition).length();
     double perimeterRoutingStartDistance = (destinationPosition - perimeterRoutingStartPosition).length();
     if (selfDistance < perimeterRoutingStartDistance) {
-        EV_DEBUG << "Switching to greedy routing: destination = " << destination << endl;
+        //EV_DEBUG << "Switching to greedy routing: destination = " << destination << endl;
         gpsrOption->setRoutingMode(GPSR_GREEDY_ROUTING);
         gpsrOption->setPerimeterRoutingStartPosition(Coord());
         gpsrOption->setPerimeterRoutingForwardPosition(Coord());
@@ -543,18 +543,18 @@ L3Address GPSR::findPerimeterRoutingNextHop(INetworkDatagram *datagram, const L3
                 nextNeighborAddress = getNextPlanarNeighborCounterClockwise(nextNeighborAddress, getNeighborAngle(nextNeighborAddress));
             if (nextNeighborAddress.isUnspecified())
                 break;
-            EV_DEBUG << "Intersecting towards next hop: nextNeighbor = " << nextNeighborAddress << ", firstSender = " << firstSenderAddress << ", firstReceiver = " << firstReceiverAddress << ", destination = " << destination << endl;
+            //EV_DEBUG << "Intersecting towards next hop: nextNeighbor = " << nextNeighborAddress << ", firstSender = " << firstSenderAddress << ", firstReceiver = " << firstReceiverAddress << ", destination = " << destination << endl;
             Coord nextNeighborPosition = getNeighborPosition(nextNeighborAddress);
             Coord intersection = intersectSections(perimeterRoutingStartPosition, destinationPosition, selfPosition, nextNeighborPosition);
             hasIntersection = !std::isnan(intersection.x);
             if (hasIntersection) {
-                EV_DEBUG << "Edge to next hop intersects: intersection = " << intersection << ", nextNeighbor = " << nextNeighborAddress << ", firstSender = " << firstSenderAddress << ", firstReceiver = " << firstReceiverAddress << ", destination = " << destination << endl;
+                //EV_DEBUG << "Edge to next hop intersects: intersection = " << intersection << ", nextNeighbor = " << nextNeighborAddress << ", firstSender = " << firstSenderAddress << ", firstReceiver = " << firstReceiverAddress << ", destination = " << destination << endl;
                 gpsrOption->setCurrentFaceFirstSenderAddress(selfAddress);
                 gpsrOption->setCurrentFaceFirstReceiverAddress(L3Address());
             }
         } while (hasIntersection);
         if (firstSenderAddress == selfAddress && firstReceiverAddress == nextNeighborAddress) {
-            EV_DEBUG << "End of perimeter reached: firstSender = " << firstSenderAddress << ", firstReceiver = " << firstReceiverAddress << ", destination = " << destination << endl;
+            //EV_DEBUG << "End of perimeter reached: firstSender = " << firstSenderAddress << ", firstReceiver = " << firstReceiverAddress << ", destination = " << destination << endl;
             return L3Address();
         }
         else {
@@ -573,14 +573,14 @@ INetfilter::IHook::Result GPSR::routeDatagram(INetworkDatagram *datagram, const 
 {
     const L3Address& source = datagram->getSourceAddress();
     const L3Address& destination = datagram->getDestinationAddress();
-    EV_INFO << "Finding next hop: source = " << source << ", destination = " << destination << endl;
+    //EV_INFO << "Finding next hop: source = " << source << ", destination = " << destination << endl;
     nextHop = findNextHop(datagram, destination);
     if (nextHop.isUnspecified()) {
-        EV_WARN << "No next hop found, dropping packet: source = " << source << ", destination = " << destination << endl;
+        //EV_WARN << "No next hop found, dropping packet: source = " << source << ", destination = " << destination << endl;
         return DROP;
     }
     else {
-        EV_INFO << "Next hop found: source = " << source << ", destination = " << destination << ", nextHop: " << nextHop << endl;
+        //EV_INFO << "Next hop found: source = " << source << ", destination = " << destination << ", nextHop: " << nextHop << endl;
         GPSROption *gpsrOption = getGpsrOptionFromNetworkDatagram(datagram);
         gpsrOption->setSenderAddress(getSelfAddress());
         outputInterfaceEntry = interfaceTable->getInterfaceByName(outputInterface);
@@ -751,7 +751,7 @@ void GPSR::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj,
 {
     Enter_Method("receiveChangeNotification");
     if (signalID == NF_LINK_BREAK) {
-        EV_WARN << "Received link break" << endl;
+        //EV_WARN << "Received link break" << endl;
         // TODO: shall we remove the neighbor?
     }
 }

@@ -72,6 +72,9 @@ protected:
 	// list of all UEs. Used for inter-cell interference evaluation
 	std::vector<UeInfo*> ueList_;
 
+	// list of all UEs, which are NOT connected
+	std::set<MacNodeId> ueNotConnectedList_;
+
 	MacNodeId macNodeIdCounter_[3]; // MacNodeId Counter
 	DeployedUesMap dMap_; // DeployedUes --> Master Mapping
 
@@ -158,6 +161,29 @@ public:
 			delete enbList_.back();
 			enbList_.pop_back();
 		}
+	}
+
+	//returns true if the ue is not connected to a base station
+	//only considered if the flag useSINRThreshold
+	virtual bool isNotConnected(MacNodeId ueId){
+
+		ASSERT(ueId >= UE_MIN_ID && ueId <= UE_MAX_ID);
+
+		for(auto var : ueNotConnectedList_){
+			if(var == ueId){
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	virtual void insertUeToNotConnectedList(MacNodeId ueId){
+		ueNotConnectedList_.insert(ueId);
+	}
+
+	virtual void deleteFromUeNotConnectedList(MacNodeId ueId){
+		ueNotConnectedList_.erase(ueId);
 	}
 
 	/**

@@ -55,7 +55,7 @@ W DimensionalSignalAnalogModel::computeMinPower(simtime_t startTime, simtime_t e
         endArgument.setArgValue(Dimension::frequency, nexttoward((carrierFrequency + bandwidth / 2).get(), 0));
     }
     W minPower = W(MappingUtils::findMin(*power, startArgument, endArgument));
-    EV_DEBUG << "Computing minimum reception power: start = " << startArgument << ", end = " << endArgument << " -> minimum reception power = " << minPower << endl;
+    //EV_DEBUG << "Computing minimum reception power: start = " << startArgument << ", end = " << endArgument << " -> minimum reception power = " << minPower << endl;
     return minPower;
 }
 

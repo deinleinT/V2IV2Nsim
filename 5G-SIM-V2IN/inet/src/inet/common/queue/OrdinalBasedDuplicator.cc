@@ -41,10 +41,10 @@ void OrdinalBasedDuplicator::initialize()
     parseVector(vector);
 
     if (duplicatesVector.size() == 0) {
-        EV << "DuplicatesGenerator: Empty duplicatesVector" << endl;
+        //EV << "DuplicatesGenerator: Empty duplicatesVector" << endl;
     }
     else {
-        EV << "DuplicatesGenerator: duplicatesVector=" << vector << endl;
+        //EV << "DuplicatesGenerator: duplicatesVector=" << vector << endl;
         generateFurtherDuplicates = true;
     }
 }
@@ -57,7 +57,7 @@ void OrdinalBasedDuplicator::handleMessage(cMessage *msg)
 
     if (generateFurtherDuplicates) {
         if (numPackets == duplicatesVector[0]) {
-            EV << "DuplicatesGenerator: Duplicating packet number " << numPackets << " " << msg << endl;
+            //EV << "DuplicatesGenerator: Duplicating packet number " << numPackets << " " << msg << endl;
             cMessage *dupmsg = utils::dupPacketAndControlInfo(msg);
             emit(duplPkSignal, dupmsg);
             emit(sentPkSignal, dupmsg);
@@ -65,7 +65,7 @@ void OrdinalBasedDuplicator::handleMessage(cMessage *msg)
             numDuplicated++;
             duplicatesVector.erase(duplicatesVector.begin());
             if (duplicatesVector.size() == 0) {
-                EV << "DuplicatesGenerator: End of duplicatesVector reached." << endl;
+                //EV << "DuplicatesGenerator: End of duplicatesVector reached." << endl;
                 generateFurtherDuplicates = false;
             }
         }

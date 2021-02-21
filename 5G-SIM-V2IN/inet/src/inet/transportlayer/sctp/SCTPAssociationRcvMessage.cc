@@ -570,7 +570,7 @@ bool SCTPAssociation::processInitArrived(SCTPInitChunk *initchunk, int32 srcPort
             assoc->listening = true;
             this->listening = false;
 
-            //EV_INFO << "Connection forked: this connection got new assocId=" << assocId << ", ""spinoff keeps LISTENing with assocId=" << assoc->assocId << "\n";
+            //EV_INFO << "Connection forked: this connection got new assocId=" << assocId << ", "                                                                                           "spinoff keeps LISTENing with assocId=" << assoc->assocId << "\n";
             snprintf(timerName, sizeof(timerName), "T2_SHUTDOWN of assoc %d", assocId);
             T2_ShutdownTimer->setName(timerName);
             snprintf(timerName, sizeof(timerName), "T5_SHUTDOWN_GUARD of assoc %d", assocId);
@@ -829,7 +829,7 @@ bool SCTPAssociation::processInitAckArrived(SCTPInitAckChunk *initAckChunk)
         startTimer(T1_InitTimer, state->initRexmitTimeout);
     }
     else{
-        //EV_DETAIL << "State=" << fsm->getState() << "\n";
+        EV_DETAIL << "State=" << fsm->getState() << "\n";
     }
     printSctpPathMap();
     return trans;
@@ -1065,7 +1065,7 @@ SCTPEventCode SCTPAssociation::processSackArrived(SCTPSackChunk *sackChunk)
     const uint16 numGaps = sackGapList.getNumGaps(SCTPGapList::GT_Any);
 
     // ====== Print some information =========================================
-    EV_DETAIL << "##### SACK Processing: TSNa=" << tsna << " #####" << endl;
+    //EV_DETAIL << "##### SACK Processing: TSNa=" << tsna << " #####" << endl;
     for (auto & elem : sctpPathMap) {
         SCTPPathVariables *myPath = elem.second;
         //EV_DETAIL << "Path " << myPath->remoteAddress << ":\t"                  << "outstanding=" << path->outstandingBytes << "\t"                  << "T3scheduled=" << path->T3_RtxTimer->getArrivalTime() << " "                  << (path->T3_RtxTimer->isScheduled() ? "[ok]" : "[NOT SCHEDULED]") << "\t"                  << "findPseudoCumAck=" << ((myPath->findPseudoCumAck == true) ? "true" : "false") << "\t"                  << "pseudoCumAck=" << myPath->pseudoCumAck << "\t"                  << "newPseudoCumAck=" << ((myPath->newPseudoCumAck == true) ? "true" : "false") << "\t"                  << "findRTXPseudoCumAck=" << ((myPath->findRTXPseudoCumAck == true) ? "true" : "false") << "\t"                  << "rtxPseudoCumAck=" << myPath->rtxPseudoCumAck << "\t"                  << "newRTXPseudoCumAck=" << ((myPath->newRTXPseudoCumAck == true) ? "true" : "false") << "\t"                  << endl;
@@ -1132,14 +1132,14 @@ SCTPEventCode SCTPAssociation::processSackArrived(SCTPSackChunk *sackChunk)
     // #######################################################################
 
     if (tsnGt(tsna, state->lastTsnAck)) {    // Handle new CumAck
-        EV_INFO << "===== Handling new CumAck for TSN " << tsna << " =====" << endl;
+        //EV_INFO << "===== Handling new CumAck for TSN " << tsna << " =====" << endl;
 
         SCTPDataVariables *myChunk = retransmissionQ->getChunk(state->lastTsnAck + 1);
         if ((myChunk != nullptr) && (myChunk->wasPktDropped) &&
             (myChunk->getLastDestinationPath()->fastRecoveryActive))
         {
             dropFilledGap = true;
-            EV_DETAIL << "TSN " << myChunk->tsn << " filled gap" << endl;
+            //EV_DETAIL << "TSN " << myChunk->tsn << " filled gap" << endl;
         }
 
         // We have got new chunks acked, and our cum ack point is advanced ...
@@ -1205,7 +1205,11 @@ SCTPEventCode SCTPAssociation::processSackArrived(SCTPSackChunk *sackChunk)
                 path->waitingForRTTCalculaton = false;
                 pmRttMeasurement(path, rttEstimation);
 
-                //EV_DETAIL << simTime() << ": SlowPathRTTUpdate from stale SACK - rtt="                          << rttEstimation << " from TSN "                          << path->tsnForRTTCalculation                          << " on path " << path->remoteAddress                          << " => RTO=" << path->pathRto << endl;
+                EV_DETAIL << simTime() << ": SlowPathRTTUpdate from stale SACK - rtt="
+                          << rttEstimation << " from TSN "
+                          << path->tsnForRTTCalculation
+                          << " on path " << path->remoteAddress
+                          << " => RTO=" << path->pathRto << endl;
             }
         }
         return SCTP_E_IGNORE;

@@ -237,7 +237,7 @@ void IPv6::handleMessageFromHL(cPacket *msg)
 {
     // if no interface exists, do not send datagram
     if (ift->getNumInterfaces() == 0) {
-        EV_WARN << "No interfaces exist, dropping packet\n";
+        //EV_WARN << "No interfaces exist, dropping packet\n";
         delete msg;
         return;
     }
@@ -251,7 +251,7 @@ void IPv6::handleMessageFromHL(cPacket *msg)
 
 #ifdef WITH_xMIPv6
     if (datagram == nullptr) {
-        EV_WARN << "Encapsulation failed - dropping packet." << endl;
+        //EV_WARN << "Encapsulation failed - dropping packet." << endl;
         delete msg;
         return;
     }
@@ -261,12 +261,12 @@ void IPv6::handleMessageFromHL(cPacket *msg)
 
     // check for local delivery
     if (!destAddress.isMulticast() && rt->isLocalAddress(destAddress)) {
-        EV_INFO << "local delivery\n";
+        //EV_INFO << "local delivery\n";
         if (datagram->getSrcAddress().isUnspecified())
             datagram->setSrcAddress(destAddress); // allows two apps on the same host to communicate
 
         if (destIE && !destIE->isLoopback()) {
-            EV_INFO << "datagram destination address is local, ignoring destination interface specified in the control info\n";
+            //EV_INFO << "datagram destination address is local, ignoring destination interface specified in the control info\n";
             destIE = nullptr;
         }
         if (!destIE)
@@ -294,13 +294,13 @@ void IPv6::routePacket(IPv6Datagram *datagram, const InterfaceEntry *destIE, IPv
     // TBD add option handling code here
     IPv6Address destAddress = datagram->getDestAddress();
 
-    EV_INFO << "Routing datagram `" << datagram->getName() << "' with dest=" << destAddress << ", requested nexthop is " << requestedNextHopAddress << " on " << (destIE ? destIE->getFullName() : "unspec") << " interface: \n";
+    //EV_INFO << "Routing datagram `" << datagram->getName() << "' with dest=" << destAddress << ", requested nexthop is " << requestedNextHopAddress << " on " << (destIE ? destIE->getFullName() : "unspec") << " interface: \n";
 
     // local delivery of unicast packets
     if (rt->isLocalAddress(destAddress)) {
         if (fromHL)
             throw cRuntimeError("model error: local unicast packet arrived from HL, but handleMessageFromHL() not detected it");
-        EV_INFO << "local delivery\n";
+        //EV_INFO << "local delivery\n";
 
         numLocalDeliver++;
         localDeliver(datagram);
@@ -314,7 +314,7 @@ void IPv6::routePacket(IPv6Datagram *datagram, const InterfaceEntry *destIE, IPv
         // FIXME rewrite code so that condition is cleaner --Andras
         //if (!rt->isRouter())
         if (!rt->isRouter() && !(datagram->getArrivalGate()->isName("ndIn"))) {
-            EV_INFO << "forwarding is off, dropping packet\n";
+            //EV_INFO << "forwarding is off, dropping packet\n";
             numDropped++;
             delete datagram;
             return;
@@ -322,7 +322,7 @@ void IPv6::routePacket(IPv6Datagram *datagram, const InterfaceEntry *destIE, IPv
 
         // don't forward link-local addresses or weaker
         if (destAddress.isLinkLocal() || destAddress.isLoopback()) {
-            EV_INFO << "dest address is link-local (or weaker) scope, doesn't get forwarded\n";
+            //EV_INFO << "dest address is link-local (or weaker) scope, doesn't get forwarded\n";
             delete datagram;
             return;
         }
@@ -369,7 +369,7 @@ void IPv6::routePacket(IPv6Datagram *datagram, const InterfaceEntry *destIE, IPv
 
     if (interfaceId > ift->getBiggestInterfaceId()) {
         // a virtual tunnel interface provides a path to the destination: do tunneling
-        EV_INFO << "tunneling: src addr=" << datagram->getSrcAddress() << ", dest addr=" << destAddress << std::endl;
+        //EV_INFO << "tunneling: src addr=" << datagram->getSrcAddress() << ", dest addr=" << destAddress << std::endl;
         send(datagram, "lowerTunnelingOut");
         return;
     }
@@ -390,7 +390,7 @@ void IPv6::resolveMACAddressAndSendPacket(IPv6Datagram *datagram, int interfaceI
     ASSERT(ie != nullptr);
     ASSERT(!nextHop.isUnspecified());
     IPv6Address destAddress = datagram->getDestAddress();
-    EV_INFO << "next hop for " << destAddress << " is " << nextHop << ", interface " << ie->getName() << "\n";
+    //EV_INFO << "next hop for " << destAddress << " is " << nextHop << ", interface " << ie->getName() << "\n";
 
 #ifdef WITH_xMIPv6
     if (rt->isMobileNode()) {
@@ -399,7 +399,7 @@ void IPv6::resolveMACAddressAndSendPacket(IPv6Datagram *datagram, int interfaceI
         if (datagram->getSrcAddress() == ie->ipv6Data()->getMNHomeAddress()
             && !ie->ipv6Data()->getGlobalAddress(IPv6InterfaceData::CoA).isUnspecified())
         {
-            EV_WARN << "Using HoA instead of CoA... dropping datagram" << endl;
+            //EV_WARN << "Using HoA instead of CoA... dropping datagram" << endl;
             delete datagram;
             numDropped++;
             return;
@@ -410,7 +410,7 @@ void IPv6::resolveMACAddressAndSendPacket(IPv6Datagram *datagram, int interfaceI
     MACAddress macAddr = nd->resolveNeighbour(nextHop, interfaceId);    // might initiate NUD
     if (macAddr.isUnspecified()) {
         if (!ie->isPointToPoint()) {
-            EV_INFO << "no link-layer address for next hop yet, passing datagram to Neighbour Discovery module\n";
+            //EV_INFO << "no link-layer address for next hop yet, passing datagram to Neighbour Discovery module\n";
             IPv6NDControlInfo *ctrl = new IPv6NDControlInfo();
             ctrl->setFromHL(fromHL);
             ctrl->setNextHop(nextHop);
@@ -420,8 +420,9 @@ void IPv6::resolveMACAddressAndSendPacket(IPv6Datagram *datagram, int interfaceI
             return;
         }
     }
-    else
-        EV_DETAIL << "link-layer address: " << macAddr << "\n";
+    else{
+        //EV_DETAIL << "link-layer address: " << macAddr << "\n";
+    }
 
     // send out datagram
     numForwarded++;
@@ -432,7 +433,7 @@ void IPv6::routeMulticastPacket(IPv6Datagram *datagram, const InterfaceEntry *de
 {
     const IPv6Address& destAddr = datagram->getDestAddress();
 
-    EV_INFO << "destination address " << destAddr << " is multicast, doing multicast routing\n";
+    //EV_INFO << "destination address " << destAddr << " is multicast, doing multicast routing\n";
     numMulticast++;
 
     // if received from the network...
@@ -440,21 +441,21 @@ void IPv6::routeMulticastPacket(IPv6Datagram *datagram, const InterfaceEntry *de
         ASSERT(!fromHL);
         // deliver locally
         if (rt->isLocalAddress(destAddr)) {
-            EV_INFO << "local delivery of multicast packet\n";
+            //EV_INFO << "local delivery of multicast packet\n";
             numLocalDeliver++;
             localDeliver(datagram->dup());
         }
 
         // if datagram arrived from input gate and IP forwarding is off, delete datagram
         if (!rt->isRouter()) {
-            EV_INFO << "forwarding is off\n";
+            //EV_INFO << "forwarding is off\n";
             delete datagram;
             return;
         }
 
         // make sure scope of multicast address is large enough to be forwarded to other links
         if (destAddr.getMulticastScope() <= 2) {
-            EV_INFO << "multicast dest address is link-local (or smaller) scope\n";
+            //EV_INFO << "multicast dest address is link-local (or smaller) scope\n";
             delete datagram;
             return;
         }
@@ -467,7 +468,7 @@ void IPv6::routeMulticastPacket(IPv6Datagram *datagram, const InterfaceEntry *de
     }
 
     // for now, we just send it out on every interface except on which it came. FIXME better!!!
-    EV_INFO << "sending out datagram on every interface (except incoming one)\n";
+    //EV_INFO << "sending out datagram on every interface (except incoming one)\n";
     for (int i = 0; i < ift->getNumInterfaces(); i++) {
         InterfaceEntry *ie = ift->getInterface(i);
         if (fromIE != ie && !ie->isLoopback())
@@ -491,7 +492,7 @@ void IPv6::routeMulticastPacket(IPv6Datagram *datagram, const InterfaceEntry *de
     if (inputGateIndex!=-1 && shortestPathInputGateIndex!=-1 && inputGateIndex!=shortestPathInputGateIndex)
     {
         // FIXME count dropped
-        EV << "Packet dropped.\n";
+        //EV << "Packet dropped.\n";
         delete datagram;
         return;
     }
@@ -554,8 +555,7 @@ void IPv6::localDeliver(IPv6Datagram *datagram)
     // Defragmentation. skip defragmentation if datagram is not fragmented
     IPv6FragmentHeader *fh = dynamic_cast<IPv6FragmentHeader *>(datagram->findExtensionHeaderByType(IP_PROT_IPv6EXT_FRAGMENT));
     if (fh) {
-        EV_DETAIL << "Datagram fragment: offset=" << fh->getFragmentOffset()
-                  << ", MORE=" << (fh->getMoreFragments() ? "true" : "false") << ".\n";
+        //EV_DETAIL << "Datagram fragment: offset=" << fh->getFragmentOffset()                  << ", MORE=" << (fh->getMoreFragments() ? "true" : "false") << ".\n";
 
         // erase timed out fragments in fragmentation buffer; check every 10 seconds max
         if (simTime() >= lastCheckTime + 10) {
@@ -565,10 +565,10 @@ void IPv6::localDeliver(IPv6Datagram *datagram)
 
         datagram = fragbuf.addFragment(datagram, fh, simTime());
         if (!datagram) {
-            EV_DETAIL << "No complete datagram yet.\n";
+            //EV_DETAIL << "No complete datagram yet.\n";
             return;
         }
-        EV_DETAIL << "This fragment completes the datagram.\n";
+        //EV_DETAIL << "This fragment completes the datagram.\n";
     }
 
 #ifdef WITH_xMIPv6
@@ -589,7 +589,7 @@ void IPv6::localDeliver(IPv6Datagram *datagram)
 
 
     if (protocol == IP_PROT_IPv6_ICMP && dynamic_cast<IPv6NDMessage *>(packet)) {
-        EV_INFO << "Neigbour Discovery packet: passing it to ND module\n";
+        //EV_INFO << "Neigbour Discovery packet: passing it to ND module\n";
         send(packet, "ndOut");
         packet = nullptr;
     }
@@ -598,7 +598,7 @@ void IPv6::localDeliver(IPv6Datagram *datagram)
         // added check for MIPv6 support to prevent nodes w/o the
         // xMIP module from processing related messages, 4.9.07 - CB
         if (rt->hasMIPv6Support()) {
-            EV_INFO << "MIPv6 packet: passing it to xMIPv6 module\n";
+            //EV_INFO << "MIPv6 packet: passing it to xMIPv6 module\n";
             send(check_and_cast<MobilityHeader *>(packet), "xMIPv6Out");
             packet = nullptr;
         }
@@ -607,7 +607,7 @@ void IPv6::localDeliver(IPv6Datagram *datagram)
             /*RFC3775, 11.3.5
                Any node that does not recognize the Mobility header will return an
                ICMP Parameter Problem, Code 1, message to the sender of the packet*/
-            EV_INFO << "No MIPv6 support on this node!\n";
+            //EV_INFO << "No MIPv6 support on this node!\n";
             IPv6ControlInfo *ctrlInfo = check_and_cast<IPv6ControlInfo *>(packet->removeControlInfo());
             icmp->sendErrorMessage(packet, ctrlInfo, ICMPv6_PARAMETER_PROBLEM, UNRECOGNIZED_NEXT_HDR_TYPE);
             packet = nullptr;
@@ -619,7 +619,7 @@ void IPv6::localDeliver(IPv6Datagram *datagram)
         packet = nullptr;
     }    //Added by WEI to forward ICMPv6 msgs to ICMPv6 module.
     else if (protocol == IP_PROT_IP || protocol == IP_PROT_IPv6) {
-        EV_INFO << "Tunnelled IP datagram\n";
+        //EV_INFO << "Tunnelled IP datagram\n";
         send(packet, "upperTunnelingOut");
         packet = nullptr;
     }
@@ -629,7 +629,7 @@ void IPv6::localDeliver(IPv6Datagram *datagram)
         if (gateindex >= 0) {
             cGate *outGate = gate("transportOut", gateindex);
             if (outGate->isPathOK()) {
-                EV_INFO << "Protocol " << protocol << ", passing up on gate " << gateindex << "\n";
+                //EV_INFO << "Protocol " << protocol << ", passing up on gate " << gateindex << "\n";
                 //TODO: Indication of forward progress
                 send(packet, outGate);
                 packet = nullptr;
@@ -638,7 +638,7 @@ void IPv6::localDeliver(IPv6Datagram *datagram)
         }
 
         // TODO send ICMP Destination Unreacheable error
-        EV_INFO << "Transport layer gate not connected - dropping packet!\n";
+        //EV_INFO << "Transport layer gate not connected - dropping packet!\n";
         IPv6ControlInfo *ctrlInfo = check_and_cast<IPv6ControlInfo *>(packet->removeControlInfo());
         icmp->sendErrorMessage(packet, ctrlInfo, ICMPv6_PARAMETER_PROBLEM, UNRECOGNIZED_NEXT_HDR_TYPE);
         packet = nullptr;
@@ -651,7 +651,7 @@ void IPv6::handleReceivedICMP(ICMPv6Message *msg)
     int type = msg->getType();
     if (type < 128) {
         // ICMP errors are delivered to the appropriate higher layer protocols
-        EV_INFO << "ICMPv6 packet: passing it to higher layer\n";
+        //EV_INFO << "ICMPv6 packet: passing it to higher layer\n";
         IPv6Datagram *bogusPacket = check_and_cast<IPv6Datagram *>(msg->getEncapsulatedPacket());
         int protocol = bogusPacket->getTransportProtocol();
         int gateindex = mapping.getOutputGateForProtocol(protocol);
@@ -662,7 +662,7 @@ void IPv6::handleReceivedICMP(ICMPv6Message *msg)
         // ICMPv6_ECHO_REQUEST, ICMPv6_ECHO_REPLY, ICMPv6_MLD_QUERY, ICMPv6_MLD_REPORT,
         // ICMPv6_MLD_DONE, ICMPv6_ROUTER_SOL, ICMPv6_ROUTER_AD, ICMPv6_NEIGHBOUR_SOL,
         // ICMPv6_NEIGHBOUR_AD, ICMPv6_MLDv2_REPORT
-        EV_INFO << "ICMPv6 packet: passing it to ICMPv6 module\n";
+        //EV_INFO << "ICMPv6 packet: passing it to ICMPv6 module\n";
         int gateindex = mapping.getOutputGateForProtocol(IP_PROT_IPv6_ICMP);
         send(msg, "transportOut", gateindex);
     }
@@ -743,7 +743,7 @@ void IPv6::fragmentAndSend(IPv6Datagram *datagram, const InterfaceEntry *ie, con
     // hop counter check
     if (datagram->getHopLimit() <= 0) {
         // drop datagram, destruction responsibility in ICMP
-        EV_INFO << "datagram hopLimit reached zero, sending ICMPv6_TIME_EXCEEDED\n";
+        //EV_INFO << "datagram hopLimit reached zero, sending ICMPv6_TIME_EXCEEDED\n";
         icmp->sendErrorMessage(datagram, ICMPv6_TIME_EXCEEDED, 0);    // FIXME check icmp 'code'
         return;
     }
@@ -760,7 +760,7 @@ void IPv6::fragmentAndSend(IPv6Datagram *datagram, const InterfaceEntry *ie, con
         // if the datagram has a tentative address as source we have to reschedule it
         // as it can not be sent before the address' tentative status is cleared - CB
         if (ie->ipv6Data()->isTentativeAddress(srcAddr)) {
-            EV_INFO << "Source address is tentative - enqueueing datagram for later resubmission." << endl;
+            //EV_INFO << "Source address is tentative - enqueueing datagram for later resubmission." << endl;
             ScheduledDatagram *sDgram = new ScheduledDatagram(datagram, ie, nextHopAddr, fromHL);
             queue.insert(sDgram);
             return;
@@ -790,7 +790,7 @@ void IPv6::fragmentAndSend(IPv6Datagram *datagram, const InterfaceEntry *ie, con
     ASSERT(fragmentLength > 0);
 
     int noOfFragments = (payloadLength + fragmentLength - 1) / fragmentLength;
-    EV_INFO << "Breaking datagram into " << noOfFragments << " fragments\n";
+    //EV_INFO << "Breaking datagram into " << noOfFragments << " fragments\n";
     std::string fragMsgName = datagram->getName();
     fragMsgName += "-frag";
 
@@ -840,17 +840,17 @@ bool IPv6::determineOutputInterface(const IPv6Address& destAddress, IPv6Address&
 
     if (interfaceId == -1) {
         // address not in destination cache: do longest prefix match in routing table
-        EV_INFO << "do longest prefix match in routing table" << endl;
+        //EV_INFO << "do longest prefix match in routing table" << endl;
         const IPv6Route *route = rt->doLongestPrefixMatch(destAddress);
-        EV_INFO << "finished longest prefix match in routing table" << endl;
+        //EV_INFO << "finished longest prefix match in routing table" << endl;
         if (!route) {
             if (rt->isRouter()) {
-                EV_INFO << "unroutable, sending ICMPv6_DESTINATION_UNREACHABLE\n";
+                //EV_INFO << "unroutable, sending ICMPv6_DESTINATION_UNREACHABLE\n";
                 numUnroutable++;
                 icmp->sendErrorMessage(datagram, ICMPv6_DESTINATION_UNREACHABLE, 0);    // FIXME check ICMP 'code'
             }
             else {    // host
-                EV_INFO << "no match in routing table, passing datagram to Neighbour Discovery module for default router selection\n";
+                //EV_INFO << "no match in routing table, passing datagram to Neighbour Discovery module for default router selection\n";
                 IPv6NDControlInfo *ctrl = new IPv6NDControlInfo();
                 ctrl->setFromHL(fromHL);
                 ctrl->setNextHop(nextHop);
@@ -876,7 +876,7 @@ bool IPv6::determineOutputInterface(const IPv6Address& destAddress, IPv6Address&
 bool IPv6::processExtensionHeaders(IPv6Datagram *datagram)
 {
     int noExtHeaders = datagram->getExtensionHeaderArraySize();
-    EV_INFO << noExtHeaders << " extension header(s) for processing..." << endl;
+    //EV_INFO << noExtHeaders << " extension header(s) for processing..." << endl;
 
     // walk through all extension headers
     for (int i = 0; i < noExtHeaders; i++) {
@@ -884,20 +884,20 @@ bool IPv6::processExtensionHeaders(IPv6Datagram *datagram)
 
         if (dynamic_cast<IPv6RoutingHeader *>(eh)) {
             IPv6RoutingHeader *rh = (IPv6RoutingHeader *)(eh);
-            EV_DETAIL << "Routing Header with type=" << rh->getRoutingType() << endl;
+            //EV_DETAIL << "Routing Header with type=" << rh->getRoutingType() << endl;
 
             // type 2 routing header should be processed by MIPv6 module
             // if no MIP support, ignore the header
             if (rt->hasMIPv6Support() && rh->getRoutingType() == 2) {
                 // for simplicity, we set a context pointer on the datagram
                 datagram->setContextPointer(rh);
-                EV_INFO << "Sending datagram with RH2 to MIPv6 module" << endl;
+                //EV_INFO << "Sending datagram with RH2 to MIPv6 module" << endl;
                 send(datagram, "xMIPv6Out");
                 return false;
             }
             else {
                 delete rh;
-                EV_INFO << "Ignoring unknown routing header" << endl;
+                //EV_INFO << "Ignoring unknown routing header" << endl;
             }
         }
         else if (dynamic_cast<IPv6DestinationOptionsHeader *>(eh)) {
@@ -906,18 +906,18 @@ bool IPv6::processExtensionHeaders(IPv6Datagram *datagram)
 
             if (rt->hasMIPv6Support() && dynamic_cast<HomeAddressOption *>(eh)) {
                 datagram->setContextPointer(eh);
-                EV_INFO << "Sending datagram with HoA Option to MIPv6 module" << endl;
+                //EV_INFO << "Sending datagram with HoA Option to MIPv6 module" << endl;
                 send(datagram, "xMIPv6Out");
                 return false;
             }
             else {
                 delete eh;
-                EV_INFO << "Ignoring unknown destination options header" << endl;
+                //EV_INFO << "Ignoring unknown destination options header" << endl;
             }
         }
         else {
             delete eh;
-            EV_INFO << "Ignoring unknown extension header" << endl;
+            //EV_INFO << "Ignoring unknown extension header" << endl;
         }
     }
 

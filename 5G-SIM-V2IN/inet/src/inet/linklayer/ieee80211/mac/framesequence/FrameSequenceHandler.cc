@@ -93,7 +93,7 @@ void FrameSequenceHandler::startFrameSequenceStep()
         switch (nextStep->getType()) {
             case IFrameSequenceStep::Type::TRANSMIT: {
                 auto transmitStep = static_cast<TransmitStep *>(nextStep);
-                EV_INFO << "Transmitting, frame = " << transmitStep->getFrameToTransmit() << "\n";
+                //EV_INFO << "Transmitting, frame = " << transmitStep->getFrameToTransmit() << "\n";
                 callback->transmitFrame(transmitStep->getFrameToTransmit(), transmitStep->getIfs());
                 // TODO: lifetime
                 // if (auto dataFrame = dynamic_cast<Ieee80211DataFrame *>(transmitStep->getFrameToTransmit()))
@@ -144,7 +144,7 @@ void FrameSequenceHandler::finishFrameSequenceStep()
 
 void FrameSequenceHandler::finishFrameSequence()
 {
-    EV_INFO << "Frame sequence finished\n";
+    //EV_INFO << "Frame sequence finished\n";
     delete context;
     delete frameSequence;
     context = nullptr;
@@ -155,7 +155,7 @@ void FrameSequenceHandler::finishFrameSequence()
 
 void FrameSequenceHandler::abortFrameSequence()
 {
-    EV_INFO << "Frame sequence aborted\n";
+    //EV_INFO << "Frame sequence aborted\n";
     auto step = context->getLastStep();
     auto failedTxStep = check_and_cast<ITransmitStep*>(dynamic_cast<IReceiveStep*>(step) ? context->getStepBeforeLast() : step);
     auto frameToTransmit = failedTxStep->getFrameToTransmit();

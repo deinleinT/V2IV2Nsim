@@ -402,7 +402,7 @@ void SCTPAssociation::initCCParameters(SCTPPathVariables *path)
     path->ssthresh = state->peerRwnd;
     recordCwndUpdate(path);
 
-    //EV_DEBUG << simTime() << ":\tCC [initCCParameters]\t" << path->remoteAddress<< " (cmtCCGroup=" << path->cmtCCGroup << ")"<< "\tsst=" << path->ssthresh << " cwnd=" << path->cwnd << endl;
+    //EV_DEBUG << simTime() << ":\tCC [initCCParameters]\t" << path->remoteAddress             << " (cmtCCGroup=" << path->cmtCCGroup << ")"             << "\tsst=" << path->ssthresh << " cwnd=" << path->cwnd << endl;
     assocBestPaths.clear();
     assocMaxWndPaths.clear();
 }
@@ -438,7 +438,7 @@ void SCTPAssociation::cwndUpdateAfterSack()
             // ====== Retransmission required -> reduce congestion window ======
             if (path->requiresRtx) {
                 double decreaseFactor = 0.5;
-                //EV << assocId << ": " << simTime() << ":\tCC [cwndUpdateAfterSack]\t" << path->remoteAddress<< " (cmtCCGroup=" << path->cmtCCGroup << ")" << "\tsst=" << path->ssthresh<< "\tcwnd=" << path->cwnd << "\tSST=" << path->cmtGroupTotalSsthresh<< "\tCWND=" << path->cmtGroupTotalCwnd << "\tBW.CWND=" << path->cmtGroupTotalCwndBandwidth;
+                //EV << assocId << ": " << simTime() << ":\tCC [cwndUpdateAfterSack]\t" << path->remoteAddress                   << " (cmtCCGroup=" << path->cmtCCGroup << ")"                   << "\tsst=" << path->ssthresh                   << "\tcwnd=" << path->cwnd                   << "\tSST=" << path->cmtGroupTotalSsthresh                   << "\tCWND=" << path->cmtGroupTotalCwnd                   << "\tBW.CWND=" << path->cmtGroupTotalCwndBandwidth;
                 if (state->highSpeedCC == true) {
                     decreaseFactor = HighSpeedCwndAdjustmentTable[path->highSpeedCCThresholdIdx].decreaseFactor;
                     //EV << "\tHighSpeedDecreaseFactor=" << decreaseFactor;
@@ -448,7 +448,7 @@ void SCTPAssociation::cwndUpdateAfterSack()
                 if ((state->allowCMT == false) ||
                     (state->cmtCCVariant == SCTPStateVariables::CCCV_CMT))
                 {
-                    //EV_INFO << simTime() << ":\tCC [cwndUpdateAfterSack]\t" << path->remoteAddress<< "\tsst=" << path->ssthresh << " cwnd=" << path->cwnd;
+                    //EV_INFO << simTime() << ":\tCC [cwndUpdateAfterSack]\t" << path->remoteAddress                            << "\tsst=" << path->ssthresh << " cwnd=" << path->cwnd;
 
                     path->ssthresh = max((int32)path->cwnd - (int32)rint(decreaseFactor * (double)path->cwnd),
                                 4 * (int32)path->pmtu);
@@ -547,7 +547,7 @@ void SCTPAssociation::cwndUpdateAfterSack()
                     path->fastRecoveryEnteringTime = simTime();
                     path->vectorPathFastRecoveryState->record(path->cwnd);
 
-                    //EV_INFO << simTime() << ":\tCC [cwndUpdateAfterSack] Entering Fast Recovery on path " << path->remoteAddress << ", exit point is " << path->fastRecoveryExitPoint << ", pseudoCumAck=" << path->pseudoCumAck  << ", rtxPseudoCumAck=" << path->rtxPseudoCumAck << endl;
+                    //EV_INFO << simTime() << ":\tCC [cwndUpdateAfterSack] Entering Fast Recovery on path "                            << path->remoteAddress                            << ", exit point is " << path->fastRecoveryExitPoint                            << ", pseudoCumAck=" << path->pseudoCumAck                            << ", rtxPseudoCumAck=" << path->rtxPseudoCumAck << endl;
                 }
             }
         }
@@ -555,7 +555,7 @@ void SCTPAssociation::cwndUpdateAfterSack()
             for (auto & elem : sctpPathMap) {
                 SCTPPathVariables *path = elem.second;
                 if (path->fastRecoveryActive) {
-                    //EV_INFO << assocId << ": " << simTime() << ":\tCC [cwndUpdateAfterSack] Still in Fast Recovery on path " << path->remoteAddress << ", exit point is " << path->fastRecoveryExitPoint << endl;
+                    //EV_INFO << assocId << ": " << simTime() << ":\tCC [cwndUpdateAfterSack] Still in Fast Recovery on path "                            << path->remoteAddress                            << ", exit point is " << path->fastRecoveryExitPoint << endl;
                 }
             }
         }
@@ -763,7 +763,7 @@ void SCTPAssociation::cwndUpdateAfterRtxTimeout(SCTPPathVariables *path)
 {
     double decreaseFactor = 0.5;
     path->oliaSentBytes = 0;
-    //EV << assocId << ": " << simTime() << ":\tCC [cwndUpdateAfterRtxTimeout]\t" << path->remoteAddress       << " (cmtCCGroup=" << path->cmtCCGroup << ")"       << "\tsst=" << path->ssthresh       << "\tcwnd=" << path->cwnd       << "\tSST=" << path->cmtGroupTotalSsthresh       << "\tCWND=" << path->cmtGroupTotalCwnd       << "\tBW.CWND=" << path->cmtGroupTotalCwndBandwidth;
+    //EV << assocId << ": " << simTime() << ":\tCC [cwndUpdateAfterRtxTimeout]\t" << path->remoteAddress       << " (cmtCCGroup=" << path->cmtCCGroup << ")"       << "\tsst=" << path->ssthresh       << "\tcwnd=" << path->cwnd       << "\tSST=" << path->cmtGroupTotalSsthresh       << "\tCWND=" << path->cmtGroupTotalCwnd       << "\tBW.CWND=" << path->cmtGroupTotalCwndBandwidh;
     if (state->highSpeedCC == true) {
         decreaseFactor = HighSpeedCwndAdjustmentTable[path->highSpeedCCThresholdIdx].decreaseFactor;
         //EV << "\tHighSpeedDecreaseFactor=" << decreaseFactor;
@@ -897,7 +897,7 @@ void SCTPAssociation::cwndUpdateAfterCwndTimeout(SCTPPathVariables *path)
     // within an RTO, the cwnd of the transport address SHOULD be adjusted to 2*MTU.
     //EV_INFO << assocId << ": " << simTime() << ":\tCC [cwndUpdateAfterCwndTimeout]\t" << path->remoteAddress            << " (cmtCCGroup=" << path->cmtCCGroup << ")"            << "\tsst=" << path->ssthresh            << "\tcwnd=" << path->cwnd;
     path->cwnd = getInitialCwnd(path);
-    //EV_INFO << "\t=>\tsst=" << path->ssthresh            << "\tcwnd=" << path->cwnd << endl;
+    EV_INFO << "\t=>\tsst=" << path->ssthresh            << "\tcwnd=" << path->cwnd << endl;
     recordCwndUpdate(path);
 }
 

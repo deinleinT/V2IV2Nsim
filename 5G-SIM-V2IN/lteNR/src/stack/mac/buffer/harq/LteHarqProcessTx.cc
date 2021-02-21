@@ -324,6 +324,16 @@ inet::int64 LteHarqProcessTx::getPduLength(Codeword cw)
 {
     //std::cout << "LteHarqProcessTx::getPduLength start at " << simTime().dbl() << std::endl;
 
+	//for codeblockgroups
+	if (getSimulation()->getSystemModule()->par("useCodeBlockGroups").boolValue()) {
+		LteControlInfo *pduInfo = check_and_cast<LteControlInfo*>((*units_)[cw]->getPdu()->getControlInfo());
+		if (pduInfo->getRestByteSize() == 0) {
+			return (*units_)[cw]->getPduLength();
+		} else {
+			return pduInfo->getRestByteSize();
+		}
+	}
+
     return (*units_)[cw]->getPduLength();
 }
 

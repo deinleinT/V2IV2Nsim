@@ -64,7 +64,7 @@ void AARFRateControl::frameTransmitted(const Ieee80211Frame* frame, int retryCou
         currentMode = decreaseRateIfPossible(currentMode);
         emitDatarateSignal();
         updateDisplayString();
-        EV_DETAIL << "Decreased rate to " << *currentMode << endl;
+        //EV_DETAIL << "Decreased rate to " << *currentMode << endl;
         multiplyIncreaseThreshold(factor);
         resetTimer();
     }
@@ -74,7 +74,7 @@ void AARFRateControl::frameTransmitted(const Ieee80211Frame* frame, int retryCou
         currentMode = decreaseRateIfPossible(currentMode);
         emitDatarateSignal();
         updateDisplayString();
-        EV_DETAIL << "Decreased rate to " << *currentMode << endl;
+        //EV_DETAIL << "Decreased rate to " << *currentMode << endl;
         resetIncreaseThreshdold();
         resetTimer();
     }
@@ -87,7 +87,7 @@ void AARFRateControl::frameTransmitted(const Ieee80211Frame* frame, int retryCou
         currentMode = increaseRateIfPossible(currentMode);
         emitDatarateSignal();
         updateDisplayString();
-        EV_DETAIL << "Increased rate to " << *currentMode << endl;
+        //EV_DETAIL << "Increased rate to " << *currentMode << endl;
         resetTimer();
         probing = true;
     }
@@ -119,7 +119,7 @@ void AARFRateControl::increaseRateIfTimerIsExpired()
         currentMode = increaseRateIfPossible(currentMode);
         emitDatarateSignal();
         updateDisplayString();
-        EV_DETAIL << "Increased rate to " << *currentMode << endl;
+        //EV_DETAIL << "Increased rate to " << *currentMode << endl;
         resetTimer();
     }
 }
@@ -132,7 +132,7 @@ const IIeee80211Mode* AARFRateControl::getRate()
 {
     Enter_Method_Silent("getRate()");
     increaseRateIfTimerIsExpired();
-    EV_INFO << "The current mode is " << currentMode << " the net bitrate is " << currentMode->getDataMode()->getNetBitrate() << std::endl;
+    //EV_INFO << "The current mode is " << currentMode << " the net bitrate is " << currentMode->getDataMode()->getNetBitrate() << std::endl;
     return currentMode;
 }
 

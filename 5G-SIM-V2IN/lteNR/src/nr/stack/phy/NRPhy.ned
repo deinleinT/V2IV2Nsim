@@ -51,8 +51,8 @@ simple NRPhyBase like NRPhy
 
         // switch for handover messages handling on UEs
         bool enableHandover = default(true);
-        double handoverLatency @unit(s) = default(0.05s);
-        double handoverDelta @unit(s) = default(0.05s);
+        double handoverLatency @unit(s) = default(0.001s);
+        double handoverDelta @unit(s) = default(0.0001s);
         
         bool enableMulticastD2DRangeCheck = default(false);
         double multicastD2DRange @unit(m) = default(1000m);

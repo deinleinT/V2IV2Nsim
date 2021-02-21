@@ -123,7 +123,7 @@ void EtherAppSrv::sendPacket(cPacket *datapacket, const MACAddress& destAddr, in
 
 void EtherAppSrv::registerDSAP(int dsap)
 {
-    EV_DEBUG << getFullPath() << " registering DSAP " << dsap << "\n";
+    //EV_DEBUG << getFullPath() << " registering DSAP " << dsap << "\n";
 
     Ieee802Ctrl *etherctrl = new Ieee802Ctrl();
     etherctrl->setDsap(dsap);

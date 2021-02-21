@@ -219,7 +219,7 @@ cPacket *IGMPSerializer::deserialize(const Buffer &b, Context& c)
             break;
 
         default:
-            EV_ERROR << "IGMPSerializer: can not create IGMP packet: type " << type << " not supported\n";
+            //EV_ERROR << "IGMPSerializer: can not create IGMP packet: type " << type << " not supported\n";
             b.seek(startPos);
             packet = SerializerRegistrationList::byteArraySerializer.deserializePacket(b, c);
             packet->setBitError(true);

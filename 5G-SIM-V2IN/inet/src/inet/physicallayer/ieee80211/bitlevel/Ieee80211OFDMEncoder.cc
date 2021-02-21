@@ -50,19 +50,19 @@ const ITransmissionBitModel *Ieee80211OFDMEncoder::encode(const ITransmissionPac
     if (scrambler) {
         *encodedBits = scrambler->scramble(*encodedBits);
         scrambling = scrambler->getScrambling();
-        EV_DEBUG << "Scrambled bits are: " << *encodedBits << endl;
+        //EV_DEBUG << "Scrambled bits are: " << *encodedBits << endl;
     }
     const IForwardErrorCorrection *forwardErrorCorrection = nullptr;
     if (convolutionalCoder) {
         *encodedBits = convolutionalCoder->encode(*encodedBits);
         forwardErrorCorrection = convolutionalCoder->getForwardErrorCorrection();
-        EV_DEBUG << "FEC encoded bits are: " << *encodedBits << endl;
+        //EV_DEBUG << "FEC encoded bits are: " << *encodedBits << endl;
     }
     const IInterleaving *interleaving = nullptr;
     if (interleaver) {
         *encodedBits = interleaver->interleave(*encodedBits);
         interleaving = interleaver->getInterleaving();
-        EV_DEBUG << "Interleaved bits are: " << *encodedBits << endl;
+        //EV_DEBUG << "Interleaved bits are: " << *encodedBits << endl;
     }
     return new TransmissionBitModel(encodedBits, forwardErrorCorrection, scrambling, interleaving);
 }

@@ -38,7 +38,7 @@ bool TCPConnection::tryFastRoute(TCPSegment *tcpseg)
 
 void TCPConnection::segmentArrivalWhileClosed(TCPSegment *tcpseg, L3Address srcAddr, L3Address destAddr)
 {
-    EV_INFO << "Seg arrived: ";
+    //EV_INFO << "Seg arrived: ";
     printSegmentBrief(tcpseg);
 
     // This segment doesn't belong to any connection, so this object
@@ -46,7 +46,7 @@ void TCPConnection::segmentArrivalWhileClosed(TCPSegment *tcpseg, L3Address srcA
 
     ASSERT(state == nullptr);
 
-    EV_INFO << "Segment doesn't belong to any existing connection\n";
+    //EV_INFO << "Segment doesn't belong to any existing connection\n";
 
     // RFC 793:
     //"
@@ -71,26 +71,26 @@ void TCPConnection::segmentArrivalWhileClosed(TCPSegment *tcpseg, L3Address srcA
     //              (counting SYN and FIN)
     //"
     if (tcpseg->getRstBit()) {
-        EV_DETAIL << "RST bit set: dropping segment\n";
+        //EV_DETAIL << "RST bit set: dropping segment\n";
         return;
     }
 
     if (!tcpseg->getAckBit()) {
-        EV_DETAIL << "ACK bit not set: sending RST+ACK\n";
+        //EV_DETAIL << "ACK bit not set: sending RST+ACK\n";
         uint32 ackNo = tcpseg->getSequenceNo() + tcpseg->getSegLen();
         sendRstAck(0, ackNo, destAddr, srcAddr, tcpseg->getDestPort(), tcpseg->getSrcPort());
     }
     else {
-        EV_DETAIL << "ACK bit set: sending RST\n";
+        //EV_DETAIL << "ACK bit set: sending RST\n";
         sendRst(tcpseg->getAckNo(), destAddr, srcAddr, tcpseg->getDestPort(), tcpseg->getSrcPort());
     }
 }
 
 TCPEventCode TCPConnection::process_RCV_SEGMENT(TCPSegment *tcpseg, L3Address src, L3Address dest)
 {
-    EV_INFO << "Seg arrived: ";
+    //EV_INFO << "Seg arrived: ";
     printSegmentBrief(tcpseg);
-    EV_DETAIL << "TCB: " << state->str() << "\n";
+    //EV_DETAIL << "TCB: " << state->str() << "\n";
 
     if (rcvSeqVector)
         rcvSeqVector->record(tcpseg->getSequenceNo());
@@ -143,8 +143,7 @@ TCPEventCode TCPConnection::processSegment1stThru8th(TCPSegment *tcpseg)
             if (tsval != 0 && seqLess(tsval, state->ts_recent) &&
                 (simTime() - state->time_last_data_sent) > PAWS_IDLE_TIME_THRESH)    // PAWS_IDLE_TIME_THRESH = 24 days
             {
-                EV_DETAIL << "PAWS: Segment is not acceptable, TSval=" << tsval << " in "
-                          << stateName(fsm.getState()) << " state received: dropping segment\n";
+                //EV_DETAIL << "PAWS: Segment is not acceptable, TSval=" << tsval << " in "                          << stateName(fsm.getState()) << " state received: dropping segment\n";
                 acceptable = false;
             }
         }
@@ -164,20 +163,20 @@ TCPEventCode TCPConnection::processSegment1stThru8th(TCPSegment *tcpseg)
         //  <SEQ=SND.NXT><ACK=RCV.NXT><CTL=ACK>
         //"
         if (tcpseg->getRstBit()) {
-            EV_DETAIL << "RST with unacceptable seqNum: dropping\n";
+            //EV_DETAIL << "RST with unacceptable seqNum: dropping\n";
         }
         else {
             if (tcpseg->getSynBit()) {
-                EV_DETAIL << "SYN with unacceptable seqNum in " << stateName(fsm.getState()) << " state received (SYN duplicat?)\n";
+                //EV_DETAIL << "SYN with unacceptable seqNum in " << stateName(fsm.getState()) << " state received (SYN duplicat?)\n";
             }
             else if (tcpseg->getPayloadLength() > 0 && state->sack_enabled && seqLess((tcpseg->getSequenceNo() + tcpseg->getPayloadLength()), state->rcv_nxt)) {
                 state->start_seqno = tcpseg->getSequenceNo();
                 state->end_seqno = tcpseg->getSequenceNo() + tcpseg->getPayloadLength();
                 state->snd_dsack = true;
-                EV_DETAIL << "SND_D-SACK SET (dupseg rcvd)\n";
+                //EV_DETAIL << "SND_D-SACK SET (dupseg rcvd)\n";
             }
 
-            EV_DETAIL << "Segment seqNum not acceptable, sending ACK with current receive seq\n";
+            //EV_DETAIL << "Segment seqNum not acceptable, sending ACK with current receive seq\n";
             // RFC 2018, page 4:
             // "The receiver SHOULD send an ACK for every valid segment that arrives
             // containing new data, and each of these "duplicate" ACKs SHOULD bear a
@@ -227,7 +226,7 @@ TCPEventCode TCPConnection::processSegment1stThru8th(TCPSegment *tcpseg)
                 //
                 // Enter the CLOSED state, delete the TCB, and return.
                 //"
-                EV_DETAIL << "RST: performing connection reset, closing connection\n";
+                //EV_DETAIL << "RST: performing connection reset, closing connection\n";
                 sendIndicationToApp(TCP_I_CONNECTION_RESET);
                 return TCP_E_RCV_RST;    // this will trigger state transition
 
@@ -237,7 +236,7 @@ TCPEventCode TCPConnection::processSegment1stThru8th(TCPSegment *tcpseg)
                 //"
                 // enter the CLOSED state, delete the TCB, and return.
                 //"
-                EV_DETAIL << "RST: closing connection\n";
+                //EV_DETAIL << "RST: closing connection\n";
                 return TCP_E_RCV_RST;    // this will trigger state transition
 
             default:
@@ -266,7 +265,7 @@ TCPEventCode TCPConnection::processSegment1stThru8th(TCPSegment *tcpseg)
         //"
 
         ASSERT(isSegmentAcceptable(tcpseg));    // assert SYN is in the window
-        EV_DETAIL << "SYN is in the window: performing connection reset, closing connection\n";
+        //EV_DETAIL << "SYN is in the window: performing connection reset, closing connection\n";
         sendIndicationToApp(TCP_I_CONNECTION_RESET);
         return TCP_E_RCV_UNEXP_SYN;
     }
@@ -276,7 +275,7 @@ TCPEventCode TCPConnection::processSegment1stThru8th(TCPSegment *tcpseg)
     //
     if (!tcpseg->getAckBit()) {
         // if the ACK bit is off drop the segment and return
-        EV_INFO << "ACK not set, dropping segment\n";
+        //EV_INFO << "ACK not set, dropping segment\n";
         return TCP_E_IGNORE;
     }
 
@@ -380,7 +379,7 @@ TCPEventCode TCPConnection::processSegment1stThru8th(TCPSegment *tcpseg)
         // otherwise ignore the segment.
         //"
         if (state->fin_ack_rcvd) {
-            EV_INFO << "Our FIN acked -- can go to TIME_WAIT now\n";
+            //EV_INFO << "Our FIN acked -- can go to TIME_WAIT now\n";
             event = TCP_E_RCV_ACK;    // will trigger transition to TIME-WAIT
             scheduleTimeout(the2MSLTimer, TCP_TIMEOUT_2MSL);    // start timer
 
@@ -396,7 +395,7 @@ TCPEventCode TCPConnection::processSegment1stThru8th(TCPSegment *tcpseg)
         // delete the TCB, enter the CLOSED state, and return.
         //"
         if (state->send_fin && tcpseg->getAckNo() == state->snd_fin_seq + 1) {
-            EV_INFO << "Last ACK arrived\n";
+            //EV_INFO << "Last ACK arrived\n";
             return TCP_E_RCV_ACK;    // will trigger transition to CLOSED
         }
     }
@@ -480,7 +479,7 @@ TCPEventCode TCPConnection::processSegment1stThru8th(TCPSegment *tcpseg)
             updateRcvQueueVars();
 
             if (hasEnoughSpaceForSegmentInReceiveQueue(tcpseg)) {    // enough freeRcvBuffer in rcvQueue for new segment?
-                EV_DETAIL << "Processing segment text in a data transfer state\n";
+                //EV_DETAIL << "Processing segment text in a data transfer state\n";
 
                 // insert into receive buffers. If this segment is contiguous with
                 // previously received ones (seqNo == rcv_nxt), rcv_nxt can be increased;
@@ -520,11 +519,11 @@ TCPEventCode TCPConnection::processSegment1stThru8th(TCPSegment *tcpseg)
 
                         if (old_usedRcvBuffer == receiveQueue->getAmountOfBufferedBytes()) {    // D-SACK
                             state->snd_dsack = true;
-                            EV_DETAIL << "SND_D-SACK SET (old_rcv_nxt == rcv_nxt duplicated oooseg rcvd)\n";
+                            //EV_DETAIL << "SND_D-SACK SET (old_rcv_nxt == rcv_nxt duplicated oooseg rcvd)\n";
                         }
                         else {    // SACK
                             state->snd_sack = true;
-                            EV_DETAIL << "SND_SACK SET (old_rcv_nxt == rcv_nxt oooseg rcvd)\n";
+                            //EV_DETAIL << "SND_SACK SET (old_rcv_nxt == rcv_nxt oooseg rcvd)\n";
                         }
                     }
 
@@ -563,7 +562,7 @@ TCPEventCode TCPConnection::processSegment1stThru8th(TCPSegment *tcpseg)
                     // rcv_nxt over the FIN.
                     if (state->fin_rcvd && state->rcv_nxt == state->rcv_fin_seq) {
                         state->ack_now = true;    // although not mentioned in [Stevens, W.R.: TCP/IP Illustrated, Volume 2, page 861] seems like we have to set ack_now
-                        EV_DETAIL << "All segments arrived up to the FIN segment, advancing rcv_nxt over the FIN\n";
+                        //EV_DETAIL << "All segments arrived up to the FIN segment, advancing rcv_nxt over the FIN\n";
                         state->rcv_nxt = state->rcv_fin_seq + 1;
                         // state transitions will be done in the state machine, here we just set
                         // the proper event code (TCP_E_RCV_FIN or TCP_E_RCV_FIN_ACK)
@@ -610,7 +609,7 @@ TCPEventCode TCPConnection::processSegment1stThru8th(TCPSegment *tcpseg)
                     tcpRcvQueueDropsVector->record(state->tcpRcvQueueDrops);
 
                 // if the ACK bit is off drop the segment and return
-                EV_WARN << "RcvQueueBuffer has run out, dropping segment\n";
+                //EV_WARN << "RcvQueueBuffer has run out, dropping segment\n";
                 return TCP_E_IGNORE;
             }
         }
@@ -638,7 +637,7 @@ TCPEventCode TCPConnection::processSegment1stThru8th(TCPSegment *tcpseg)
 
         if (state->rcv_nxt == fin_seq) {
             // advance rcv_nxt over FIN now
-            EV_INFO << "FIN arrived, advancing rcv_nxt over the FIN\n";
+            //EV_INFO << "FIN arrived, advancing rcv_nxt over the FIN\n";
             state->rcv_nxt++;
             // state transitions will be done in the state machine, here we just set
             // the proper event code (TCP_E_RCV_FIN or TCP_E_RCV_FIN_ACK)
@@ -678,7 +677,7 @@ TCPEventCode TCPConnection::processSegment1stThru8th(TCPSegment *tcpseg)
         }
         else {
             // we'll have to do it later (when an arriving segment "fills the gap")
-            EV_DETAIL << "FIN segment above sequence, storing sequence number of FIN\n";
+            //EV_DETAIL << "FIN segment above sequence, storing sequence number of FIN\n";
             state->fin_rcvd = true;
             state->rcv_fin_seq = fin_seq;
         }
@@ -698,7 +697,7 @@ TCPEventCode TCPConnection::processSegment1stThru8th(TCPSegment *tcpseg)
                 state->start_seqno = tcpseg->getSequenceNo();
                 state->end_seqno = tcpseg->getSequenceNo() + tcpseg->getPayloadLength();
                 state->snd_sack = true;
-                EV_DETAIL << "SND_SACK SET (rcv_nxt changed, but receiveQ is not empty)\n";
+                //EV_DETAIL << "SND_SACK SET (rcv_nxt changed, but receiveQ is not empty)\n";
                 state->ack_now = true;    // although not mentioned in [Stevens, W.R.: TCP/IP Illustrated, Volume 2, page 861] seems like we have to set ack_now
             }
         }
@@ -714,7 +713,7 @@ TCPEventCode TCPConnection::processSegment1stThru8th(TCPSegment *tcpseg)
         // managed to send off FIN, we simulate a CLOSE command now (we had to
         // defer it at that time because we still had data in the send queue.)
         // This CLOSE will take us into the FIN_WAIT_1 state.
-        EV_DETAIL << "Now we can do the CLOSE which was deferred a while ago\n";
+        //EV_DETAIL << "Now we can do the CLOSE which was deferred a while ago\n";
         event = TCP_E_CLOSE;
     }
 
@@ -725,7 +724,7 @@ TCPEventCode TCPConnection::processSegment1stThru8th(TCPSegment *tcpseg)
         // we simulate a CLOSE command now (we had to defer it at that time because
         // we still had data in the send queue.) This CLOSE will take us into the
         // LAST_ACK state.
-        EV_DETAIL << "Now we can do the CLOSE which was deferred a while ago\n";
+        //EV_DETAIL << "Now we can do the CLOSE which was deferred a while ago\n";
         event = TCP_E_CLOSE;
     }
 
@@ -736,14 +735,14 @@ TCPEventCode TCPConnection::processSegment1stThru8th(TCPSegment *tcpseg)
 
 TCPEventCode TCPConnection::processSegmentInListen(TCPSegment *tcpseg, L3Address srcAddr, L3Address destAddr)
 {
-    EV_DETAIL << "Processing segment in LISTEN\n";
+    //EV_DETAIL << "Processing segment in LISTEN\n";
 
     //"
     // first check for an RST
     //   An incoming RST should be ignored.  Return.
     //"
     if (tcpseg->getRstBit()) {
-        EV_INFO << "RST bit set: dropping segment\n";
+        //EV_INFO << "RST bit set: dropping segment\n";
         return TCP_E_IGNORE;
     }
 
@@ -759,7 +758,7 @@ TCPEventCode TCPConnection::processSegmentInListen(TCPSegment *tcpseg, L3Address
     //    Return.
     //"
     if (tcpseg->getAckBit()) {
-        EV_INFO << "ACK bit set: dropping segment and sending RST\n";
+        //EV_INFO << "ACK bit set: dropping segment and sending RST\n";
         sendRst(tcpseg->getAckNo(), destAddr, srcAddr, tcpseg->getDestPort(), tcpseg->getSrcPort());
         return TCP_E_IGNORE;
     }
@@ -772,10 +771,10 @@ TCPEventCode TCPConnection::processSegmentInListen(TCPSegment *tcpseg, L3Address
             // Looks like implementations vary on how to react to SYN+FIN.
             // Some treat it as plain SYN (and reply with SYN+ACK), some send RST+ACK.
             // Let's just do the former here.
-            EV_INFO << "SYN+FIN received: ignoring FIN\n";
+            //EV_INFO << "SYN+FIN received: ignoring FIN\n";
         }
 
-        EV_DETAIL << "SYN bit set: filling in foreign socket and sending SYN+ACK\n";
+        //EV_DETAIL << "SYN bit set: filling in foreign socket and sending SYN+ACK\n";
 
         //"
         // If the listen was not fully specified (i.e., the foreign socket was not
@@ -788,8 +787,7 @@ TCPEventCode TCPConnection::processSegmentInListen(TCPSegment *tcpseg, L3Address
         if (state->fork) {
             TCPConnection *conn = cloneListeningConnection();    // "conn" is the clone which will stay LISTENing, while "this" gets updated with the remote address
             tcpMain->addForkedConnection(this, conn, destAddr, srcAddr, tcpseg->getDestPort(), tcpseg->getSrcPort());
-            EV_DETAIL << "Connection forked: this connection got new connId=" << connId << ", "
-                                                                                           "spinoff keeps LISTENing with connId=" << conn->connId << "\n";
+            //EV_DETAIL << "Connection forked: this connection got new connId=" << connId << ", "                                                                                           "spinoff keeps LISTENing with connId=" << conn->connId << "\n";
         }
         else {
             tcpMain->updateSockPair(this, destAddr, srcAddr, tcpseg->getDestPort(), tcpseg->getSrcPort());
@@ -850,13 +848,14 @@ TCPEventCode TCPConnection::processSegmentInListen(TCPSegment *tcpseg, L3Address
                 if (tcpRcvQueueDropsVector)
                     tcpRcvQueueDropsVector->record(state->tcpRcvQueueDrops);
 
-                EV_WARN << "RcvQueueBuffer has run out, dropping segment\n";
+                //EV_WARN << "RcvQueueBuffer has run out, dropping segment\n";
                 return TCP_E_IGNORE;
             }
         }
 
-        if (tcpseg->getUrgBit() || tcpseg->getPshBit())
-            EV_DETAIL << "Ignoring URG and PSH bits in SYN\n"; // TBD
+        if (tcpseg->getUrgBit() || tcpseg->getPshBit()){
+            //EV_DETAIL << "Ignoring URG and PSH bits in SYN\n"; // TBD
+        }
 
         return TCP_E_RCV_SYN;    // this will take us to SYN_RCVD
     }
@@ -865,13 +864,13 @@ TCPEventCode TCPConnection::processSegmentInListen(TCPSegment *tcpseg, L3Address
     //  fourth other text or control
     //   So you are unlikely to get here, but if you do, drop the segment, and return.
     //"
-    EV_WARN << "Unexpected segment: dropping it\n";
+    //EV_WARN << "Unexpected segment: dropping it\n";
     return TCP_E_IGNORE;
 }
 
 TCPEventCode TCPConnection::processSegmentInSynSent(TCPSegment *tcpseg, L3Address srcAddr, L3Address destAddr)
 {
-    EV_DETAIL << "Processing segment in SYN_SENT\n";
+    //EV_DETAIL << "Processing segment in SYN_SENT\n";
 
     //"
     // first check the ACK bit
@@ -889,16 +888,17 @@ TCPEventCode TCPConnection::processSegmentInSynSent(TCPSegment *tcpseg, L3Addres
     //"
     if (tcpseg->getAckBit()) {
         if (seqLE(tcpseg->getAckNo(), state->iss) || seqGreater(tcpseg->getAckNo(), state->snd_nxt)) {
-            if (tcpseg->getRstBit())
-                EV_DETAIL << "ACK+RST bit set but wrong AckNo, ignored\n";
+            if (tcpseg->getRstBit()){
+                //EV_DETAIL << "ACK+RST bit set but wrong AckNo, ignored\n";
+            }
             else {
-                EV_DETAIL << "ACK bit set but wrong AckNo, sending RST\n";
+                //EV_DETAIL << "ACK bit set but wrong AckNo, sending RST\n";
                 sendRst(tcpseg->getAckNo(), destAddr, srcAddr, tcpseg->getDestPort(), tcpseg->getSrcPort());
             }
             return TCP_E_IGNORE;
         }
 
-        EV_DETAIL << "ACK bit set, AckNo acceptable\n";
+        //EV_DETAIL << "ACK bit set, AckNo acceptable\n";
     }
 
     //"
@@ -913,13 +913,13 @@ TCPEventCode TCPConnection::processSegmentInSynSent(TCPSegment *tcpseg, L3Addres
     //"
     if (tcpseg->getRstBit()) {
         if (tcpseg->getAckBit()) {
-            EV_DETAIL << "RST+ACK: performing connection reset\n";
+            //EV_DETAIL << "RST+ACK: performing connection reset\n";
             sendIndicationToApp(TCP_I_CONNECTION_RESET);
 
             return TCP_E_RCV_RST;
         }
         else {
-            EV_DETAIL << "RST without ACK: dropping segment\n";
+            //EV_DETAIL << "RST without ACK: dropping segment\n";
 
             return TCP_E_IGNORE;
         }
@@ -980,7 +980,7 @@ TCPEventCode TCPConnection::processSegmentInSynSent(TCPSegment *tcpseg, L3Addres
         //   below where the URG bit is checked, otherwise return.
         //"
         if (seqGreater(state->snd_una, state->iss)) {
-            EV_INFO << "SYN+ACK bits set, connection established.\n";
+            //EV_INFO << "SYN+ACK bits set, connection established.\n";
 
             // RFC says "continue processing at the sixth step below where
             // the URG bit is checked". Those steps deal with: URG, segment text
@@ -988,8 +988,9 @@ TCPEventCode TCPConnection::processSegmentInSynSent(TCPSegment *tcpseg, L3Addres
             // Now: URG and PSH we don't support yet; in SYN+FIN we ignore FIN;
             // with segment text we just take it easy and put it in the receiveQueue
             // -- we'll forward it to the user when more data arrives.
-            if (tcpseg->getFinBit())
-                EV_DETAIL << "SYN+ACK+FIN received: ignoring FIN\n";
+            if (tcpseg->getFinBit()){
+                //EV_DETAIL << "SYN+ACK+FIN received: ignoring FIN\n";
+            }
 
             if (tcpseg->getPayloadLength() > 0) {
                 updateRcvQueueVars();
@@ -1003,13 +1004,14 @@ TCPEventCode TCPConnection::processSegmentInSynSent(TCPSegment *tcpseg, L3Addres
                     if (tcpRcvQueueDropsVector)
                         tcpRcvQueueDropsVector->record(state->tcpRcvQueueDrops);
 
-                    EV_WARN << "RcvQueueBuffer has run out, dropping segment\n";
+                    //EV_WARN << "RcvQueueBuffer has run out, dropping segment\n";
                     return TCP_E_IGNORE;
                 }
             }
 
-            if (tcpseg->getUrgBit() || tcpseg->getPshBit())
-                EV_DETAIL << "Ignoring URG and PSH bits in SYN+ACK\n"; // TBD
+            if (tcpseg->getUrgBit() || tcpseg->getPshBit()){
+                //EV_DETAIL << "Ignoring URG and PSH bits in SYN+ACK\n"; // TBD
+            }
 
             if (tcpseg->getHeaderLength() > TCP_HEADER_OCTETS) // Header options present? TCP_HEADER_OCTETS = 20
                 readHeaderOptions(tcpseg);
@@ -1034,7 +1036,7 @@ TCPEventCode TCPConnection::processSegmentInSynSent(TCPSegment *tcpseg, L3Addres
         //   segment, queue them for processing after the ESTABLISHED state
         //   has been reached, return.
         //"
-        EV_INFO << "SYN bit set: sending SYN+ACK\n";
+        //EV_INFO << "SYN bit set: sending SYN+ACK\n";
         state->snd_max = state->snd_nxt = state->iss;
         sendSynAck();
         startSynRexmitTimer();
@@ -1042,8 +1044,9 @@ TCPEventCode TCPConnection::processSegmentInSynSent(TCPSegment *tcpseg, L3Addres
         // Note: code below is similar to processing SYN in LISTEN.
 
         // For consistency with that code, we ignore SYN+FIN here
-        if (tcpseg->getFinBit())
-            EV_DETAIL << "SYN+FIN received: ignoring FIN\n";
+        if (tcpseg->getFinBit()){
+            //EV_DETAIL << "SYN+FIN received: ignoring FIN\n";
+        }
 
         // We don't send text in SYN or SYN+ACK, but accept it. Otherwise
         // there isn't much left to do: RST, SYN, ACK, FIN got processed already,
@@ -1060,13 +1063,14 @@ TCPEventCode TCPConnection::processSegmentInSynSent(TCPSegment *tcpseg, L3Addres
                 if (tcpRcvQueueDropsVector)
                     tcpRcvQueueDropsVector->record(state->tcpRcvQueueDrops);
 
-                EV_WARN << "RcvQueueBuffer has run out, dropping segment\n";
+                //EV_WARN << "RcvQueueBuffer has run out, dropping segment\n";
                 return TCP_E_IGNORE;
             }
         }
 
-        if (tcpseg->getUrgBit() || tcpseg->getPshBit())
-            EV_DETAIL << "Ignoring URG and PSH bits in SYN\n"; // TBD
+        if (tcpseg->getUrgBit() || tcpseg->getPshBit()){
+            //EV_DETAIL << "Ignoring URG and PSH bits in SYN\n"; // TBD
+        }
 
         return TCP_E_RCV_SYN;
     }
@@ -1080,7 +1084,7 @@ TCPEventCode TCPConnection::processSegmentInSynSent(TCPSegment *tcpseg, L3Addres
 
 TCPEventCode TCPConnection::processRstInSynReceived(TCPSegment *tcpseg)
 {
-    EV_DETAIL << "Processing RST in SYN_RCVD\n";
+    //EV_DETAIL << "Processing RST in SYN_RCVD\n";
 
     //"
     // If this connection was initiated with a passive OPEN (i.e.,
@@ -1111,7 +1115,7 @@ TCPEventCode TCPConnection::processRstInSynReceived(TCPSegment *tcpseg)
 
 bool TCPConnection::processAckInEstabEtc(TCPSegment *tcpseg)
 {
-    EV_DETAIL << "Processing ACK in a data transfer state\n";
+    //EV_DETAIL << "Processing ACK in a data transfer state\n";
 
     //
     //"
@@ -1165,10 +1169,10 @@ bool TCPConnection::processAckInEstabEtc(TCPSegment *tcpseg)
         else {
             // if doesn't qualify as duplicate ACK, just ignore it.
             if (tcpseg->getPayloadLength() == 0) {
-                if (state->snd_una != tcpseg->getAckNo())
-                    EV_DETAIL << "Old ACK: ackNo < snd_una\n";
-                else if (state->snd_una == state->snd_max)
-                    EV_DETAIL << "ACK looks duplicate but we have currently no unacked data (snd_una == snd_max)\n";
+//                if (state->snd_una != tcpseg->getAckNo())
+//                    EV_DETAIL << "Old ACK: ackNo < snd_una\n";
+//                else if (state->snd_una == state->snd_max)
+//                    EV_DETAIL << "ACK looks duplicate but we have currently no unacked data (snd_una == snd_max)\n";
             }
 
             // reset counter
@@ -1206,7 +1210,7 @@ bool TCPConnection::processAckInEstabEtc(TCPSegment *tcpseg)
         // our FIN acked?
         if (state->send_fin && tcpseg->getAckNo() == state->snd_fin_seq + 1) {
             // set flag that our FIN has been acked
-            EV_DETAIL << "ACK acks our FIN\n";
+            //EV_DETAIL << "ACK acks our FIN\n";
             state->fin_ack_rcvd = true;
             discardUpToSeq--;    // the FIN sequence number is not real data
         }
@@ -1322,13 +1326,13 @@ void TCPConnection::startSynRexmitTimer()
 void TCPConnection::process_TIMEOUT_SYN_REXMIT(TCPEventCode& event)
 {
     if (++state->syn_rexmit_count > MAX_SYN_REXMIT_COUNT) {
-        EV_INFO << "Retransmission count during connection setup exceeds " << MAX_SYN_REXMIT_COUNT << ", giving up\n";
+        //EV_INFO << "Retransmission count during connection setup exceeds " << MAX_SYN_REXMIT_COUNT << ", giving up\n";
         // Note ABORT will take the connection to closed, and cancel CONN-ESTAB timer as well
         event = TCP_E_ABORT;
         return;
     }
 
-    EV_INFO << "Performing retransmission #" << state->syn_rexmit_count << "\n";
+    //EV_INFO << "Performing retransmission #" << state->syn_rexmit_count << "\n";
 
     // resend what's needed
     switch (fsm.getState()) {

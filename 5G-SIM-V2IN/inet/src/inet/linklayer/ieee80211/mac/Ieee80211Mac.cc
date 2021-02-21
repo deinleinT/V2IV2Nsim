@@ -140,7 +140,7 @@ void Ieee80211Mac::handleLowerPacket(cPacket *msg)
 void Ieee80211Mac::handleUpperCommand(cMessage *msg)
 {
     if (msg->getKind() == RADIO_C_CONFIGURE) {
-        EV_DEBUG << "Passing on command " << msg->getName() << " to physical layer\n";
+        //EV_DEBUG << "Passing on command " << msg->getName() << " to physical layer\n";
         if (pendingRadioConfigMsg != nullptr) {
             // merge contents of the old command into the new one, then delete it
             Ieee80211ConfigureRadioCommand *oldConfigureCommand = check_and_cast<Ieee80211ConfigureRadioCommand *>(pendingRadioConfigMsg->getControlInfo());
@@ -154,7 +154,7 @@ void Ieee80211Mac::handleUpperCommand(cMessage *msg)
         }
 
         if (rx->isMediumFree()) {    // TODO: this should be just the physical channel sense!!!!
-            EV_DEBUG << "Sending it down immediately\n";
+            //EV_DEBUG << "Sending it down immediately\n";
             // PhyControlInfo *phyControlInfo = dynamic_cast<PhyControlInfo *>(msg->getControlInfo());
             // if (phyControlInfo)
             // phyControlInfo->setAdaptiveSensitivity(true);
@@ -163,7 +163,7 @@ void Ieee80211Mac::handleUpperCommand(cMessage *msg)
         }
         else {
             // TODO: waiting potentially indefinitely?! wtf?!
-            EV_DEBUG << "Delaying " << msg->getName() << " until next IDLE or DEFER state\n";
+            //EV_DEBUG << "Delaying " << msg->getName() << " until next IDLE or DEFER state\n";
             pendingRadioConfigMsg = msg;
         }
     }
@@ -184,7 +184,7 @@ void Ieee80211Mac::receiveSignal(cComponent *source, simsignal_t signalID, intva
         bool transmissionFinished = (oldTransmissionState == IRadio::TRANSMISSION_STATE_TRANSMITTING && transmissionState == IRadio::TRANSMISSION_STATE_IDLE);
         if (transmissionFinished) {
             tx->radioTransmissionFinished();
-            EV_DEBUG << "changing radio to receiver mode\n";
+            //EV_DEBUG << "changing radio to receiver mode\n";
             configureRadioMode(IRadio::RADIO_MODE_RECEIVER); // FIXME: this is in a very wrong place!!! should be done explicitly from UpperMac!
         }
         rx->transmissionStateChanged(transmissionState);
@@ -232,7 +232,7 @@ void Ieee80211Mac::processUpperFrame(Ieee80211DataOrMgmtFrame* frame)
 {
     Enter_Method("processUpperFrame(\"%s\")", frame->getName());
     take(frame);
-    EV_INFO << "Frame " << frame << " received from higher layer, receiver = " << frame->getReceiverAddress() << "\n";
+    //EV_INFO << "Frame " << frame << " received from higher layer, receiver = " << frame->getReceiverAddress() << "\n";
     ASSERT(!frame->getReceiverAddress().isUnspecified());
     if (qosSta)
         hcf->processUpperFrame(frame);

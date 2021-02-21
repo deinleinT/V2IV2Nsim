@@ -72,10 +72,12 @@ RadioMedium::RadioMedium() :
 RadioMedium::~RadioMedium()
 {
     cancelAndDelete(removeNonInterferingTransmissionsTimer);
+#if OMNETPP_BUILDNUM < 1505   //OMNETPP_VERSION < 0x0600    // 6.0 pre9 KLUDGE
     for (const auto transmission : transmissions) {
         delete communicationCache->getCachedFrame(transmission);
         delete transmission;
     }
+#endif
     if (recordCommunicationLog)
         communicationLog.close();
 }
@@ -113,8 +115,9 @@ void RadioMedium::initialize(int stage)
         if (recordCommunicationLog)
             communicationLog.open();
     }
-    else if (stage == INITSTAGE_LAST)
-        EV_INFO << "Initialized " << getCompleteStringRepresentation() << endl;
+    else if (stage == INITSTAGE_LAST){
+        //EV_INFO << "Initialized " << getCompleteStringRepresentation() << endl;
+    }
 }
 
 void RadioMedium::finish()
@@ -125,18 +128,18 @@ void RadioMedium::finish()
     double snirCacheHitPercentage = 100 * (double)cacheSNIRHitCount / (double)cacheSNIRGetCount;
     double decisionCacheHitPercentage = 100 * (double)cacheDecisionHitCount / (double)cacheDecisionGetCount;
     double resultCacheHitPercentage = 100 * (double)cacheResultHitCount / (double)cacheResultGetCount;
-    EV_INFO << "Transmission count = " << transmissionCount << endl;
-    EV_INFO << "Radio frame send count = " << radioFrameSendCount << endl;
-    EV_INFO << "Reception computation count = " << receptionComputationCount << endl;
-    EV_INFO << "Interference computation count = " << interferenceComputationCount << endl;
-    EV_INFO << "Reception decision computation count = " << receptionDecisionComputationCount << endl;
-    EV_INFO << "Listening decision computation count = " << listeningDecisionComputationCount << endl;
-    EV_INFO << "Reception cache hit = " << receptionCacheHitPercentage << " %" << endl;
-    EV_INFO << "Interference cache hit = " << interferenceCacheHitPercentage << " %" << endl;
-    EV_INFO << "Noise cache hit = " << noiseCacheHitPercentage << " %" << endl;
-    EV_INFO << "SNIR cache hit = " << snirCacheHitPercentage << " %" << endl;
-    EV_INFO << "Reception decision cache hit = " << decisionCacheHitPercentage << " %" << endl;
-    EV_INFO << "Reception result cache hit = " << resultCacheHitPercentage << " %" << endl;
+    //EV_INFO << "Transmission count = " << transmissionCount << endl;
+    //EV_INFO << "Radio frame send count = " << radioFrameSendCount << endl;
+    //EV_INFO << "Reception computation count = " << receptionComputationCount << endl;
+    //EV_INFO << "Interference computation count = " << interferenceComputationCount << endl;
+    //EV_INFO << "Reception decision computation count = " << receptionDecisionComputationCount << endl;
+    //EV_INFO << "Listening decision computation count = " << listeningDecisionComputationCount << endl;
+    //EV_INFO << "Reception cache hit = " << receptionCacheHitPercentage << " %" << endl;
+    //EV_INFO << "Interference cache hit = " << interferenceCacheHitPercentage << " %" << endl;
+    //EV_INFO << "Noise cache hit = " << noiseCacheHitPercentage << " %" << endl;
+    //EV_INFO << "SNIR cache hit = " << snirCacheHitPercentage << " %" << endl;
+    //EV_INFO << "Reception decision cache hit = " << decisionCacheHitPercentage << " %" << endl;
+    //EV_INFO << "Reception result cache hit = " << resultCacheHitPercentage << " %" << endl;
     recordScalar("transmission count", transmissionCount);
     recordScalar("radio frame send count", radioFrameSendCount);
     recordScalar("reception computation count", receptionComputationCount);
@@ -233,7 +236,7 @@ void RadioMedium::removeNonInterferingTransmissions()
     size_t transmissionIndex = 0;
     while (transmissionIndex < transmissions.size() && communicationCache->getCachedInterferenceEndTime(transmissions[transmissionIndex]) <= now)
         transmissionIndex++;
-    EV_DEBUG << "Removing " << transmissionIndex << " non interfering transmissions\n";
+    //EV_DEBUG << "Removing " << transmissionIndex << " non interfering transmissions\n";
     for (auto it = transmissions.cbegin(); it != transmissions.cbegin() + transmissionIndex; it++) {
         const ITransmission *transmission = *it;
         const IRadioFrame *radioFrame = communicationCache->getCachedFrame(transmission);
@@ -343,7 +346,7 @@ const IReception *RadioMedium::getReception(const IRadio *receiver, const ITrans
     else {
         reception = computeReception(receiver, transmission);
         communicationCache->setCachedReception(receiver, transmission, reception);
-        EV_DEBUG << "Receiving " << transmission << " from medium by " << receiver << " arrives as " << reception << endl;
+        //EV_DEBUG << "Receiving " << transmission << " from medium by " << receiver << " arrives as " << reception << endl;
     }
     return reception;
 }
@@ -405,7 +408,7 @@ const IReceptionDecision *RadioMedium::getReceptionDecision(const IRadio *radio,
     else {
         decision = computeReceptionDecision(radio, listening, transmission, part, const_cast<const std::vector<const ITransmission *> *>(&transmissions));
         communicationCache->setCachedReceptionDecision(radio, transmission, part, decision);
-        EV_DEBUG << "Receiving " << transmission << " from medium by " << radio << " arrives as " << decision->getReception() << " and results in " << decision << endl;
+        //EV_DEBUG << "Receiving " << transmission << " from medium by " << radio << " arrives as " << decision->getReception() << " and results in " << decision << endl;
     }
     return decision;
 }
@@ -419,7 +422,7 @@ const IReceptionResult *RadioMedium::getReceptionResult(const IRadio *radio, con
     else {
         result = computeReceptionResult(radio, listening, transmission, const_cast<const std::vector<const ITransmission *> *>(&transmissions));
         communicationCache->setCachedReceptionResult(radio, transmission, result);
-        EV_DEBUG << "Receiving " << transmission << " from medium by " << radio << " arrives as " << result->getReception() << " and results in " << result << endl;
+        //EV_DEBUG << "Receiving " << transmission << " from medium by " << radio << " arrives as " << result->getReception() << " and results in " << result << endl;
     }
     return result;
 }
@@ -526,8 +529,7 @@ IRadioFrame *RadioMedium::createReceiverRadioFrame(const ITransmission *transmis
 void RadioMedium::sendToAffectedRadios(IRadio *radio, const IRadioFrame *frame)
 {
     const RadioFrame *radioFrame = check_and_cast<const RadioFrame *>(frame);
-    EV_DEBUG << "Sending " << frame << " with " << radioFrame->getBitLength() << " bits in " << radioFrame->getDuration() * 1E+6 << " us transmission duration"
-             << " from " << radio << " on " << (IRadioMedium *)this << "." << endl;
+    //EV_DEBUG << "Sending " << frame << " with " << radioFrame->getBitLength() << " bits in " << radioFrame->getDuration() * 1E+6 << " us transmission duration"             << " from " << radio << " on " << (IRadioMedium *)this << "." << endl;
     if (neighborCache && rangeFilter != RANGE_FILTER_ANYWHERE)
     {
         double range;
@@ -539,7 +541,7 @@ void RadioMedium::sendToAffectedRadios(IRadio *radio, const IRadioFrame *frame)
             throw cRuntimeError("Unknown range filter %d", rangeFilter);
         if (std::isnan(range))
         {
-            EV_WARN << "We can't use the NeighborCache for radio " << radio->getId() << ": range is NaN" << endl;
+            //EV_WARN << "We can't use the NeighborCache for radio " << radio->getId() << ": range is NaN" << endl;
             sendToAllRadios(radio, frame);
         }
         else
@@ -558,10 +560,7 @@ void RadioMedium::sendToRadio(IRadio *transmitter, const IRadio *receiver, const
     if (receiverRadio != transmitterRadio && isPotentialReceiver(receiverRadio, transmission)) {
         const IArrival *arrival = getArrival(receiverRadio, transmission);
         simtime_t propagationTime = arrival->getStartPropagationTime();
-        EV_DEBUG << "Sending " << frame
-                 << " from " << (IRadio *)transmitterRadio << " at " << transmission->getStartPosition()
-                 << " to " << (IRadio *)receiverRadio << " at " << arrival->getStartPosition()
-                 << " in " << propagationTime * 1E+6 << " us propagation time." << endl;
+        //EV_DEBUG << "Sending " << frame                 << " from " << (IRadio *)transmitterRadio << " at " << transmission->getStartPosition()                 << " to " << (IRadio *)receiverRadio << " at " << arrival->getStartPosition()                 << " in " << propagationTime * 1E+6 << " us propagation time." << endl;
         auto radioFrame = static_cast<RadioFrame *>(createReceiverRadioFrame(transmission));
         cGate *gate = receiverRadio->getRadioGate()->getPathStartGate();
         ASSERT(dynamic_cast<IRadio *>(getSimulation()->getContextModule()) != nullptr);
@@ -600,7 +599,7 @@ cPacket *RadioMedium::receivePacket(const IRadio *radio, IRadioFrame *radioFrame
 const IListeningDecision *RadioMedium::listenOnMedium(const IRadio *radio, const IListening *listening) const
 {
     const IListeningDecision *decision = computeListeningDecision(radio, listening, const_cast<const std::vector<const ITransmission *> *>(&transmissions));
-    EV_DEBUG << "Listening with " << listening << " on medium by " << radio << " results in " << decision << endl;
+    //EV_DEBUG << "Listening with " << listening << " on medium by " << radio << " results in " << decision << endl;
     return decision;
 }
 
@@ -686,10 +685,7 @@ void RadioMedium::receiveSignal(cComponent *source, simsignal_t signal, intval_t
                     cMethodCallContextSwitcher contextSwitcher(transmitterRadio);
                     contextSwitcher.methodCallSilent();
                     const cPacket *macFrame = transmission->getMacFrame();
-                    EV_DEBUG << "Picking up " << macFrame << " originally sent "
-                             << " from " << (IRadio *)transmitterRadio << " at " << transmission->getStartPosition()
-                             << " to " << (IRadio *)receiverRadio << " at " << arrival->getStartPosition()
-                             << " in " << arrival->getStartPropagationTime() * 1E+6 << " us propagation time." << endl;
+                    //EV_DEBUG << "Picking up " << macFrame << " originally sent "                             << " from " << (IRadio *)transmitterRadio << " at " << transmission->getStartPosition()                             << " to " << (IRadio *)receiverRadio << " at " << arrival->getStartPosition()                             << " in " << arrival->getStartPropagationTime() * 1E+6 << " us propagation time." << endl;
                     auto radioFrame = static_cast<RadioFrame *>(createReceiverRadioFrame(transmission));
                     simtime_t delay = arrival->getStartTime() - simTime();
                     simtime_t duration = delay > 0 ? radioFrame->getDuration() : radioFrame->getDuration() + delay;

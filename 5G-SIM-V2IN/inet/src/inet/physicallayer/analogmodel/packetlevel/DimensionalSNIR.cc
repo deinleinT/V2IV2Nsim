@@ -39,9 +39,9 @@ double DimensionalSNIR::computeMin() const
 {
     const DimensionalNoise *dimensionalNoise = check_and_cast<const DimensionalNoise *>(noise);
     const DimensionalReception *dimensionalReception = check_and_cast<const DimensionalReception *>(reception);
-    EV_DEBUG << "Reception power begin " << endl;
+    //EV_DEBUG << "Reception power begin " << endl;
     dimensionalReception->getPower()->print(EVSTREAM);
-    EV_DEBUG << "Reception power end" << endl;
+    //EV_DEBUG << "Reception power end" << endl;
     const ConstMapping *noisePower = dimensionalNoise->getPower();
     const ConstMapping *receptionPower = dimensionalReception->getPower();
     const ConstMapping *snirMapping = MappingUtils::divide(*receptionPower, *noisePower);
@@ -61,11 +61,11 @@ double DimensionalSNIR::computeMin() const
         startArgument.setArgValue(Dimension::frequency, (carrierFrequency - bandwidth / 2).get());
         endArgument.setArgValue(Dimension::frequency, nexttoward((carrierFrequency + bandwidth / 2).get(), 0));
     }
-    EV_DEBUG << "SNIR begin " << endl;
+    //EV_DEBUG << "SNIR begin " << endl;
     snirMapping->print(EVSTREAM);
-    EV_DEBUG << "SNIR end" << endl;
+    //EV_DEBUG << "SNIR end" << endl;
     double minSNIR = MappingUtils::findMin(*snirMapping, startArgument, endArgument);
-    EV_DEBUG << "Computing minimum SNIR: start = " << startArgument << ", end = " << endArgument << " -> minimum SNIR = " << minSNIR << endl;
+    //EV_DEBUG << "Computing minimum SNIR: start = " << startArgument << ", end = " << endArgument << " -> minimum SNIR = " << minSNIR << endl;
     delete snirMapping;
     return minSNIR;
 }

@@ -126,7 +126,7 @@ class LtePhyUe : public LtePhyBase
      */
     double updateHysteresisTh(double v);
 
-    void handoverHandler(LteAirFrame* frame, UserControlInfo* lteInfo);
+    virtual void handoverHandler(LteAirFrame* frame, UserControlInfo* lteInfo);
 
     //changed to virtual
     virtual void deleteOldBuffers(MacNodeId masterId);

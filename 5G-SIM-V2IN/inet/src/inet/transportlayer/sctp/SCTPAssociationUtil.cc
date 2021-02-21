@@ -129,7 +129,7 @@ void SCTPAssociation::printSctpPathMap() const
     //EV_DEBUG << "SCTP PathMap:" << endl;
     for (const auto & elem : sctpPathMap) {
         const SCTPPathVariables *path = elem.second;
-        EV_DEBUG << " - " << path->remoteAddress << ":  osb=" << path->outstandingBytes                 << " cwnd=" << path->cwnd << endl;
+        //EV_DEBUG << " - " << path->remoteAddress << ":  osb=" << path->outstandingBytes                 << " cwnd=" << path->cwnd << endl;
     }
 }
 
@@ -2077,7 +2077,7 @@ bool SCTPAssociation::makeRoomForTsn(const uint32 tsn, const uint32 length, cons
             }
             SCTPDataVariables *chunk = queue->getChunk(tryTSN);
             if (chunk == nullptr) {    // 12.06.08
-                EV_DETAIL << tryTSN << " not found in orderedQ. Try deliveryQ" << endl;
+                //EV_DETAIL << tryTSN << " not found in orderedQ. Try deliveryQ" << endl;
                 // Chunk is already in delivery queue.
                 queue = receiveStream->getDeliveryQ();
                 chunk = queue->getChunk(tryTSN);
@@ -2344,7 +2344,7 @@ void SCTPAssociation::fragmentOutboundDataMsgs() {
                     datMsgFragment->setEnqueuingTime(datMsgQueued->getEnqueuingTime());
                     datMsgFragment->setPrMethod(datMsgQueued->getPrMethod());
                     datMsgFragment->setPriority(datMsgQueued->getPriority());
-                    //EV_DETAIL << "felix: " << datMsgQueued->getPriority() << endl;
+                    ////EV_DETAIL << "felix: " << datMsgQueued->getPriority() << endl;
                     datMsgFragment->setStrReset(datMsgQueued->getStrReset());
                     datMsgFragment->setMsgNum(datMsgQueued->getMsgNum());
                     datMsgFragment->setOrdered(datMsgQueued->getOrdered());
@@ -2679,7 +2679,7 @@ void SCTPAssociation::pmClearPathCounter(SCTPPathVariables *path)
     if (path->activePath == false) {
         /* notify the application */
         pathStatusIndication(path, true);
-        EV_INFO << "Path " << path->remoteAddress                << " state changes from INACTIVE to ACTIVE !!!" << endl;
+        //EV_INFO << "Path " << path->remoteAddress                << " state changes from INACTIVE to ACTIVE !!!" << endl;
         path->activePath = true;    // Mark path as active!
     }
 }

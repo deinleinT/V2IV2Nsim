@@ -27,6 +27,8 @@
 #include "nr/stack/phy/layer/NRPhyUe.h"
 #include "veins/base/modules/BaseWorldUtility.h"
 #include "nr/apps/TrafficGenerator/TrafficGenerator.h"
+#include "corenetwork/lteip/IP2lte.h"
+#include "stack/phy/feedback/LteDlFeedbackGenerator.h"
 
 Define_Module(NRPhyUe);
 
@@ -35,7 +37,7 @@ NRPhyUe::NRPhyUe() :
 
 }
 NRPhyUe::~NRPhyUe() {
-
+	cancelAndDelete(checkConnectionTimer);
 }
 
 void NRPhyUe::initialize(int stage) {
@@ -75,6 +77,8 @@ void NRPhyUe::initialize(int stage) {
 
 		emit(averageTxPower, txPower_);
 		errorCount = 0;
+
+		checkConnectionTimer = new cMessage("checkConnectionTimer");
 
 		if (!hasListeners(averageCqiDl_))
 			error("no phy listeners");
@@ -139,8 +143,8 @@ void NRPhyUe::initialize(int stage) {
 					candidateMasterId_ = cellId;
 					candidateMasterRssi_ = rssi;
 				}
-
 			}
+
 			delete cInfo;
 			delete frame;
 
@@ -175,9 +179,93 @@ void NRPhyUe::initialize(int stage) {
 
 		qosHandler = check_and_cast<QosHandlerUE*>(getParentModule()->getSubmodule("qosHandler"));
 		exchangeBuffersOnHandover_ = getNRBinder()->getExchangeOnBuffersHandoverFlag();
+	}else if(stage == inet::INITSTAGE_LAST){
+
+		checkConnection();
+
 	}
 	//std::cout << "NRPhyUe::init end at " << simTime().dbl() << std::endl;
 }
+
+void NRPhyUe::checkConnection() {
+
+	if (getSimulation()->getSystemModule()->par("useSINRThreshold").boolValue()) {
+		// this is a fictitious frame that needs to compute the SINR
+		LteAirFrame *frame = new LteAirFrame("cellSelectionFrame");
+		UserControlInfo *cInfo = new UserControlInfo();
+		std::string thresholdDirection = std::string(getSimulation()->getSystemModule()->par("thresholdDirection").stringValue());
+
+		// get the list of all eNodeBs in the network
+		std::vector<EnbInfo*> *enbList = binder_->getEnbList();
+		std::vector<EnbInfo*>::iterator it = enbList->begin();
+
+		it = enbList->begin();
+		double maxRssiUL = -100;
+		int bestGNB = 0;
+		double bestGNBSINR = 0;
+		for (; it != enbList->end(); ++it) {
+			MacNodeId cellId = (*it)->id;
+			LtePhyBase *cellPhy = check_and_cast<LtePhyBase*>((*it)->eNodeB->getSubmodule("lteNic")->getSubmodule("phy"));
+			Coord cellPos = cellPhy->getCoord();
+			std::vector<double> rssiV;
+
+			if (thresholdDirection.compare("DL") == 0) {
+				// build a control info
+				cInfo->setSourceId(cellId);
+				cInfo->setDestId(nodeId_);
+				cInfo->setTxPower(cellPhy->getTxPwr());
+				cInfo->setCoord(cellPos);
+				cInfo->setDirection(DL);
+				cInfo->setFrameType(FEEDBACKPKT);
+				//DL direction --> receiver is UE
+				rssiV = channelModel_->getSINR(frame, cInfo, false);
+			} else if (thresholdDirection.compare("UL") == 0) {
+				cInfo->setSourceId(nodeId_);
+				cInfo->setDestId(cellId);
+				cInfo->setTxPower(txPower_);
+				cInfo->setCoord(getPosition());
+				cInfo->setDirection(UL);
+				cInfo->setFrameType(FEEDBACKPKT);
+				//UL direction --> receiver is nodeB
+				rssiV = cellPhy->getChannelModel()->getSINR(frame, cInfo, false);
+			}
+
+			// get RSSI from the eNB
+			std::vector<double>::iterator it;
+			double rssi = 0;
+			for (it = rssiV.begin(); it != rssiV.end(); ++it)
+				rssi += *it;
+			rssi /= rssiV.size();   // compute the mean over all RBs
+
+			if(rssi > maxRssiUL){
+				bestGNB = cellId;
+				bestGNBSINR = rssi;
+			}
+
+			maxRssiUL = max(rssi, maxRssiUL);
+
+		}
+		delete cInfo;
+		delete frame;
+		//
+
+		//signal to all nodeBs is weak
+		if (maxRssiUL <= getSimulation()->getSystemModule()->par("SINRThreshold").intValue()) {
+			getBinder()->insertUeToNotConnectedList(nodeId_);
+		} else {
+			//best sinr from last master --> reattach
+			if (bestGNB == masterId_) {
+				getBinder()->deleteFromUeNotConnectedList(nodeId_);
+				//to guarantee that no old packets are in the buffers
+				deleteOldBuffers(masterId_);
+			}
+
+		}
+		cancelEvent(checkConnectionTimer);
+		scheduleAt(simTime() + getSimulation()->getSystemModule()->par("checkConnectionInterval").doubleValue() + uniform(0, 0.005), checkConnectionTimer);
+	}
+}
+
 
 void NRPhyUe::recordAttenuation(const double & att) {
 	emit(attenuation, att);
@@ -214,6 +302,11 @@ void NRPhyUe::handleMessage(cMessage *msg) {
 //		}
 //	}
 
+	if(msg->isName("checkConnectionTimer")){
+		checkConnection();
+		return;
+	}
+
 	LtePhyUe::handleMessage(msg);
 
 	//std::cout << "NRPhyUe handleMessage end at " << simTime().dbl() << std::endl;
@@ -240,7 +333,7 @@ void NRPhyUe::recordTotalPer(const double & totalPerVal) {
 	emit(totalPer, totalPerVal);
 }
 
-//when UE is leaving the simulation, for simplified Handover
+//when UE is leaving the simulation and for simplified Handover
 void NRPhyUe::deleteOldBuffers(MacNodeId masterId) {
 
 	//std::cout << "NRPhyUe deleteOldBuffers start at " << simTime().dbl() << std::endl;
@@ -306,6 +399,7 @@ void NRPhyUe::deleteOldBuffers(MacNodeId masterId) {
 	//std::cout << "NRPhyUe deleteOldBuffers end at " << simTime().dbl() << std::endl;
 }
 
+
 //for buffer exchange on handover
 void NRPhyUe::exchangeBuffersOnHandover(MacNodeId oldMasterId, MacNodeId newMasterId) {
 
@@ -345,7 +439,7 @@ void NRPhyUe::exchangeBuffersOnHandover(MacNodeId oldMasterId, MacNodeId newMast
 	////////////////////////////////////////////////RLC/////////////////////////////////
 	/* Rlc UM Buffers */
 
-	cModule *newMasterRlc = check_and_cast<cModule *>(getSimulation()->getModule(newMasterOmnetId)->getSubmodule("lteNic")->getSubmodule("rlc"));
+	//cModule *newMasterRlc = check_and_cast<cModule *>(getSimulation()->getModule(newMasterOmnetId)->getSubmodule("lteNic")->getSubmodule("rlc"));
 
 	LteRlcUm * oldMasterRlcUmRealistic = check_and_cast<LteRlcUm *>(getSimulation()->getModule(oldMasterOmnetId)->getSubmodule("lteNic")->getSubmodule("rlc")->getSubmodule("um"));
 	LteRlcUm * newMasterRlcUmRealistic = check_and_cast<LteRlcUm *>(getSimulation()->getModule(newMasterOmnetId)->getSubmodule("lteNic")->getSubmodule("rlc")->getSubmodule("um"));

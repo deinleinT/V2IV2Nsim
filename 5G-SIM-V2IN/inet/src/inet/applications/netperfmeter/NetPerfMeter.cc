@@ -209,12 +209,7 @@ void NetPerfMeter::initialize()
    OnTimer           = nullptr;
    OnOffCycleCounter = 0;
 
-   EV << simTime() << ", " << getFullPath() << ": Initialize"
-      << "\tConnectTime=" << ConnectTime
-      << "\tStartTime="   << StartTime
-      << "\tResetTime="   << ResetTime
-      << "\tStopTime="    << StopTime
-      << endl;
+   //EV << simTime() << ", " << getFullPath() << ": Initialize"      << "\tConnectTime=" << ConnectTime      << "\tStartTime="   << StartTime      << "\tResetTime="   << ResetTime      << "\tStopTime="    << StopTime   << endl;
 
    if(ActiveMode == false) {
       // Passive mode: create and bind socket immediately.
@@ -297,7 +292,7 @@ void NetPerfMeter::handleTimer(cMessage* msg)
 
    // ====== Off timer ======================================================
    else if(msg == OffTimer) {
-      EV << simTime() << ", " << getFullPath() << ": Entering OFF mode" << endl;
+      //EV << simTime() << ", " << getFullPath() << ": Entering OFF mode" << endl;
 
       OffTimer = nullptr;
       stopSending();
@@ -305,7 +300,7 @@ void NetPerfMeter::handleTimer(cMessage* msg)
 
    // ====== On timer =======================================================
    else if(msg == OnTimer) {
-      EV << simTime() << ", " << getFullPath() << ": Entering ON mode" << endl;
+      //EV << simTime() << ", " << getFullPath() << ": Entering ON mode" << endl;
 
       OnTimer = nullptr;
       startSending();
@@ -313,7 +308,7 @@ void NetPerfMeter::handleTimer(cMessage* msg)
 
    // ====== Reset timer ====================================================
    else if(msg == ResetTimer) {
-      EV << simTime() << ", " << getFullPath() << ": Reset" << endl;
+      //EV << simTime() << ", " << getFullPath() << ": Reset" << endl;
 
       ResetTimer = nullptr;
       resetStatistics();
@@ -328,7 +323,7 @@ void NetPerfMeter::handleTimer(cMessage* msg)
 
    // ====== Stop timer =====================================================
    else if(msg == StopTimer) {
-      EV << simTime() << ", " << getFullPath() << ": STOP" << endl;
+      //EV << simTime() << ", " << getFullPath() << ": STOP" << endl;
 
       StopTimer = nullptr;
       if(OffTimer) {
@@ -358,7 +353,7 @@ void NetPerfMeter::handleTimer(cMessage* msg)
 
    // ====== Start timer ====================================================
    else if(msg == StartTimer) {
-      EV << simTime() << ", " << getFullPath() << ": Start" << endl;
+      //EV << simTime() << ", " << getFullPath() << ": Start" << endl;
 
       StartTimer = nullptr;
       startSending();
@@ -366,7 +361,7 @@ void NetPerfMeter::handleTimer(cMessage* msg)
 
    // ====== Connect timer ==================================================
    else if(msg == ConnectTimer) {
-      EV << simTime() << ", " << getFullPath() << ": Connect" << endl;
+      //EV << simTime() << ", " << getFullPath() << ": Connect" << endl;
 
       ConnectTimer = nullptr;
       establishConnection();
@@ -547,7 +542,7 @@ void NetPerfMeter::establishConnection()
          successfullyEstablishedConnection(nullptr, 0);
       }
    }
-   EV << simTime() << ", " << getFullPath() << ": Sending allowed" << endl;
+   //EV << simTime() << ", " << getFullPath() << ": Sending allowed" << endl;
    SendingAllowed = true;
 }
 
@@ -557,7 +552,7 @@ void NetPerfMeter::successfullyEstablishedConnection(cMessage*          msg,
                                                      const unsigned int queueSize)
 {
    if(HasFinished) {
-      EV << "Already finished -> no new connection!" << endl;
+      //EV << "Already finished -> no new connection!" << endl;
       SCTPSocket newSocket(msg);
       newSocket.abort();
       return;
@@ -566,7 +561,7 @@ void NetPerfMeter::successfullyEstablishedConnection(cMessage*          msg,
    // ====== Update queue size ==============================================
    if(queueSize != 0) {
       QueueSize = queueSize;
-      EV << simTime() << ", " << getFullPath() << ": Got queue size " << QueueSize << " from transport protocol" << endl;
+      //EV << simTime() << ", " << getFullPath() << ": Got queue size " << QueueSize << " from transport protocol" << endl;
    }
 
    // ====== Get connection ID ==============================================
@@ -879,8 +874,7 @@ void NetPerfMeter::writeStatistics()
 unsigned long NetPerfMeter::transmitFrame(const unsigned int frameSize,
                                           const unsigned int streamID)
 {
-   EV << simTime() << ", " << getFullPath() << ": Transmit frame of size "
-      << frameSize << " on stream #" << streamID << endl;
+   //EV << simTime() << ", " << getFullPath() << ": Transmit frame of size "      << frameSize << " on stream #" << streamID << endl;
    assert(OnTimer == nullptr);
 
    // ====== TCP ============================================================

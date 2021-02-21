@@ -74,7 +74,7 @@ bool NarrowbandReceiverBase::computeIsReceptionPossible(const IListening *listen
     const BandListening *bandListening = check_and_cast<const BandListening *>(listening);
     const NarrowbandReceptionBase *narrowbandReception = check_and_cast<const NarrowbandReceptionBase *>(reception);
     if (bandListening->getCarrierFrequency() != narrowbandReception->getCarrierFrequency() || bandListening->getBandwidth() != narrowbandReception->getBandwidth()) {
-        EV_DEBUG << "Computing whether reception is possible: listening and reception bands are different -> reception is impossible" << endl;
+        //EV_DEBUG << "Computing whether reception is possible: listening and reception bands are different -> reception is impossible" << endl;
         return false;
     }
     else

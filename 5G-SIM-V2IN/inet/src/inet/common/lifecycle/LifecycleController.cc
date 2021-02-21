@@ -97,8 +97,7 @@ bool LifecycleController::resumeOperation(LifecycleOperation *operation)
 {
     int numStages = operation->getNumStages();
     while (operation->currentStage < numStages) {
-        EV << "Doing stage " << operation->currentStage << "/" << operation->getNumStages()
-           << " of operation " << operation->getClassName() << " on " << operation->rootModule->getFullPath() << endl;
+        //EV << "Doing stage " << operation->currentStage << "/" << operation->getNumStages()           << " of operation " << operation->getClassName() << " on " << operation->rootModule->getFullPath() << endl;
         doOneStage(operation, operation->rootModule);
         if (operation->pendingList.empty())
             operation->currentStage++;
@@ -142,10 +141,7 @@ void LifecycleController::moduleOperationStageCompleted(Callback *callback)
     std::string moduleFullPath = callback->module->getFullPath();
     vector_delete_element(operation->pendingList, (IDoneCallback *)callback);
 
-    EV << "Module " << moduleFullPath << " completed stage "
-       << operation->currentStage << " of operation " << operation->getClassName() << ", "
-       << operation->pendingList.size() << " more module(s) pending"
-       << (operation->pendingList.empty() ? ", stage completed" : "") << endl;
+    //EV << "Module " << moduleFullPath << " completed stage "       << operation->currentStage << " of operation " << operation->getClassName() << ", "       << operation->pendingList.size() << " more module(s) pending"       << (operation->pendingList.empty() ? ", stage completed" : "") << endl;
 
     if (operation->pendingList.empty()) {
         operation->currentStage++;

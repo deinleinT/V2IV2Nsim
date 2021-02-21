@@ -26,7 +26,7 @@ Define_Module(HttpBrowserDirect);
 
 void HttpBrowserDirect::initialize(int stage)
 {
-    EV_DEBUG << "Initializing HTTP direct browser component - stage " << stage << endl;
+    //EV_DEBUG << "Initializing HTTP direct browser component - stage " << stage << endl;
     HttpBrowserBase::initialize(stage);
 
     if (stage == INITSTAGE_LOCAL) {
@@ -57,11 +57,11 @@ void HttpBrowserDirect::sendRequestToServer(HttpRequestMessage *request)
 {
     HttpServerBase *serverModule = dynamic_cast<HttpServerBase *>(controller->getServerModule(request->targetUrl()));
     if (serverModule == nullptr) {
-        EV_ERROR << "Failed to get server module for " << request->targetUrl() << endl;
+        //EV_ERROR << "Failed to get server module for " << request->targetUrl() << endl;
         delete request;
     }
     else {
-        EV_DEBUG << "Sending request to " << serverModule->getHostName() << endl;
+        //EV_DEBUG << "Sending request to " << serverModule->getHostName() << endl;
         sendDirectToModule(serverModule, request, 0.0, rdProcessingDelay);
     }
 }
@@ -70,10 +70,10 @@ void HttpBrowserDirect::sendRequestToRandomServer()
 {
     HttpServerBase *serverModule = dynamic_cast<HttpServerBase *>(controller->getAnyServerModule());
     if (serverModule == nullptr) {
-        EV_ERROR << "Failed to get a random server module" << endl;
+        //EV_ERROR << "Failed to get a random server module" << endl;
     }
     else {
-        EV_DEBUG << "Sending request randomly to " << serverModule->getHostName() << endl;
+        //EV_DEBUG << "Sending request randomly to " << serverModule->getHostName() << endl;
         sendDirectToModule(serverModule, generateRandomPageRequest(serverModule->getHostName()), 0.0, rdProcessingDelay);
     }
 }
@@ -82,7 +82,7 @@ void HttpBrowserDirect::sendRequestsToServer(std::string www, HttpRequestQueue q
 {
     HttpNodeBase *serverModule = dynamic_cast<HttpNodeBase *>(controller->getServerModule(www.c_str()));
     if (serverModule == nullptr) {
-        EV_ERROR << "Failed to get server module " << www << endl;
+        //EV_ERROR << "Failed to get server module " << www << endl;
         while (!queue.empty()) {
             HttpRequestMessage *msg = queue.back();
             queue.pop_back();

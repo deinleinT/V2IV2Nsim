@@ -57,10 +57,9 @@ void Tx::transmitFrame(Ieee80211Frame *frame, ITx::ICallback *txCallback)
 
 void Tx::transmitFrame(Ieee80211Frame *frame, simtime_t ifs, ITx::ICallback *txCallback)
 {
+    Enter_Method("transmitFrame(\"%s\")", frame->getName());
     ASSERT(this->txCallback == nullptr);
     this->txCallback = txCallback;
-    Enter_Method("transmitFrame(\"%s\")", frame->getName());
-    take(frame);
     auto frameToTransmit = inet::utils::dupPacketAndControlInfo(frame);
     this->frame = frameToTransmit;
     if (auto twoAddrFrame = dynamic_cast<Ieee80211TwoAddressFrame*>(frameToTransmit))
@@ -75,7 +74,7 @@ void Tx::radioTransmissionFinished()
 {
     Enter_Method_Silent();
     if (transmitting) {
-        EV_DETAIL << "Tx: radioTransmissionFinished()\n";
+        //EV_DETAIL << "Tx: radioTransmissionFinished()\n";
         transmitting = false;
         auto transmittedFrame = inet::utils::dupPacketAndControlInfo(frame);
         frame = nullptr;
@@ -92,7 +91,7 @@ void Tx::radioTransmissionFinished()
 void Tx::handleMessage(cMessage *msg)
 {
     if (msg == endIfsTimer) {
-        EV_DETAIL << "Tx: endIfsTimer expired\n";
+        //EV_DETAIL << "Tx: endIfsTimer expired\n";
         transmitting = true;
         durationField = frame->getDuration();
         mac->sendFrame(frame);

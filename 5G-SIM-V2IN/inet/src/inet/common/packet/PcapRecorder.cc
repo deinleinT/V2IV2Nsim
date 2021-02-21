@@ -85,16 +85,14 @@ void PcapRecorder::initialize()
                 for (auto & elem : signalList) {
                     if (!submod->isSubscribed(elem.first, this)) {
                         submod->subscribe(elem.first, this);
-                        EV << "PcapRecorder " << getFullPath() << " subscribed to "
-                           << submod->getFullPath() << ":" << getSignalName(elem.first) << endl;
+                        //EV << "PcapRecorder " << getFullPath() << " subscribed to "                           << submod->getFullPath() << ":" << getSignalName(elem.first) << endl;
                     }
                 }
             }
         }
 
         if (!found) {
-            EV << "The module " << mname << (isAllIndex ? "[*]" : "")
-               << " not found for PcapRecorder " << getFullPath() << endl;
+            //EV << "The module " << mname << (isAllIndex ? "[*]" : "")               << " not found for PcapRecorder " << getFullPath() << endl;
         }
     }
 
@@ -123,7 +121,7 @@ void PcapRecorder::receiveSignal(cComponent *source, simsignal_t signalID, cObje
 
 void PcapRecorder::recordPacket(cPacket *msg, bool l2r)
 {
-    EV << "PcapRecorder::recordPacket(" << msg->getFullPath() << ", " << l2r << ")\n";
+    //EV << "PcapRecorder::recordPacket(" << msg->getFullPath() << ", " << l2r << ")\n";
     packetDumper.dumpPacket(l2r, msg);
 
 #if defined(WITH_IPv4) || defined(WITH_IPv6)

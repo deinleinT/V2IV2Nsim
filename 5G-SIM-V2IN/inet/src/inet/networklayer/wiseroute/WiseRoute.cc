@@ -119,7 +119,7 @@ void WiseRoute::handleSelfMessage(cMessage *msg)
         scheduleAt(simTime() + routeFloodsInterval + uniform(0, 1), routeFloodTimer);
     }
     else {
-        EV << "WiseRoute - handleSelfMessage: got unexpected message of kind " << msg->getKind() << endl;
+        //EV << "WiseRoute - handleSelfMessage: got unexpected message of kind " << msg->getKind() << endl;
         delete msg;
     }
 }
@@ -132,7 +132,7 @@ void WiseRoute::handleLowerPacket(cPacket *msg)
     const L3Address& srcAddr = netwMsg->getSrcAddr();
     check_and_cast<IMACProtocolControlInfo *>(netwMsg->getControlInfo());
     // KLUDGE: TODO: get rssi and ber
-    EV_ERROR << "Getting RSSI and BER from the received frame is not yet implemented. Using default values.\n";
+    //EV_ERROR << "Getting RSSI and BER from the received frame is not yet implemented. Using default values.\n";
     double rssi = 1;    // TODO: ctrlInfo->getRSSI();
     double ber = 0;    // TODO: ctrlInfo->getBitErrorRate();
     // Check whether the message is a flood and if it has to be forwarded.
@@ -225,12 +225,11 @@ void WiseRoute::handleUpperPacket(cPacket *msg)
     pkt->setByteLength(headerLength);
 
     if (cInfo == nullptr) {
-        EV << "WiseRoute warning: Application layer did not specifiy a destination L3 address\n"
-           << "\tusing broadcast address instead\n";
+        //EV << "WiseRoute warning: Application layer did not specifiy a destination L3 address\n"           << "\tusing broadcast address instead\n";
         finalDestAddr = myNetwAddr.getAddressType()->getBroadcastAddress();
     }
     else {
-        EV << "WiseRoute: CInfo removed, netw addr=" << cInfo->getDestinationAddress() << endl;
+        //EV << "WiseRoute: CInfo removed, netw addr=" << cInfo->getDestinationAddress() << endl;
         finalDestAddr = cInfo->getDestinationAddress();
     }
 

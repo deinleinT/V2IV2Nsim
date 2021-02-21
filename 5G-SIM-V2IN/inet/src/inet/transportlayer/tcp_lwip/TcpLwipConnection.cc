@@ -173,7 +173,7 @@ const char *TcpLwipConnection::indicationName(int code)
 void TcpLwipConnection::sendIndicationToApp(int code)
 {
     const char *nameOfIndication = indicationName(code);
-    EV_DETAIL << "Notifying app: " << nameOfIndication << "\n";
+    //EV_DETAIL << "Notifying app: " << nameOfIndication << "\n";
     cMessage *msg = new cMessage(nameOfIndication);
     msg->setKind(code);
     TCPCommand *ind = new TCPCommand();
@@ -329,12 +329,7 @@ void TcpLwipConnection::do_SEND()
     }
 
     totalSentM += allsent;
-    EV_DETAIL << "do_SEND(): " << connIdM
-              << " send:" << allsent
-              << ", unsent:" << sendQueueM->getBytesAvailable()
-              << ", total sent:" << totalSentM
-              << ", all bytes:" << totalSentM + sendQueueM->getBytesAvailable()
-              << endl;
+    //EV_DETAIL << "do_SEND(): " << connIdM              << " send:" << allsent              << ", unsent:" << sendQueueM->getBytesAvailable()              << ", total sent:" << totalSentM              << ", all bytes:" << totalSentM + sendQueueM->getBytesAvailable()              << endl;
 
     if (onCloseM && (0 == sendQueueM->getBytesAvailable())) {
         tcpLwipM.getLwipTcpLayer()->tcp_close(pcbM);

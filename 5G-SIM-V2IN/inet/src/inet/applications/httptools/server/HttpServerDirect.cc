@@ -29,7 +29,7 @@ void HttpServerDirect::initialize(int stage)
 {
     HttpServerBase::initialize(stage);
     if (stage == INITSTAGE_LOCAL) {
-        EV_DEBUG << "Initializing direct server component\n";
+        //EV_DEBUG << "Initializing direct server component\n";
 
         // Set the link speed
         linkSpeed = par("linkSpeed");
@@ -43,20 +43,19 @@ void HttpServerDirect::finish()
 
 void HttpServerDirect::handleMessage(cMessage *msg)
 {
-    EV_DEBUG << "Handling received message " << msg->getName() << endl;
+    //EV_DEBUG << "Handling received message " << msg->getName() << endl;
     if (msg->isSelfMessage()) {
         // Self messages are not used at the present
     }
     else {
         HttpNodeBase *senderModule = dynamic_cast<HttpNodeBase *>(msg->getSenderModule());
         if (senderModule == nullptr) {
-            EV_ERROR << "Unspecified sender module in received message " << msg->getName() << endl;
+            //EV_ERROR << "Unspecified sender module in received message " << msg->getName() << endl;
             delete msg;
             return;
         }
         cModule *senderHost = getContainingNode(senderModule);
-        EV_DEBUG << "Sender is " << senderModule->getFullName()
-                 << " in host " << senderHost->getFullName() << endl;
+        //EV_DEBUG << "Sender is " << senderModule->getFullName()                 << " in host " << senderHost->getFullName() << endl;
         cPacket *reply = handleReceivedMessage(msg);
         // Echo back to the requester
         if (reply != nullptr)

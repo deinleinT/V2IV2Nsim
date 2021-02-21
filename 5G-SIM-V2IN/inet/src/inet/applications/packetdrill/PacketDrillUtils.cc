@@ -178,7 +178,7 @@ int PacketDrillExpression::unescapeCstringExpression(const char *input_string, c
                     break;
 
                 default:
-                    EV_DEBUG << "Unsupported escape code: " << *c_in << endl;
+                    //EV_DEBUG << "Unsupported escape code: " << *c_in << endl;
                     return STATUS_ERR;
             }
         } else {
@@ -199,7 +199,7 @@ int PacketDrillExpression::getS32(int32 *val, char **error)
     if (type != EXPR_INTEGER)
         return STATUS_ERR;
     if ((value.num > UINT_MAX) || (value.num < INT_MIN)) {
-        EV_DEBUG << "Value out of range for 32-bit integer: " << value.num << endl;
+        //EV_DEBUG << "Value out of range for 32-bit integer: " << value.num << endl;
         return STATUS_ERR;
     }
     *val = value.num;
@@ -211,7 +211,7 @@ int PacketDrillExpression::getU32(uint32 *val, char **error)
     if (type != EXPR_INTEGER)
         return STATUS_ERR;
     if ((value.num > UINT32_MAX) || (value.num < 0)) {
-        EV_DEBUG << "Value out of range for 32-bit unsigned integer: " << value.num << endl;
+        //EV_DEBUG << "Value out of range for 32-bit unsigned integer: " << value.num << endl;
         return STATUS_ERR;
     }
     *val = value.num;
@@ -223,7 +223,7 @@ int PacketDrillExpression::getU16(uint16 *val, char **error)
     if (type != EXPR_INTEGER)
         return STATUS_ERR;
     if ((value.num > UINT16_MAX) || (value.num < 0)) {
-        EV_DEBUG << "Value out of range for 16-bit unsigned integer: " << value.num << endl;
+        //EV_DEBUG << "Value out of range for 16-bit unsigned integer: " << value.num << endl;
         return STATUS_ERR;
     }
     *val = value.num;
@@ -346,7 +346,7 @@ int PacketDrillScript::parseScriptAndSetConfig(PacketDrillConfig *config, const 
         .script = this,
     };
 
-    EV_DETAIL << "parse_and_run_script: " << scriptPath << endl;
+    //EV_DETAIL << "parse_and_run_script: " << scriptPath << endl;
 
     config->setScriptPath(scriptPath);
 

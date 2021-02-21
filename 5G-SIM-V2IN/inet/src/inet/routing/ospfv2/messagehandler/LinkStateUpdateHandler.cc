@@ -32,8 +32,12 @@ class LSAProcessingMarker
     unsigned int index;
 
   public:
-    LSAProcessingMarker(unsigned int counter) : index(counter) { EV_INFO << "    --> Processing LSA(" << index << ")\n"; }
-    ~LSAProcessingMarker() { EV_INFO << "    <-- LSA(" << index << ") processed.\n"; }
+    LSAProcessingMarker(unsigned int counter) : index(counter) {
+        //EV_INFO << "    --> Processing LSA(" << index << ")\n";
+    }
+    ~LSAProcessingMarker() {
+        //EV_INFO << "    <-- LSA(" << index << ") processed.\n";
+    }
 };
 
 LinkStateUpdateHandler::LinkStateUpdateHandler(Router *containingRouter) :
@@ -57,7 +61,7 @@ void LinkStateUpdateHandler::processPacket(OSPFPacket *packet, Interface *intf, 
         LSAType currentType = ROUTERLSA_TYPE;
         unsigned int currentLSAIndex = 0;
 
-        EV_INFO << "  Processing packet contents:\n";
+        //EV_INFO << "  Processing packet contents:\n";
 
         while (currentType <= AS_EXTERNAL_LSA_TYPE) {
             unsigned int lsaCount = 0;
@@ -124,7 +128,7 @@ void LinkStateUpdateHandler::processPacket(OSPFPacket *packet, Interface *intf, 
                 }
 
                 LSAProcessingMarker marker(currentLSAIndex++);
-                EV_DETAIL << "    " << currentLSA->getHeader() << "\n";
+                //EV_DETAIL << "    " << currentLSA->getHeader() << "\n";
 
                 //FIXME area maybe nullptr
                 if ((lsaType == AS_EXTERNAL_LSA_TYPE) && !(area != nullptr && area->getExternalRoutingCapability())) {
@@ -205,7 +209,7 @@ void LinkStateUpdateHandler::processPacket(OSPFPacket *packet, Interface *intf, 
                         }
                     }
 
-                    EV_INFO << "    (update installed)\n";
+                    //EV_INFO << "    (update installed)\n";
 
                     acknowledgeLSA(currentLSA->getHeader(), intf, ackFlags, lsUpdatePacket->getRouterID());
                     if ((currentLSA->getHeader().getAdvertisingRouter() == router->getRouterID()) ||

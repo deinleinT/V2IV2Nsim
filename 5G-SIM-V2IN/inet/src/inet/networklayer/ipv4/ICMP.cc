@@ -50,14 +50,14 @@ void ICMP::handleMessage(cMessage *msg)
 
     // process arriving ICMP message
     if (!strcmp(arrivalGate->getName(), "localIn")) {
-        EV_INFO << "Received " << msg << " from network protocol.\n";
+        //EV_INFO << "Received " << msg << " from network protocol.\n";
         processICMPMessage(check_and_cast<ICMPMessage *>(msg));
         return;
     }
 
     // request from application
     if (!strcmp(arrivalGate->getName(), "pingIn")) {
-        EV_INFO << "Received " << msg << " from upper layer.\n";
+        //EV_INFO << "Received " << msg << " from upper layer.\n";
         sendEchoRequest(check_and_cast<PingPayload *>(msg));
         return;
     }
@@ -75,7 +75,7 @@ void ICMP::sendErrorMessage(IPv4Datagram *origDatagram, int inputInterfaceId, IC
 
     // don't send ICMP error messages in response to broadcast or multicast messages
     if (origDestAddr.isMulticast() || origDestAddr.isLimitedBroadcastAddress() || possiblyLocalBroadcast(origDestAddr, inputInterfaceId)) {
-        EV_DETAIL << "won't send ICMP error messages for broadcast/multicast message " << origDatagram << endl;
+        //EV_DETAIL << "won't send ICMP error messages for broadcast/multicast message " << origDatagram << endl;
         delete origDatagram;
         return;
     }
@@ -85,7 +85,7 @@ void ICMP::sendErrorMessage(IPv4Datagram *origDatagram, int inputInterfaceId, IC
             || origSrcAddr.isMulticast()
             || origSrcAddr.isLimitedBroadcastAddress()
             || possiblyLocalBroadcast(origSrcAddr, inputInterfaceId)) {
-        EV_DETAIL << "won't send ICMP error messages to broadcast/multicast address, message " << origDatagram << endl;
+        //EV_DETAIL << "won't send ICMP error messages to broadcast/multicast address, message " << origDatagram << endl;
         delete origDatagram;
         return;
     }
@@ -94,7 +94,7 @@ void ICMP::sendErrorMessage(IPv4Datagram *origDatagram, int inputInterfaceId, IC
     if (origDatagram->getTransportProtocol() == IP_PROT_ICMP) {
         ICMPMessage *recICMPMsg = check_and_cast<ICMPMessage *>(origDatagram->getEncapsulatedPacket());
         if (!isIcmpInfoType(recICMPMsg->getType())) {
-            EV_DETAIL << "ICMP error received -- do not reply to it" << endl;
+            //EV_DETAIL << "ICMP error received -- do not reply to it" << endl;
             delete origDatagram;
             return;
         }
@@ -106,7 +106,7 @@ void ICMP::sendErrorMessage(IPv4Datagram *origDatagram, int inputInterfaceId, IC
     sprintf(msgname, "ICMP-error-#%ld-type%d-code%d", ++ctr, type, code);
 
     // debugging information
-    EV_DETAIL << "sending ICMP error " << msgname << endl;
+    //EV_DETAIL << "sending ICMP error " << msgname << endl;
 
     // create and send ICMP packet
     ICMPMessage *errorMessage = new ICMPMessage(msgname);
@@ -258,11 +258,11 @@ void ICMP::processEchoReply(ICMPMessage *reply)
     long originatorId = payload->getOriginatorId();
     auto i = pingMap.find(originatorId);
     if (i != pingMap.end()) {
-        EV_INFO << "Sending " << payload << " to upper layer.\n";
+        //EV_INFO << "Sending " << payload << " to upper layer.\n";
         send(payload, "pingOut", i->second);
     }
     else {
-        EV_WARN << "Received ECHO REPLY has an unknown originator ID: " << originatorId << ", packet dropped." << endl;
+        //EV_WARN << "Received ECHO REPLY has an unknown originator ID: " << originatorId << ", packet dropped." << endl;
         delete payload;
     }
 }
@@ -295,7 +295,7 @@ void ICMP::sendToIP(ICMPMessage *msg, const IPv4Address& dest)
 void ICMP::sendToIP(ICMPMessage *msg)
 {
     // assumes IPv4ControlInfo is already attached
-    EV_INFO << "Sending " << msg << " to lower layer.\n";
+    //EV_INFO << "Sending " << msg << " to lower layer.\n";
     send(msg, "sendOut");
 }
 

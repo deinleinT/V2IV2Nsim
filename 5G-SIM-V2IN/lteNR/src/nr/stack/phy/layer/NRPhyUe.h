@@ -42,6 +42,7 @@ class NRPhyUe : public LtePhyUe
 public:
     NRPhyUe();
     virtual ~NRPhyUe();
+    virtual void checkConnection();
     virtual void recordAttenuation(const double & att);
     virtual void recordSNIR(const double & snirVal);
     virtual void recordDistance3d(const double & d3d);
@@ -55,6 +56,7 @@ public:
 
 
 protected:
+    cMessage * checkConnectionTimer;
     QosHandler * qosHandler;
     simsignal_t averageTxPower;
     simsignal_t attenuation;

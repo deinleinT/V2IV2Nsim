@@ -77,7 +77,7 @@ void Loopback::handleMessage(cMessage *msg)
     }
 
     emit(packetReceivedFromUpperSignal, msg);
-    EV << "Received " << msg << " for transmission\n";
+    //EV << "Received " << msg << " for transmission\n";
     ASSERT(PK(msg)->hasBitError() == false);
 
     // pass up payload

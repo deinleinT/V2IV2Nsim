@@ -86,20 +86,14 @@ SCTPDataVariables *SCTPQueue::getAndExtractChunk(const uint32 tsn)
 
 void SCTPQueue::printQueue() const
 {
-    EV_DEBUG << "Queue contents:\n";
+    //EV_DEBUG << "Queue contents:\n";
     for (const auto & elem : payloadQueue)
     {
         const uint32 key = elem.first;
         const SCTPDataVariables *chunk = elem.second;
-        EV_DEBUG << key << ":\t"
-                 << "lastDestination=" << chunk->getLastDestination()
-                 << " nextDestination=" << chunk->getNextDestination()
-                 << " hasBeenAcked=" << chunk->hasBeenAcked
-                 << " countsAsOutstanding=" << chunk->countsAsOutstanding
-                 << " numberOfRetransmissions=" << chunk->numberOfRetransmissions
-                 << endl;
+        //EV_DEBUG << key << ":\t"                 << "lastDestination=" << chunk->getLastDestination()                 << " nextDestination=" << chunk->getNextDestination()                 << " hasBeenAcked=" << chunk->hasBeenAcked                 << " countsAsOutstanding=" << chunk->countsAsOutstanding                 << " numberOfRetransmissions=" << chunk->numberOfRetransmissions                 << endl;
     }
-    EV_DEBUG << endl;
+    //EV_DEBUG << endl;
 }
 
 SCTPDataVariables *SCTPQueue::getFirstChunk() const

@@ -127,8 +127,9 @@ void Edcaf::requestChannel(IChannelAccess::ICallback* callback)
 {
     this->callback = callback;
     ASSERT(!owning);
-    if (contention->isContentionInProgress())
-        EV_DETAIL << "Contention has already been started" << std::endl;
+    if (contention->isContentionInProgress()){
+        //EV_DETAIL << "Contention has already been started" << std::endl;
+    }
     else {
 //        EV_DETAIL << "Starting contention with cw = " << cw << ", ifs = " << ifs << ", eifs = "
 //                  << eifs << ", slotTime = " << slotTime << std::endl;

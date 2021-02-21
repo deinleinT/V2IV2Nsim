@@ -72,7 +72,7 @@ void Ieee8021dRelay::initialize(int stage)
 void Ieee8021dRelay::handleMessage(cMessage *msg)
 {
     if (!isOperational) {
-        EV_ERROR << "Message '" << msg << "' arrived when module status is down, dropped it." << endl;
+        //EV_ERROR << "Message '" << msg << "' arrived when module status is down, dropped it." << endl;
         delete msg;
         return;
     }
@@ -81,14 +81,14 @@ void Ieee8021dRelay::handleMessage(cMessage *msg)
         // messages from STP process
         if (strcmp(msg->getArrivalGate()->getName(), "stpIn") == 0) {
             numReceivedBPDUsFromSTP++;
-            EV_INFO << "Received " << msg << " from STP/RSTP module." << endl;
+            //EV_INFO << "Received " << msg << " from STP/RSTP module." << endl;
             BPDU *bpdu = check_and_cast<BPDU *>(msg);
             dispatchBPDU(bpdu);
         }
         // messages from network
         else if (strcmp(msg->getArrivalGate()->getName(), "ifIn") == 0) {
             numReceivedNetworkFrames++;
-            EV_INFO << "Received " << msg << " from network." << endl;
+            //EV_INFO << "Received " << msg << " from network." << endl;
             EtherFrame *frame = check_and_cast<EtherFrame *>(msg);
             emit(LayeredProtocolBase::packetReceivedFromLowerSignal, frame);
             handleAndDispatchFrame(frame);
@@ -100,7 +100,7 @@ void Ieee8021dRelay::handleMessage(cMessage *msg)
 
 void Ieee8021dRelay::broadcast(EtherFrame *frame)
 {
-    EV_DETAIL << "Broadcast frame " << frame << endl;
+    //EV_DETAIL << "Broadcast frame " << frame << endl;
 
     unsigned int arrivalGate = frame->getArrivalGate()->getIndex();
 
@@ -120,11 +120,11 @@ void Ieee8021dRelay::handleAndDispatchFrame(EtherFrame *frame)
 
     // BPDU Handling
     if (isStpAware && (frame->getDest() == MACAddress::STP_MULTICAST_ADDRESS || frame->getDest() == bridgeAddress) && arrivalPortData->getRole() != Ieee8021dInterfaceData::DISABLED) {
-        EV_DETAIL << "Deliver BPDU to the STP/RSTP module" << endl;
+        //EV_DETAIL << "Deliver BPDU to the STP/RSTP module" << endl;
         deliverBPDU(frame);    // deliver to the STP/RSTP module
     }
     else if (isStpAware && !arrivalPortData->isForwarding()) {
-        EV_INFO << "The arrival port is not forwarding! Discarding it!" << endl;
+        //EV_INFO << "The arrival port is not forwarding! Discarding it!" << endl;
         numDroppedFrames++;
         delete frame;
     }
@@ -135,7 +135,7 @@ void Ieee8021dRelay::handleAndDispatchFrame(EtherFrame *frame)
         int outGate = macTable->getPortForAddress(frame->getDest());
         // Not known -> broadcast
         if (outGate == -1) {
-            EV_DETAIL << "Destination address = " << frame->getDest() << " unknown, broadcasting frame " << frame << endl;
+            //EV_DETAIL << "Destination address = " << frame->getDest() << " unknown, broadcasting frame " << frame << endl;
             broadcast(frame);
         }
         else {
@@ -145,13 +145,13 @@ void Ieee8021dRelay::handleAndDispatchFrame(EtherFrame *frame)
                 if (!isStpAware || outPortData->isForwarding())
                     dispatch(frame, outGate);
                 else {
-                    EV_INFO << "Output port " << outGate << " is not forwarding. Discarding!" << endl;
+                    //EV_INFO << "Output port " << outGate << " is not forwarding. Discarding!" << endl;
                     numDroppedFrames++;
                     delete frame;
                 }
             }
             else {
-                EV_DETAIL << "Output port is same as input port, " << frame->getFullName() << " destination = " << frame->getDest() << ", discarding frame " << frame << endl;
+                //EV_DETAIL << "Output port is same as input port, " << frame->getFullName() << " destination = " << frame->getDest() << ", discarding frame " << frame << endl;
                 numDroppedFrames++;
                 delete frame;
             }
@@ -161,12 +161,12 @@ void Ieee8021dRelay::handleAndDispatchFrame(EtherFrame *frame)
 
 void Ieee8021dRelay::dispatch(EtherFrame *frame, unsigned int portNum)
 {
-    EV_INFO << "Sending frame " << frame << " on output port " << portNum << "." << endl;
+    //EV_INFO << "Sending frame " << frame << " on output port " << portNum << "." << endl;
 
     if (portNum >= portCount)
         throw cRuntimeError("Output port %d doesn't exist!", portNum);
 
-    EV_INFO << "Sending " << frame << " with destination = " << frame->getDest() << ", port = " << portNum << endl;
+    //EV_INFO << "Sending " << frame << " with destination = " << frame->getDest() << ", port = " << portNum << endl;
 
     numDispatchedNonBPDUFrames++;
     emit(LayeredProtocolBase::packetSentToLowerSignal, frame);
@@ -205,7 +205,7 @@ void Ieee8021dRelay::dispatchBPDU(BPDU *bpdu)
     if (frame->getByteLength() < MIN_ETHERNET_FRAME_BYTES)
         frame->setByteLength(MIN_ETHERNET_FRAME_BYTES);
 
-    EV_INFO << "Sending BPDU frame " << frame << " with destination = " << frame->getDest() << ", port = " << portNum << endl;
+    //EV_INFO << "Sending BPDU frame " << frame << " with destination = " << frame->getDest() << ", port = " << portNum << endl;
     numDispatchedBDPUFrames++;
     emit(LayeredProtocolBase::packetSentToLowerSignal, frame);
     send(frame, "ifOut", portNum);
@@ -224,7 +224,7 @@ void Ieee8021dRelay::deliverBPDU(EtherFrame *frame)
 
     delete frame;    // we have the BPDU packet, so delete the frame
 
-    EV_INFO << "Sending BPDU frame " << bpdu << " to the STP/RSTP module" << endl;
+    //EV_INFO << "Sending BPDU frame " << bpdu << " to the STP/RSTP module" << endl;
     numDeliveredBDPUsToSTP++;
     send(bpdu, "stpOut");
 }

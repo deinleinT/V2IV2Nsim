@@ -90,12 +90,15 @@ LteHarqFeedback *LteHarqProcessRx::createFeedback(Codeword cw)
         throw cRuntimeError("Cannot send feedback for a pdu not in EVALUATING state");
 
     UserControlInfo *pduInfo = check_and_cast<UserControlInfo *>(pdu_.at(cw)->getControlInfo());
+    LteControlInfo *info = check_and_cast<LteControlInfo *>(pduInfo);
+
     LteHarqFeedback *fb = new LteHarqFeedback();
     fb->setAcid(acid_);
     fb->setCw(cw);
     fb->setResult(result_.at(cw));
     fb->setFbMacPduId(pdu_.at(cw)->getMacPduId());
     fb->setByteLength(0);
+
     UserControlInfo *fbInfo = new UserControlInfo();
     fbInfo->setSourceId(pduInfo->getDestId());
     fbInfo->setDestId(pduInfo->getSourceId());
@@ -106,7 +109,16 @@ LteHarqFeedback *LteHarqProcessRx::createFeedback(Codeword cw)
     fbInfo->setTraffic(pduInfo->getTraffic());
     fbInfo->setRlcType(pduInfo->getRlcType());
     fbInfo->setLcid(pduInfo->getLcid());
-    fb->setControlInfo(fbInfo);
+    //modified for codeblockgroups
+    LteControlInfo *cInfo = check_and_cast<LteControlInfo *>(fbInfo);
+    cInfo->setBlocksForCodeBlockGroups(info->getBlocksForCodeBlockGroups());
+    cInfo->setCodeBlockGroupsActivated(info->getCodeBlockGroupsActivated());
+    cInfo->setNumberOfCodeBlockGroups(info->getNumberOfCodeBlockGroups());
+    cInfo->setRestByteSize(info->getRestByteSize());
+    cInfo->setInitialByteSize(info->getInitialByteSize());
+
+//    fb->setControlInfo(fbInfo);
+    fb->setControlInfo(cInfo);
 
     if (!result_.at(cw))
     {
@@ -160,6 +172,15 @@ int64_t LteHarqProcessRx::getByteLength(Codeword cw)
 
     if (pdu_.at(cw) != NULL)
     {
+    	//for codeblockgroups
+		if (getSimulation()->getSystemModule()->par("useCodeBlockGroups").boolValue()) {
+			LteControlInfo *pduInfo = check_and_cast<LteControlInfo *>(pdu_.at(cw)->getControlInfo());
+			if(pduInfo->getRestByteSize() == 0){
+				return pdu_.at(cw)->getByteLength();
+			}else{
+				return pduInfo->getRestByteSize();
+			}
+		}
         return pdu_.at(cw)->getByteLength();
     }
     else

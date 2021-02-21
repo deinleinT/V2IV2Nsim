@@ -51,8 +51,9 @@ void OperationalBase::handleMessageWhenDown(cMessage *message)
 {
     if (message->isSelfMessage())
         throw cRuntimeError("Self message '%s' received when %s is down", message->getName(), getComponentType()->getName());
-    else if (simTime() == lastChange)
-        EV_WARN << getComponentType()->getName() << " is down, dropping '" << message->getName() << "' message\n";
+    else if (simTime() == lastChange){
+        //EV_WARN << getComponentType()->getName() << " is down, dropping '" << message->getName() << "' message\n";
+    }
     else
         throw cRuntimeError("Message '%s' received when %s is down", message->getName(), getComponentType()->getName());
     delete message;

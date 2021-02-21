@@ -63,12 +63,23 @@ void EtherHub::checkConnections(bool errorWhenAsymmetric)
             if (errorWhenAsymmetric)
                 throw cRuntimeError("The input or output gate not connected at port %i", i);
             dataratesDiffer = true;
-            EV << "The input or output gate not connected at port " << i << ".\n";
+            //EV << "The input or output gate not connected at port " << i << ".\n";
+            continue;
+        }
+
+        cChannel *inTrChannel = igate->findIncomingTransmissionChannel();
+        cChannel *outTrChannel = ogate->findTransmissionChannel();
+        if (!inTrChannel || !outTrChannel) {
+            // half connected gate
+            if (errorWhenAsymmetric)
+                throw cRuntimeError("The input or output gate not connected at port %i", i);
+            dataratesDiffer = true;
+            //EV << "The input or output gate not connected at port " << i << ".\n";
             continue;
         }
 
         numActivePorts++;
-        double drate = igate->getIncomingTransmissionChannel()->getNominalDatarate();
+        double drate = inTrChannel->getNominalDatarate();
 
         if (numActivePorts == 1)
             datarate = drate;
@@ -76,17 +87,16 @@ void EtherHub::checkConnections(bool errorWhenAsymmetric)
             if (errorWhenAsymmetric)
                 throw cRuntimeError("The input datarate at port %i differs from datarates of previous ports", i);
             dataratesDiffer = true;
-            EV << "The input datarate at port " << i << " differs from datarates of previous ports.\n";
+            //EV << "The input datarate at port " << i << " differs from datarates of previous ports.\n";
         }
 
-        cChannel *outTrChannel = ogate->getTransmissionChannel();
         drate = outTrChannel->getNominalDatarate();
 
         if (datarate != drate) {
             if (errorWhenAsymmetric)
                 throw cRuntimeError("The output datarate at port %i differs from datarates of previous ports", i);
             dataratesDiffer = true;
-            EV << "The output datarate at port " << i << " differs from datarates of previous ports.\n";
+            //EV << "The output datarate at port " << i << " differs from datarates of previous ports.\n";
         }
 
         if (!outTrChannel->isSubscribed(POST_MODEL_CHANGE, this))
@@ -145,7 +155,7 @@ void EtherHub::handleMessage(cMessage *msg)
 
     // Handle frame sent down from the network entity: send out on every other port
     int arrivalPort = msg->getArrivalGate()->getIndex();
-    EV << "Frame " << msg << " arrived on port " << arrivalPort << ", broadcasting on all other ports\n";
+    //EV << "Frame " << msg << " arrived on port " << arrivalPort << ", broadcasting on all other ports\n";
 
     numMessages++;
     emit(pkSignal, msg);

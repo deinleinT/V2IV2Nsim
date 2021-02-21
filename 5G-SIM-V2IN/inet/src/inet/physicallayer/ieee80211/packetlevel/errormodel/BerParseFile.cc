@@ -200,7 +200,7 @@ double BerParseFile::getPer(double speed, double tsnr, int tlen)
                 per = per2;
             }
             else {
-                EV << "No PER available";
+                //EV << "No PER available";
                 per = 0;
             }
         }

@@ -42,10 +42,10 @@ void UDPSocket::sendToUDP(cMessage *msg)
         throw cRuntimeError("UDPSocket: setOutputGate() must be invoked before socket can be used");
 
     cObject *ctrl = msg->getControlInfo();
-    EV_TRACE << "UDPSocket: Send (" << msg->getClassName() << ")" << msg->getFullName();
-    if (ctrl)
-        EV_TRACE << "  control info: (" << ctrl->getClassName() << ")" << ctrl->getFullName();
-    EV_TRACE << endl;
+    //EV_TRACE << "UDPSocket: Send (" << msg->getClassName() << ")" << msg->getFullName();
+//    if (ctrl)
+//        EV_TRACE << "  control info: (" << ctrl->getClassName() << ")" << ctrl->getFullName();
+//    EV_TRACE << endl;
 
     check_and_cast<cSimpleModule *>(gateToUdp->getOwnerModule())->send(msg, gateToUdp);
 }

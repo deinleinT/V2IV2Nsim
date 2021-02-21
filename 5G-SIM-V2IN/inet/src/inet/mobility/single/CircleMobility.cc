@@ -38,7 +38,7 @@ void CircleMobility::initialize(int stage)
 {
     MovingMobilityBase::initialize(stage);
 
-    EV_TRACE << "initializing CircleMobility stage " << stage << endl;
+    //EV_TRACE << "initializing CircleMobility stage " << stage << endl;
     if (stage == INITSTAGE_LOCAL) {
         cx = par("cx");
         cy = par("cy");

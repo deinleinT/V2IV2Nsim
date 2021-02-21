@@ -51,7 +51,7 @@ void TunLoopbackApp::initialize(int stage)
 void TunLoopbackApp::handleMessage(cMessage *message)
 {
     if (message->getArrivalGate()->isName("tunIn")) {
-        EV_INFO << "Message " << message->getName() << " arrived from tun. " << packetsReceived + 1 << " packets received so far\n";
+        //EV_INFO << "Message " << message->getName() << " arrived from tun. " << packetsReceived + 1 << " packets received so far\n";
         packetsReceived++;
         INetworkDatagram *networkDatagram = check_and_cast<INetworkDatagram *>(message);
         ITransportPacket *transportPacket = check_and_cast<ITransportPacket *>(check_and_cast<cPacket *>(message)->getEncapsulatedPacket());
@@ -69,8 +69,8 @@ void TunLoopbackApp::handleMessage(cMessage *message)
 
 void TunLoopbackApp::finish()
 {
-    EV_INFO << "packets sent: " << packetsSent << endl;
-    EV_INFO << "packets received: " << packetsReceived << endl;
+    //EV_INFO << "packets sent: " << packetsSent << endl;
+    //EV_INFO << "packets received: " << packetsReceived << endl;
 }
 
 } // namespace inet

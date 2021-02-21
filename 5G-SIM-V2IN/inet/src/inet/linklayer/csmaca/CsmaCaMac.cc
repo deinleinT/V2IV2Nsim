@@ -54,7 +54,7 @@ void CsmaCaMac::initialize(int stage)
     MACProtocolBase::initialize(stage);
 
     if (stage == INITSTAGE_LOCAL) {
-        EV << "Initializing stage 0\n";
+        //EV << "Initializing stage 0\n";
 
         maxQueueSize = par("maxQueueSize");
         useAck = par("useAck");
@@ -143,7 +143,7 @@ void CsmaCaMac::initializeQueueModule()
         cModule *module = getParentModule()->getSubmodule(par("queueModule").stringValue());
         queueModule = check_and_cast<IPassiveQueue *>(module);
 
-        EV << "Requesting first two frames from queue module\n";
+        //EV << "Requesting first two frames from queue module\n";
         queueModule->requestPacket();
         // needed for backoff: mandatory if next message is already present
         queueModule->requestPacket();
@@ -187,36 +187,35 @@ InterfaceEntry *CsmaCaMac::createInterfaceEntry()
  */
 void CsmaCaMac::handleSelfMessage(cMessage *msg)
 {
-    EV << "received self message: " << msg << endl;
+    //EV << "received self message: " << msg << endl;
     handleWithFsm(msg);
 }
 
 void CsmaCaMac::handleUpperPacket(cPacket *msg)
 {
     if (maxQueueSize != -1 && (int)transmissionQueue.getLength() == maxQueueSize) {
-        EV << "message " << msg << " received from higher layer but MAC queue is full, dropping message\n";
+        //EV << "message " << msg << " received from higher layer but MAC queue is full, dropping message\n";
         emit(LayeredProtocolBase::packetFromUpperDroppedSignal, msg);
         delete msg;
         return;
     }
     CsmaCaMacDataFrame *frame = encapsulate(msg);
-    EV << "frame " << frame << " received from higher layer, receiver = " << frame->getReceiverAddress() << endl;
+    //EV << "frame " << frame << " received from higher layer, receiver = " << frame->getReceiverAddress() << endl;
     ASSERT(!frame->getReceiverAddress().isUnspecified());
     transmissionQueue.insert(frame);
-    if (fsm.getState() != IDLE)
-        EV << "deferring upper message transmission in " << fsm.getStateName() << " state\n";
+    if (fsm.getState() != IDLE){
+        //EV << "deferring upper message transmission in " << fsm.getStateName() << " state\n";
+    }
     else
         handleWithFsm(frame);
 }
 
 void CsmaCaMac::handleLowerPacket(cPacket *msg)
 {
-    EV << "received message from lower layer: " << msg << endl;
+    //EV << "received message from lower layer: " << msg << endl;
 
     CsmaCaMacFrame *frame = check_and_cast<CsmaCaMacFrame *>(msg);
-    EV << "Self address: " << address
-       << ", receiver address: " << frame->getReceiverAddress()
-       << ", received frame is for us: " << isForUs(frame) << endl;
+    //EV << "Self address: " << address       << ", receiver address: " << frame->getReceiverAddress()       << ", received frame is for us: " << isForUs(frame) << endl;
 
     handleWithFsm(msg);
 }
@@ -457,32 +456,32 @@ cPacket *CsmaCaMac::decapsulate(CsmaCaMacDataFrame *frame)
  */
 void CsmaCaMac::scheduleSifsTimer(CsmaCaMacFrame *frame)
 {
-    EV << "scheduling SIFS timer\n";
+    //EV << "scheduling SIFS timer\n";
     endSifs->setContextPointer(frame);
     scheduleAt(simTime() + sifsTime, endSifs);
 }
 
 void CsmaCaMac::scheduleDifsTimer()
 {
-    EV << "scheduling DIFS timer\n";
+    //EV << "scheduling DIFS timer\n";
     scheduleAt(simTime() + difsTime, endDifs);
 }
 
 void CsmaCaMac::cancelDifsTimer()
 {
-    EV << "canceling DIFS timer\n";
+    //EV << "canceling DIFS timer\n";
     cancelEvent(endDifs);
 }
 
 void CsmaCaMac::scheduleAckTimeout(CsmaCaMacDataFrame *frameToSend)
 {
-    EV << "scheduling ACK timeout\n";
+    //EV << "scheduling ACK timeout\n";
     scheduleAt(simTime() + ackTimeout, endAckTimeout);
 }
 
 void CsmaCaMac::cancelAckTimer()
 {
-    EV << "canceling ACK timer\n";
+    //EV << "canceling ACK timer\n";
     cancelEvent(endAckTimeout);
 }
 
@@ -499,17 +498,17 @@ bool CsmaCaMac::isInvalidBackoffPeriod()
 void CsmaCaMac::generateBackoffPeriod()
 {
     ASSERT(0 <= retryCounter && retryCounter <= retryLimit);
-    EV << "generating backoff slot number for retry: " << retryCounter << endl;
+    //EV << "generating backoff slot number for retry: " << retryCounter << endl;
     int cw;
     if (getCurrentTransmission()->getReceiverAddress().isMulticast())
         cw = cwMulticast;
     else
         cw = std::min(cwMax, (cwMin + 1) * (1 << retryCounter) - 1);
     int slots = intrand(cw + 1);
-    EV << "generated backoff slot number: " << slots << " , cw: " << cw << endl;
+    //EV << "generated backoff slot number: " << slots << " , cw: " << cw << endl;
     backoffPeriod = slots * slotTime;
     ASSERT(backoffPeriod >= 0);
-    EV << "backoff period set to " << backoffPeriod << endl;
+    //EV << "backoff period set to " << backoffPeriod << endl;
 }
 
 void CsmaCaMac::decreaseBackoffPeriod()
@@ -517,12 +516,12 @@ void CsmaCaMac::decreaseBackoffPeriod()
     simtime_t elapsedBackoffTime = simTime() - endBackoff->getSendingTime();
     backoffPeriod -= ((int)(elapsedBackoffTime / slotTime)) * slotTime;
     ASSERT(backoffPeriod >= 0);
-    EV << "backoff period decreased to " << backoffPeriod << endl;
+    //EV << "backoff period decreased to " << backoffPeriod << endl;
 }
 
 void CsmaCaMac::scheduleBackoffTimer()
 {
-    EV << "scheduling backoff timer\n";
+    //EV << "scheduling backoff timer\n";
     if (isInvalidBackoffPeriod())
         generateBackoffPeriod();
     scheduleAt(simTime() + backoffPeriod, endBackoff);
@@ -530,7 +529,7 @@ void CsmaCaMac::scheduleBackoffTimer()
 
 void CsmaCaMac::cancelBackoffTimer()
 {
-    EV << "canceling backoff timer\n";
+    //EV << "canceling backoff timer\n";
     cancelEvent(endBackoff);
 }
 
@@ -539,14 +538,14 @@ void CsmaCaMac::cancelBackoffTimer()
  */
 void CsmaCaMac::sendDataFrame(CsmaCaMacDataFrame *frameToSend)
 {
-    EV << "sending Data frame " << frameToSend->getName() << endl;
+    //EV << "sending Data frame " << frameToSend->getName() << endl;
     radio->setRadioMode(IRadio::RADIO_MODE_TRANSMITTER);
     sendDown(frameToSend->dup());
 }
 
 void CsmaCaMac::sendAckFrame()
 {
-    EV << "sending Ack frame\n";
+    //EV << "sending Ack frame\n";
     auto frameToAck = static_cast<CsmaCaMacDataFrame *>(endSifs->getContextPointer());
     endSifs->setContextPointer(nullptr);
     auto ackFrame = new CsmaCaMacAckFrame("CsmaAck");
@@ -589,11 +588,11 @@ CsmaCaMacDataFrame *CsmaCaMac::getCurrentTransmission()
 
 void CsmaCaMac::popTransmissionQueue()
 {
-    EV << "dropping frame from transmission queue\n";
+    //EV << "dropping frame from transmission queue\n";
     delete transmissionQueue.pop();
     if (queueModule) {
         // tell queue module that we've become idle
-        EV << "requesting another frame from queue module\n";
+        //EV << "requesting another frame from queue module\n";
         queueModule->requestPacket();
     }
 }

@@ -51,16 +51,14 @@ void Flood::initialize(int stage)
         hasPar("plainFlooding") ? plainFlooding = par("plainFlooding")
             : plainFlooding = true;
 
-        EV << "defaultTtl = " << defaultTtl
-           << " plainFlooding = " << plainFlooding << endl;
+        //EV << "defaultTtl = " << defaultTtl           << " plainFlooding = " << plainFlooding << endl;
 
         if (plainFlooding) {
             //these parameters are only needed for plain flooding
             hasPar("bcMaxEntries") ? bcMaxEntries = par("bcMaxEntries") : bcMaxEntries = 30;
 
             hasPar("bcDelTime") ? bcDelTime = par("bcDelTime").doubleValue() : bcDelTime = 3.0;
-            EV << "bcMaxEntries = " << bcMaxEntries
-               << " bcDelTime = " << bcDelTime << endl;
+            //EV << "bcMaxEntries = " << bcMaxEntries               << " bcDelTime = " << bcDelTime << endl;
         }
     }
     else if (stage == INITSTAGE_NETWORK_LAYER_3) {
@@ -117,7 +115,7 @@ void Flood::handleUpperPacket(cPacket *m)
             }
             //delete oldest entry if max size is reached
             if (bcMsgs.size() >= bcMaxEntries) {
-                EV << "bcMsgs is full, delete oldest entry" << endl;
+                //EV << "bcMsgs is full, delete oldest entry" << endl;
                 bcMsgs.pop_front();
             }
         }
@@ -150,7 +148,7 @@ void Flood::handleLowerPacket(cPacket *m)
     if (notBroadcasted(msg)) {
         //msg is for me
         if (interfaceTable->isLocalAddress(msg->getDestinationAddress())) {
-            EV << " data msg for me! send to Upper" << endl;
+            //EV << " data msg for me! send to Upper" << endl;
             nbHops = nbHops + (defaultTtl + 1 - msg->getTtl());
             sendUp(decapsMsg(msg), protocol);
             nbDataPacketsReceived++;
@@ -160,16 +158,16 @@ void Flood::handleLowerPacket(cPacket *m)
             //check ttl and rebroadcast
             if (msg->getTtl() > 1) {
                 FloodDatagram *dMsg;
-                EV << " data msg BROADCAST! ttl = " << msg->getTtl()
-                   << " > 1 -> rebroadcast msg & send to upper\n";
+                //EV << " data msg BROADCAST! ttl = " << msg->getTtl()                   << " > 1 -> rebroadcast msg & send to upper\n";
                 msg->setTtl(msg->getTtl() - 1);
                 dMsg = msg->dup();
                 setDownControlInfo(dMsg, MACAddress::BROADCAST_ADDRESS);
                 sendDown(dMsg);
                 nbDataPacketsForwarded++;
             }
-            else
-                EV << " max hops reached (ttl = " << msg->getTtl() << ") -> only send to upper\n";
+            else{
+                //EV << " max hops reached (ttl = " << msg->getTtl() << ") -> only send to upper\n";
+            }
 
             // message has to be forwarded to upper layer
             nbHops = nbHops + (defaultTtl + 1 - msg->getTtl());
@@ -180,8 +178,7 @@ void Flood::handleLowerPacket(cPacket *m)
         else {
             //check ttl and rebroadcast
             if (msg->getTtl() > 1) {
-                EV << " data msg not for me! ttl = " << msg->getTtl()
-                   << " > 1 -> forward\n";
+                //EV << " data msg not for me! ttl = " << msg->getTtl()                   << " > 1 -> forward\n";
                 msg->setTtl(msg->getTtl() - 1);
                 // needs to set the next hop address again to broadcast
                 cObject *const pCtrlInfo = msg->removeControlInfo();
@@ -193,13 +190,13 @@ void Flood::handleLowerPacket(cPacket *m)
             }
             else {
                 //max hops reached -> delete
-                EV << " max hops reached (ttl = " << msg->getTtl() << ") -> delete msg\n";
+                //EV << " max hops reached (ttl = " << msg->getTtl() << ") -> delete msg\n";
                 delete msg;
             }
         }
     }
     else {
-        EV << " data msg already BROADCASTed! delete msg\n";
+        //EV << " data msg already BROADCASTed! delete msg\n";
         delete msg;
     }
 }
@@ -235,7 +232,7 @@ bool Flood::notBroadcasted(FloodDatagram *msg)
 
     //delete oldest entry if max size is reached
     if (bcMsgs.size() >= bcMaxEntries) {
-        EV << "bcMsgs is full, delete oldest entry\n";
+        //EV << "bcMsgs is full, delete oldest entry\n";
         bcMsgs.pop_front();
     }
 
@@ -265,36 +262,34 @@ FloodDatagram *Flood::encapsMsg(cPacket *appPkt)
 {
     L3Address netwAddr;
 
-    EV << "in encaps...\n";
+    //EV << "in encaps...\n";
 
     INetworkProtocolControlInfo *cInfo = check_and_cast_nullable<INetworkProtocolControlInfo *>(appPkt->removeControlInfo());
     FloodDatagram *pkt = new FloodDatagram(appPkt->getName(), appPkt->getKind());
     pkt->setBitLength(headerLength);
 
     if (cInfo == nullptr) {
-        EV << "warning: Application layer did not specifiy a destination L3 address\n"
-           << "\tusing broadcast address instead\n";
+        //EV << "warning: Application layer did not specifiy a destination L3 address\n"           << "\tusing broadcast address instead\n";
         netwAddr = netwAddr.getAddressType()->getBroadcastAddress();
     }
     else {
         pkt->setTransportProtocol(cInfo->getTransportProtocol());
         netwAddr = cInfo->getDestinationAddress();
-        EV << "CInfo removed, netw addr=" << netwAddr << endl;
+        //EV << "CInfo removed, netw addr=" << netwAddr << endl;
         delete cInfo;
     }
 
     pkt->setSrcAddr(myNetwAddr);
     pkt->setDestAddr(netwAddr);
-    EV << " netw " << myNetwAddr << " sending packet" << endl;
+    //EV << " netw " << myNetwAddr << " sending packet" << endl;
 
-    EV << "sendDown: nHop=L3BROADCAST -> message has to be broadcasted"
-       << " -> set destMac=L2BROADCAST" << endl;
+    //EV << "sendDown: nHop=L3BROADCAST -> message has to be broadcasted"       << " -> set destMac=L2BROADCAST" << endl;
 
     setDownControlInfo(pkt, MACAddress::BROADCAST_ADDRESS);
 
     //encapsulate the application packet
     pkt->encapsulate(appPkt);
-    EV << " pkt encapsulated\n";
+    //EV << " pkt encapsulated\n";
     return pkt;
 }
 

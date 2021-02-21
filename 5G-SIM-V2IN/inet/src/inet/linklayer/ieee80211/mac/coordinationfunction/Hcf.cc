@@ -95,7 +95,8 @@ void Hcf::handleMessage(cMessage* msg)
 void Hcf::processUpperFrame(Ieee80211DataOrMgmtFrame* frame)
 {
     Enter_Method("processUpperFrame(%s)", frame->getName());
-    EV_INFO << "Processing upper frame: " << frame->getName() << endl;
+    take(frame);
+    //EV_INFO << "Processing upper frame: " << frame->getName() << endl;
     // TODO:
     // A QoS STA should send individually addressed Management frames that are addressed to a non-QoS STA
     // using the access category AC_BE and shall send all other management frames using the access category
@@ -110,17 +111,17 @@ void Hcf::processUpperFrame(Ieee80211DataOrMgmtFrame* frame)
         ac = edca->classifyFrame(dataFrame);
     else
         throw cRuntimeError("Unknown message type");
-    EV_INFO << "The upper frame has been classified as a " << printAccessCategory(ac) << " frame." << endl;
+    //EV_INFO << "The upper frame has been classified as a " << printAccessCategory(ac) << " frame." << endl;
     if (edcaPendingQueues[ac]->insert(frame)) {
-        EV_INFO << "Frame " << frame->getName() << " has been inserted into the PendingQueue." << endl;
+        //EV_INFO << "Frame " << frame->getName() << " has been inserted into the PendingQueue." << endl;
         auto edcaf = edca->getChannelOwner();
         if (edcaf == nullptr || edcaf->getAccessCategory() != ac) {
-            EV_DETAIL << "Requesting channel for access category " << printAccessCategory(ac) << endl;
+            //EV_DETAIL << "Requesting channel for access category " << printAccessCategory(ac) << endl;
             edca->requestChannelAccess(ac, this);
         }
     }
     else {
-        EV_INFO << "Frame " << frame->getName() << " has been dropped because the PendingQueue is full." << endl;
+        //EV_INFO << "Frame " << frame->getName() << " has been dropped because the PendingQueue is full." << endl;
         emit(NF_PACKET_DROP, frame);
         delete frame;
     }
@@ -142,14 +143,16 @@ void Hcf::scheduleInactivityTimer(simtime_t timeout)
 
 void Hcf::processLowerFrame(Ieee80211Frame* frame)
 {
-    Enter_Method_Silent();
+    Enter_Method("processLowerFrame(%s)", frame->getName());
+    take(frame);
+    //EV_INFO << "Processing lower frame: " << frame->getName() << endl;
     auto edcaf = edca->getChannelOwner();
     if (edcaf && frameSequenceHandler->isSequenceRunning()) {
         // TODO: always call processResponse?
         if ((!isForUs(frame) && !startRxTimer->isScheduled()) || isForUs(frame))
             frameSequenceHandler->processResponse(frame);
         else {
-            EV_INFO << "This frame is not for us" << std::endl;
+            //EV_INFO << "This frame is not for us" << std::endl;
             delete frame;
         }
         cancelEvent(startRxTimer);
@@ -159,7 +162,7 @@ void Hcf::processLowerFrame(Ieee80211Frame* frame)
     else if (isForUs(frame))
         recipientProcessReceivedFrame(frame);
     else {
-        EV_INFO << "This frame is not for us" << std::endl;
+        //EV_INFO << "This frame is not for us" << std::endl;
         delete frame;
     }
 }
@@ -169,11 +172,11 @@ void Hcf::channelGranted(IChannelAccess* channelAccess)
     auto edcaf = check_and_cast<Edcaf*>(channelAccess);
     if (edcaf) {
         AccessCategory ac = edcaf->getAccessCategory();
-        EV_DETAIL << "Channel access granted to the " << printAccessCategory(ac) << " queue" << std::endl;
+        //EV_DETAIL << "Channel access granted to the " << printAccessCategory(ac) << " queue" << std::endl;
         edcaTxops[ac]->startTxop(ac);
         auto internallyCollidedEdcafs = edca->getInternallyCollidedEdcafs();
         if (internallyCollidedEdcafs.size() > 0) {
-            EV_INFO << "Internal collision happened with the following queues:" << std::endl;
+            //EV_INFO << "Internal collision happened with the following queues:" << std::endl;
             handleInternalCollision(internallyCollidedEdcafs);
         }
         startFrameSequence(ac);
@@ -198,7 +201,7 @@ void Hcf::handleInternalCollision(std::vector<Edcaf*> internallyCollidedEdcafs)
     for (auto edcaf : internallyCollidedEdcafs) {
         AccessCategory ac = edcaf->getAccessCategory();
         Ieee80211DataOrMgmtFrame *internallyCollidedFrame = edcaInProgressFrames[ac]->getFrameToTransmit();
-        EV_INFO << printAccessCategory(ac) << " (" << internallyCollidedFrame->getName() << ")" << endl;
+        //EV_INFO << printAccessCategory(ac) << " (" << internallyCollidedFrame->getName() << ")" << endl;
         bool retryLimitReached = false;
         if (auto dataFrame = dynamic_cast<Ieee80211DataFrame *>(internallyCollidedFrame)) { // TODO: QoSDataFrame
             edcaDataRecoveryProcedures[ac]->dataFrameTransmissionFailed(dataFrame);
@@ -212,7 +215,7 @@ void Hcf::handleInternalCollision(std::vector<Edcaf*> internallyCollidedEdcafs)
         else // TODO: + NonQoSDataFrame
             throw cRuntimeError("Unknown frame");
         if (retryLimitReached) {
-            EV_DETAIL << "The frame has reached its retry limit. Dropping it" << std::endl;
+            //EV_DETAIL << "The frame has reached its retry limit. Dropping it" << std::endl;
             emit(NF_LINK_BREAK, internallyCollidedFrame);
             emit(NF_PACKET_DROP, internallyCollidedFrame);
             if (auto dataFrame = dynamic_cast<Ieee80211DataFrame *>(internallyCollidedFrame))
@@ -286,8 +289,9 @@ void Hcf::recipientProcessReceivedControlFrame(Ieee80211Frame* frame)
         if (recipientBlockAckProcedure)
             recipientBlockAckProcedure->processReceivedBlockAckReq(blockAckRequest, recipientAckPolicy, recipientBlockAckAgreementHandler, this);
     }
-    else if (dynamic_cast<Ieee80211ACKFrame*>(frame))
-        EV_WARN << "ACK frame received after timeout, ignoring it.\n"; // drop it, it is an ACK frame that is received after the ACKTimeout
+    else if (dynamic_cast<Ieee80211ACKFrame*>(frame)){
+        //EV_WARN << "ACK frame received after timeout, ignoring it.\n"; // drop it, it is an ACK frame that is received after the ACKTimeout
+    }
     else
         throw cRuntimeError("Unknown control frame");
 }
@@ -328,7 +332,7 @@ void Hcf::originatorProcessRtsProtectionFailed(Ieee80211DataOrMgmtFrame* protect
 {
     auto edcaf = edca->getChannelOwner();
     if (edcaf) {
-        EV_INFO << "RTS frame transmission failed\n";
+        //EV_INFO << "RTS frame transmission failed\n";
         AccessCategory ac = edcaf->getAccessCategory();
         bool retryLimitReached = false;
         if (auto dataFrame = dynamic_cast<Ieee80211DataFrame *>(protectedFrame)) {
@@ -424,7 +428,7 @@ void Hcf::originatorProcessFailedFrame(Ieee80211DataOrMgmtFrame* failedFrame)
         AccessCategory ac = edcaf->getAccessCategory();
         bool retryLimitReached = false;
         if (auto dataFrame = dynamic_cast<Ieee80211DataFrame *>(failedFrame)) {
-            EV_INFO << "Data frame transmission failed\n";
+            //EV_INFO << "Data frame transmission failed\n";
             if (dataFrame->getAckPolicy() == NORMAL_ACK) {
                 edcaDataRecoveryProcedures[ac]->dataFrameTransmissionFailed(dataFrame);
                 retryLimitReached = edcaDataRecoveryProcedures[ac]->isRetryLimitReached(dataFrame);
@@ -444,7 +448,7 @@ void Hcf::originatorProcessFailedFrame(Ieee80211DataOrMgmtFrame* failedFrame)
                 throw cRuntimeError("Unimplemented!");
         }
         else if (auto mgmtFrame = dynamic_cast<Ieee80211ManagementFrame*>(failedFrame)) { // TODO: + NonQoS frames
-            EV_INFO << "Management frame transmission failed\n";
+            //EV_INFO << "Management frame transmission failed\n";
             edcaMgmtAndNonQoSRecoveryProcedure->dataOrMgmtFrameTransmissionFailed(mgmtFrame, stationRetryCounters[ac]);
             retryLimitReached = edcaMgmtAndNonQoSRecoveryProcedure->isRetryLimitReached(mgmtFrame);
             if (dataAndMgmtRateControl) {
@@ -519,12 +523,12 @@ void Hcf::originatorProcessReceivedControlFrame(Ieee80211Frame* frame, Ieee80211
         edcaInProgressFrames[ac]->dropFrame(check_and_cast<Ieee80211DataOrMgmtFrame*>(lastTransmittedFrame));
     }
     else if (auto blockAck = dynamic_cast<Ieee80211BasicBlockAck *>(frame)) {
-        EV_INFO << "BasicBlockAck has arrived" << std::endl;
+        //EV_INFO << "BasicBlockAck has arrived" << std::endl;
         edcaDataRecoveryProcedures[ac]->blockAckFrameReceived();
         auto ackedSeqAndFragNums = edcaAckHandlers[ac]->processReceivedBlockAck(blockAck);
         if (originatorBlockAckAgreementHandler)
             originatorBlockAckAgreementHandler->processReceivedBlockAck(blockAck, this);
-        EV_INFO << "It has acknowledged the following frames:" << std::endl;
+        //EV_INFO << "It has acknowledged the following frames:" << std::endl;
         // FIXME
 //        for (auto seqCtrlField : ackedSeqAndFragNums)
 //            EV_INFO << "Fragment number = " << seqCtrlField.getSequenceNumber() << " Sequence number = " << (int)seqCtrlField.getFragmentNumber() << std::endl;

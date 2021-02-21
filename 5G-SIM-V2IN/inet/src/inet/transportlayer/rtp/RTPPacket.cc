@@ -33,11 +33,11 @@ std::string RTPPacket::str() const
 
 void RTPPacket::dump() const
 {
-    EV_INFO << "RTPPacket:" << endl;
-    EV_INFO << "  payloadType = " << payloadType << endl;
-    EV_INFO << "  sequenceNumber = " << sequenceNumber << endl;
-    EV_INFO << "  timeStamp = " << timeStamp << endl;
-    EV_INFO << "  payloadLength = " << getPayloadLength() << endl;
+//    EV_INFO << "RTPPacket:" << endl;
+//    EV_INFO << "  payloadType = " << payloadType << endl;
+//    EV_INFO << "  sequenceNumber = " << sequenceNumber << endl;
+//    EV_INFO << "  timeStamp = " << timeStamp << endl;
+//    EV_INFO << "  payloadLength = " << getPayloadLength() << endl;
 }
 
 int RTPPacket::getHeaderLength() const

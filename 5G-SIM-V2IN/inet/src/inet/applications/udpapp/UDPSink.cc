@@ -71,7 +71,7 @@ void UDPSink::handleMessageWhenUp(cMessage *msg)
         processPacket(PK(msg));
     }
     else if (msg->getKind() == UDP_I_ERROR) {
-        EV_WARN << "Ignoring UDP error report\n";
+        //EV_WARN << "Ignoring UDP error report\n";
         delete msg;
     }
     else {
@@ -132,7 +132,7 @@ void UDPSink::processStop()
 
 void UDPSink::processPacket(cPacket *pk)
 {
-    EV_INFO << "Received packet: " << UDPSocket::getReceivedPacketInfo(pk) << endl;
+    //EV_INFO << "Received packet: " << UDPSocket::getReceivedPacketInfo(pk) << endl;
     emit(rcvdPkSignal, pk);
     delete pk;
 

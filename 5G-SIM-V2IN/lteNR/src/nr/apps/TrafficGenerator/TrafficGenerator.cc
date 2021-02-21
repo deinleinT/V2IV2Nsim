@@ -1274,9 +1274,19 @@ void TrafficGeneratorCarUL::processStart() {
 
 }
 
-void TrafficGeneratorCarUL::sendPacket() {
+void TrafficGeneratorCarUL::sendPacket(long bytes) {
 
 	unsigned short nodeId = getNRBinder()->getMacNodeId(localAddress_.toIPv4());
+
+	//do not send a packet if unconnected
+	if(getSimulation()->getSystemModule()->par("useSINRThreshold").boolValue()){
+		//get the binder an the ueNotConnectedList
+		if(getBinder()->isNotConnected(nodeId)){
+			return;
+		}
+	}
+	//
+
 	numberSentPackets++;
 	//from UDPBasicApp
 	numSent++;
@@ -1521,7 +1531,7 @@ void TrafficGeneratorCarUL::sendPacket() {
 
 void TrafficGeneratorCarUL::processSend() {
 
-	sendPacket();
+	sendPacket(0);
 
 	if (!sendVideoPacket)
 		return;
@@ -2233,7 +2243,7 @@ void TrafficGeneratorServerDL::handleMessageWhenUp(cMessage *msg) {
 
 		switch (msg->getKind()) {
 		case START:
-			sendPacket();
+			sendPacket(0);
 			break;
 
 		default:
@@ -2249,7 +2259,7 @@ void TrafficGeneratorServerDL::handleMessageWhenUp(cMessage *msg) {
 /**
  * iterate over all car names and sends packets after the corresponding packet interval expired
  */
-void TrafficGeneratorServerDL::sendPacket() {
+void TrafficGeneratorServerDL::sendPacket(long bytes) {
 
 	if (names.size() == 0) {
 		scheduleAt(NOW + par("sendInterval").doubleValue(), selfMsg);
@@ -2284,6 +2294,15 @@ void TrafficGeneratorServerDL::sendPacket() {
 
 			int omnetId = mod->getId();
 			int nodeId = getNRBinder()->getMacNodeIdFromOmnetId(omnetId);
+
+			//do not send a packet if unconnected
+			if(getSimulation()->getSystemModule()->par("useSINRThreshold").boolValue()){
+				//get the binder an the ueNotConnectedList
+				if(getBinder()->isNotConnected(nodeId)){
+					continue;
+				}
+			}
+			//
 
 			numberSentPackets++;
 			//from UDPBasicApp

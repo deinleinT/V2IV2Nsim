@@ -102,11 +102,11 @@ void PIMNeighborTable::handleMessage(cMessage *msg)
 
 void PIMNeighborTable::processLivenessTimer(cMessage *livenessTimer)
 {
-    EV << "PIMNeighborTable::processNLTimer\n";
+    //EV << "PIMNeighborTable::processNLTimer\n";
     PIMNeighbor *neighbor = check_and_cast<PIMNeighbor *>((cObject *)livenessTimer->getContextPointer());
     IPv4Address neighborAddress = neighbor->getAddress();
     deleteNeighbor(neighbor);
-    EV << "PIM::processNLTimer: Neighbor " << neighborAddress << "was removed from PIM neighbor table.\n";
+    //EV << "PIM::processNLTimer: Neighbor " << neighborAddress << "was removed from PIM neighbor table.\n";
 }
 
 bool PIMNeighborTable::addNeighbor(PIMNeighbor *entry, double holdTime)
@@ -120,7 +120,7 @@ bool PIMNeighborTable::addNeighbor(PIMNeighbor *entry, double holdTime)
             return false;
 
 
-    EV_DETAIL << "Added new neighbor to table: " << entry->str() << "\n";
+    //EV_DETAIL << "Added new neighbor to table: " << entry->str() << "\n";
     entry->nt = this;
     neighborsOnInterface.push_back(entry);
     take(entry->getLivenessTimer());

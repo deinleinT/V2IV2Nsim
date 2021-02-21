@@ -142,7 +142,7 @@ void GlobalARP::handleMessageWhenDown(cMessage *msg)
 {
     if (msg->isSelfMessage())
         throw cRuntimeError("Model error: self msg '%s' received when protocol is down", msg->getName());
-    EV_ERROR << "Protocol is turned off, dropping '" << msg->getName() << "' message\n";
+    //EV_ERROR << "Protocol is turned off, dropping '" << msg->getName() << "' message\n";
     delete msg;
 }
 
@@ -186,7 +186,7 @@ bool GlobalARP::isNodeUp()
 
 void GlobalARP::processARPPacket(ARPPacket *arp)
 {
-    EV << "ARP packet " << arp << " arrived, dropped\n";
+    //EV << "ARP packet " << arp << " arrived, dropped\n";
     delete arp;
 }
 

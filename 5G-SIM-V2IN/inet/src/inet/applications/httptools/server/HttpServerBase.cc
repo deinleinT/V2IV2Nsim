@@ -44,7 +44,7 @@ void HttpServerBase::initialize(int stage)
     HttpNodeBase::initialize(stage);
 
     if (stage == INITSTAGE_LOCAL) {
-        EV_DEBUG << "Initializing server component\n";
+        //EV_DEBUG << "Initializing server component\n";
 
         hostName = (const char *)par("hostName");
         if (hostName.empty()) {
@@ -52,7 +52,7 @@ void HttpServerBase::initialize(int stage)
             hostName += host->getFullName();
             hostName += ".com";
         }
-        EV_DEBUG << "Initializing HTTP server. Using WWW name " << hostName << endl;
+        //EV_DEBUG << "Initializing HTTP server. Using WWW name " << hostName << endl;
         port = par("port");
 
         logFileName = par("logFile").stdstringValue();
@@ -134,7 +134,7 @@ void HttpServerBase::initialize(int stage)
             throw cRuntimeError("Error message size random object could not be created");
 
         activationTime = par("activationTime");
-        EV_INFO << "Activation time is " << activationTime << endl;
+        //EV_INFO << "Activation time is " << activationTime << endl;
 
         std::string siteDefinition = (const char *)par("siteDefinition");
         scriptedMode = !siteDefinition.empty();
@@ -163,10 +163,10 @@ void HttpServerBase::initialize(int stage)
 
 void HttpServerBase::finish()
 {
-    EV_INFO << "HTML documents served " << htmlDocsServed << "\n";
-    EV_INFO << "Image resources served " << imgResourcesServed << "\n";
-    EV_INFO << "Text resources served " << textResourcesServed << "\n";
-    EV_INFO << "Bad requests " << badRequests << "\n";
+    //EV_INFO << "HTML documents served " << htmlDocsServed << "\n";
+    //EV_INFO << "Image resources served " << imgResourcesServed << "\n";
+    //EV_INFO << "Text resources served " << textResourcesServed << "\n";
+    //EV_INFO << "Bad requests " << badRequests << "\n";
 
     recordScalar("HTML.served", htmlDocsServed);
     recordScalar("images.served", imgResourcesServed);
@@ -203,7 +203,7 @@ cPacket *HttpServerBase::handleReceivedMessage(cMessage *msg)
     if (request == nullptr)
         throw cRuntimeError("Message (%s)%s is not a valid request", msg->getClassName(), msg->getName());
 
-    EV_DEBUG << "Handling received message " << msg->getName() << ". Target URL: " << request->targetUrl() << endl;
+    //EV_DEBUG << "Handling received message " << msg->getName() << ". Target URL: " << request->targetUrl() << endl;
 
     logRequest(request);
 
@@ -219,7 +219,7 @@ cPacket *HttpServerBase::handleReceivedMessage(cMessage *msg)
     cStringTokenizer tokenizer = cStringTokenizer(request->heading(), " ");
     std::vector<std::string> res = tokenizer.asVector();
     if (res.size() != 3) {
-        EV_ERROR << "Invalid request string: " << request->heading() << endl;
+        //EV_ERROR << "Invalid request string: " << request->heading() << endl;
         replymsg = generateErrorReply(request, 400);
         logResponse(replymsg);
         return replymsg;
@@ -227,14 +227,14 @@ cPacket *HttpServerBase::handleReceivedMessage(cMessage *msg)
 
     if (request->badRequest()) {
         // Bad requests get a 404 reply.
-        EV_ERROR << "Bad request - bad flag set. Message: " << request->getName() << endl;
+        //EV_ERROR << "Bad request - bad flag set. Message: " << request->getName() << endl;
         replymsg = generateErrorReply(request, 404);
     }
     else if (res[0] == "GET") {
         replymsg = handleGetRequest(request, res[1]);    // Pass in the resource string part
     }
     else {
-        EV_ERROR << "Unsupported request type " << res[0] << " for " << request->heading() << endl;
+        //EV_ERROR << "Unsupported request type " << res[0] << " for " << request->heading() << endl;
         replymsg = generateErrorReply(request, 400);
     }
 
@@ -246,12 +246,12 @@ cPacket *HttpServerBase::handleReceivedMessage(cMessage *msg)
 
 HttpReplyMessage *HttpServerBase::handleGetRequest(HttpRequestMessage *request, std::string resource)
 {
-    EV_DEBUG << "Handling GET request " << request->getName() << " resource: " << resource << endl;
+    //EV_DEBUG << "Handling GET request " << request->getName() << " resource: " << resource << endl;
 
     resource = trimLeft(resource, "/");
     std::vector<std::string> req = parseResourceName(resource);
     if (req.size() != 3) {
-        EV_ERROR << "Invalid GET request string: " << request->heading() << endl;
+        //EV_ERROR << "Invalid GET request string: " << request->heading() << endl;
         return generateErrorReply(request, 400);
     }
 
@@ -260,16 +260,16 @@ HttpReplyMessage *HttpServerBase::handleGetRequest(HttpRequestMessage *request, 
     if (cat == CT_HTML) {
         if (scriptedMode) {
             if (resource.empty() && htmlPages.find("root") != htmlPages.end()) {
-                EV_DEBUG << "Generating root resource" << endl;
+                //EV_DEBUG << "Generating root resource" << endl;
                 return generateDocument(request, "root");
             }
             if (htmlPages.find(resource) == htmlPages.end()) {
                 if (htmlPages.find("default") != htmlPages.end()) {
-                    EV_DEBUG << "Generating default resource" << endl;
+                    //EV_DEBUG << "Generating default resource" << endl;
                     return generateDocument(request, "default");
                 }
                 else {
-                    EV_ERROR << "Page not found: " << resource << endl;
+                    //EV_ERROR << "Page not found: " << resource << endl;
                     return generateErrorReply(request, 404);
                 }
             }
@@ -278,20 +278,20 @@ HttpReplyMessage *HttpServerBase::handleGetRequest(HttpRequestMessage *request, 
     }
     else if (cat == CT_TEXT || cat == CT_IMAGE) {
         if (scriptedMode && resources.find(resource) == resources.end()) {
-            EV_ERROR << "Resource not found: " << resource << endl;
+            //EV_ERROR << "Resource not found: " << resource << endl;
             return generateErrorReply(request, 404);
         }
         return generateResourceMessage(request, resource, cat);
     }
     else {
-        EV_ERROR << "Unknown or unsupported resource requested in " << request->heading() << endl;
+        //EV_ERROR << "Unknown or unsupported resource requested in " << request->heading() << endl;
         return generateErrorReply(request, 400);
     }
 }
 
 HttpReplyMessage *HttpServerBase::generateDocument(HttpRequestMessage *request, const char *resource, int size)
 {
-    EV_DEBUG << "Generating HTML document for request " << request->getName() << " from " << request->getSenderModule()->getName() << endl;
+    //EV_DEBUG << "Generating HTML document for request " << request->getName() << " from " << request->getSenderModule()->getName() << endl;
 
     char szReply[512];
     sprintf(szReply, "HTTP/1.1 200 OK (%s)", resource);
@@ -314,12 +314,12 @@ HttpReplyMessage *HttpServerBase::generateDocument(HttpRequestMessage *request, 
     }
 
     if (size == 0) {
-        EV_DEBUG << "Using random distribution for page size" << endl;
+        //EV_DEBUG << "Using random distribution for page size" << endl;
         size = (int)rdHtmlPageSize->draw();
     }
 
     replymsg->setByteLength(size);
-    EV_DEBUG << "Serving a HTML document of length " << replymsg->getByteLength() << " bytes" << endl;
+    //EV_DEBUG << "Serving a HTML document of length " << replymsg->getByteLength() << " bytes" << endl;
 
     htmlDocsServed++;
 
@@ -328,7 +328,7 @@ HttpReplyMessage *HttpServerBase::generateDocument(HttpRequestMessage *request, 
 
 HttpReplyMessage *HttpServerBase::generateResourceMessage(HttpRequestMessage *request, std::string resource, HttpContentType category)
 {
-    EV_DEBUG << "Generating resource message in response to request " << request->heading() << " with serial " << request->serial() << endl;
+    //EV_DEBUG << "Generating resource message in response to request " << request->heading() << " with serial " << request->serial() << endl;
 
     if (category == CT_TEXT)
         textResourcesServed++;
@@ -412,7 +412,7 @@ void HttpServerBase::registerWithController()
 
 void HttpServerBase::readSiteDefinition(std::string file)
 {
-    EV_DEBUG << "Reading site definition file " << file << endl;
+    //EV_DEBUG << "Reading site definition file " << file << endl;
 
     std::ifstream tracefilestream;
     tracefilestream.open(file.c_str());
@@ -471,7 +471,7 @@ void HttpServerBase::readSiteDefinition(std::string file)
                                 file.c_str(), linecount, line.c_str());
                     }
                 }
-                EV_DEBUG << "Adding html page definition " << key << ". The page size is " << size << endl;
+                //EV_DEBUG << "Adding html page definition " << key << ". The page size is " << size << endl;
                 htmlPages[key].size = size;
                 htmlPages[key].body = body;
             }
@@ -493,7 +493,7 @@ void HttpServerBase::readSiteDefinition(std::string file)
                 }
 
                 resources[key] = size;
-                EV_DEBUG << "Adding resource " << key << " of size " << size << endl;
+                //EV_DEBUG << "Adding resource " << key << " of size " << size << endl;
             }
             else {
                 throw cRuntimeError("Invalid format of site configuration file '%s'. Unknown section, line (%d): %s",
@@ -506,7 +506,7 @@ void HttpServerBase::readSiteDefinition(std::string file)
 
 std::string HttpServerBase::readHtmlBodyFile(std::string file, std::string path)
 {
-    EV_DEBUG << "Reading HTML page definition file" << endl;
+    //EV_DEBUG << "Reading HTML page definition file" << endl;
 
     std::string filePath = path + file;
     std::string line;

@@ -60,7 +60,7 @@ void IPv6Serializer::serialize(const cPacket *pkt, Buffer &b, Context& c)
     unsigned int i;
     uint32_t flowinfo;
 
-    EV << "Serialize IPv6 packet\n";
+    //EV << "Serialize IPv6 packet\n";
 
     unsigned int nextHdrCodePos = b.getPos() + 6;
     struct ip6_hdr *ip6h = (struct ip6_hdr *)b.accessNBytes(sizeof(struct ip6_hdr));
@@ -178,7 +178,7 @@ cPacket* IPv6Serializer::deserialize(const Buffer &b, Context& c)
     c.l3AddressesLength = 32;
 
     if (packetLength + IPv6_HEADER_BYTES > b._getBufSize()) {
-        EV_ERROR << "Can not handle IPv6 packet of total length " << packetLength + IPv6_HEADER_BYTES << "(captured only " << b._getBufSize() << " bytes).\n";
+        //EV_ERROR << "Can not handle IPv6 packet of total length " << packetLength + IPv6_HEADER_BYTES << "(captured only " << b._getBufSize() << " bytes).\n";
         b.setError();
     }
     dest->setByteLength(b.getPos());    // set header size

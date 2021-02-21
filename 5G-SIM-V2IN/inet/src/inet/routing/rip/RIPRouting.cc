@@ -513,7 +513,7 @@ void RIPRouting::handleMessage(cMessage *msg)
     if (!isOperational) {
         if (msg->isSelfMessage())
             throw cRuntimeError("Model error: self msg '%s' received when isOperational is false", msg->getName());
-        EV_ERROR << "Application is turned off, dropping '" << msg->getName() << "' message\n";
+        //EV_ERROR << "Application is turned off, dropping '" << msg->getName() << "' message\n";
         delete msg;
         return;
     }
@@ -547,7 +547,7 @@ void RIPRouting::handleMessage(cMessage *msg)
             throw cRuntimeError("RIP: unknown command (%d)", (int)command);
     }
     else if (msg->getKind() == UDP_I_ERROR) {
-        EV_DETAIL << "Ignoring UDP error report\n";
+        //EV_DETAIL << "Ignoring UDP error report\n";
         delete msg;
     }
 }
@@ -558,10 +558,10 @@ void RIPRouting::handleMessage(cMessage *msg)
  */
 void RIPRouting::processUpdate(bool triggered)
 {
-    if (triggered)
-        EV_INFO << "sending triggered updates on all interfaces.\n";
-    else
-        EV_INFO << "sending regular updates on all interfaces\n";
+//    if (triggered)
+//        //EV_INFO << "sending triggered updates on all interfaces.\n";
+//    else
+//        EV_INFO << "sending regular updates on all interfaces\n";
 
     for (auto & elem : ripInterfaces)
         if (elem.mode != NO_RIP)
@@ -596,7 +596,7 @@ void RIPRouting::processRequest(RIPPacket *packet)
 {
     int numEntries = packet->getEntryArraySize();
     if (numEntries == 0) {
-        EV_INFO << "received empty request, ignoring.\n";
+        //EV_INFO << "received empty request, ignoring.\n";
         delete packet;
         return;
     }
@@ -607,7 +607,7 @@ void RIPRouting::processRequest(RIPPacket *packet)
     int interfaceId = ctrlInfo->getInterfaceId();
     delete ctrlInfo;
 
-    EV_INFO << "received request from " << srcAddr << "\n";
+    //EV_INFO << "received request from " << srcAddr << "\n";
 
     RIPRoute *ripRoute;
     for (int i = 0; i < numEntries; ++i) {
@@ -651,7 +651,7 @@ void RIPRouting::processRequest(RIPPacket *packet)
  */
 void RIPRouting::sendRoutes(const L3Address& address, int port, const RIPInterfaceEntry& ripInterface, bool changedOnly)
 {
-    EV_DEBUG << "Sending " << (changedOnly ? "changed" : "all") << " routes on " << ripInterface.ie->getFullName() << std::endl;
+    //EV_DEBUG << "Sending " << (changedOnly ? "changed" : "all") << " routes on " << ripInterface.ie->getFullName() << std::endl;
 
     int maxEntries = mode == RIPv2 ? 25 : (ripInterface.ie->getMTU() - 40    /*IPv6_HEADER_BYTES*/ - 8    /*UDP_HEADER_BYTES*/ - RIP_HEADER_SIZE) / RIP_RTE_SIZE;
 
@@ -682,8 +682,7 @@ void RIPRouting::sendRoutes(const L3Address& address, int port, const RIPInterfa
                 metric = RIP_INFINITE_METRIC;
         }
 
-        EV_DEBUG << "Add entry for " << ripRoute->getDestination() << "/" << ripRoute->getPrefixLength() << ": "
-                 << " metric=" << metric << std::endl;
+        //EV_DEBUG << "Add entry for " << ripRoute->getDestination() << "/" << ripRoute->getPrefixLength() << ": "                 << " metric=" << metric << std::endl;
 
         // fill next entry
         RIPEntry& entry = packet->getEntry(k++);
@@ -748,7 +747,7 @@ void RIPRouting::processResponse(RIPPacket *packet)
 
     bool isValid = isValidResponse(packet);
     if (!isValid) {
-        EV_INFO << "dropping invalid response.\n";
+        //EV_INFO << "dropping invalid response.\n";
         emit(badResponseSignal, packet);
         delete packet;
         return;
@@ -761,13 +760,13 @@ void RIPRouting::processResponse(RIPPacket *packet)
 
     RIPInterfaceEntry *incomingIe = findInterfaceById(interfaceId);
     if (!incomingIe) {
-        EV_INFO << "dropping unexpected RIP response.\n";
+        //EV_INFO << "dropping unexpected RIP response.\n";
         emit(badResponseSignal, packet);
         delete packet;
         return;
     }
 
-    EV_INFO << "response received from " << srcAddr << "\n";
+    //EV_INFO << "response received from " << srcAddr << "\n";
     int numEntries = packet->getEntryArraySize();
     for (int i = 0; i < numEntries; ++i) {
         RIPEntry& entry = packet->getEntry(i);
@@ -802,30 +801,30 @@ bool RIPRouting::isValidResponse(RIPPacket *packet)
 
     // check that received from ripUdpPort
     if (ctrlInfo->getSrcPort() != ripUdpPort) {
-        EV_WARN << "source port is not " << ripUdpPort << "\n";
+        //EV_WARN << "source port is not " << ripUdpPort << "\n";
         return false;
     }
 
     // check that it is not our response (received own multicast message)
     if (rt->isLocalAddress(ctrlInfo->getSrcAddr())) {
-        EV_WARN << "received own response\n";
+        //EV_WARN << "received own response\n";
         return false;
     }
 
     if (mode == RIPng) {
         if (!ctrlInfo->getSrcAddr().isLinkLocal()) {
-            EV_WARN << "source address is not link-local: " << ctrlInfo->getSrcAddr() << "\n";
+            //EV_WARN << "source address is not link-local: " << ctrlInfo->getSrcAddr() << "\n";
             return false;
         }
         if (ctrlInfo->getTtl() != 255) {
-            EV_WARN << "ttl is not 255";
+            //EV_WARN << "ttl is not 255";
             return false;
         }
     }
     else {
         // check that source is on a directly connected network
         if (!ift->isNeighborAddress(ctrlInfo->getSrcAddr())) {
-            EV_WARN << "source is not directly connected " << ctrlInfo->getSrcAddr() << "\n";
+            //EV_WARN << "source is not directly connected " << ctrlInfo->getSrcAddr() << "\n";
             return false;
         }
     }
@@ -837,24 +836,24 @@ bool RIPRouting::isValidResponse(RIPPacket *packet)
 
         // check that metric is in range [1,16]
         if (entry.metric < 1 || entry.metric > RIP_INFINITE_METRIC) {
-            EV_WARN << "received metric is not in the [1," << RIP_INFINITE_METRIC << "] range.\n";
+            //EV_WARN << "received metric is not in the [1," << RIP_INFINITE_METRIC << "] range.\n";
             return false;
         }
 
         // check that destination address is a unicast address
         // TODO exclude 0.x.x.x, 127.x.x.x too
         if (!entry.address.isUnicast()) {
-            EV_WARN << "destination address of an entry is not unicast: " << entry.address << "\n";
+            //EV_WARN << "destination address of an entry is not unicast: " << entry.address << "\n";
             return false;
         }
 
         if (mode == RIPng) {
             if (entry.address.isLinkLocal()) {
-                EV_WARN << "destination address of an entry is link-local: " << entry.address << "\n";
+                //EV_WARN << "destination address of an entry is link-local: " << entry.address << "\n";
                 return false;
             }
             if (entry.prefixLength < 0 || entry.prefixLength > addressType->getMaxPrefixLength()) {
-                EV_WARN << "prefixLength is outside of the [0," << addressType->getMaxPrefixLength() << "] interval\n";
+                //EV_WARN << "prefixLength is outside of the [0," << addressType->getMaxPrefixLength() << "] interval\n";
                 return false;
             }
         }
@@ -880,8 +879,7 @@ bool RIPRouting::isValidResponse(RIPPacket *packet)
 void RIPRouting::addRoute(const L3Address& dest, int prefixLength, const InterfaceEntry *ie, const L3Address& nextHop,
         int metric, uint16 routeTag, const L3Address& from)
 {
-    EV_DEBUG << "Add route to " << dest << "/" << prefixLength << ": "
-             << "nextHop=" << nextHop << " metric=" << metric << std::endl;
+    //EV_DEBUG << "Add route to " << dest << "/" << prefixLength << ": "             << "nextHop=" << nextHop << " metric=" << metric << std::endl;
 
     IRoute *route = addRoute(dest, prefixLength, ie, nextHop, metric);
 
@@ -915,8 +913,7 @@ void RIPRouting::updateRoute(RIPRoute *ripRoute, const InterfaceEntry *ie, const
     //ASSERT(ripRoute && ripRoute->getType() == RIPRoute::RIP_ROUTE_RTE);
     //ASSERT(!ripRoute->getRoute() || ripRoute->getRoute()->getSource() == this);
 
-    EV_DEBUG << "Updating route to " << ripRoute->getDestination() << "/" << ripRoute->getPrefixLength() << ": "
-             << "nextHop=" << nextHop << " metric=" << metric << std::endl;
+    //EV_DEBUG << "Updating route to " << ripRoute->getDestination() << "/" << ripRoute->getPrefixLength() << ": "             << "nextHop=" << nextHop << " metric=" << metric << std::endl;
 
     int oldMetric = ripRoute->getMetric();
     ripRoute->setInterface(const_cast<InterfaceEntry *>(ie));

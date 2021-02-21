@@ -27,7 +27,7 @@ Define_Module(VehicleMobility);
 void VehicleMobility::initialize(int stage)
 {
     MovingMobilityBase::initialize(stage);
-    EV_TRACE << "initializing VehicleMobility stage " << stage << endl;
+    //EV_TRACE << "initializing VehicleMobility stage " << stage << endl;
     if (stage == INITSTAGE_LOCAL) {
         speed = par("speed");
         waypointProximity = par("waypointProximity");

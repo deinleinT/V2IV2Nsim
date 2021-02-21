@@ -98,7 +98,7 @@ int32 SCTPSerializer::serialize(const SCTPMessage *msg, unsigned char *buf, uint
         unsigned char chunkType = chunk->getChunkType();
         switch (chunkType) {
             case DATA: {
-                EV_INFO << simTime() << " SCTPAssociation:: Data sent \n";
+                //EV_INFO << simTime() << " SCTPAssociation:: Data sent \n";
                 SCTPDataChunk *dataChunk = check_and_cast<SCTPDataChunk *>(chunk);
                 struct data_chunk *dc = (struct data_chunk *)(buf + writtenbytes);    // append data to buffer
                 unsigned char flags = 0;
@@ -133,7 +133,7 @@ int32 SCTPSerializer::serialize(const SCTPMessage *msg, unsigned char *buf, uint
             }
 
             case INIT: {
-                EV_INFO << "serialize INIT sizeKeyVector=" << sizeKeyVector << "\n";
+                //EV_INFO << "serialize INIT sizeKeyVector=" << sizeKeyVector << "\n";
                 // source data from internal struct:
                 SCTPInitChunk *initChunk = check_and_cast<SCTPInitChunk *>(chunk);
                 //sctpEV3<<simulation.simTime()<<" SCTPAssociation:: Init sent \n";
@@ -229,10 +229,10 @@ int32 SCTPSerializer::serialize(const SCTPMessage *msg, unsigned char *buf, uint
                     chunks->type = htons(CHUNKS);
                     cp->type = htons(CHUNKS);
                     int chunksize = initChunk->getChunkTypesArraySize();
-                    EV_DETAIL << "chunksize=" << chunksize << "\n";
+                    //EV_DETAIL << "chunksize=" << chunksize << "\n";
                     for (int i = 0; i < chunksize; i++) {
                         chunks->value[i] = (initChunk->getChunkTypes(i));
-                        EV_DETAIL << "chunkType=" << initChunk->getChunkTypes(i) << "\n";
+                        //EV_DETAIL << "chunkType=" << initChunk->getChunkTypes(i) << "\n";
                         cp->value[i] = (initChunk->getChunkTypes(i));
                     }
                     chunks->length = htons(sizeof(struct tlv) + chunksize);
@@ -264,7 +264,7 @@ int32 SCTPSerializer::serialize(const SCTPMessage *msg, unsigned char *buf, uint
             }
 
             case INIT_ACK: {
-                EV_INFO << "serialize INIT_ACK sizeKeyVector=" << sizeKeyVector << "\n";
+                //EV_INFO << "serialize INIT_ACK sizeKeyVector=" << sizeKeyVector << "\n";
                 SCTPInitAckChunk *initAckChunk = check_and_cast<SCTPInitAckChunk *>(chunk);
                 //sctpEV3<<simulation.simTime()<<" SCTPAssociation:: InitAck sent \n";
                 // destination is send buffer:
@@ -509,7 +509,7 @@ int32 SCTPSerializer::serialize(const SCTPMessage *msg, unsigned char *buf, uint
 
             case HEARTBEAT :
                 {
-                    EV_INFO << simTime() << "  SCTPAssociation:: Heartbeat sent \n";
+                    //EV_INFO << simTime() << "  SCTPAssociation:: Heartbeat sent \n";
                     SCTPHeartbeatChunk *heartbeatChunk = check_and_cast<SCTPHeartbeatChunk *>(chunk);
 
                     // destination is send buffer:
@@ -558,7 +558,7 @@ int32 SCTPSerializer::serialize(const SCTPMessage *msg, unsigned char *buf, uint
 
             case HEARTBEAT_ACK :
                 {
-                    EV_INFO << simTime() << " SCTPAssociation:: HeartbeatAck sent \n";
+                    //EV_INFO << simTime() << " SCTPAssociation:: HeartbeatAck sent \n";
                     SCTPHeartbeatAckChunk *heartbeatAckChunk = check_and_cast<SCTPHeartbeatAckChunk *>(chunk);
 
                     // destination is send buffer:
@@ -616,7 +616,7 @@ int32 SCTPSerializer::serialize(const SCTPMessage *msg, unsigned char *buf, uint
                 }
 
             case ABORT: {
-                EV_INFO << simTime() << " SCTPAssociation:: Abort sent \n";
+                //EV_INFO << simTime() << " SCTPAssociation:: Abort sent \n";
                 SCTPAbortChunk *abortChunk = check_and_cast<SCTPAbortChunk *>(chunk);
 
                 // destination is send buffer:
@@ -634,7 +634,7 @@ int32 SCTPSerializer::serialize(const SCTPMessage *msg, unsigned char *buf, uint
             }
 
             case COOKIE_ECHO: {
-                EV_INFO << simTime() << " SCTPAssociation:: CookieEcho sent \n";
+                //EV_INFO << simTime() << " SCTPAssociation:: CookieEcho sent \n";
                 SCTPCookieEchoChunk *cookieChunk = check_and_cast<SCTPCookieEchoChunk *>(chunk);
 
                 struct cookie_echo_chunk *cec = (struct cookie_echo_chunk *)(buf + writtenbytes);
@@ -690,7 +690,7 @@ int32 SCTPSerializer::serialize(const SCTPMessage *msg, unsigned char *buf, uint
             }
 
             case COOKIE_ACK: {
-                EV_INFO << simTime() << " SCTPAssociation:: CookieAck sent \n";
+                //EV_INFO << simTime() << " SCTPAssociation:: CookieAck sent \n";
                 SCTPCookieAckChunk *cookieAckChunk = check_and_cast<SCTPCookieAckChunk *>(chunk);
 
                 struct cookie_ack_chunk *cac = (struct cookie_ack_chunk *)(buf + writtenbytes);
@@ -703,7 +703,7 @@ int32 SCTPSerializer::serialize(const SCTPMessage *msg, unsigned char *buf, uint
             }
 
             case SHUTDOWN: {
-                EV_INFO << simTime() << " SCTPAssociation:: Shutdown sent \n";
+                //EV_INFO << simTime() << " SCTPAssociation:: Shutdown sent \n";
                 SCTPShutdownChunk *shutdownChunk = check_and_cast<SCTPShutdownChunk *>(chunk);
 
                 struct shutdown_chunk *sac = (struct shutdown_chunk *)(buf + writtenbytes);
@@ -717,7 +717,7 @@ int32 SCTPSerializer::serialize(const SCTPMessage *msg, unsigned char *buf, uint
             }
 
             case SHUTDOWN_ACK: {
-                EV_INFO << simTime() << " SCTPAssociation:: ShutdownAck sent \n";
+                //EV_INFO << simTime() << " SCTPAssociation:: ShutdownAck sent \n";
                 SCTPShutdownAckChunk *shutdownAckChunk = check_and_cast<SCTPShutdownAckChunk *>(chunk);
 
                 struct shutdown_ack_chunk *sac = (struct shutdown_ack_chunk *)(buf + writtenbytes);
@@ -730,7 +730,7 @@ int32 SCTPSerializer::serialize(const SCTPMessage *msg, unsigned char *buf, uint
             }
 
             case SHUTDOWN_COMPLETE: {
-                EV_INFO << simTime() << " SCTPAssociation:: ShutdownComplete sent \n";
+                //EV_INFO << simTime() << " SCTPAssociation:: ShutdownComplete sent \n";
                 SCTPShutdownCompleteChunk *shutdownCompleteChunk = check_and_cast<SCTPShutdownCompleteChunk *>(chunk);
 
                 struct shutdown_complete_chunk *sac = (struct shutdown_complete_chunk *)(buf + writtenbytes);
@@ -761,7 +761,7 @@ int32 SCTPSerializer::serialize(const SCTPMessage *msg, unsigned char *buf, uint
             }
 
             case FORWARD_TSN: {
-                EV_INFO << simTime() << " SCTPAssociation:: ForwardTsn sent" << endl;
+                //EV_INFO << simTime() << " SCTPAssociation:: ForwardTsn sent" << endl;
                 SCTPForwardTsnChunk *forward = check_and_cast<SCTPForwardTsnChunk *>(chunk);
                 struct forward_tsn_chunk *forw = (struct forward_tsn_chunk *)(buf + writtenbytes);
                 writtenbytes += (forward->getByteLength());
@@ -1119,7 +1119,7 @@ int32 SCTPSerializer::serialize(const SCTPMessage *msg, unsigned char *buf, uint
     uint8 result[SHA_LENGTH];
     if (authstart != 0) {
         struct data_vector *ac = (struct data_vector *)(buf + authstart);
-        EV_DETAIL << "sizeKeyVector=" << sizeKeyVector << ", sizePeerKeyVector=" << sizePeerKeyVector << "\n";
+        //EV_DETAIL << "sizeKeyVector=" << sizeKeyVector << ", sizePeerKeyVector=" << sizePeerKeyVector << "\n";
         hmacSha1((uint8 *)ac->data, writtenbytes - authstart, sharedKey, sizeKeyVector + sizePeerKeyVector, result);
         struct auth_chunk *auth = (struct auth_chunk *)(buf + authstart);
         for (int32 k = 0; k < SHA_LENGTH; k++)
@@ -1190,12 +1190,12 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
     common_header->checksum = tempChecksum;
 
     const unsigned char *chunks = (unsigned char *)(buf + size_common_header);
-    EV_TRACE << "SCTPSerializer::parse SCTPMessage\n";
+    //EV_TRACE << "SCTPSerializer::parse SCTPMessage\n";
     if (tempChecksum == chksum)
         dest->setChecksumOk(true);
     else
         dest->setChecksumOk(false);
-    EV_DETAIL << "checksumOK=" << dest->getChecksumOk() << "\n";
+    //EV_DETAIL << "checksumOK=" << dest->getChecksumOk() << "\n";
     dest->setSrcPort(ntohs(common_header->source_port));
     dest->setDestPort(ntohs(common_header->destination_port));
     dest->setTag(ntohl(common_header->verification_tag));
@@ -1211,9 +1211,9 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
         cLen = ADD_PADDING(woPadding);
         switch (chunkType) {
             case DATA: {
-                EV_INFO << "Data received\n";
+                //EV_INFO << "Data received\n";
                 const struct data_chunk *dc = (struct data_chunk *)(chunks + chunkPtr);
-                EV_DETAIL << "cLen=" << cLen << "\n";
+                //EV_DETAIL << "cLen=" << cLen << "\n";
                 if (cLen == 0)
                     throw new cRuntimeError("Incoming SCTP packet contains data chunk with length==0");
                 SCTPDataChunk *chunk = new SCTPDataChunk("DATA");
@@ -1227,7 +1227,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                 chunk->setSsn(ntohs(dc->ssn));
                 chunk->setPpid(ntohl(dc->ppi));
                 chunk->setByteLength(SCTP_DATA_CHUNK_LENGTH);
-                EV_DETAIL << "parse data: woPadding=" << woPadding << " size_data_chunk=" << size_data_chunk << "\n";
+                //EV_DETAIL << "parse data: woPadding=" << woPadding << " size_data_chunk=" << size_data_chunk << "\n";
                 if (woPadding > size_data_chunk) {
                     SCTPSimpleMessage *msg = new SCTPSimpleMessage("data");
                     int32 datalen = (woPadding - size_data_chunk);
@@ -1239,13 +1239,13 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
 
                     chunk->encapsulate(msg);
                 }
-                EV_DETAIL << "datachunkLength=" << chunk->getByteLength() << "\n";
+                //EV_DETAIL << "datachunkLength=" << chunk->getByteLength() << "\n";
                 dest->addChunk(chunk);
                 break;
             }
 
             case INIT: {
-                EV << "parse INIT\n";
+                //EV << "parse INIT\n";
                 const struct init_chunk *init_chunk = (struct init_chunk *)(chunks + chunkPtr);    // (recvBuffer + size_ip + size_common_header);
                 struct tlv *cp;
                 struct random_parameter *rp;
@@ -1269,10 +1269,10 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                     int chkcounter = 0;
                     bool stopProcessing = false;
                     while (cLen > size_init_chunk + parptr && !stopProcessing) {
-                        EV_INFO << "Process INIT parameters" << endl;
+                        //EV_INFO << "Process INIT parameters" << endl;
                         const struct tlv *parameter = (struct tlv *)(((unsigned char *)init_chunk) + size_init_chunk + parptr);
                         paramType = ntohs(parameter->type);
-                        EV_INFO << "search for param: " << paramType << " - current chunklen: " << chunklen << endl;
+                        //EV_INFO << "search for param: " << paramType << " - current chunklen: " << chunklen << endl;
                         switch (paramType) {
                             case SUPPORTED_ADDRESS_TYPES: {
                                 const struct supported_address_types_parameter *sup_addr = (struct supported_address_types_parameter *)(((unsigned char *)init_chunk) + size_init_chunk + parptr);
@@ -1292,7 +1292,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
 
                             case INIT_PARAM_IPV4: {
                                 // we supppose an ipv4 address parameter
-                                EV_INFO << "IPv4\n";
+                                //EV_INFO << "IPv4\n";
                                 const struct init_ipv4_address_parameter *v4addr;
                                 v4addr = (struct init_ipv4_address_parameter *)(((unsigned char *)init_chunk) + size_init_chunk + parptr);
                                 chunk->setAddressesArraySize(++addrcounter);
@@ -1303,13 +1303,13 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                             }
 
                             case INIT_PARAM_IPV6: {
-                                EV_INFO << "IPv6\n";
+                                //EV_INFO << "IPv6\n";
                                 const struct init_ipv6_address_parameter *ipv6addr;
                                 ipv6addr = (struct init_ipv6_address_parameter *)(((unsigned char *)init_chunk) + size_init_chunk + parptr);
                                 IPv6Address ipv6Addr = IPv6Address(ipv6addr->address[0], ipv6addr->address[1],
                                             ipv6addr->address[2], ipv6addr->address[3]);
                                 L3Address localv6Addr(ipv6Addr);
-                                EV_INFO << "address" << ipv6Addr << "\n";
+                                //EV_INFO << "address" << ipv6Addr << "\n";
                                 chunk->setAddressesArraySize(++addrcounter);
                                 chunk->setAddresses(addrcounter - 1, localv6Addr);
                                 chunklen += 20;
@@ -1317,16 +1317,16 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                             }
 
                             case SUPPORTED_EXTENSIONS: {
-                                EV_INFO << "Supported extensions\n";
+                                //EV_INFO << "Supported extensions\n";
                                 const struct supported_extensions_parameter *supext;
                                 supext = (struct supported_extensions_parameter *)(((unsigned char *)init_chunk) + size_init_chunk + parptr);
                                 unsigned short chunkTypes;
                                 int len = 4;
-                                EV_INFO << "supext->len=" << ntohs(supext->length) << "\n";
+                                //EV_INFO << "supext->len=" << ntohs(supext->length) << "\n";
                                 while (ntohs(supext->length) > len) {
                                     chunkTypes = (int)*(chunks + chunkPtr + size_init_chunk + parptr + 4 + chkcounter);
                                     chunk->setSepChunksArraySize(++chkcounter);
-                                    EV_INFO << "Extension " << chunkTypes << " added\n";
+                                    //EV_INFO << "Extension " << chunkTypes << " added\n";
                                     chunk->setSepChunks(chkcounter - 1, chunkTypes);
                                     len++;
                                 }
@@ -1335,7 +1335,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                             }
 
                             case FORWARD_TSN_SUPPORTED_PARAMETER: {
-                                EV_INFO << "Forward TSN\n";
+                                //EV_INFO << "Forward TSN\n";
                                 int size = chunk->getChunkTypesArraySize();
                                 chunk->setChunkTypesArraySize(size + 1);
                                 chunk->setChunkTypes(size, FORWARD_TSN_SUPPORTED_PARAMETER);
@@ -1344,7 +1344,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                             }
 
                             case RANDOM: {
-                                EV_INFO << "random parameter received\n";
+                                //EV_INFO << "random parameter received\n";
                                 const struct random_parameter *rand;
                                 rand = (struct random_parameter *)(((unsigned char *)init_chunk) + size_init_chunk + parptr);
                                 unsigned char *rv = (unsigned char *)malloc(64);
@@ -1358,13 +1358,13 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                                     chunk->setRandom(i, (unsigned char)(rand->random[i]));
                                     rp->random[i] = (unsigned char)(rand->random[i]);
                                 }
-                                EV_INFO << "adding " << ntohs(parameter->length) << " bytes" << endl;
+                                //EV_INFO << "adding " << ntohs(parameter->length) << " bytes" << endl;
                                 chunklen += ntohs(parameter->length);
                                 break;
                             }
 
                             case HMAC_ALGO: {
-                                EV_INFO << "hmac_algo parameter received\n";
+                                //EV_INFO << "hmac_algo parameter received\n";
                                 const struct hmac_algo *hmac;
                                 hmac = (struct hmac_algo *)(((unsigned char *)init_chunk) + size_init_chunk + parptr);
                                 int num = (ntohs(hmac->length) - 4) / 2;
@@ -1383,7 +1383,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                             }
 
                             case CHUNKS: {
-                                EV_INFO << "chunks parameter received\n";
+                                //EV_INFO << "chunks parameter received\n";
                                 const struct tlv *chunks;
                                 chunks = (struct tlv *)(((unsigned char *)init_chunk) + size_init_chunk + parptr);
                                 unsigned char *cv = (unsigned char *)malloc(64);
@@ -1402,7 +1402,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                             }
 
                             default: {
-                                EV_INFO << "ExtInterface: Unknown SCTP INIT parameter type " << paramType << "\n";
+                                //EV_INFO << "ExtInterface: Unknown SCTP INIT parameter type " << paramType << "\n";
                                 uint16 skip = (paramType & 0x8000) >> 15;
                                 if (skip == 0)
                                     stopProcessing = true;
@@ -1421,7 +1421,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                                 } else {
                                     chunklen += ADD_PADDING(ntohs(unknown->length));
                                 }
-                                EV_INFO << "stopProcessing=" << stopProcessing << " report=" << report << "\n";
+                                //EV_INFO << "stopProcessing=" << stopProcessing << " report=" << report << "\n";
                                 break;
                             }
                         }
@@ -1449,7 +1449,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                     free(vector);
                 }
                 chunk->setBitLength(chunklen * 8);
-                EV_INFO << "chunklen: " << chunk->getByteLength() << endl;
+                //EV_INFO << "chunklen: " << chunk->getByteLength() << endl;
                 dest->addChunk(chunk);
                 //chunkPtr += cLen;
                 break;
@@ -1481,7 +1481,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                         paramType = ntohs(parameter->type);
                         //sctpEV3<<"ParamType = "<<paramType<<" parameterLength="<<ntohs(parameter->length)<<"\n";
 
-                        EV_INFO << "Chunklen before: " << chunklen << endl;
+                        //EV_INFO << "Chunklen before: " << chunklen << endl;
                         switch (paramType) {
                             case SUPPORTED_ADDRESS_TYPES: {
                                 const struct supported_address_types_parameter *sup_addr = (struct supported_address_types_parameter *)(((unsigned char *)iac) + size_init_ack_chunk + parptr);
@@ -1500,7 +1500,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                             }
 
                             case INIT_PARAM_IPV4: {
-                                EV_INFO << "parse IPv4\n";
+                                //EV_INFO << "parse IPv4\n";
                                 const struct init_ipv4_address_parameter *v4addr;
                                 v4addr = (struct init_ipv4_address_parameter *)(((unsigned char *)iac) + size_init_ack_chunk + parptr);
                                 chunk->setAddressesArraySize(++addrcounter);
@@ -1511,12 +1511,12 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                             }
 
                             case INIT_PARAM_IPV6: {
-                                EV_INFO << "IPv6\n";
+                                //EV_INFO << "IPv6\n";
                                 const struct init_ipv6_address_parameter *ipv6addr;
                                 ipv6addr = (struct init_ipv6_address_parameter *)(((unsigned char *)iac) + size_init_chunk + parptr);
                                 IPv6Address ipv6Addr = IPv6Address(ipv6addr->address[0], ipv6addr->address[1],
                                             ipv6addr->address[2], ipv6addr->address[3]);
-                                EV_INFO << "address" << ipv6Addr << "\n";
+                                //EV_INFO << "address" << ipv6Addr << "\n";
                                 L3Address localv6Addr(ipv6Addr);
 
                                 chunk->setAddressesArraySize(++addrcounter);
@@ -1614,7 +1614,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                             }
 
                             default: {
-                                EV_INFO << "ExtInterface: Unknown SCTP INIT-ACK parameter type " << paramType << "\n";
+                                //EV_INFO << "ExtInterface: Unknown SCTP INIT-ACK parameter type " << paramType << "\n";
                                 uint16 skip = (paramType & 0x8000) >> 15;
                                 if (skip == 0)
                                     stopProcessing = true;
@@ -1633,12 +1633,12 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                                 } else {
                                     chunklen += ADD_PADDING(ntohs(unknown->length));
                                 }
-                                EV_INFO << "stopProcessing=" << stopProcessing << "  report=" << report << "\n";
+                                //EV_INFO << "stopProcessing=" << stopProcessing << "  report=" << report << "\n";
 
                                 break;
                             }
                         }
-                        EV_INFO << "Chunklen after: " << chunklen << endl;
+                        //EV_INFO << "Chunklen after: " << chunklen << endl;
                         parptr += ADD_PADDING(ntohs(parameter->length));
                         //sctpEV3<<"parptr="<<parptr<<"\n";
                         parcounter++;
@@ -1647,7 +1647,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                 if (chunk->getHmacTypesArraySize() != 0) {
                     unsigned char vector[64];
                     if (rplen > 64) {
-                        EV_ERROR << "Random parameter too long. It will be truncated.\n";
+                        //EV_ERROR << "Random parameter too long. It will be truncated.\n";
                         rplen = 64;
                     }
                     sizePeerKeyVector = rplen;
@@ -1657,7 +1657,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                     }
                     free(rp);
                     if (cplen > 64) {
-                        EV_ERROR << "Chunks parameter too long. It will be truncated.\n";
+                        //EV_ERROR << "Chunks parameter too long. It will be truncated.\n";
                         cplen = 64;
                     }
                     memcpy(vector, cp, cplen);
@@ -1667,7 +1667,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                     free(cp);
                     sizePeerKeyVector += cplen;
                     if (hplen > 64) {
-                        EV_ERROR << "HMac parameter too long. It will be truncated.\n";
+                        //EV_ERROR << "HMac parameter too long. It will be truncated.\n";
                         hplen = 64;
                     }
                     memcpy(vector, hp, hplen);
@@ -1684,7 +1684,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
             }
 
             case SACK: {
-                EV << "SCTPMessage: SACK received\n";
+                //EV << "SCTPMessage: SACK received\n";
                 const struct sack_chunk *sac = (struct sack_chunk *)(chunks + chunkPtr);
                 SCTPSackChunk *chunk = new SCTPSackChunk("SACK");
                 chunk->setChunkType(chunkType);
@@ -1750,7 +1750,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
             }
 
             case HEARTBEAT_ACK: {
-                EV << "SCTPMessage: Heartbeat_Ack received\n";
+                //EV << "SCTPMessage: Heartbeat_Ack received\n";
                 const struct heartbeat_ack_chunk *hbac = (struct heartbeat_ack_chunk *)(chunks + chunkPtr);
                 SCTPHeartbeatAckChunk *chunk = new SCTPHeartbeatAckChunk("HEARTBEAT_ACK");
                 chunk->setChunkType(chunkType);
@@ -1785,7 +1785,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
             }
 
             case ABORT: {
-                EV << "SCTPMessage: Abort received\n";
+                //EV << "SCTPMessage: Abort received\n";
                 const struct abort_chunk *ac = (struct abort_chunk *)(chunks + chunkPtr);
                 cLen = ntohs(ac->length);
                 SCTPAbortChunk *chunk = new SCTPAbortChunk("ABORT");
@@ -1802,10 +1802,10 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
             case COOKIE_ECHO: {
                 SCTPCookieEchoChunk *chunk = new SCTPCookieEchoChunk("COOKIE_ECHO");
                 chunk->setChunkType(chunkType);
-                EV_INFO << "Parse Cookie-Echo\n";
+                //EV_INFO << "Parse Cookie-Echo\n";
                 if (cLen > size_cookie_echo_chunk) {
                     int32 cookieSize = woPadding - size_cookie_echo_chunk;
-                    EV_DETAIL << "cookieSize=" << cookieSize << "\n";
+                    //EV_DETAIL << "cookieSize=" << cookieSize << "\n";
                     const struct cookie_parameter *cookie = (struct cookie_parameter *)(chunks + chunkPtr + 4);
                     SCTPCookie *stateCookie = new SCTPCookie();
                     stateCookie->setCreationTime(ntohl(cookie->creationTime));
@@ -1826,7 +1826,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
             }
 
             case COOKIE_ACK: {
-                EV << "SCTPMessage: Cookie_Ack received\n";
+                //EV << "SCTPMessage: Cookie_Ack received\n";
                 SCTPCookieAckChunk *chunk = new SCTPCookieAckChunk("COOKIE_ACK");
                 chunk->setChunkType(chunkType);
                 chunk->setBitLength(cLen * 8);
@@ -1835,7 +1835,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
             }
 
             case SHUTDOWN: {
-                EV << "SCTPMessage: Shutdown received\n";
+                //EV << "SCTPMessage: Shutdown received\n";
                 const struct shutdown_chunk *sc = (struct shutdown_chunk *)(chunks + chunkPtr);
                 SCTPShutdownChunk *chunk = new SCTPShutdownChunk("SHUTDOWN");
                 chunk->setChunkType(chunkType);
@@ -1847,7 +1847,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
             }
 
             case SHUTDOWN_ACK: {
-                EV << "SCTPMessage: ShutdownAck received\n";
+                //EV << "SCTPMessage: ShutdownAck received\n";
                 SCTPShutdownAckChunk *chunk = new SCTPShutdownAckChunk("SHUTDOWN_ACK");
                 chunk->setChunkType(chunkType);
                 chunk->setBitLength(cLen * 8);
@@ -1856,7 +1856,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
             }
 
             case SHUTDOWN_COMPLETE: {
-                EV << "SCTPMessage: ShutdownComplete received\n";
+                //EV << "SCTPMessage: ShutdownComplete received\n";
                 const struct shutdown_complete_chunk *scc = (struct shutdown_complete_chunk *)(chunks + chunkPtr);
                 SCTPShutdownCompleteChunk *chunk = new SCTPShutdownCompleteChunk("SHUTDOWN_COMPLETE");
                 chunk->setChunkType(chunkType);
@@ -1887,7 +1887,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
             }
 
             case FORWARD_TSN: {
-                EV << "SCTPMessage: ForwardTsn received" << endl;
+                //EV << "SCTPMessage: ForwardTsn received" << endl;
                 const struct forward_tsn_chunk *forward_tsn_chunk;
                 forward_tsn_chunk = (struct forward_tsn_chunk *)(chunks + chunkPtr);
                 SCTPForwardTsnChunk *chunk;
@@ -1935,7 +1935,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                 chunk->setHMacOk(true);
                 for (unsigned int j = 0; j < SHA_LENGTH; j++) {
                     if (result[j] != chunk->getHMAC(j)) {
-                        EV_DETAIL << "hmac falsch\n";
+                        //EV_DETAIL << "hmac falsch\n";
                         chunk->setHMacOk(false);
                         break;
                     }
@@ -1976,7 +1976,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                         paramLength = ntohs(ipparam->length);
                         switch (paramType) {
                             case ADD_IP_ADDRESS: {
-                                EV_INFO << "parse ADD_IP_ADDRESS\n";
+                                //EV_INFO << "parse ADD_IP_ADDRESS\n";
                                 SCTPAddIPParameter *addip;
                                 addip = new SCTPAddIPParameter("ADD_IP");
                                 addip->setParameterType(ntohs(ipparam->type));
@@ -1990,7 +1990,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                             }
 
                             case DELETE_IP_ADDRESS: {
-                                EV_INFO << "parse DELETE_IP_ADDRESS\n";
+                                //EV_INFO << "parse DELETE_IP_ADDRESS\n";
                                 SCTPDeleteIPParameter *deleteip;
                                 deleteip = new SCTPDeleteIPParameter("DELETE_IP");
                                 deleteip->setParameterType(ntohs(ipparam->type));
@@ -2004,7 +2004,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                             }
 
                             case SET_PRIMARY_ADDRESS: {
-                                EV_INFO << "parse SET_PRIMARY_ADDRESS\n";
+                                //EV_INFO << "parse SET_PRIMARY_ADDRESS\n";
                                 SCTPSetPrimaryIPParameter *priip;
                                 priip = new SCTPSetPrimaryIPParameter("SET_PRI_IP");
                                 priip->setParameterType(ntohs(ipparam->type));
@@ -2019,7 +2019,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
 
                             default:
                                 printf("TODO: Implement parameter type %d!\n", paramType);
-                                EV << "ExtInterface: Unknown SCTP parameter type " << paramType;
+                                //EV << "ExtInterface: Unknown SCTP parameter type " << paramType;
                                 /*throw new cRuntimeError("TODO: unknown parametertype in incoming packet from external interface! Implement it!");*/
                                 break;
                         }
@@ -2071,7 +2071,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
 
                             default:
                                 printf("TODO: Implement parameter type %d!\n", paramType);
-                                EV << "ExtInterface: Unknown SCTP parameter type " << paramType;
+                                //EV << "ExtInterface: Unknown SCTP parameter type " << paramType;
                                 break;
                         }
                         parptr += ADD_PADDING(paramLength);
@@ -2199,7 +2199,7 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
                 dropChunk->setMaxRwnd(ntohl(drop->max_rwnd));
                 dropChunk->setQueuedData(ntohl(drop->queued_data));
                 dropChunk->setTruncLength(ntohs(drop->trunc_length));
-                EV_INFO << "SCTPSerializer::pktdrop: parse SCTPMessage\n";
+                //EV_INFO << "SCTPSerializer::pktdrop: parse SCTPMessage\n";
                 SCTPMessage *msg;
                 msg = new SCTPMessage();
                 parse((unsigned char *)chunks + chunkPtr + 16, bufsize - size_common_header - chunkPtr - 16, msg);
@@ -2208,12 +2208,12 @@ void SCTPSerializer::parse(const uint8_t *buf, uint32 bufsize, SCTPMessage *dest
 
             default:
                 //printf("TODO: Implement chunk type %d, found in chunk array on %d!\n", chunkType, ct);
-                EV_ERROR << "Parser: Unknown SCTP chunk type " << chunkType;
+                //EV_ERROR << "Parser: Unknown SCTP chunk type " << chunkType;
                 break;
         }    // end of switch(chunkType)
         chunkPtr += cLen;
     }    // end of while()
-    EV_INFO << "SCTPSerializer - pkt info - " << dest->getByteLength() << " bytes" << endl;
+    //EV_INFO << "SCTPSerializer - pkt info - " << dest->getByteLength() << " bytes" << endl;
 }
 
 bool SCTPSerializer::compareRandom()

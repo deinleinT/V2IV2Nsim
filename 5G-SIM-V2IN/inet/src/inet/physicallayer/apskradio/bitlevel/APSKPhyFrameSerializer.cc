@@ -81,7 +81,7 @@ APSKPhyFrame *APSKPhyFrameSerializer::deserialize(const BitVector *bits) const
                 buffer[i] = bytes[i + APSK_PHY_FRAME_HEADER_BYTE_LENGTH];
             uint32_t computedCrc = ethernetCRC(buffer, macFrameLength);
             if (receivedCrc != computedCrc) {
-                EV_ERROR << "CRC check failed" << endl;
+                //EV_ERROR << "CRC check failed" << endl;
                 macFrame = new Ieee80211Frame();
                 phyFrame->setBitError(true);
                 macFrame->setBitError(true);

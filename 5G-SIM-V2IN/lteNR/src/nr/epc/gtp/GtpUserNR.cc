@@ -154,7 +154,7 @@ void GtpUserNR::handleFromUdp(GtpUserMsg * gtpMsg) {
 			MacNodeId gnbId = getAncestorPar("macNodeId");
 			MacNodeId destMaster = binder_->getNextHop(destId);
 			if (destMaster == gnbId) {
-				EV << "GtpUserSimplified::handleFromUdp - Deliver datagram to the LTE NIC " << endl;
+				//EV << "GtpUserSimplified::handleFromUdp - Deliver datagram to the LTE NIC " << endl;
 				send(datagram, "pppGate");
 				return;
 			}

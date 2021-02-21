@@ -70,7 +70,7 @@ void TCPWestwood::recalculateSlowStartThreshold()
     if (ssthreshVector)
         ssthreshVector->record(state->ssthresh);
 
-    EV_DEBUG << "recalculateSlowStartThreshold(), ssthresh=" << state->ssthresh << "\n";
+    //EV_DEBUG << "recalculateSlowStartThreshold(), ssthresh=" << state->ssthresh << "\n";
 }
 
 void TCPWestwood::recalculateBWE(uint32 cumul_ack)
@@ -84,7 +84,7 @@ void TCPWestwood::recalculateBWE(uint32 cumul_ack)
         double old_bwe = state->w_bwe;
         state->w_sample_bwe = (cumul_ack) / timeAck;
         state->w_bwe = (19.0 / 21.0) * old_bwe + (1.0 / 21.0) * (state->w_sample_bwe + old_sample_bwe);
-        EV_DEBUG << "recalculateBWE(), new w_bwe=" << state->w_bwe << "\n";
+        //EV_DEBUG << "recalculateBWE(), new w_bwe=" << state->w_bwe << "\n";
     }
     state->w_lastAckTime = currentTime;
 }
@@ -159,7 +159,7 @@ void TCPWestwood::receivedDataAck(uint32 firstSeqAcked)
         //
         // Perform Fast Recovery: set cwnd to ssthresh (deflating the window).
         //
-        EV_DETAIL << "Fast Recovery: setting cwnd to ssthresh=" << state->ssthresh << "\n";
+        //EV_DETAIL << "Fast Recovery: setting cwnd to ssthresh=" << state->ssthresh << "\n";
         state->snd_cwnd = state->ssthresh;
 
         if (cwndVector)
@@ -170,7 +170,7 @@ void TCPWestwood::receivedDataAck(uint32 firstSeqAcked)
         // Perform slow start and congestion avoidance.
         //
         if (state->snd_cwnd < state->ssthresh) {
-            EV_DETAIL << "cwnd <= ssthresh: Slow Start: increasing cwnd by one SMSS bytes to ";
+            //EV_DETAIL << "cwnd <= ssthresh: Slow Start: increasing cwnd by one SMSS bytes to ";
 
             // perform Slow Start. RFC 2581: "During slow start, a TCP increments cwnd
             // by at most SMSS bytes for each ACK received that acknowledges new data."
@@ -190,7 +190,7 @@ void TCPWestwood::receivedDataAck(uint32 firstSeqAcked)
             if (cwndVector)
                 cwndVector->record(state->snd_cwnd);
 
-            EV_DETAIL << "cwnd=" << state->snd_cwnd << "\n";
+            //EV_DETAIL << "cwnd=" << state->snd_cwnd << "\n";
         }
         else {
             // perform Congestion Avoidance (RFC 2581)
@@ -212,7 +212,7 @@ void TCPWestwood::receivedDataAck(uint32 firstSeqAcked)
             // would require maintaining a bytes_acked variable here which we don't do
             //
 
-            EV_DETAIL << "cwnd > ssthresh: Congestion Avoidance: increasing cwnd linearly, to " << state->snd_cwnd << "\n";
+            //EV_DETAIL << "cwnd > ssthresh: Congestion Avoidance: increasing cwnd linearly, to " << state->snd_cwnd << "\n";
         }
     }
 
@@ -230,7 +230,7 @@ void TCPWestwood::receivedDuplicateAck()
     }    // Closes if w_sendtime != nullptr
 
     if (state->dupacks == DUPTHRESH) {    // DUPTHRESH = 3
-        EV_DETAIL << "Westwood on dupAcks == DUPTHRESH(=3): Faster Retransmit \n";
+        //EV_DETAIL << "Westwood on dupAcks == DUPTHRESH(=3): Faster Retransmit \n";
 
         // TCP Westwood: congestion control with faster recovery. S. Mascolo, C. Casetti, M. Gerla, S.S. Lee, M. Sanadidi
         // During the cong. avoidance phase we are probing for extra available bandwidth.
@@ -270,7 +270,7 @@ void TCPWestwood::receivedDuplicateAck()
         if (cwndVector)
             cwndVector->record(state->snd_cwnd);
 
-        EV_DETAIL << " set cwnd=" << state->snd_cwnd << ", ssthresh=" << state->ssthresh << "\n";
+        //EV_DETAIL << " set cwnd=" << state->snd_cwnd << ", ssthresh=" << state->ssthresh << "\n";
 
         // Fast Retransmission: retransmit missing segment without waiting
         // for the REXMIT timer to expire
@@ -283,7 +283,7 @@ void TCPWestwood::receivedDuplicateAck()
     else if (state->dupacks > DUPTHRESH) {    // DUPTHRESH = 3
         // Westwood: like Reno
         state->snd_cwnd += state->snd_mss;
-        EV_DETAIL << "Westwood on dupAcks > DUPTHRESH(=3): Fast Recovery: inflating cwnd by SMSS, new cwnd=" << state->snd_cwnd << "\n";
+        //EV_DETAIL << "Westwood on dupAcks > DUPTHRESH(=3): Fast Recovery: inflating cwnd by SMSS, new cwnd=" << state->snd_cwnd << "\n";
 
         if (cwndVector)
             cwndVector->record(state->snd_cwnd);

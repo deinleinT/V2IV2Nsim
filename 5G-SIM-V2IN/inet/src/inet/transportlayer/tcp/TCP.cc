@@ -121,7 +121,7 @@ void TCP::handleMessage(cMessage *msg)
     if (!isOperational) {
         if (msg->isSelfMessage())
             throw cRuntimeError("Model error: self msg '%s' received when isOperational is false", msg->getName());
-        EV_ERROR << "TCP is turned off, dropping '" << msg->getName() << "' message\n";
+        //EV_ERROR << "TCP is turned off, dropping '" << msg->getName() << "' message\n";
         delete msg;
     }
     else if (msg->isSelfMessage()) {
@@ -140,7 +140,7 @@ void TCP::handleMessage(cMessage *msg)
 #endif // ifdef WITH_IPv6
             )
         {
-            EV_DETAIL << "ICMP error received -- discarding\n";    // FIXME can ICMP packets really make it up to TCP???
+            //EV_DETAIL << "ICMP error received -- discarding\n";    // FIXME can ICMP packets really make it up to TCP???
             delete msg;
         }
         else {
@@ -189,7 +189,7 @@ void TCP::handleMessage(cMessage *msg)
             key.connId = connId;
             tcpAppConnMap[key] = conn;
 
-            EV_INFO << "TCP connection created for " << msg << "\n";
+            //EV_INFO << "TCP connection created for " << msg << "\n";
         }
         bool ret = conn->processAppCommand(msg);
         if (!ret)
@@ -464,7 +464,7 @@ void TCP::addForkedConnection(TCPConnection *conn, TCPConnection *newConn, L3Add
 
 void TCP::removeConnection(TCPConnection *conn)
 {
-    EV_INFO << "Deleting TCP connection\n";
+    //EV_INFO << "Deleting TCP connection\n";
 
     AppConnKey key;
     key.appGateIndex = conn->appGateIndex;
@@ -491,7 +491,7 @@ void TCP::removeConnection(TCPConnection *conn)
 
 void TCP::finish()
 {
-    EV_INFO << getFullPath() << ": finishing with " << tcpConnMap.size() << " connections open.\n";
+    //EV_INFO << getFullPath() << ": finishing with " << tcpConnMap.size() << " connections open.\n";
 }
 
 TCPSendQueue *TCP::createSendQueue(TCPDataTransferMode transferModeP)

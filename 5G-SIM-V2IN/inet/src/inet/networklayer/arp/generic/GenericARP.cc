@@ -53,7 +53,7 @@ void GenericARP::handleMessage(cMessage *msg)
     if (msg->isSelfMessage())
         throw cRuntimeError("This module doesn't accept any self message");
 
-    EV << "received a " << msg << " message, dropped\n";
+    //EV << "received a " << msg << " message, dropped\n";
     delete msg;
 }
 

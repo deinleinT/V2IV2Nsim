@@ -139,7 +139,7 @@ void PingApp::handleMessage(cMessage *msg)
         if (msg->isSelfMessage())
             throw cRuntimeError("Self message '%s' received when %s is down", msg->getName(), getComponentType()->getName());
         else {
-            EV_WARN << "PingApp is down, dropping '" << msg->getName() << "' message\n";
+            //EV_WARN << "PingApp is down, dropping '" << msg->getName() << "' message\n";
             delete msg;
             return;
         }
@@ -159,7 +159,7 @@ void PingApp::handleMessage(cMessage *msg)
             if (destAddrIdx >= (int)destAddresses.size())
                 return;
             destAddr = destAddresses[destAddrIdx];
-            EV_INFO << "Starting up: dest=" << destAddr << "  src=" << srcAddr << "seqNo=" << sendSeqNo << endl;
+            //EV_INFO << "Starting up: dest=" << destAddr << "  src=" << srcAddr << "seqNo=" << sendSeqNo << endl;
             ASSERT(!destAddr.isUnspecified());
             msg->setKind(PING_SEND);
         }
@@ -270,7 +270,7 @@ bool PingApp::isEnabled()
 void PingApp::processPingResponse(PingPayload *msg)
 {
     if (msg->getOriginatorId() != pid) {
-        EV_WARN << "Received response was not sent by this application, dropping packet\n";
+        //EV_WARN << "Received response was not sent by this application, dropping packet\n";
         delete msg;
         return;
     }
@@ -289,11 +289,7 @@ void PingApp::processPingResponse(PingPayload *msg)
         0 : simTime() - sendTimeHistory[msg->getSeqNo() % PING_HISTORY_SIZE];
 
     if (printPing) {
-        cout << getFullPath() << ": reply of " << std::dec << msg->getByteLength()
-             << " bytes from " << src
-             << " icmp_seq=" << msg->getSeqNo() << " ttl=" << msgHopCount
-             << " time=" << (rtt * 1000) << " msec"
-             << " (" << msg->getName() << ")" << endl;
+        cout << getFullPath() << ": reply of " << std::dec << msg->getByteLength()             << " bytes from " << src             << " icmp_seq=" << msg->getSeqNo() << " ttl=" << msgHopCount             << " time=" << (rtt * 1000) << " msec"             << " (" << msg->getName() << ")" << endl;
     }
 
     // update statistics
@@ -303,7 +299,7 @@ void PingApp::processPingResponse(PingPayload *msg)
 
 void PingApp::countPingResponse(int bytes, long seqNo, simtime_t rtt)
 {
-    EV_INFO << "Ping reply #" << seqNo << " arrived, rtt=" << rtt << "\n";
+    //EV_INFO << "Ping reply #" << seqNo << " arrived, rtt=" << rtt << "\n";
     emit(pingRxSeqSignal, seqNo);
 
     numPongs++;
@@ -319,7 +315,7 @@ void PingApp::countPingResponse(int bytes, long seqNo, simtime_t rtt)
         expectedReplySeqNo++;
     }
     else if (seqNo > expectedReplySeqNo) {
-        EV_DETAIL << "Jump in seq numbers, assuming pings since #" << expectedReplySeqNo << " got lost\n";
+        //EV_DETAIL << "Jump in seq numbers, assuming pings since #" << expectedReplySeqNo << " got lost\n";
 
         // jump in the sequence: count pings in gap as lost for now
         // (if they arrive later, we'll decrement back the loss counter)
@@ -332,7 +328,7 @@ void PingApp::countPingResponse(int bytes, long seqNo, simtime_t rtt)
     }
     else {    // seqNo < expectedReplySeqNo
               // ping reply arrived too late: count as out-of-order arrival (not loss after all)
-        EV_DETAIL << "Arrived out of order (too late)\n";
+        //EV_DETAIL << "Arrived out of order (too late)\n";
         outOfOrderArrivalCount++;
         lossCount--;
         emit(numOutOfOrderArrivalsSignal, outOfOrderArrivalCount);
@@ -379,8 +375,9 @@ std::vector<L3Address> PingApp::getAllAddresses()
 void PingApp::finish()
 {
     if (sendSeqNo == 0) {
-        if (printPing)
-            EV_DETAIL << getFullPath() << ": No pings sent, skipping recording statistics and printing results.\n";
+        if (printPing){
+            //EV_DETAIL << getFullPath() << ": No pings sent, skipping recording statistics and printing results.\n";
+        }
         return;
     }
 
@@ -429,7 +426,7 @@ void PingApp::sendPing()
     // TODO: remove
     controlInfo->setTransportProtocol(1);    // IP_PROT_ICMP);
     msg->setControlInfo(dynamic_cast<cObject *>(controlInfo));
-    EV_INFO << "Sending ping request #" << msg->getSeqNo() << " to lower layer.\n";
+    //EV_INFO << "Sending ping request #" << msg->getSeqNo() << " to lower layer.\n";
     send(msg, "pingOut");
 }
 

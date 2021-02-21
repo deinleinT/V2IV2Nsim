@@ -442,13 +442,13 @@ class LteFeedback
 
         if(hasPreferredPmi())
         {
-            Pmi pmi = getPreferredPmi();
+            //Pmi pmi = getPreferredPmi();
             //EV << NOW << " " << s << " Preferred PMI = " << pmi << "\n";
         }
 
         if(hasWbPmi())
         {
-            Pmi pmi = getWbPmi();
+            //Pmi pmi = getWbPmi();
             //EV << NOW << " " << s << " Wideband PMI = " << pmi << "\n";
         }
 
@@ -674,7 +674,7 @@ class LteSummaryFeedback
         //EV << NOW << " " << s << " TxMode: " << txModeToA(txm) << "\n";
         //EV << NOW << " " << s << " -------------------------\n";
 
-        Rank ri = getRi();
+        //Rank ri = getRi();
         double c = getRiConfidence();
         //EV << NOW << " " << s << " RI = " << ri << " [" << c << "]\n";
 

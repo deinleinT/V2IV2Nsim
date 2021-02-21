@@ -120,7 +120,7 @@ int MACAddressTable::getPortForAddress(MACAddress& address, unsigned int vid)
     }
     if (iter->second.insertionTime + agingTime <= simTime()) {
         // don't use (and throw out) aged entries
-        EV << "Ignoring and deleting aged entry: " << iter->first << " --> port" << iter->second.portno << "\n";
+        //EV << "Ignoring and deleting aged entry: " << iter->first << " --> port" << iter->second.portno << "\n";
         table->erase(iter);
         return -1;
     }
@@ -159,13 +159,13 @@ bool MACAddressTable::updateTableWithAddress(int portno, MACAddress& address, un
         removeAgedEntriesIfNeeded();
 
         // Add entry to table
-        EV << "Adding entry to Address Table: " << address << " --> port" << portno << "\n";
+        //EV << "Adding entry to Address Table: " << address << " --> port" << portno << "\n";
         (*table)[address] = AddressEntry(vid, portno, simTime());
         return false;
     }
     else {
         // Update existing entry
-        EV << "Updating entry in Address Table: " << address << " --> port" << portno << "\n";
+        //EV << "Updating entry in Address Table: " << address << " --> port" << portno << "\n";
         AddressEntry& entry = iter->second;
         entry.insertionTime = simTime();
         entry.portno = portno;
@@ -196,12 +196,13 @@ void MACAddressTable::flush(int portno)
 
 void MACAddressTable::printState()
 {
-    EV << endl << "MAC Address Table" << endl;
-    EV << "VLAN ID    MAC    Port    Inserted" << endl;
+    //EV << endl << "MAC Address Table" << endl;
+    //EV << "VLAN ID    MAC    Port    Inserted" << endl;
     for (auto & elem : vlanAddressTable) {
         AddressTable *table = elem.second;
-        for (auto & table_j : *table)
-            EV << table_j.second.vid << "   " << table_j.first << "   " << table_j.second.portno << "   " << table_j.second.insertionTime << endl;
+        for (auto & table_j : *table){
+            //EV << table_j.second.vid << "   " << table_j.first << "   " << table_j.second.portno << "   " << table_j.second.insertionTime << endl;
+        }
     }
 }
 
@@ -226,8 +227,7 @@ void MACAddressTable::removeAgedEntriesFromVlan(unsigned int vid)
         auto cur = iter++;    // iter will get invalidated after erase()
         AddressEntry& entry = cur->second;
         if (entry.insertionTime + agingTime <= simTime()) {
-            EV << "Removing aged entry from Address Table: "
-               << cur->first << " --> port" << cur->second.portno << "\n";
+            //EV << "Removing aged entry from Address Table: "               << cur->first << " --> port" << cur->second.portno << "\n";
             table->erase(cur);
         }
     }
@@ -242,8 +242,7 @@ void MACAddressTable::removeAgedEntriesFromAllVlans()
             auto cur = j++;    // iter will get invalidated after erase()
             AddressEntry& entry = cur->second;
             if (entry.insertionTime + agingTime <= simTime()) {
-                EV << "Removing aged entry from Address Table: "
-                   << cur->first << " --> port" << cur->second.portno << "\n";
+                //EV << "Removing aged entry from Address Table: "                   << cur->first << " --> port" << cur->second.portno << "\n";
                 table->erase(cur);
             }
         }

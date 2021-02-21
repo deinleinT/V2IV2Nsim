@@ -55,18 +55,18 @@ void Ieee80211MgmtBase::handleMessage(cMessage *msg)
 
     if (msg->isSelfMessage()) {
         // process timers
-        EV << "Timer expired: " << msg << "\n";
+        //EV << "Timer expired: " << msg << "\n";
         handleTimer(msg);
     }
     else if (msg->arrivedOn("macIn")) {
         // process incoming frame
-        EV << "Frame arrived from MAC: " << msg << "\n";
+        //EV << "Frame arrived from MAC: " << msg << "\n";
         Ieee80211DataOrMgmtFrame *frame = check_and_cast<Ieee80211DataOrMgmtFrame *>(msg);
         processFrame(frame);
     }
     else if (msg->arrivedOn("agentIn")) {
         // process command from agent
-        EV << "Command arrived from agent: " << msg << "\n";
+        //EV << "Command arrived from agent: " << msg << "\n";
         int msgkind = msg->getKind();
         cObject *ctrl = msg->removeControlInfo();
         delete msg;
@@ -76,7 +76,7 @@ void Ieee80211MgmtBase::handleMessage(cMessage *msg)
     else {
         // packet from upper layers, to be sent out
         cPacket *pk = PK(msg);
-        EV << "Packet arrived from upper layers: " << pk << "\n";
+        //EV << "Packet arrived from upper layers: " << pk << "\n";
         handleUpperMessage(pk);
     }
 }
@@ -89,7 +89,7 @@ void Ieee80211MgmtBase::sendDown(cPacket *frame)
 
 void Ieee80211MgmtBase::dropManagementFrame(Ieee80211ManagementFrame *frame)
 {
-    EV << "ignoring management frame: " << (cMessage *)frame << "\n";
+    //EV << "ignoring management frame: " << (cMessage *)frame << "\n";
     delete frame;
     numMgmtFramesDropped++;
 }

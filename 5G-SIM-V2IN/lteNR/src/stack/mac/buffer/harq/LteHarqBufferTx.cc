@@ -193,6 +193,19 @@ void LteHarqBufferTx::receiveHarqFeedback(LteHarqFeedback *fbpkt) {
 	long fbPduId = fbpkt->getFbMacPduId(); // id of the pdu that should receive this fb
 	long unitPduId = (*processes_)[acid]->getPduId(cw);
 
+	//for codeblockgroups -- for testing
+	LteControlInfo *info = check_and_cast<LteControlInfo*>(fbpkt->getControlInfo());
+	if(info->getCodeBlockGroupsActivated()){
+		LteHarqProcessTx *process = (*processes_)[acid];
+		LteMacPdu *  pdu = process->getPdu(cw);
+		LteControlInfo *infoPdu = check_and_cast<LteControlInfo*>(pdu->getControlInfo());
+		infoPdu->setRestByteSize(info->getRestByteSize());
+		infoPdu->setCodeBlockGroupsActivated(true);
+		infoPdu->setNumberOfCodeBlockGroups(info->getNumberOfCodeBlockGroups());
+		infoPdu->setBlocksForCodeBlockGroups(info->getBlocksForCodeBlockGroups());
+		infoPdu->setInitialByteSize(info->getInitialByteSize());
+	}
+
 	// After handover or a D2D mode switch, the process nay have been dropped. The received feedback must be ignored.
 	if ((*processes_)[acid]->isDropped()) {
 		//EV << "H-ARQ TX buffer: received pdu for acid " << (int)acid << ". The corresponding unit has been reset after handover or a D2D mode switch (the contained pdu was dropped). Ignore feedback." << endl;

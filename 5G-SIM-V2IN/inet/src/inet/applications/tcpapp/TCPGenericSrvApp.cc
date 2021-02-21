@@ -81,10 +81,10 @@ void TCPGenericSrvApp::sendBack(cMessage *msg)
         bytesSent += packet->getByteLength();
         emit(sentPkSignal, packet);
 
-        EV_INFO << "sending \"" << packet->getName() << "\" to TCP, " << packet->getByteLength() << " bytes\n";
+        //EV_INFO << "sending \"" << packet->getName() << "\" to TCP, " << packet->getByteLength() << " bytes\n";
     }
     else {
-        EV_INFO << "sending \"" << msg->getName() << "\" to TCP\n";
+        //EV_INFO << "sending \"" << msg->getName() << "\" to TCP\n";
     }
 
     send(msg, "tcpOut");
@@ -150,7 +150,7 @@ void TCPGenericSrvApp::handleMessage(cMessage *msg)
     }
     else {
         // some indication -- ignore
-        EV_WARN << "drop msg: " << msg->getName() << ", kind:" << msg->getKind() << "(" << cEnum::get("inet::TcpStatusInd")->getStringFor(msg->getKind()) << ")\n";
+        //EV_WARN << "drop msg: " << msg->getName() << ", kind:" << msg->getKind() << "(" << cEnum::get("inet::TcpStatusInd")->getStringFor(msg->getKind()) << ")\n";
         delete msg;
     }
 }
@@ -164,8 +164,8 @@ void TCPGenericSrvApp::refreshDisplay() const
 
 void TCPGenericSrvApp::finish()
 {
-    EV_INFO << getFullPath() << ": sent " << bytesSent << " bytes in " << msgsSent << " packets\n";
-    EV_INFO << getFullPath() << ": received " << bytesRcvd << " bytes in " << msgsRcvd << " packets\n";
+    //EV_INFO << getFullPath() << ": sent " << bytesSent << " bytes in " << msgsSent << " packets\n";
+    //EV_INFO << getFullPath() << ": received " << bytesRcvd << " bytes in " << msgsRcvd << " packets\n";
 }
 
 } // namespace inet

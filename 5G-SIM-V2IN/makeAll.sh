@@ -2,22 +2,22 @@
 
 cd inet
 make makefiles
-make MODE=release -j16
-make MODE=debug -j16
+make -j $(nproc) MODE=release
+make -j $(nproc) MODE=debug
 cd ..
 cd veins
 make makefiles
-make MODE=release -j16
-make MODE=debug -j16
+make -j $(nproc) MODE=release
+make -j $(nproc) MODE=debug
 cd ..
 cd veins_inet3
 make makefiles
-make MODE=release -j16
-make MODE=debug -j16
+make -j $(nproc) MODE=release
+make -j $(nproc) MODE=debug
 cd ..
 cd lteNR
 make makefiles
-make MODE=release -j16
-make MODE=debug -j16
+make -j $(nproc) MODE=release
+make -j $(nproc) MODE=debug
 cd ..
 

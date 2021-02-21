@@ -17,8 +17,8 @@ We tested the framework with Linux Mint 18.3, 19.3 and Ubuntu 18.04 (we use gcc/
 
 ### Installing
 * Start OMNeT++ after building, create a new and empty workspace and import the 5G-SIM-folder by clicking *File --> Import --> General --> Existing Projects into Workspace --> Choose the downloaded and extracted 5G-SIM-Folder --> Mark "Copy projects into Workspace"*.
-* The framework consists of the Veins-Framework (folders Veins and Veins_inet3) in version 5 (https://veins.car2x.org/), 
-* The INET-framework (inet-folder) in Version 3.6.7 (https://inet.omnetpp.org/) --> Ensure that the inet_featuretool in the inet-folder has execute-privileges before compiling.
+* The framework consists of the Veins-Framework (folders Veins and Veins_inet3) in version 5.1 (https://veins.car2x.org/), 
+* The INET-framework (inet-folder) in Version 3.7.0 (https://inet.omnetpp.org/) --> Ensure that the inet_featuretool in the inet-folder has execute-privileges before compiling.
 * The SimuLTE-framework (https://simulte.com/) in version 1.1.0 in the lteNR folder. All NR-relevant code is located in src/nr-folder.
 * Push the compile button in the OMNeT++-Gui for building the framework.
 
@@ -45,6 +45,11 @@ We tested the framework with Linux Mint 18.3, 19.3 and Ubuntu 18.04 (we use gcc/
 
 ### Change log v0.3.1:
 * Upgraded Veins to version 5.1 and integrated the roadCanvasVisualizer into the default scenarios.
+
+### Change log v0.3.2:
+* Upgraded INET to version 3.7.0.
+* Added codeblock groups (simplified approach). The function *isCorrupted* in the ChannelModel calls the function *considerCodeBlockGroups* if the corresponding flag (*useCodeBlockGroups = true*)  in the ini-file is set to true (by default set to true). The number of codeblock groups can be configured by the parameter *numberOfCodeBlockGroups* in the ini-file and is set to 8 by default. The size of the whole transport block (the received message) is divided through the number of configured codeblock groups. After that, the calculated *totalPer* is used to calculate how many bytes of the transport block were transmitted correctly and how many are corrupted. Afterwards, it is determined how many codeblock groups cover the corrupted bytes. Example: The message has a size of 800 bytes, the number of configured codeblock groups is 8. One codeblockgroup consists of 100 bytes, the totalPer is assumed to be 0.2, the corrupted bytes are 160 bytes, two codeblock groups (size of 200 bytes) are needed to cover the number of corrupted bytes, the HARQ mechanism retransmits only the two codeblock groups with a size of 200 bytes afterwards.
+* In the *NRPhyUe.cc* the *checkConnection* function checks every 100ms the signal strength of the current connection. If the signal strength (SINR, measured in DL by default) lowers the configured threshold (by default 5db in Downlink) in the ini-file, the Ue is not in coverage of its master base station and the communication stops. If the signal strength exceeds the threshold in a next call of this function a "re-attach" is conducted. Important: Within the *checkConnection* function no handover is conducted (the handover procedure was not changed for this functionality).
 
 **MORE INFORMATION IS COMING SOON**
 

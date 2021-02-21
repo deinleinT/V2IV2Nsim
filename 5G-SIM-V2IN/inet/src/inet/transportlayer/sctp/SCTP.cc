@@ -66,7 +66,7 @@ void SCTP::printVTagMap()
             assocId = elem.first;
             key = elem.second;
 
-            //EV_DETAIL << "assocId: " << assocId << " peerVTag: " << key.peerVTag << " localVTag: " << key.localVTag << " localPort: " << key.localPort << " rPort: " << key.remotePort << "\n";
+            //EV_DETAIL << "assocId: " << assocId << " peerVTag: " << key.peerVTag                      << " localVTag: " << key.localVTag                      << " localPort: " << key.localPort << " rPort: " << key.remotePort << "\n";
         }
 
         //EV_DETAIL << "\n";
@@ -75,7 +75,7 @@ void SCTP::printVTagMap()
 
 void SCTP::bindPortForUDP()
 {
-    //EV_DETAIL << "Binding to UDP port " << SCTP_UDP_PORT << endl;
+    //EV_INFO << "Binding to UDP port " << SCTP_UDP_PORT << endl;
 
     udpSocket.setOutputGate(gate("to_ip"));
     udpSocket.bind(SCTP_UDP_PORT);
@@ -115,19 +115,19 @@ void SCTP::initialize(int stage)
 
 SCTP::~SCTP()
 {
-    EV_DEBUG << "delete SCTPMain\n";
+    //EV_DEBUG << "delete SCTPMain\n";
     if (!(sctpAppAssocMap.empty())) {
-        EV_DEBUG << "clear appConnMap ptr=" << &sctpAppAssocMap << "\n";
+        //EV_DEBUG << "clear appConnMap ptr=" << &sctpAppAssocMap << "\n";
         sctpAppAssocMap.clear();
     }
     if (!(assocStatMap.empty())) {
-        EV_DEBUG << "clear assocStatMap ptr=" << &assocStatMap << "\n";
+        //EV_DEBUG << "clear assocStatMap ptr=" << &assocStatMap << "\n";
         assocStatMap.clear();
     }
     if (!(sctpVTagMap.empty())) {
         sctpVTagMap.clear();
     }
-    EV_DEBUG << "after clearing maps\n";
+    //EV_DEBUG << "after clearing maps\n";
 }
 
 void SCTP::handleMessage(cMessage *msg)
@@ -136,10 +136,10 @@ void SCTP::handleMessage(cMessage *msg)
     L3Address srcAddr;
     bool findListen = false;
 
-    EV_DEBUG << "\n\nSCTPMain handleMessage at " << getFullPath() << "\n";
+    //EV_DEBUG << "\n\nSCTPMain handleMessage at " << getFullPath() << "\n";
 
     if (msg->isSelfMessage()) {
-        EV_DEBUG << "selfMessage\n";
+        //EV_DEBUG << "selfMessage\n";
 
         SCTPAssociation *assoc = (SCTPAssociation *)msg->getContextPointer();
         if (assoc) {
@@ -150,10 +150,10 @@ void SCTP::handleMessage(cMessage *msg)
         }
     }
     else if (msg->arrivedOn("from_ip")) {
-        //EV_DETAIL << "Message from IP\n";
+        //EV_INFO << "Message from IP\n";
         printInfoAssocMap();
         if (!dynamic_cast<SCTPMessage *>(msg)) {
-            //EV_DETAIL << "no sctp message, delete it\n";
+            //EV_INFO << "no sctp message, delete it\n";
             delete msg;
             return;
         }
@@ -162,7 +162,7 @@ void SCTP::handleMessage(cMessage *msg)
         numPacketsReceived++;
 
         if (!pktdrop && (sctpmsg->hasBitError() || !(sctpmsg->getChecksumOk()))) {
-            EV_WARN << "Packet has bit-error. delete it\n";
+            //EV_WARN << "Packet has bit-error. delete it\n";
 
             numPacketsDropped++;
             delete msg;
@@ -175,17 +175,17 @@ void SCTP::handleMessage(cMessage *msg)
             srcAddr = ctrl->getSrcAddr();
             destAddr = ctrl->getDestAddr();
             delete ctrl;
-            //EV_DETAIL << "controlInfo srcAddr=" << srcAddr << "  destAddr=" << destAddr << "\n";
+            //EV_INFO << "controlInfo srcAddr=" << srcAddr << "  destAddr=" << destAddr << "\n";
             //EV_DETAIL << "VTag=" << sctpmsg->getTag() << "\n";
         } else {
             INetworkProtocolControlInfo *controlInfo = check_and_cast<INetworkProtocolControlInfo *>(msg->removeControlInfo());
             srcAddr = controlInfo->getSourceAddress();
             destAddr = controlInfo->getDestinationAddress();
             delete controlInfo;
-            //EV_DETAIL << "controlInfo srcAddr=" << srcAddr << "   destAddr=" << destAddr << "\n";
+            //EV_INFO << "controlInfo srcAddr=" << srcAddr << "   destAddr=" << destAddr << "\n";
         }
 
-        //EV_DETAIL << "srcAddr=" << srcAddr << " destAddr=" << destAddr << "\n";
+        //EV_INFO << "srcAddr=" << srcAddr << " destAddr=" << destAddr << "\n";
         if (sctpmsg->getByteLength() > (SCTP_COMMON_HEADER)) {
             if (((SCTPChunk *)(sctpmsg->getChunks(0)))->getChunkType() == INIT || ((SCTPChunk *)(sctpmsg->getChunks(0)))->getChunkType() == INIT_ACK)
                 findListen = true;
@@ -202,7 +202,7 @@ void SCTP::handleMessage(cMessage *msg)
                 assoc = findAssocWithVTag(sctpmsg->getTag(), sctpmsg->getSrcPort(), sctpmsg->getDestPort());
             }
             if (!assoc) {
-                //EV_DETAIL << "no assoc found msg=" << sctpmsg->getName() << "\n";
+                //EV_INFO << "no assoc found msg=" << sctpmsg->getName() << "\n";
                 if (sctpmsg->hasBitError() || !(sctpmsg->getChecksumOk())) {
                     delete sctpmsg;
                     return;
@@ -216,10 +216,10 @@ void SCTP::handleMessage(cMessage *msg)
                 delete sctpmsg;
             }
             else {
-                //EV_DETAIL << "assoc " << assoc->assocId << " found\n";
+                //EV_INFO << "assoc " << assoc->assocId << " found\n";
                 bool ret = assoc->processSCTPMessage(sctpmsg, srcAddr, destAddr);
                 if (!ret) {
-                    EV_DEBUG << "SCTPMain:: removeAssociation \n";
+                    //EV_DEBUG << "SCTPMain:: removeAssociation \n";
                     removeAssociation(assoc);
                     delete sctpmsg;
                 }
@@ -233,7 +233,7 @@ void SCTP::handleMessage(cMessage *msg)
         }
     }
     else {    // must be from app
-        EV_DEBUG << "must be from app\n";
+        //EV_DEBUG << "must be from app\n";
         if (msg->getKind() == SCTP_C_GETSOCKETOPTIONS) {
             cPacket* cmsg = new cPacket("SocketOptions", SCTP_I_SENDSOCKETOPTIONS);
             SCTPCommand* indication = new SCTPCommand("SCTP_I_SENDSOCKETOPTIONS");
@@ -255,17 +255,17 @@ void SCTP::handleMessage(cMessage *msg)
                 int32 fd = controlInfo->getFd();
                 assocId = findAssocForFd(fd);
             }
-            //EV_DETAIL << "msg arrived from app for assoc " << assocId << "\n";
+            //EV_INFO << "msg arrived from app for assoc " << assocId << "\n";
             SCTPAssociation *assoc = findAssocForApp(appGateIndex, assocId);
 
             if (!assoc) {
-                //EV_DETAIL << "no assoc found. msg=" << msg->getName() << " number of assocs = " << assocList.size() << "\n";
+                //EV_INFO << "no assoc found. msg=" << msg->getName() << " number of assocs = " << assocList.size() << "\n";
 
                 if (strcmp(msg->getName(), "PassiveOPEN") == 0 || strcmp(msg->getName(), "Associate") == 0) {
                     if (assocList.size() > 0) {
                         assoc = nullptr;
                         SCTPOpenCommand *open = check_and_cast<SCTPOpenCommand *>(controlInfo);
-                        //EV_DETAIL << "Looking for assoc with remoteAddr=" << open->getRemoteAddr() << ", remotePort=" << open->getRemotePort() << ", localPort=" << open->getLocalPort() << "\n";
+                        //EV_INFO << "Looking for assoc with remoteAddr=" << open->getRemoteAddr() << ", remotePort=" << open->getRemotePort() << ", localPort=" << open->getLocalPort() << "\n";
                         for (auto & elem : assocList) {
                             //EV_DETAIL << "remoteAddr=" << (elem)->remoteAddr << ", remotePort=" << (elem)->remotePort << ", localPort=" << (elem)->localPort << "\n";
                             if ((elem)->remoteAddr == open->getRemoteAddr() && (elem)->localPort == open->getLocalPort() && (elem)->remotePort == open->getRemotePort()) {
@@ -281,7 +281,7 @@ void SCTP::handleMessage(cMessage *msg)
                         key.appGateIndex = appGateIndex;
                         key.assocId = assocId;
                         sctpAppAssocMap[key] = assoc;
-                        //EV_DETAIL << "SCTP association created for appGateIndex " << appGateIndex << " and assoc " << assocId << "\n";
+                        //EV_INFO << "SCTP association created for appGateIndex " << appGateIndex << " and assoc " << assocId << "\n";
                         bool ret = assoc->processAppCommand(msg);
                         if (!ret) {
                             removeAssociation(assoc);
@@ -289,7 +289,7 @@ void SCTP::handleMessage(cMessage *msg)
                     }
                 }
             } else {
-                //EV_DETAIL << "assoc found\n";
+                //EV_INFO << "assoc found\n";
                 bool ret = assoc->processAppCommand(msg);
 
                 if (!ret)
@@ -324,7 +324,7 @@ void SCTP::sendAbortFromMain(SCTPMessage *sctpmsg, L3Address fromAddr, L3Address
 {
     SCTPMessage *msg = new SCTPMessage();
 
-    EV_DEBUG << "\n\nSCTP::sendAbortFromMain()\n";
+    //EV_DEBUG << "\n\nSCTP::sendAbortFromMain()\n";
 
     msg->setSrcPort(sctpmsg->getDestPort());
     msg->setDestPort(sctpmsg->getSrcPort());
@@ -362,7 +362,7 @@ void SCTP::sendShutdownCompleteFromMain(SCTPMessage *sctpmsg, L3Address fromAddr
 {
     SCTPMessage *msg = new SCTPMessage();
 
-    EV_DEBUG << "\n\nSCTP:sendShutdownCompleteFromMain \n";
+    //EV_DEBUG << "\n\nSCTP:sendShutdownCompleteFromMain \n";
 
     msg->setSrcPort(sctpmsg->getDestPort());
     msg->setDestPort(sctpmsg->getSrcPort());
@@ -484,7 +484,7 @@ void SCTP::refreshDisplay() const
 SCTPAssociation *SCTP::findAssocWithVTag(uint32 peerVTag, uint32 remotePort, uint32 localPort)
 {
     printVTagMap();
-    EV_DEBUG << "findAssocWithVTag: peerVTag=" << peerVTag << " srcPort=" << remotePort << "    destPort=" << localPort << "\n";
+    //EV_DEBUG << "findAssocWithVTag: peerVTag=" << peerVTag << " srcPort=" << remotePort << "    destPort=" << localPort << "\n";
     printInfoAssocMap();
 
     // try with fully qualified SockPair
@@ -523,7 +523,7 @@ SCTPAssociation *SCTP::findAssocForMessage(L3Address srcAddr, L3Address destAddr
     key.localPort = destPort;
     key.remotePort = srcPort;
     SockPair save = key;
-    EV_DEBUG << "findAssocForMessage: srcAddr=" << destAddr << " destAddr=" << srcAddr << " srcPort=" << destPort << "  destPort=" << srcPort << "\n";
+    //EV_DEBUG << "findAssocForMessage: srcAddr=" << destAddr << " destAddr=" << srcAddr << " srcPort=" << destPort << "  destPort=" << srcPort << "\n";
     printInfoAssocMap();
 
     // try with fully qualified SockPair
@@ -561,7 +561,7 @@ SCTPAssociation *SCTP::findAssocForMessage(L3Address srcAddr, L3Address destAddr
     }
     // given up
 
-    //EV_DETAIL << "giving up on trying to find assoc for localAddr=" << srcAddr << " remoteAddr=" << destAddr << " localPort=" << srcPort << " remotePort=" << destPort << "\n";
+    //EV_INFO << "giving up on trying to find assoc for localAddr=" << srcAddr << " remoteAddr=" << destAddr << " localPort=" << srcPort << " remotePort=" << destPort << "\n";
     return nullptr;
 }
 
@@ -570,7 +570,7 @@ SCTPAssociation *SCTP::findAssocForApp(int32 appGateIndex, int32 assocId)
     AppAssocKey key;
     key.appGateIndex = appGateIndex;
     key.assocId = assocId;
-    //EV_DETAIL << "findAssoc for appGateIndex " << appGateIndex << " and assoc " << assocId << "\n";
+    //EV_INFO << "findAssoc for appGateIndex " << appGateIndex << " and assoc " << assocId << "\n";
     auto i = sctpAppAssocMap.find(key);
     return (i == sctpAppAssocMap.end()) ? nullptr : i->second;
 }
@@ -597,7 +597,7 @@ uint16 SCTP::getEphemeralPort()
 void SCTP::updateSockPair(SCTPAssociation *assoc, L3Address localAddr, L3Address remoteAddr, int32 localPort, int32 remotePort)
 {
     SockPair key;
-    //EV_DETAIL << "updateSockPair:   localAddr: " << localAddr << "   remoteAddr=" << remoteAddr << "    localPort=" << localPort << " remotePort=" << remotePort << "\n";
+    //EV_INFO << "updateSockPair:   localAddr: " << localAddr << "   remoteAddr=" << remoteAddr << "    localPort=" << localPort << " remotePort=" << remotePort << "\n";
 
     key.localAddr = (assoc->localAddr = localAddr);
     key.remoteAddr = (assoc->remoteAddr = remoteAddr);
@@ -621,11 +621,11 @@ void SCTP::updateSockPair(SCTPAssociation *assoc, L3Address localAddr, L3Address
         }
     }
 
-    //EV_DETAIL << "updateSockPair assoc=" << assoc << "    localAddr=" << key.localAddr << "            remoteAddr=" << key.remoteAddr << "     localPort=" << key.localPort << "  remotePort=" << remotePort << "\n";
+    //EV_INFO << "updateSockPair assoc=" << assoc << "    localAddr=" << key.localAddr << "            remoteAddr=" << key.remoteAddr << "     localPort=" << key.localPort << "  remotePort=" << remotePort << "\n";
 
     sctpAssocMap[key] = assoc;
     sizeAssocMap = sctpAssocMap.size();
-    EV_DEBUG << "assoc inserted in sctpAssocMap\n";
+    //EV_DEBUG << "assoc inserted in sctpAssocMap\n";
     printInfoAssocMap();
 }
 
@@ -647,12 +647,12 @@ void SCTP::addLocalAddress(SCTPAssociation *assoc, L3Address address)
         }
     }
     else{
-        //EV_DETAIL << "no actual sockPair found\n";
+        //EV_INFO << "no actual sockPair found\n";
     }
     key.localAddr = address;
     sctpAssocMap[key] = assoc;
     sizeAssocMap = sctpAssocMap.size();
-    //EV_DETAIL << "addLocalAddress " << address << " number of connections now=" << sizeAssocMap << "\n";
+    //EV_INFO << "addLocalAddress " << address << " number of connections now=" << sizeAssocMap << "\n";
 
     printInfoAssocMap();
 }
@@ -676,9 +676,8 @@ void SCTP::addLocalAddressToAllRemoteAddresses(SCTPAssociation *assoc, L3Address
                 sizeAssocMap--;
             }
         }
-        else{
-            //EV_DETAIL << "no actual sockPair found\n";
-        }
+        else
+            EV_INFO << "no actual sockPair found\n";
         key.localAddr = address;
         sctpAssocMap[key] = assoc;
 
@@ -706,7 +705,7 @@ void SCTP::removeLocalAddressFromAllRemoteAddresses(SCTPAssociation *assoc, L3Ad
             sizeAssocMap--;
         }
         else{
-            //EV_DETAIL << "no actual sockPair found\n";
+            //EV_INFO << "no actual sockPair found\n";
         }
 
         printInfoAssocMap();
@@ -730,7 +729,7 @@ void SCTP::removeRemoteAddressFromAllAssociations(SCTPAssociation *assoc, L3Addr
             sizeAssocMap--;
         }
         else{
-            //EV_DETAIL << "no actual sockPair found\n";
+            //EV_INFO << "no actual sockPair found\n";
         }
 
         printInfoAssocMap();
@@ -739,7 +738,7 @@ void SCTP::removeRemoteAddressFromAllAssociations(SCTPAssociation *assoc, L3Addr
 
 bool SCTP::addRemoteAddress(SCTPAssociation *assoc, L3Address localAddress, L3Address remoteAddress)
 {
-    //EV_DETAIL << "Add remote Address: " << remoteAddress << " to local Address " << localAddress << "\n";
+    //EV_INFO << "Add remote Address: " << remoteAddress << " to local Address " << localAddress << "\n";
 
     SockPair key;
     key.localAddr = localAddress;
@@ -766,7 +765,7 @@ void SCTP::addForkedAssociation(SCTPAssociation *assoc, SCTPAssociation *newAsso
     SockPair keyAssoc;
     bool found = false;
 
-    //EV_DETAIL << "addForkedConnection assocId=" << assoc->assocId << "    newId=" << newAssoc->assocId << "\n";
+    //EV_INFO << "addForkedConnection assocId=" << assoc->assocId << "    newId=" << newAssoc->assocId << "\n";
 
     for (auto & elem : sctpAssocMap) {
         if (assoc->assocId == elem.second->assocId) {
@@ -804,7 +803,7 @@ void SCTP::removeAssociation(SCTPAssociation *assoc)
     bool find = false;
     const int32 id = assoc->assocId;
 
-    //EV_DETAIL << "Deleting SCTP connection " << assoc << " id= " << id << endl;
+    //EV_INFO << "Deleting SCTP connection " << assoc << " id= " << id << endl;
 
     printInfoAssocMap();
     if (sizeAssocMap > 0) {
@@ -936,17 +935,17 @@ void SCTP::finish()
         removeAssociation(assocMapIterator->second);
         assocMapIterator = sctpAssocMap.begin();
     }
-    //EV_DETAIL << getFullPath() << ": finishing SCTP with " << sctpAssocMap.size() << " connections open." << endl;
+    //EV_INFO << getFullPath() << ": finishing SCTP with "            << sctpAssocMap.size() << " connections open." << endl;
 
     for (AssocStatMap::const_iterator iterator = assocStatMap.begin();
          iterator != assocStatMap.end(); iterator++)
     {
         const SCTP::AssocStat& assoc = iterator->second;
 
-        //EV_DETAIL << "Association " << assoc.assocId << ": started at " << assoc.start << " and finished at " << assoc.stop << " --> lifetime: " << assoc.lifeTime << endl;
-        //EV_DETAIL << "Association " << assoc.assocId << ": sent bytes=" << assoc.sentBytes << ", acked bytes=" << assoc.ackedBytes << ", throughput=" << assoc.throughput << " bit/s" << endl;
-        //EV_DETAIL << "Association " << assoc.assocId << ": transmitted Bytes="<< assoc.transmittedBytes << ", retransmitted Bytes=" << assoc.transmittedBytes - assoc.ackedBytes << endl;
-        //EV_DETAIL << "Association " << assoc.assocId << ": number of Fast RTX="<< assoc.numFastRtx << ", number of Timer-Based RTX=" << assoc.numT3Rtx<< ", path failures=" << assoc.numPathFailures << ", ForwardTsns=" << assoc.numForwardTsn << endl;
+        //EV_DETAIL << "Association " << assoc.assocId << ": started at " << assoc.start                  << " and finished at " << assoc.stop << " --> lifetime: " << assoc.lifeTime << endl;
+        //EV_DETAIL << "Association " << assoc.assocId << ": sent bytes=" << assoc.sentBytes                  << ", acked bytes=" << assoc.ackedBytes << ", throughput=" << assoc.throughput << " bit/s" << endl;
+        //EV_DETAIL << "Association " << assoc.assocId << ": transmitted Bytes="                  << assoc.transmittedBytes << ", retransmitted Bytes=" << assoc.transmittedBytes - assoc.ackedBytes << endl;
+        //EV_DETAIL << "Association " << assoc.assocId << ": number of Fast RTX="                  << assoc.numFastRtx << ", number of Timer-Based RTX=" << assoc.numT3Rtx                  << ", path failures=" << assoc.numPathFailures << ", ForwardTsns=" << assoc.numForwardTsn << endl;
         //EV_DETAIL << "AllMessages=" << numPacketsReceived << " BadMessages=" << numPacketsDropped << endl;
 
         recordScalar("Association Lifetime", assoc.lifeTime);

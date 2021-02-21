@@ -59,7 +59,7 @@ void MoBANLocal::initialize(int stage)
 {
     LineSegmentsMobilityBase::initialize(stage);
 
-    EV_TRACE << "initializing MoBANLocal stage " << stage << endl;
+    //EV_TRACE << "initializing MoBANLocal stage " << stage << endl;
     if (stage == INITSTAGE_LOCAL) {
         WATCH_PTR(coordinator);
         WATCH(referencePosition);

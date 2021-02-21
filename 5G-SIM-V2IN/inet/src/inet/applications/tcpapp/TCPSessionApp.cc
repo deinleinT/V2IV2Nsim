@@ -129,7 +129,7 @@ void TCPSessionApp::handleTimer(cMessage *msg)
 void TCPSessionApp::sendData()
 {
     long numBytes = commands[commandIndex].numBytes;
-    EV_INFO << "sending data with " << numBytes << " bytes\n";
+    //EV_INFO << "sending data with " << numBytes << " bytes\n";
     sendPacket(createDataPacket(numBytes));
 
     if (++commandIndex < (int)commands.size()) {
@@ -201,7 +201,7 @@ void TCPSessionApp::parseScript(const char *script)
 {
     const char *s = script;
 
-    EV_DEBUG << "parse script \"" << script << "\"\n";
+    //EV_DEBUG << "parse script \"" << script << "\"\n";
     while (*s) {
         // parse time
         while (isspace(*s))
@@ -229,7 +229,7 @@ void TCPSessionApp::parseScript(const char *script)
             s++;
 
         // add command
-        EV_DEBUG << " add command (" << tSend << "s, " << "B)\n";
+        //EV_DEBUG << " add command (" << tSend << "s, " << "B)\n";
         commands.push_back(Command(tSend, numBytes));
 
         // skip delimiter
@@ -247,12 +247,12 @@ void TCPSessionApp::parseScript(const char *script)
         while (isspace(*s))
             s++;
     }
-    EV_DEBUG << "parser finished\n";
+    //EV_DEBUG << "parser finished\n";
 }
 
 void TCPSessionApp::finish()
 {
-    EV << getFullPath() << ": received " << bytesRcvd << " bytes in " << packetsRcvd << " packets\n";
+    //EV << getFullPath() << ": received " << bytesRcvd << " bytes in " << packetsRcvd << " packets\n";
     recordScalar("bytesRcvd", bytesRcvd);
     recordScalar("bytesSent", bytesSent);
 }

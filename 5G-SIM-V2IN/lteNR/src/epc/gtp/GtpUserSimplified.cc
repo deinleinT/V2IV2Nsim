@@ -152,7 +152,7 @@ void GtpUserSimplified::handleFromUdp(GtpUserMsg * gtpMsg)
             MacNodeId destMaster = binder_->getNextHop(destId);
             if (destMaster == enbId)
             {
-                EV << "GtpUserSimplified::handleFromUdp - Deliver datagram to the LTE NIC " << endl;
+                //EV << "GtpUserSimplified::handleFromUdp - Deliver datagram to the LTE NIC " << endl;
                 send(datagram,"pppGate");
                 return;
             }
@@ -167,6 +167,6 @@ void GtpUserSimplified::handleFromUdp(GtpUserMsg * gtpMsg)
 
         socket_.sendTo(gtpMsg, pgwAddress_, tunnelPeerPort_);
 
-        EV << "GtpUserSimplified::handleFromUdp - Destination is not served by this eNodeB. Sending GTP packet to the PGW"<< endl;
+        //EV << "GtpUserSimplified::handleFromUdp - Destination is not served by this eNodeB. Sending GTP packet to the PGW"<< endl;
     }
 }

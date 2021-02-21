@@ -180,7 +180,7 @@ class UmRxEntity : public cSimpleModule
         return totalCellRcvdBytes_;
     }
 
-    unsigned int setTotalCellRcvdBytes(unsigned int totalcellrcvbytes) {
+    void setTotalCellRcvdBytes(unsigned int totalcellrcvbytes) {
         totalCellRcvdBytes_ = totalcellrcvbytes;
     }
 

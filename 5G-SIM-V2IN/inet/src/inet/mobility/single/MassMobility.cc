@@ -36,7 +36,7 @@ void MassMobility::initialize(int stage)
 {
     LineSegmentsMobilityBase::initialize(stage);
 
-    EV_TRACE << "initializing MassMobility stage " << stage << endl;
+    //EV_TRACE << "initializing MassMobility stage " << stage << endl;
     if (stage == INITSTAGE_LOCAL) {
         angle = par("startAngle").doubleValue();
         changeIntervalParameter = &par("changeInterval");
@@ -48,11 +48,11 @@ void MassMobility::initialize(int stage)
 void MassMobility::setTargetPosition()
 {
     angle += changeAngleByParameter->doubleValue();
-    EV_DEBUG << "angle: " << angle << endl;
+    //EV_DEBUG << "angle: " << angle << endl;
     double rad = M_PI * angle / 180.0;
     Coord direction(cos(rad), sin(rad));
     simtime_t nextChangeInterval = changeIntervalParameter->doubleValue();
-    EV_DEBUG << "interval: " << nextChangeInterval << endl;
+    //EV_DEBUG << "interval: " << nextChangeInterval << endl;
     sourcePosition = lastPosition;
     targetPosition = lastPosition + direction * speedParameter->doubleValue() * nextChangeInterval.dbl();
     previousChange = simTime();
@@ -65,9 +65,9 @@ void MassMobility::move()
     if (now == nextChange) {
         lastPosition = targetPosition;
         handleIfOutside(REFLECT, lastPosition, lastSpeed, angle);
-        EV_INFO << "reached current target position = " << lastPosition << endl;
+        //EV_INFO << "reached current target position = " << lastPosition << endl;
         setTargetPosition();
-        EV_INFO << "new target position = " << targetPosition << ", next change = " << nextChange << endl;
+        //EV_INFO << "new target position = " << targetPosition << ", next change = " << nextChange << endl;
         lastSpeed = (targetPosition - lastPosition) / (nextChange - simTime()).dbl();
     }
     else if (now > lastUpdate) {

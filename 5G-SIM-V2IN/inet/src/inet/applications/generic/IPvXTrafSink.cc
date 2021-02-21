@@ -51,7 +51,7 @@ void IPvXTrafSink::initialize(int stage)
 void IPvXTrafSink::handleMessage(cMessage *msg)
 {
     if (!isOperational) {
-        EV_ERROR << "Module is down, received " << msg->getName() << " message dropped\n";
+        //EV_ERROR << "Module is down, received " << msg->getName() << " message dropped\n";
         delete msg;
         return;
     }

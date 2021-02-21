@@ -35,7 +35,7 @@ void RotatingMobilityBase::initialize(int stage)
 {
     MobilityBase::initialize(stage);
 
-    EV_TRACE << "initializing RotatingMobilityBase stage " << stage << endl;
+    //EV_TRACE << "initializing RotatingMobilityBase stage " << stage << endl;
     if (stage == INITSTAGE_LOCAL) {
         rotateTimer = new cMessage("rotate");
         updateInterval = par("updateInterval");

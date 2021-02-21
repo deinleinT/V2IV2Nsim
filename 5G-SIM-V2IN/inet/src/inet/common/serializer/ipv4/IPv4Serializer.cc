@@ -140,14 +140,14 @@ void IPv4Serializer::serialize(const cPacket *pkt, Buffer &b, Context& c)
     if (typeid(*pkt) != typeid(IPv4Datagram)) {
         if (c.throwOnSerializerNotFound)
             throw cRuntimeError("IPv4Serializer: class '%s' not accepted", pkt->getClassName());
-        EV_ERROR << "IPv4Serializer: class '" << pkt->getClassName() << "' not accepted.\n";
+        //EV_ERROR << "IPv4Serializer: class '" << pkt->getClassName() << "' not accepted.\n";
         b.fillNBytes(pkt->getByteLength(), '?');
         return;
     }
 
     struct ip *ip = (struct ip *)b.accessNBytes(IP_HEADER_BYTES);
     if (!ip) {
-        EV_ERROR << "IPv4Serializer: not enough space for IPv4 header.\n";
+        //EV_ERROR << "IPv4Serializer: not enough space for IPv4 header.\n";
         return;
     }
     const IPv4Datagram *dgram = check_and_cast<const IPv4Datagram *>(pkt);
@@ -350,8 +350,9 @@ cPacket* IPv4Serializer::deserialize(const Buffer &b, Context& c)
     }
     b.seek(headerLength);
 
-    if (totalLength > bufsize)
-        EV_ERROR << "Can not handle IPv4 packet of total length " << totalLength << "(captured only " << bufsize << " bytes).\n";
+    if (totalLength > bufsize){
+        //EV_ERROR << "Can not handle IPv4 packet of total length " << totalLength << "(captured only " << bufsize << " bytes).\n";
+    }
 
     dest->setByteLength(headerLength);
     unsigned int payloadLength = totalLength - headerLength;

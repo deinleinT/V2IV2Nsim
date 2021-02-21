@@ -95,10 +95,12 @@ void IPvXTrafGen::handleMessage(cMessage *msg)
             while ((token = tokenizer.nextToken()) != nullptr) {
                 L3Address result;
                 L3AddressResolver().tryResolve(token, result);
-                if (result.isUnspecified())
-                    EV_ERROR << "cannot resolve destination address: " << token << endl;
-                else
+                if (result.isUnspecified()){
+                    //EV_ERROR << "cannot resolve destination address: " << token << endl;
+                }
+                else{
                     destAddresses.push_back(result);
+                }
             }
         }
         if (!destAddresses.empty()) {

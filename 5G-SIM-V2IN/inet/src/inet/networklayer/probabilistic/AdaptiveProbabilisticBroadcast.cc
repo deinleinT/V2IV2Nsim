@@ -49,7 +49,7 @@ void AdaptiveProbabilisticBroadcast::updateNeighMap(ProbabilisticBroadcastDatagr
 
     //if the node is a "new" neighbor
     if (it == neighMap.end()) {
-        EV << "updateNeighMap(): The message came from a new neighbor! " << endl;
+        //EV << "updateNeighMap(): The message came from a new neighbor! " << endl;
 
         // insert key value pair <node address, event> in neighborhood map.
         cMessage *removeEvent = new cMessage("removeEvent", NEIGHBOR_TIMER);
@@ -66,7 +66,7 @@ void AdaptiveProbabilisticBroadcast::updateNeighMap(ProbabilisticBroadcastDatagr
     }
     //if the node is NOT a "new" neighbor update its timer
     else {
-        EV << "updateNeighMap(): The message came from an already known neighbor! " << endl;
+        //EV << "updateNeighMap(): The message came from an already known neighbor! " << endl;
         //cancel the event that was scheduled to remove the entry for this neighbor
         cancelEvent(it->second);
         // Define a new event in order to remove the entry after initT seconds
@@ -83,7 +83,7 @@ void AdaptiveProbabilisticBroadcast::handleSelfMessage(cMessage *msg)
 {
     if (msg->getKind() == NEIGHBOR_TIMER) {
         const NeighborMap::key_type& node = *static_cast<NeighborMap::key_type *>(msg->getContextPointer());
-        EV << "handleSelfMsg(): Remove node " << node << " from NeighMap!" << endl;
+        //EV << "handleSelfMsg(): Remove node " << node << " from NeighMap!" << endl;
         auto it = neighMap.find(node);
         cancelAndDelete(neighMap.find(it->first)->second);
         neighMap.erase(it);

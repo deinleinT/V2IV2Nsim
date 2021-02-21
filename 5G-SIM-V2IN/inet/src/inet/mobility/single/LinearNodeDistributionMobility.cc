@@ -34,7 +34,7 @@ void LinearNodeDistributionMobility::initialize(int stage)
 {
     StationaryMobility::initialize(stage);
 
-    EV_TRACE << "initializing LinearNodeDistributionMobility stage " << stage << endl;
+    //EV_TRACE << "initializing LinearNodeDistributionMobility stage " << stage << endl;
     if (stage == INITSTAGE_LOCAL) {
         initialX = par("initialX").doubleValue();
         initialY = par("initialY").doubleValue();

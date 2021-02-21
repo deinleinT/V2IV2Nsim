@@ -113,7 +113,7 @@ const ITransmissionSymbolModel *Ieee80211OFDMModulator::modulate(const ITransmis
             ofdmSymbol->pushAPSKSymbol(apskSymbols.at(j + i), subcarrierIndex);
         }
         insertPilotSubcarriers(ofdmSymbol, i / NUMBER_OF_OFDM_DATA_SUBCARRIERS + pilotSubcarrierPolarityVectorOffset);
-        EV_DEBUG << "Modulated OFDM symbol: " << *ofdmSymbol << endl;
+        //EV_DEBUG << "Modulated OFDM symbol: " << *ofdmSymbol << endl;
         ofdmSymbols->push_back(ofdmSymbol);
     }
     return new Ieee80211OFDMTransmissionSymbolModel(1, NaN, ofdmSymbols->size() - 1, NaN, ofdmSymbols, modulationScheme, modulationScheme);

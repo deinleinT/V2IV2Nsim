@@ -51,7 +51,7 @@ void HostAutoConfigurator::handleMessage(cMessage *apMsg)
 
 void HostAutoConfigurator::setupNetworkLayer()
 {
-    EV_INFO << "host auto configuration started" << std::endl;
+    //EV_INFO << "host auto configuration started" << std::endl;
 
     std::string interfaces = par("interfaces").stringValue();
     IPv4Address addressBase = IPv4Address(par("addressBase").stringValue());
@@ -87,11 +87,11 @@ void HostAutoConfigurator::setupNetworkLayer()
 
         // assign IP Address to all connected interfaces
         if (ie->isLoopback()) {
-            EV_INFO << "interface " << ifname << " skipped (is loopback)" << std::endl;
+            //EV_INFO << "interface " << ifname << " skipped (is loopback)" << std::endl;
             continue;
         }
 
-        EV_INFO << "interface " << ifname << " gets " << myAddress.str() << "/" << netmask.str() << std::endl;
+        //EV_INFO << "interface " << ifname << " gets " << myAddress.str() << "/" << netmask.str() << std::endl;
 
         ie->ipv4Data()->setIPAddress(myAddress);
         ie->ipv4Data()->setNetmask(netmask);

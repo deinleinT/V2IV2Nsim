@@ -30,13 +30,15 @@ network GeneralParameters{
     parameters:
         bool v2vMulticastFlag = default(false);
         double v2vMulticastDistance = default(300.0);
+        
         bool v2vCooperativeLaneMerge = default(false);
-        string initialTxMode = default("OL_SPATIAL_MULTIPLEXING"); 
+		//TRANSMIT_DIVERSITY        OL_SPATIAL_MULTIPLEXING,MULTI_USER,SINGLE_ANTENNA_PORT0
+        string initialTxMode = default("SINGLE_ANTENNA_PORT0"); 
         bool remoteDrivingUL = default(false); //use case remote driving in UL activated
-        bool remoteDrivingDL = default(false); //not implemented so far
+        bool remoteDrivingDL = default(false); //use case remote driving in UL activated
         int remoteCarFactor = default(10); // controls the remote car penetration rate (e.g., set to 10 --> each 10th car is a remote vehicle)
         bool remoteCarJustOne = default(false); // if true, just one car is a remote vehicle --> the car identity can set via the parameter remoteCarFactor, e.g., this flag is true and remoteCarFactor = 10 --> the car with MacNodeId 1035 (or car[9]) is a remoteVehicle
-        bool remoteCarByColour = default(false);
+        bool remoteCarByColour = default(false);// if true, only red cars are remote vehicles
         
         int mtu @unit("B") = default(1500B);
         
@@ -48,4 +50,16 @@ network GeneralParameters{
         int raRespWinStartNR = default(1); //time for scheduling grant
         bool fairRacScheduleInUL = default(false); //used in NRSchedulerGnbUl::racschedule (by default set to false)
         bool newTxbeforeRtx = default(true); //used in NRSchedulerGnbUl and NRMacUe (if true, a new transmission is scheduled before a retransmission, by default set to true)
+        
+        //2, 4, 6 or 8 codeblockgroups are allowed
+        bool useCodeBlockGroups = default(true);
+        int numberOfCodeBlockGroups = default(8);
+        
+        //
+        bool useSINRThreshold = default(true); //checks if the SINR of a UE is lower than SINRThreshold in UL
+        string thresholdDirection = default("DL");
+        int SINRThreshold = default(5); // if useSINRThreshold true, the SINR in UL is used to check, whether a UE is in coverage or not (during Handover), if the SINR to all Base stations is lower than this value, the UE is not connected to any base station
+        double checkConnectionInterval @unit(s) = default(0.1s);
+        **.dasRssiThreshold = SINRThreshold; 
+        
 }

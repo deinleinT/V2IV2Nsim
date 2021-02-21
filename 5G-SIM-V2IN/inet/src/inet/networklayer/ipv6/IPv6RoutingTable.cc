@@ -395,7 +395,7 @@ void IPv6RoutingTable::configureTunnelFromXML(cXMLElement *cfg)
         cXMLElement *triggerNode = triggerList[0];
         trigger.set(getRequiredAttr(triggerNode, "destination"));
 
-        EV_INFO << "New tunnel: " << "entry=" << entry << ",exit=" << exit << ",trigger=" << trigger << endl;
+        //EV_INFO << "New tunnel: " << "entry=" << entry << ",exit=" << exit << ",trigger=" << trigger << endl;
         tunneling->createTunnel(IPv6Tunneling::NORMAL, entry, exit, trigger);
     }
 }
@@ -484,7 +484,7 @@ const IPv6Route *IPv6RoutingTable::doLongestPrefixMatch(const IPv6Address& dest)
         if (dest.matches((*it)->getDestPrefix(), (*it)->getPrefixLength())) {
             if (simTime() > (*it)->getExpiryTime() && (*it)->getExpiryTime() != 0) {    //since 0 represents infinity.
                 if ((*it)->getSourceType() == IRoute::ROUTER_ADVERTISEMENT) {
-                    EV_INFO << "Expired prefix detected!!" << endl;
+                    //EV_INFO << "Expired prefix detected!!" << endl;
                     it = internalDeleteRoute(it);    // TODO update display string
                 }
             }
@@ -791,7 +791,7 @@ void IPv6RoutingTable::deleteDefaultRoutes(int interfaceID)
 {
     ASSERT(interfaceID >= 0);
 
-    EV_INFO << "/// Removing default route for interface=" << interfaceID << endl;
+    //EV_INFO << "/// Removing default route for interface=" << interfaceID << endl;
 
     for (auto it = routeList.begin(); it != routeList.end(); ) {
         // default routes have prefix length 0
@@ -806,7 +806,7 @@ void IPv6RoutingTable::deleteDefaultRoutes(int interfaceID)
 // Added by CB
 void IPv6RoutingTable::deleteAllRoutes()
 {
-    EV_INFO << "/// Removing all routes from rt6 " << endl;
+    //EV_INFO << "/// Removing all routes from rt6 " << endl;
 
     for (auto & elem : routeList) {
         emit(NF_ROUTE_DELETED, elem);
@@ -896,8 +896,9 @@ bool IPv6RoutingTable::handleOperationStage(LifecycleOperation *operation, int s
 
 void IPv6RoutingTable::printRoutingTable() const
 {
-    for (const auto & elem : routeList)
-        EV_INFO << (elem)->getInterface()->getFullPath() << " -> " << (elem)->getDestinationAsGeneric().str() << " as " << (elem)->str() << endl;
+    for (const auto & elem : routeList){
+        //EV_INFO << (elem)->getInterface()->getFullPath() << " -> " << (elem)->getDestinationAsGeneric().str() << " as " << (elem)->str() << endl;
+    }
 }
 
 } // namespace inet

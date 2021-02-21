@@ -127,7 +127,7 @@ void Ieee80211MgmtSTA::handleTimer(cMessage *msg)
     if (msg->getKind() == MK_AUTH_TIMEOUT) {
         // authentication timed out
         APInfo *ap = (APInfo *)msg->getContextPointer();
-        EV << "Authentication timed out, AP address = " << ap->address << "\n";
+        //EV << "Authentication timed out, AP address = " << ap->address << "\n";
 
         // send back failure report to agent
         sendAuthenticationConfirm(ap, PRC_TIMEOUT);
@@ -135,7 +135,7 @@ void Ieee80211MgmtSTA::handleTimer(cMessage *msg)
     else if (msg->getKind() == MK_ASSOC_TIMEOUT) {
         // association timed out
         APInfo *ap = (APInfo *)msg->getContextPointer();
-        EV << "Association timed out, AP address = " << ap->address << "\n";
+        //EV << "Association timed out, AP address = " << ap->address << "\n";
 
         // send back failure report to agent
         sendAssociationConfirm(ap, PRC_TIMEOUT);
@@ -158,12 +158,12 @@ void Ieee80211MgmtSTA::handleTimer(cMessage *msg)
         // Active Scan: after minChannelTime, possibly listen for the remaining time until maxChannelTime
         delete msg;
         if (scanning.busyChannelDetected) {
-            EV << "Busy channel detected during minChannelTime, continuing listening until maxChannelTime elapses\n";
+            //EV << "Busy channel detected during minChannelTime, continuing listening until maxChannelTime elapses\n";
             cMessage *timerMsg = new cMessage("maxChannelTime", MK_SCAN_MAXCHANNELTIME);
             scheduleAt(simTime() + scanning.maxChannelTime - scanning.minChannelTime, timerMsg);
         }
         else {
-            EV << "Channel was empty during minChannelTime, going to next channel\n";
+            //EV << "Channel was empty during minChannelTime, going to next channel\n";
             bool done = scanNextChannel();
             if (done)
                 sendScanConfirm(); // send back response to agents' "scan" command
@@ -181,7 +181,7 @@ void Ieee80211MgmtSTA::handleTimer(cMessage *msg)
 void Ieee80211MgmtSTA::handleUpperMessage(cPacket *msg)
 {
     if (!isAssociated || assocAP.address.isUnspecified()) {
-        EV << "STA is not associated with an access point, discarding packet" << msg << "\n";
+        //EV << "STA is not associated with an access point, discarding packet" << msg << "\n";
         delete msg;
         return;
     }
@@ -279,7 +279,7 @@ void Ieee80211MgmtSTA::clearAPList()
 
 void Ieee80211MgmtSTA::changeChannel(int channelNum)
 {
-    EV << "Tuning to channel #" << channelNum << "\n";
+    //EV << "Tuning to channel #" << channelNum << "\n";
 
     Ieee80211ConfigureRadioCommand *configureCommand = new Ieee80211ConfigureRadioCommand();
     configureCommand->setChannelNumber(channelNum);
@@ -290,7 +290,7 @@ void Ieee80211MgmtSTA::changeChannel(int channelNum)
 
 void Ieee80211MgmtSTA::beaconLost()
 {
-    EV << "Missed a few consecutive beacons -- AP is considered lost\n";
+    //EV << "Missed a few consecutive beacons -- AP is considered lost\n";
     emit(NF_L2_BEACON_LOST, myIface);
 }
 
@@ -313,7 +313,7 @@ void Ieee80211MgmtSTA::startAuthentication(APInfo *ap, simtime_t timeout)
 
     changeChannel(ap->channel);
 
-    EV << "Sending initial Authentication frame with seqNum=1\n";
+    //EV << "Sending initial Authentication frame with seqNum=1\n";
 
     // create and send first authentication frame
     Ieee80211AuthenticationFrame *frame = new Ieee80211AuthenticationFrame("Auth");
@@ -363,7 +363,7 @@ void Ieee80211MgmtSTA::receiveSignal(cComponent *source, simsignal_t signalID, i
     if (signalID == IRadio::receptionStateChangedSignal) {
         IRadio::ReceptionState newReceptionState = (IRadio::ReceptionState)value;
         if (newReceptionState != IRadio::RECEPTION_STATE_UNDEFINED && newReceptionState != IRadio::RECEPTION_STATE_IDLE) {
-            EV << "busy radio channel detected during scanning\n";
+            //EV << "busy radio channel detected during scanning\n";
             scanning.busyChannelDetected = true;
         }
     }
@@ -393,7 +393,7 @@ void Ieee80211MgmtSTA::receiveSignal(cComponent *source, simsignal_t signalID, c
 
 void Ieee80211MgmtSTA::processScanCommand(Ieee80211Prim_ScanRequest *ctrl)
 {
-    EV << "Received Scan Request from agent, clearing AP list and starting scanning...\n";
+    //EV << "Received Scan Request from agent, clearing AP list and starting scanning...\n";
 
     if (isScanning)
         throw cRuntimeError("processScanCommand: scanning already in progress");
@@ -401,7 +401,7 @@ void Ieee80211MgmtSTA::processScanCommand(Ieee80211Prim_ScanRequest *ctrl)
         disassociate();
     }
     else if (assocTimeoutMsg) {
-        EV << "Cancelling ongoing association process\n";
+        //EV << "Cancelling ongoing association process\n";
         delete cancelEvent(assocTimeoutMsg);
         assocTimeoutMsg = nullptr;
     }
@@ -440,7 +440,7 @@ bool Ieee80211MgmtSTA::scanNextChannel()
 {
     // if we're already at the last channel, we're through
     if (scanning.currentChannelIndex == (int)scanning.channelList.size() - 1) {
-        EV << "Finished scanning last channel\n";
+        //EV << "Finished scanning last channel\n";
         if (scanning.activeScan)
             host->unsubscribe(IRadio::receptionStateChangedSignal, this);
         isScanning = false;
@@ -468,7 +468,7 @@ bool Ieee80211MgmtSTA::scanNextChannel()
 
 void Ieee80211MgmtSTA::sendProbeRequest()
 {
-    EV << "Sending Probe Request, BSSID=" << scanning.bssid << ", SSID=\"" << scanning.ssid << "\"\n";
+    //EV << "Sending Probe Request, BSSID=" << scanning.bssid << ", SSID=\"" << scanning.ssid << "\"\n";
     Ieee80211ProbeRequestFrame *frame = new Ieee80211ProbeRequestFrame("ProbeReq");
     frame->getBody().setSSID(scanning.ssid.c_str());
     sendManagementFrame(frame, scanning.bssid);
@@ -476,7 +476,7 @@ void Ieee80211MgmtSTA::sendProbeRequest()
 
 void Ieee80211MgmtSTA::sendScanConfirm()
 {
-    EV << "Scanning complete, found " << apList.size() << " APs, sending confirmation to agent\n";
+    //EV << "Scanning complete, found " << apList.size() << " APs, sending confirmation to agent\n";
 
     // copy apList contents into a ScanConfirm primitive and send it back
     int n = apList.size();
@@ -568,7 +568,7 @@ void Ieee80211MgmtSTA::processDisassociateCommand(Ieee80211Prim_DisassociateRequ
 
 void Ieee80211MgmtSTA::disassociate()
 {
-    EV << "Disassociating from AP address=" << assocAP.address << "\n";
+    //EV << "Disassociating from AP address=" << assocAP.address << "\n";
     ASSERT(isAssociated);
     isAssociated = false;
     delete cancelEvent(assocAP.beaconTimeoutMsg);
@@ -608,7 +608,7 @@ void Ieee80211MgmtSTA::handleDataFrame(Ieee80211DataFrame *frame)
     if (isAssociated)
         sendUp(decapsulate(frame));
     else {
-        EV << "Rejecting data frame as STA is not associated with an AP" << endl;
+        //EV << "Rejecting data frame as STA is not associated with an AP" << endl;
         delete frame;
     }
 }
@@ -617,25 +617,25 @@ void Ieee80211MgmtSTA::handleAuthenticationFrame(Ieee80211AuthenticationFrame *f
 {
     MACAddress address = frame->getTransmitterAddress();
     int frameAuthSeq = frame->getBody().getSequenceNumber();
-    EV << "Received Authentication frame from address=" << address << ", seqNum=" << frameAuthSeq << "\n";
+    //EV << "Received Authentication frame from address=" << address << ", seqNum=" << frameAuthSeq << "\n";
 
     APInfo *ap = lookupAP(address);
     if (!ap) {
-        EV << "AP not known, discarding authentication frame\n";
+        //EV << "AP not known, discarding authentication frame\n";
         delete frame;
         return;
     }
 
     // what if already authenticated with AP
     if (ap->isAuthenticated) {
-        EV << "AP already authenticated, ignoring frame\n";
+        //EV << "AP already authenticated, ignoring frame\n";
         delete frame;
         return;
     }
 
     // is authentication is in progress with this AP?
     if (!ap->authTimeoutMsg) {
-        EV << "No authentication in progress with AP, ignoring frame\n";
+        //EV << "No authentication in progress with AP, ignoring frame\n";
         delete frame;
         return;
     }
@@ -643,7 +643,7 @@ void Ieee80211MgmtSTA::handleAuthenticationFrame(Ieee80211AuthenticationFrame *f
     // check authentication sequence number is OK
     if (frameAuthSeq != ap->authSeqExpected) {
         // wrong sequence number: send error and return
-        EV << "Wrong sequence number, " << ap->authSeqExpected << " expected\n";
+        //EV << "Wrong sequence number, " << ap->authSeqExpected << " expected\n";
         Ieee80211AuthenticationFrame *resp = new Ieee80211AuthenticationFrame("Auth-ERROR");
         resp->getBody().setStatusCode(SC_AUTH_OUT_OF_SEQ);
         sendManagementFrame(resp, frame->getTransmitterAddress());
@@ -660,7 +660,7 @@ void Ieee80211MgmtSTA::handleAuthenticationFrame(Ieee80211AuthenticationFrame *f
     int statusCode = frame->getBody().getStatusCode();
 
     if (statusCode == SC_SUCCESSFUL && !frame->getBody().getIsLast()) {
-        EV << "More steps required, sending another Authentication frame\n";
+        //EV << "More steps required, sending another Authentication frame\n";
 
         // more steps required, send another Authentication frame
         Ieee80211AuthenticationFrame *resp = new Ieee80211AuthenticationFrame("Auth");
@@ -671,10 +671,12 @@ void Ieee80211MgmtSTA::handleAuthenticationFrame(Ieee80211AuthenticationFrame *f
         ap->authSeqExpected += 2;
     }
     else {
-        if (statusCode == SC_SUCCESSFUL)
-            EV << "Authentication successful\n";
-        else
-            EV << "Authentication failed\n";
+        if (statusCode == SC_SUCCESSFUL){
+            //EV << "Authentication successful\n";
+        }
+        else{
+            //EV << "Authentication failed\n";
+        }
 
         // authentication completed
         ap->isAuthenticated = (statusCode == SC_SUCCESSFUL);
@@ -688,23 +690,23 @@ void Ieee80211MgmtSTA::handleAuthenticationFrame(Ieee80211AuthenticationFrame *f
 
 void Ieee80211MgmtSTA::handleDeauthenticationFrame(Ieee80211DeauthenticationFrame *frame)
 {
-    EV << "Received Deauthentication frame\n";
+    //EV << "Received Deauthentication frame\n";
     const MACAddress& address = frame->getAddress3();    // source address
     APInfo *ap = lookupAP(address);
     if (!ap || !ap->isAuthenticated) {
-        EV << "Unknown AP, or not authenticated with that AP -- ignoring frame\n";
+        //EV << "Unknown AP, or not authenticated with that AP -- ignoring frame\n";
         delete frame;
         return;
     }
     if (ap->authTimeoutMsg) {
         delete cancelEvent(ap->authTimeoutMsg);
         ap->authTimeoutMsg = nullptr;
-        EV << "Cancelling pending authentication\n";
+        //EV << "Cancelling pending authentication\n";
         delete frame;
         return;
     }
 
-    EV << "Setting isAuthenticated flag for that AP to false\n";
+    //EV << "Setting isAuthenticated flag for that AP to false\n";
     ap->isAuthenticated = false;
     delete frame;
 }
@@ -716,10 +718,10 @@ void Ieee80211MgmtSTA::handleAssociationRequestFrame(Ieee80211AssociationRequest
 
 void Ieee80211MgmtSTA::handleAssociationResponseFrame(Ieee80211AssociationResponseFrame *frame)
 {
-    EV << "Received Association Response frame\n";
+    //EV << "Received Association Response frame\n";
 
     if (!assocTimeoutMsg) {
-        EV << "No association in progress, ignoring frame\n";
+        //EV << "No association in progress, ignoring frame\n";
         delete frame;
         return;
     }
@@ -737,7 +739,7 @@ void Ieee80211MgmtSTA::handleAssociationResponseFrame(Ieee80211AssociationRespon
         throw cRuntimeError("handleAssociationResponseFrame: AP not known: address=%s", address.str().c_str());
 
     if (isAssociated) {
-        EV << "Breaking existing association with AP address=" << assocAP.address << "\n";
+        //EV << "Breaking existing association with AP address=" << assocAP.address << "\n";
         isAssociated = false;
         delete cancelEvent(assocAP.beaconTimeoutMsg);
         assocAP.beaconTimeoutMsg = nullptr;
@@ -748,10 +750,10 @@ void Ieee80211MgmtSTA::handleAssociationResponseFrame(Ieee80211AssociationRespon
     assocTimeoutMsg = nullptr;
 
     if (statusCode != SC_SUCCESSFUL) {
-        EV << "Association failed with AP address=" << ap->address << "\n";
+        //EV << "Association failed with AP address=" << ap->address << "\n";
     }
     else {
-        EV << "Association successful, AP address=" << ap->address << "\n";
+        //EV << "Association successful, AP address=" << ap->address << "\n";
 
         // change our state to "associated"
         isAssociated = true;
@@ -774,13 +776,13 @@ void Ieee80211MgmtSTA::handleReassociationRequestFrame(Ieee80211ReassociationReq
 
 void Ieee80211MgmtSTA::handleReassociationResponseFrame(Ieee80211ReassociationResponseFrame *frame)
 {
-    EV << "Received Reassociation Response frame\n";
+    //EV << "Received Reassociation Response frame\n";
     //TBD handle with the same code as Association Response?
 }
 
 void Ieee80211MgmtSTA::handleDisassociationFrame(Ieee80211DisassociationFrame *frame)
 {
-    EV << "Received Disassociation frame\n";
+    //EV << "Received Disassociation frame\n";
     const MACAddress& address = frame->getAddress3();    // source address
 
     if (assocTimeoutMsg) {
@@ -789,12 +791,12 @@ void Ieee80211MgmtSTA::handleDisassociationFrame(Ieee80211DisassociationFrame *f
         assocTimeoutMsg = nullptr;
     }
     if (!isAssociated || address != assocAP.address) {
-        EV << "Not associated with that AP -- ignoring frame\n";
+        //EV << "Not associated with that AP -- ignoring frame\n";
         delete frame;
         return;
     }
 
-    EV << "Setting isAssociated flag to false\n";
+    //EV << "Setting isAssociated flag to false\n";
     isAssociated = false;
     delete cancelEvent(assocAP.beaconTimeoutMsg);
     assocAP.beaconTimeoutMsg = nullptr;
@@ -802,12 +804,12 @@ void Ieee80211MgmtSTA::handleDisassociationFrame(Ieee80211DisassociationFrame *f
 
 void Ieee80211MgmtSTA::handleBeaconFrame(Ieee80211BeaconFrame *frame)
 {
-    EV << "Received Beacon frame\n";
+    //EV << "Received Beacon frame\n";
     storeAPInfo(frame->getTransmitterAddress(), frame->getBody());
 
     // if it is out associate AP, restart beacon timeout
     if (isAssociated && frame->getTransmitterAddress() == assocAP.address) {
-        EV << "Beacon is from associated AP, restarting beacon timeout timer\n";
+        //EV << "Beacon is from associated AP, restarting beacon timeout timer\n";
         ASSERT(assocAP.beaconTimeoutMsg != nullptr);
         cancelEvent(assocAP.beaconTimeoutMsg);
         scheduleAt(simTime() + MAX_BEACONS_MISSED * assocAP.beaconInterval, assocAP.beaconTimeoutMsg);
@@ -826,7 +828,7 @@ void Ieee80211MgmtSTA::handleProbeRequestFrame(Ieee80211ProbeRequestFrame *frame
 
 void Ieee80211MgmtSTA::handleProbeResponseFrame(Ieee80211ProbeResponseFrame *frame)
 {
-    EV << "Received Probe Response frame\n";
+    //EV << "Received Probe Response frame\n";
     storeAPInfo(frame->getTransmitterAddress(), frame->getBody());
     delete frame;
 }
@@ -835,10 +837,10 @@ void Ieee80211MgmtSTA::storeAPInfo(const MACAddress& address, const Ieee80211Bea
 {
     APInfo *ap = lookupAP(address);
     if (ap) {
-        EV << "AP address=" << address << ", SSID=" << body.getSSID() << " already in our AP list, refreshing the info\n";
+        //EV << "AP address=" << address << ", SSID=" << body.getSSID() << " already in our AP list, refreshing the info\n";
     }
     else {
-        EV << "Inserting AP address=" << address << ", SSID=" << body.getSSID() << " into our AP list\n";
+        //EV << "Inserting AP address=" << address << ", SSID=" << body.getSSID() << " into our AP list\n";
         apList.push_back(APInfo());
         ap = &apList.back();
     }

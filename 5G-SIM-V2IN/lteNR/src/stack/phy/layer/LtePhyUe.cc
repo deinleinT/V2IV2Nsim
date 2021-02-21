@@ -181,7 +181,10 @@ void LtePhyUe::handleSelfMessage(cMessage *msg) {
         triggerHandover();
     else if (msg->isName("handoverTrigger"))
     {
-        doHandover();
+		doHandover();
+		if (getSimulation()->getSystemModule()->par("useSINRThreshold").boolValue()) {
+			getBinder()->deleteFromUeNotConnectedList(nodeId_);
+		}
         delete msg;
         handoverTrigger_ = NULL;
     }
@@ -288,8 +291,8 @@ void LtePhyUe::triggerHandover() {
     ip2lte->triggerHandoverUe();
 
     // inform the eNB's IP2lte module to forward data to the target eNB
-    IP2lte* enbIp2lte =  check_and_cast<IP2lte*>(getSimulation()->getModule(binder_->getOmnetId(masterId_))->getSubmodule("lteNic")->getSubmodule("ip2lte"));
-    enbIp2lte->triggerHandoverSource(nodeId_,candidateMasterId_);
+	IP2lte *enbIp2lte = check_and_cast<IP2lte*>(getSimulation()->getModule(binder_->getOmnetId(masterId_))->getSubmodule("lteNic")->getSubmodule("ip2lte"));
+	enbIp2lte->triggerHandoverSource(nodeId_, candidateMasterId_);
 
     handoverTrigger_ = new cMessage("handoverTrigger");
     handoverTrigger_->setSchedulingPriority(-1);

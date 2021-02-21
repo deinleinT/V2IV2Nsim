@@ -622,7 +622,7 @@ SCTPAssociation::SCTPAssociation(SCTP *_module, int32 _appGateIndex, int32 _asso
     ssFunctions.ssGetNextSid = nullptr;
     ssFunctions.ssUsableStreams = nullptr;
 
-    //EV_INFO << "SCTPAssociationBase::SCTPAssociation(): new assocId="<< assocId << endl;
+    //EV_INFO << "SCTPAssociationBase::SCTPAssociation(): new assocId="            << assocId << endl;
 
     // ====== FSM ============================================================
     char fsmName[64];
@@ -1768,7 +1768,7 @@ void SCTPAssociation::stateEntered(int32 status)
         }
 
         case SCTP_S_SHUTDOWN_RECEIVED: {
-            //EV_INFO << "Entered state SHUTDOWN_RECEIVED, osb=" << getOutstandingBytes()<< ", transQ=" << transmissionQ->getQueueSize()<< ", scount=" << qCounter.roomSumSendStreams << endl;
+            //EV_INFO << "Entered state SHUTDOWN_RECEIVED, osb=" << getOutstandingBytes()                    << ", transQ=" << transmissionQ->getQueueSize()                    << ", scount=" << qCounter.roomSumSendStreams << endl;
 
             if (getOutstandingBytes() == 0 && transmissionQ->getQueueSize() == 0 && qCounter.roomSumSendStreams == 0) {
                 sendShutdownAck(remoteAddr);

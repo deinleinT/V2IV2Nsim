@@ -107,8 +107,7 @@ void TCPBasicClientApp::sendRequest()
     msg->setExpectedReplyLength(replyLength);
     msg->setServerClose(false);
 
-    EV_INFO << "sending request with " << requestLength << " bytes, expected reply length " << replyLength << " bytes,"
-            << "remaining " << numRequestsToSend - 1 << " request\n";
+    //EV_INFO << "sending request with " << requestLength << " bytes, expected reply length " << replyLength << " bytes,"            << "remaining " << numRequestsToSend - 1 << " request\n";
 
     sendPacket(msg);
 }
@@ -173,7 +172,7 @@ void TCPBasicClientApp::socketDataArrived(int connId, void *ptr, cPacket *msg, b
     TCPAppBase::socketDataArrived(connId, ptr, msg, urgent);
 
     if (numRequestsToSend > 0) {
-        EV_INFO << "reply arrived\n";
+        //EV_INFO << "reply arrived\n";
 
         if (timeoutMsg) {
             simtime_t d = simTime() + (simtime_t)par("thinkTime");
@@ -181,7 +180,7 @@ void TCPBasicClientApp::socketDataArrived(int connId, void *ptr, cPacket *msg, b
         }
     }
     else if (socket.getState() != TCPSocket::LOCALLY_CLOSED) {
-        EV_INFO << "reply to last request arrived, closing session\n";
+        //EV_INFO << "reply to last request arrived, closing session\n";
         close();
     }
 }

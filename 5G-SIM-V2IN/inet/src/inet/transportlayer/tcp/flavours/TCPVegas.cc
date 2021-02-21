@@ -110,8 +110,7 @@ void TCPVegas::processRexmitTimer(TCPEventCode& event)
 
     if (cwndVector)
         cwndVector->record(state->snd_cwnd);
-    EV_DETAIL << "RXT Timeout in Vegas: resetting cwnd to " << state->snd_cwnd << "\n"
-              << ", ssthresh=" << state->ssthresh << "\n";
+    //EV_DETAIL << "RXT Timeout in Vegas: resetting cwnd to " << state->snd_cwnd << "\n"              << ", ssthresh=" << state->ssthresh << "\n";
 
     state->v_cwnd_changed = simTime();    // Save time when cwnd changes due to rtx
 
@@ -136,7 +135,7 @@ void TCPVegas::receivedDataAck(uint32 firstSeqAcked)
             state->v_sa = state->v_baseRTT * 8;
             state->v_sd = state->v_baseRTT;
             state->v_rtt_timeout = ((state->v_sa / 4.0) + state->v_sd) / 2.0;
-            EV_DETAIL << "Vegas: initialization" << "\n";
+            //EV_DETAIL << "Vegas: initialization" << "\n";
         }
 
         // Once per RTT
@@ -144,11 +143,11 @@ void TCPVegas::receivedDataAck(uint32 firstSeqAcked)
             simtime_t newRTT;
             if (state->v_cntRTT > 0) {
                 newRTT = state->v_sumRTT / state->v_cntRTT;
-                EV_DETAIL << "Vegas: newRTT (state->v_sumRTT / state->v_cntRTT) calculated: " << state->v_sumRTT / state->v_cntRTT << "\n";
+                //EV_DETAIL << "Vegas: newRTT (state->v_sumRTT / state->v_cntRTT) calculated: " << state->v_sumRTT / state->v_cntRTT << "\n";
             }
             else {
                 newRTT = currentTime - state->v_begtime;
-                EV_DETAIL << "Vegas: newRTT calculated: " << newRTT << "\n";
+                //EV_DETAIL << "Vegas: newRTT calculated: " << newRTT << "\n";
             }
             state->v_sumRTT = 0.0;
             state->v_cntRTT = 0;
@@ -173,14 +172,12 @@ void TCPVegas::receivedDataAck(uint32 firstSeqAcked)
                 // diff = expected - actual
                 uint32 diff = (uint32)((expected - actual) * SIMTIME_DBL(state->v_baseRTT) + 0.5);
 
-                EV_DETAIL << "Vegas: expected: " << expected << "\n"
-                          << ", actual =" << actual << "\n"
-                          << ", diff =" << diff << "\n";
+                //EV_DETAIL << "Vegas: expected: " << expected << "\n"                          << ", actual =" << actual << "\n"                          << ", diff =" << diff << "\n";
 
                 // Slow start
                 state->v_incr_ss = false;    // reset
                 if (state->snd_cwnd < state->ssthresh) {    //Slow start
-                    EV_DETAIL << "Vegas: Slow Start: " << "\n";
+                    //EV_DETAIL << "Vegas: Slow Start: " << "\n";
 
                     // cwnd modification during slow-start only every 2 rtt
                     state->v_inc_flag = !state->v_inc_flag;
@@ -211,7 +208,7 @@ void TCPVegas::receivedDataAck(uint32 firstSeqAcked)
                 }    // end slow start
                 else {
                     // Cong. avoidance
-                    EV_DETAIL << "Vegas: Congestion avoidance: " << "\n";
+                    //EV_DETAIL << "Vegas: Congestion avoidance: " << "\n";
 
                     if (diff > 4 * state->snd_mss) {    // beta
                         state->v_incr = -state->snd_mss;
@@ -231,7 +228,7 @@ void TCPVegas::receivedDataAck(uint32 firstSeqAcked)
         // if cwnd > ssthresh, no incr
         if (state->v_incr_ss && state->snd_cwnd >= state->ssthresh) {
             state->v_incr = 0;
-            EV_DETAIL << "Vegas: surpass ssthresh during slow-start: no cwnd incr. " << "\n";
+            //EV_DETAIL << "Vegas: surpass ssthresh during slow-start: no cwnd incr. " << "\n";
         }
 
         //incr/decr cwnd
@@ -240,7 +237,7 @@ void TCPVegas::receivedDataAck(uint32 firstSeqAcked)
 
             if (cwndVector)
                 cwndVector->record(state->snd_cwnd);
-            EV_DETAIL << "Vegas: incr cwnd linearly, to " << state->snd_cwnd << "\n";
+            //EV_DETAIL << "Vegas: incr cwnd linearly, to " << state->snd_cwnd << "\n";
         }
         else if (state->v_incr < 0) {
             state->snd_cwnd += state->v_incr;
@@ -249,7 +246,7 @@ void TCPVegas::receivedDataAck(uint32 firstSeqAcked)
 
             if (cwndVector)
                 cwndVector->record(state->snd_cwnd);
-            EV_DETAIL << "Vegas: decr cwnd linearly, to " << state->snd_cwnd << "\n";
+            //EV_DETAIL << "Vegas: decr cwnd linearly, to " << state->snd_cwnd << "\n";
         }
 
         // update vegas fine-grained timeout value (retransmitted packets do not count)
@@ -269,7 +266,7 @@ void TCPVegas::receivedDataAck(uint32 firstSeqAcked)
                 state->v_sd += n;
                 state->v_rtt_timeout = ((state->v_sa / 4) + state->v_sd) / 2;
                 state->v_rtt_timeout += (state->v_rtt_timeout / 16);
-                EV_DETAIL << "Vegas: new v_rtt_timeout = " << state->v_rtt_timeout << "\n";
+                //EV_DETAIL << "Vegas: new v_rtt_timeout = " << state->v_rtt_timeout << "\n";
             }
         }
 
@@ -284,7 +281,7 @@ void TCPVegas::receivedDataAck(uint32 firstSeqAcked)
             // TCPConnection::retransmitOneSegment will fail: ASSERT(bytes!=0), line 839), because bytes = snd_max-snd_una
             if (expired && (state->snd_max - state->snd_una > 0)) {
                 state->dupacks = DUPTHRESH;
-                EV_DETAIL << "Vegas: retransmission (v_rtt_timeout) " << "\n";
+                //EV_DETAIL << "Vegas: retransmission (v_rtt_timeout) " << "\n";
                 conn->retransmitOneSegment(false);    //retransmit one segment from snd_una
             }
             else

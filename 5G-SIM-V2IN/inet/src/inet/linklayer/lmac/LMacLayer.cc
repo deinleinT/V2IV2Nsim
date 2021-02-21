@@ -36,12 +36,12 @@ void LMacLayer::initialize(int stage)
         slotDuration = par("slotDuration");
         bitrate = par("bitrate");
         headerLength = par("headerLength");
-        EV << "headerLength is: " << headerLength << endl;
+        //EV << "headerLength is: " << headerLength << endl;
         numSlots = par("numSlots");
         // the first N slots are reserved for mobile nodes to be able to function normally
         reservedMobileSlots = par("reservedMobileSlots");
 
-        EV_DETAIL << "My Mac address is" << address << " and my Id is " << myId << endl;
+        //EV_DETAIL << "My Mac address is" << address << " and my Id is " << myId << endl;
 
         macState = INIT;
 
@@ -49,7 +49,7 @@ void LMacLayer::initialize(int stage)
 
         // how long does it take to send/receive a control packet
         controlDuration = ((double)headerLength + (double)numSlots + 16) / (double)bitrate;
-        EV << "Control packets take : " << controlDuration << " seconds to transmit\n";
+        //EV << "Control packets take : " << controlDuration << " seconds to transmit\n";
 
         initializeMACAddress();
         registerInterface();
@@ -65,11 +65,7 @@ void LMacLayer::initialize(int stage)
         //int channel;
         //channel = hasPar("defaultChannel") ? par("defaultChannel") : 0;
 
-        EV_DETAIL << "queueLength = " << queueLength
-                  << " slotDuration = " << slotDuration
-                  << " controlDuration = " << controlDuration
-                  << " numSlots = " << numSlots
-                  << " bitrate = " << bitrate << endl;
+        //EV_DETAIL << "queueLength = " << queueLength                  << " slotDuration = " << slotDuration                  << " controlDuration = " << controlDuration                  << " numSlots = " << numSlots                  << " bitrate = " << bitrate << endl;
 
         timeout = new cMessage("timeout");
         timeout->setKind(LMAC_TIMEOUT);
@@ -161,15 +157,14 @@ void LMacLayer::handleUpperPacket(cPacket *msg)
 
     if (macQueue.size() <= queueLength) {
         macQueue.push_back(mac);
-        EV_DETAIL << "packet put in queue\n  queue size: " << macQueue.size() << " macState: " << macState
-                  << "; mySlot is " << mySlot << "; current slot is " << currSlot << endl;
+        //EV_DETAIL << "packet put in queue\n  queue size: " << macQueue.size() << " macState: " << macState                  << "; mySlot is " << mySlot << "; current slot is " << currSlot << endl;
         ;
     }
     else {
         // queue is full, message has to be deleted
-        EV_DETAIL << "New packet arrived, but queue is FULL, so new packet is deleted\n";
+        //EV_DETAIL << "New packet arrived, but queue is FULL, so new packet is deleted\n";
         delete mac;
-        EV_DETAIL << "ERROR: Queue is full, forced to delete.\n";
+        //EV_DETAIL << "ERROR: Queue is full, forced to delete.\n";
     }
 }
 
@@ -189,9 +184,9 @@ void LMacLayer::handleSelfMessage(cMessage *msg)
                 // the first 5 full slots we will be waking up every controlDuration to setup the network first
                 // normal packets will be queued, but will be send only after the setup phase
                 scheduleAt(slotDuration * 5 * numSlots, initChecker);
-                EV << "Startup time =" << slotDuration * 5 * numSlots << endl;
+                //EV << "Startup time =" << slotDuration * 5 * numSlots << endl;
 
-                EV_DETAIL << "Scheduling the first wakeup at : " << slotDuration << endl;
+                //EV_DETAIL << "Scheduling the first wakeup at : " << slotDuration << endl;
 
                 scheduleAt(slotDuration, wakeup);
 
@@ -208,14 +203,14 @@ void LMacLayer::handleSelfMessage(cMessage *msg)
                 //occSlotsAway[mySlot] = address;
                 currSlot = 0;
 
-                EV_DETAIL << "ID: " << FindModule<>::findHost(this)->getId() << ". Picked random slot: " << mySlot << endl;
+                //EV_DETAIL << "ID: " << FindModule<>::findHost(this)->getId() << ". Picked random slot: " << mySlot << endl;
 
                 macState = SLEEP;
-                EV_DETAIL << "Old state: INIT, New state: SLEEP" << endl;
+                //EV_DETAIL << "Old state: INIT, New state: SLEEP" << endl;
                 SETUP_PHASE = true;
             }
             else {
-                EV << "Unknown packet" << msg->getKind() << "in state" << macState << endl;
+                //EV << "Unknown packet" << msg->getKind() << "in state" << macState << endl;
             }
             break;
 
@@ -223,35 +218,35 @@ void LMacLayer::handleSelfMessage(cMessage *msg)
             if (msg->getKind() == LMAC_WAKEUP) {
                 currSlot++;
                 currSlot %= numSlots;
-                EV_DETAIL << "New slot starting - No. " << currSlot << ", my slot is " << mySlot << endl;
+                //EV_DETAIL << "New slot starting - No. " << currSlot << ", my slot is " << mySlot << endl;
 
                 if (mySlot == currSlot) {
-                    EV_DETAIL << "Waking up in my slot. Switch to RECV first to check the channel.\n";
+                    //EV_DETAIL << "Waking up in my slot. Switch to RECV first to check the channel.\n";
                     macState = CCA;
                     radio->setRadioMode(IRadio::RADIO_MODE_RECEIVER);
-                    EV_DETAIL << "Old state: SLEEP, New state: CCA" << endl;
+                    //EV_DETAIL << "Old state: SLEEP, New state: CCA" << endl;
 
                     double small_delay = controlDuration * dblrand();
                     scheduleAt(simTime() + small_delay, checkChannel);
-                    EV_DETAIL << "Checking for channel for " << small_delay << " time.\n";
+                    //EV_DETAIL << "Checking for channel for " << small_delay << " time.\n";
                 }
                 else {
-                    EV_DETAIL << "Waking up in a foreign slot. Ready to receive control packet.\n";
+                    //EV_DETAIL << "Waking up in a foreign slot. Ready to receive control packet.\n";
                     macState = WAIT_CONTROL;
                     radio->setRadioMode(IRadio::RADIO_MODE_RECEIVER);
-                    EV_DETAIL << "Old state: SLEEP, New state: WAIT_CONTROL" << endl;
+                    //EV_DETAIL << "Old state: SLEEP, New state: WAIT_CONTROL" << endl;
                     if (!SETUP_PHASE) //in setup phase do not sleep
                         scheduleAt(simTime() + 2.f * controlDuration, timeout);
                 }
                 if (SETUP_PHASE) {
                     scheduleAt(simTime() + 2.f * controlDuration, wakeup);
-                    EV_DETAIL << "setup phase slot duration:" << 2.f * controlDuration << "while controlduration is" << controlDuration << endl;
+                    //EV_DETAIL << "setup phase slot duration:" << 2.f * controlDuration << "while controlduration is" << controlDuration << endl;
                 }
                 else
                     scheduleAt(simTime() + slotDuration, wakeup);
             }
             else if (msg->getKind() == LMAC_SETUP_PHASE_END) {
-                EV_DETAIL << "Setup phase end. Start normal work at the next slot.\n";
+                //EV_DETAIL << "Setup phase end. Start normal work at the next slot.\n";
                 if (wakeup->isScheduled())
                     cancelEvent(wakeup);
 
@@ -260,23 +255,23 @@ void LMacLayer::handleSelfMessage(cMessage *msg)
                 SETUP_PHASE = false;
             }
             else {
-                EV << "Unknown packet" << msg->getKind() << "in state" << macState << endl;
+                //EV << "Unknown packet" << msg->getKind() << "in state" << macState << endl;
             }
             break;
 
         case CCA:
             if (msg->getKind() == LMAC_CHECK_CHANNEL) {
                 // if the channel is clear, get ready for sending the control packet
-                EV << "Channel is free, so let's prepare for sending.\n";
+                //EV << "Channel is free, so let's prepare for sending.\n";
 
                 macState = SEND_CONTROL;
                 radio->setRadioMode(IRadio::RADIO_MODE_TRANSMITTER);
-                EV_DETAIL << "Old state: CCA, New state: SEND_CONTROL" << endl;
+                //EV_DETAIL << "Old state: CCA, New state: SEND_CONTROL" << endl;
             }
             else if (msg->getKind() == LMAC_CONTROL) {
                 LMacFrame *const mac = static_cast<LMacFrame *>(msg);
                 const MACAddress& dest = mac->getDestAddr();
-                EV_DETAIL << " I have received a control packet from src " << mac->getSrcAddr() << " and dest " << dest << ".\n";
+                //EV_DETAIL << " I have received a control packet from src " << mac->getSrcAddr() << " and dest " << dest << ".\n";
                 bool collision = false;
                 // if we are listening to the channel and receive anything, there is a collision in the slot.
                 if (checkChannel->isScheduled()) {
@@ -286,8 +281,8 @@ void LMacLayer::handleSelfMessage(cMessage *msg)
 
                 for (int s = 0; s < numSlots; s++) {
                     occSlotsAway[s] = mac->getOccupiedSlots(s);
-                    EV_DETAIL << "Occupied slot " << s << ": " << occSlotsAway[s] << endl;
-                    EV_DETAIL << "Occupied direct slot " << s << ": " << occSlotsDirect[s] << endl;
+                    //EV_DETAIL << "Occupied slot " << s << ": " << occSlotsAway[s] << endl;
+                    //EV_DETAIL << "Occupied direct slot " << s << ": " << occSlotsDirect[s] << endl;
                 }
 
                 if (mac->getMySlot() > -1) {
@@ -303,26 +298,26 @@ void LMacLayer::handleSelfMessage(cMessage *msg)
                 }
                 collision = collision || (mac->getMySlot() == mySlot);
                 if (((mySlot > -1) && (mac->getOccupiedSlots(mySlot) > LMAC_FREE_SLOT) && (mac->getOccupiedSlots(mySlot) != address)) || collision) {
-                    EV_DETAIL << "My slot is taken by " << mac->getOccupiedSlots(mySlot) << ". I need to change it.\n";
+                    //EV_DETAIL << "My slot is taken by " << mac->getOccupiedSlots(mySlot) << ". I need to change it.\n";
                     findNewSlot();
-                    EV_DETAIL << "My new slot is " << mySlot << endl;
+                    //EV_DETAIL << "My new slot is " << mySlot << endl;
                 }
                 if (mySlot < 0) {
-                    EV_DETAIL << "I don;t have a slot - try to find one.\n";
+                    //EV_DETAIL << "I don;t have a slot - try to find one.\n";
                     findNewSlot();
                 }
 
                 if (dest == address || dest.isBroadcast()) {
-                    EV_DETAIL << "I need to stay awake.\n";
+                    //EV_DETAIL << "I need to stay awake.\n";
                     if (timeout->isScheduled())
                         cancelEvent(timeout);
                     macState = WAIT_DATA;
-                    EV_DETAIL << "Old state: CCA, New state: WAIT_DATA" << endl;
+                    //EV_DETAIL << "Old state: CCA, New state: WAIT_DATA" << endl;
                 }
                 else {
-                    EV_DETAIL << "Incoming data packet not for me. Going back to sleep.\n";
+                    //EV_DETAIL << "Incoming data packet not for me. Going back to sleep.\n";
                     macState = SLEEP;
-                    EV_DETAIL << "Old state: CCA, New state: SLEEP" << endl;
+                    //EV_DETAIL << "Old state: CCA, New state: SLEEP" << endl;
                     radio->setRadioMode(IRadio::RADIO_MODE_SLEEP);
                     if (timeout->isScheduled())
                         cancelEvent(timeout);
@@ -339,22 +334,22 @@ void LMacLayer::handleSelfMessage(cMessage *msg)
                     cancelEvent(checkChannel);
                     //collision = true;
                 }
-                EV_DETAIL << " I have received a data packet.\n";
+                //EV_DETAIL << " I have received a data packet.\n";
                 if (dest == address || dest.isBroadcast()) {
-                    EV_DETAIL << "sending pkt to upper...\n";
+                    //EV_DETAIL << "sending pkt to upper...\n";
                     sendUp(decapsMsg(mac));
                 }
                 else {
-                    EV_DETAIL << "packet not for me, deleting...\n";
+                    //EV_DETAIL << "packet not for me, deleting...\n";
                     delete mac;
                 }
                 // in any case, go back to sleep
                 macState = SLEEP;
-                EV_DETAIL << "Old state: CCA, New state: SLEEP" << endl;
+                //EV_DETAIL << "Old state: CCA, New state: SLEEP" << endl;
                 radio->setRadioMode(IRadio::RADIO_MODE_SLEEP);
             }
             else if (msg->getKind() == LMAC_SETUP_PHASE_END) {
-                EV_DETAIL << "Setup phase end. Start normal work at the next slot.\n";
+                //EV_DETAIL << "Setup phase end. Start normal work at the next slot.\n";
                 if (wakeup->isScheduled())
                     cancelEvent(wakeup);
 
@@ -363,21 +358,21 @@ void LMacLayer::handleSelfMessage(cMessage *msg)
                 SETUP_PHASE = false;
             }
             else {
-                EV << "Unknown packet" << msg->getKind() << "in state" << macState << endl;
+                //EV << "Unknown packet" << msg->getKind() << "in state" << macState << endl;
             }
             break;
 
         case WAIT_CONTROL:
             if (msg->getKind() == LMAC_TIMEOUT) {
-                EV_DETAIL << "Control timeout. Go back to sleep.\n";
+                //EV_DETAIL << "Control timeout. Go back to sleep.\n";
                 macState = SLEEP;
-                EV_DETAIL << "Old state: WAIT_CONTROL, New state: SLEEP" << endl;
+                //EV_DETAIL << "Old state: WAIT_CONTROL, New state: SLEEP" << endl;
                 radio->setRadioMode(IRadio::RADIO_MODE_SLEEP);
             }
             else if (msg->getKind() == LMAC_CONTROL) {
                 LMacFrame *const mac = static_cast<LMacFrame *>(msg);
                 const MACAddress& dest = mac->getDestAddr();
-                EV_DETAIL << " I have received a control packet from src " << mac->getSrcAddr() << " and dest " << dest << ".\n";
+                //EV_DETAIL << " I have received a control packet from src " << mac->getSrcAddr() << " and dest " << dest << ".\n";
 
                 bool collision = false;
 
@@ -386,8 +381,8 @@ void LMacLayer::handleSelfMessage(cMessage *msg)
 
                 for (int s = 0; s < numSlots; s++) {
                     occSlotsAway[s] = mac->getOccupiedSlots(s);
-                    EV_DETAIL << "Occupied slot " << s << ": " << occSlotsAway[s] << endl;
-                    EV_DETAIL << "Occupied direct slot " << s << ": " << occSlotsDirect[s] << endl;
+                    //EV_DETAIL << "Occupied slot " << s << ": " << occSlotsAway[s] << endl;
+                    //EV_DETAIL << "Occupied direct slot " << s << ": " << occSlotsDirect[s] << endl;
                 }
 
                 if (mac->getMySlot() > -1) {
@@ -404,26 +399,26 @@ void LMacLayer::handleSelfMessage(cMessage *msg)
 
                 collision = collision || (mac->getMySlot() == mySlot);
                 if (((mySlot > -1) && (mac->getOccupiedSlots(mySlot) > LMAC_FREE_SLOT) && (mac->getOccupiedSlots(mySlot) != address)) || collision) {
-                    EV_DETAIL << "My slot is taken by " << mac->getOccupiedSlots(mySlot) << ". I need to change it.\n";
+                    //EV_DETAIL << "My slot is taken by " << mac->getOccupiedSlots(mySlot) << ". I need to change it.\n";
                     findNewSlot();
-                    EV_DETAIL << "My new slot is " << mySlot << endl;
+                    //EV_DETAIL << "My new slot is " << mySlot << endl;
                 }
                 if (mySlot < 0) {
-                    EV_DETAIL << "I don;t have a slot - try to find one.\n";
+                    //EV_DETAIL << "I don;t have a slot - try to find one.\n";
                     findNewSlot();
                 }
 
                 if (dest == address || dest.isBroadcast()) {
-                    EV_DETAIL << "I need to stay awake.\n";
+                    //EV_DETAIL << "I need to stay awake.\n";
                     macState = WAIT_DATA;
-                    EV_DETAIL << "Old state: WAIT_CONTROL, New state: WAIT_DATA" << endl;
+                    //EV_DETAIL << "Old state: WAIT_CONTROL, New state: WAIT_DATA" << endl;
                     if (timeout->isScheduled())
                         cancelEvent(timeout);
                 }
                 else {
-                    EV_DETAIL << "Incoming data packet not for me. Going back to sleep.\n";
+                    //EV_DETAIL << "Incoming data packet not for me. Going back to sleep.\n";
                     macState = SLEEP;
-                    EV_DETAIL << "Old state: WAIT_CONTROL, New state: SLEEP" << endl;
+                    //EV_DETAIL << "Old state: WAIT_CONTROL, New state: SLEEP" << endl;
                     radio->setRadioMode(IRadio::RADIO_MODE_SLEEP);
                     if (timeout->isScheduled())
                         cancelEvent(timeout);
@@ -431,17 +426,19 @@ void LMacLayer::handleSelfMessage(cMessage *msg)
                 delete mac;
             }
             else if ((msg->getKind() == LMAC_WAKEUP)) {
-                if (SETUP_PHASE == true)
-                    EV_DETAIL << "End of setup-phase slot" << endl;
-                else
-                    EV_DETAIL << "Very unlikely transition";
+                if (SETUP_PHASE == true){
+                    //EV_DETAIL << "End of setup-phase slot" << endl;
+                }
+                else{
+                    //EV_DETAIL << "Very unlikely transition";
+                }
 
                 macState = SLEEP;
-                EV_DETAIL << "Old state: WAIT_DATA, New state: SLEEP" << endl;
+                //EV_DETAIL << "Old state: WAIT_DATA, New state: SLEEP" << endl;
                 scheduleAt(simTime(), wakeup);
             }
             else if (msg->getKind() == LMAC_SETUP_PHASE_END) {
-                EV_DETAIL << "Setup phase end. Start normal work at the next slot.\n";
+                //EV_DETAIL << "Setup phase end. Start normal work at the next slot.\n";
                 if (wakeup->isScheduled())
                     cancelEvent(wakeup);
 
@@ -450,7 +447,7 @@ void LMacLayer::handleSelfMessage(cMessage *msg)
                 SETUP_PHASE = false;
             }
             else {
-                EV << "Unknown packet" << msg->getKind() << "in state" << macState << endl;
+                //EV << "Unknown packet" << msg->getKind() << "in state" << macState << endl;
             }
 
             break;
@@ -459,7 +456,7 @@ void LMacLayer::handleSelfMessage(cMessage *msg)
 
             if (msg->getKind() == LMAC_SEND_CONTROL) {
                 // send first a control message, so that non-receiving nodes can switch off.
-                EV << "Sending a control packet.\n";
+                //EV << "Sending a control packet.\n";
                 LMacFrame *control = new LMacFrame();
                 control->setKind(LMAC_CONTROL);
                 if ((macQueue.size() > 0) && !SETUP_PHASE)
@@ -481,7 +478,7 @@ void LMacLayer::handleSelfMessage(cMessage *msg)
             else if (msg->getKind() == LMAC_SEND_DATA) {
                 // we should be in our own slot and the control packet should be already sent. receiving neighbors should wait for the data now.
                 if (currSlot != mySlot) {
-                    EV_DETAIL << "ERROR: Send data message received, but we are not in our slot!!! Repair.\n";
+                    //EV_DETAIL << "ERROR: Send data message received, but we are not in our slot!!! Repair.\n";
                     radio->setRadioMode(IRadio::RADIO_MODE_SLEEP);
                     if (timeout->isScheduled())
                         cancelEvent(timeout);
@@ -494,15 +491,15 @@ void LMacLayer::handleSelfMessage(cMessage *msg)
                 for (int i = 0; i < numSlots; i++)
                     data->setOccupiedSlots(i, occSlotsDirect[i]);
 
-                EV << "Sending down data packet\n";
+                //EV << "Sending down data packet\n";
                 sendDown(data);
                 delete macQueue.front();
                 macQueue.pop_front();
                 macState = SEND_DATA;
-                EV_DETAIL << "Old state: SEND_CONTROL, New state: SEND_DATA" << endl;
+                //EV_DETAIL << "Old state: SEND_CONTROL, New state: SEND_DATA" << endl;
             }
             else if (msg->getKind() == LMAC_SETUP_PHASE_END) {
-                EV_DETAIL << "Setup phase end. Start normal work at the next slot.\n";
+                //EV_DETAIL << "Setup phase end. Start normal work at the next slot.\n";
                 if (wakeup->isScheduled())
                     cancelEvent(wakeup);
 
@@ -511,7 +508,7 @@ void LMacLayer::handleSelfMessage(cMessage *msg)
                 SETUP_PHASE = false;
             }
             else {
-                EV << "Unknown packet" << msg->getKind() << "in state" << macState << endl;
+                //EV << "Unknown packet" << msg->getKind() << "in state" << macState << endl;
             }
             break;
 
@@ -520,7 +517,7 @@ void LMacLayer::handleSelfMessage(cMessage *msg)
                 throw cRuntimeError("I am still sending a message, while a new slot is starting!\n");
             }
             else {
-                EV << "Unknown packet" << msg->getKind() << "in state" << macState << endl;
+                //EV << "Unknown packet" << msg->getKind() << "in state" << macState << endl;
             }
             break;
 
@@ -529,29 +526,29 @@ void LMacLayer::handleSelfMessage(cMessage *msg)
                 LMacFrame *const mac = static_cast<LMacFrame *>(msg);
                 const MACAddress& dest = mac->getDestAddr();
 
-                EV_DETAIL << " I have received a data packet.\n";
+                //EV_DETAIL << " I have received a data packet.\n";
                 if (dest == address || dest.isBroadcast()) {
-                    EV_DETAIL << "sending pkt to upper...\n";
+                    //EV_DETAIL << "sending pkt to upper...\n";
                     sendUp(decapsMsg(mac));
                 }
                 else {
-                    EV_DETAIL << "packet not for me, deleting...\n";
+                    //EV_DETAIL << "packet not for me, deleting...\n";
                     delete mac;
                 }
                 // in any case, go back to sleep
                 macState = SLEEP;
-                EV_DETAIL << "Old state: WAIT_DATA, New state: SLEEP" << endl;
+                //EV_DETAIL << "Old state: WAIT_DATA, New state: SLEEP" << endl;
                 radio->setRadioMode(IRadio::RADIO_MODE_SLEEP);
                 if (timeout->isScheduled())
                     cancelEvent(timeout);
             }
             else if (msg->getKind() == LMAC_WAKEUP) {
                 macState = SLEEP;
-                EV_DETAIL << "Unlikely transition. Old state: WAIT_DATA, New state: SLEEP" << endl;
+                //EV_DETAIL << "Unlikely transition. Old state: WAIT_DATA, New state: SLEEP" << endl;
                 scheduleAt(simTime(), wakeup);
             }
             else {
-                EV << "Unknown packet" << msg->getKind() << "in state" << macState << endl;
+                //EV << "Unknown packet" << msg->getKind() << "in state" << macState << endl;
             }
             break;
 
@@ -567,7 +564,7 @@ void LMacLayer::handleSelfMessage(cMessage *msg)
 void LMacLayer::handleLowerPacket(cPacket *msg)
 {
     if (msg->hasBitError()) {
-        EV << "Received " << msg << " contains bit errors or collision, dropping it\n";
+        //EV << "Received " << msg << " contains bit errors or collision, dropping it\n";
         delete msg;
         return;
     }
@@ -585,12 +582,12 @@ void LMacLayer::receiveSignal(cComponent *source, simsignal_t signalID, intval_t
         if (transmissionState == IRadio::TRANSMISSION_STATE_TRANSMITTING && newRadioTransmissionState == IRadio::TRANSMISSION_STATE_IDLE) {
             // if data is scheduled for transfer, don;t do anything.
             if (sendData->isScheduled()) {
-                EV_DETAIL << " transmission of control packet over. data transfer will start soon." << endl;
+                //EV_DETAIL << " transmission of control packet over. data transfer will start soon." << endl;
             }
             else {
-                EV_DETAIL << " transmission over. nothing else is scheduled, get back to sleep." << endl;
+                //EV_DETAIL << " transmission over. nothing else is scheduled, get back to sleep." << endl;
                 macState = SLEEP;
-                EV_DETAIL << "Old state: ?, New state: SLEEP" << endl;
+                //EV_DETAIL << "Old state: ?, New state: SLEEP" << endl;
                 radio->setRadioMode(IRadio::RADIO_MODE_SLEEP);
                 if (timeout->isScheduled())
                     cancelEvent(timeout);
@@ -624,13 +621,13 @@ void LMacLayer::findNewSlot()
             mySlot = (numSlots - reservedMobileSlots) - 1;
     }
     if (occSlotsAway[mySlot] != LMAC_FREE_SLOT) {
-        EV << "ERROR: I cannot find a free slot. Cannot send data.\n";
+        //EV << "ERROR: I cannot find a free slot. Cannot send data.\n";
         mySlot = -1;
     }
     else {
-        EV << "ERROR: My new slot is : " << mySlot << endl;
+        //EV << "ERROR: My new slot is : " << mySlot << endl;
     }
-    EV << "ERROR: I needed to find new slot\n";
+    //EV << "ERROR: I needed to find new slot\n";
     slotChange->recordWithTimestamp(simTime(), FindModule<>::findHost(this)->getId() - 4);
 }
 
@@ -640,7 +637,7 @@ cPacket *LMacLayer::decapsMsg(LMacFrame *msg)
     setUpControlInfo(m, msg->getSrcAddr());
     // delete the macPkt
     delete msg;
-    EV_DETAIL << " message decapsulated " << endl;
+    //EV_DETAIL << " message decapsulated " << endl;
     return m;
 }
 
@@ -657,7 +654,7 @@ LMacFrame *LMacLayer::encapsMsg(cPacket *netwPkt)
     // copy dest address from the Control Info attached to the network
     // message by the network layer
     IMACProtocolControlInfo *cInfo = check_and_cast<IMACProtocolControlInfo *>(netwPkt->removeControlInfo());
-    EV_DETAIL << "CInfo removed, mac addr=" << cInfo->getDestinationAddress() << endl;
+    //EV_DETAIL << "CInfo removed, mac addr=" << cInfo->getDestinationAddress() << endl;
     pkt->setDestAddr(cInfo->getDestinationAddress());
 
     //delete the control info
@@ -668,7 +665,7 @@ LMacFrame *LMacLayer::encapsMsg(cPacket *netwPkt)
 
     //encapsulate the network packet
     pkt->encapsulate(netwPkt);
-    EV_DETAIL << "pkt encapsulated\n";
+    //EV_DETAIL << "pkt encapsulated\n";
 
     return pkt;
 }

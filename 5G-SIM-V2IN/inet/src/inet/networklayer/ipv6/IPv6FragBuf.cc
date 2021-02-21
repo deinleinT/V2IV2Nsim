@@ -152,7 +152,7 @@ void IPv6FragBuf::purgeStaleFragments(simtime_t lastupdate)
         if (buf.createdAt < lastupdate) {
             if (buf.datagram) {
                 // send ICMP error
-                EV_INFO << "datagram fragment timed out in reassembly buffer, sending ICMP_TIME_EXCEEDED\n";
+                //EV_INFO << "datagram fragment timed out in reassembly buffer, sending ICMP_TIME_EXCEEDED\n";
                 icmpModule->sendErrorMessage(buf.datagram, ICMPv6_TIME_EXCEEDED, 0);
             }
 

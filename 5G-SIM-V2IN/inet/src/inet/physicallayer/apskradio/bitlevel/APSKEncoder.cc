@@ -72,19 +72,19 @@ const ITransmissionBitModel *APSKEncoder::encode(const ITransmissionPacketModel 
     if (scrambler) {
         *encodedBits = scrambler->scramble(*encodedBits);
         scrambling = scrambler->getScrambling();
-        EV_DEBUG << "Scrambled bits are: " << *encodedBits << endl;
+        //EV_DEBUG << "Scrambled bits are: " << *encodedBits << endl;
     }
     const IForwardErrorCorrection *forwardErrorCorrection = nullptr;
     if (fecEncoder) {
         *encodedBits = fecEncoder->encode(*encodedBits);
         forwardErrorCorrection = fecEncoder->getForwardErrorCorrection();
-        EV_DEBUG << "FEC encoded bits are: " << *encodedBits << endl;
+        //EV_DEBUG << "FEC encoded bits are: " << *encodedBits << endl;
     }
     const IInterleaving *interleaving = nullptr;
     if (interleaver) {
         *encodedBits = interleaver->interleave(*encodedBits);
         interleaving = interleaver->getInterleaving();
-        EV_DEBUG << "Interleaved bits are: " << *encodedBits << endl;
+        //EV_DEBUG << "Interleaved bits are: " << *encodedBits << endl;
     }
     int netHeaderBitLength = APSK_PHY_FRAME_HEADER_BYTE_LENGTH * 8;
     if (forwardErrorCorrection == nullptr)

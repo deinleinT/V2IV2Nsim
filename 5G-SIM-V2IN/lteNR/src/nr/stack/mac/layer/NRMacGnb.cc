@@ -876,7 +876,7 @@ void NRMacGnb::handleUpperMessage(cPacket *pkt) {
 			delete pkt;
 		else {  // creates pdus from schedule list and puts them in harq buffers
 
-			macPduMake(cid); //MAYBE HERE save the infos from info
+			macPduMake(cid);
 		}
 	} else {
 		delete pkt;

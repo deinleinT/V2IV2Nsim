@@ -535,7 +535,7 @@ int32 SCTPAssociation::pathStreamSchedulerMapToPath(SCTPPathVariables *path, boo
         }
     }
 
-    //EV_INFO << "pathStreamSchedulerMapToPath sid=" << sid << " path=" << path->remoteAddress<< " (path " << (1 + thisPath)<< " of " << workingPaths << ")" << endl;
+    //EV_INFO << "pathStreamSchedulerMapToPath sid=" << sid            << " path=" << path->remoteAddress            << " (path " << (1 + thisPath)            << " of " << workingPaths << ")" << endl;
     return sid;
 }
 

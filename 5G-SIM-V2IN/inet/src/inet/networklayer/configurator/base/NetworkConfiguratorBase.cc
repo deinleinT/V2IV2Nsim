@@ -64,7 +64,7 @@ void NetworkConfiguratorBase::extractTopology(Topology& topology)
 {
     // extract topology
     topology.extractByProperty("networkNode");
-    EV_DEBUG << "Topology found " << topology.getNumNodes() << " nodes\n";
+    //EV_DEBUG << "Topology found " << topology.getNumNodes() << " nodes\n";
 
     // extract nodes, fill in interfaceTable and routingTable members in node
     for (int i = 0; i < topology.getNumNodes(); i++) {
@@ -601,18 +601,18 @@ void NetworkConfiguratorBase::dumpTopology(Topology& topology)
 {
     for (int i = 0; i < topology.getNumNodes(); i++) {
         Node *node = (Node *)topology.getNode(i);
-        EV_INFO << "Node " << node->module->getFullPath() << endl;
+        //EV_INFO << "Node " << node->module->getFullPath() << endl;
         for (int j = 0; j < node->getNumOutLinks(); j++) {
             Topology::LinkOut *linkOut = node->getLinkOut(j);
             ASSERT(linkOut->getLocalNode() == node);
             Node *remoteNode = (Node *)linkOut->getRemoteNode();
-            EV_INFO << "     -> " << remoteNode->module->getFullPath() << endl;
+            //EV_INFO << "     -> " << remoteNode->module->getFullPath() << endl;
         }
         for (int j = 0; j < node->getNumInLinks(); j++) {
             Topology::LinkIn *linkIn = node->getLinkIn(j);
             ASSERT(linkIn->getLocalNode() == node);
             Node *remoteNode = (Node *)linkIn->getRemoteNode();
-            EV_INFO << "     <- " << remoteNode->module->getFullPath() << endl;
+            //EV_INFO << "     <- " << remoteNode->module->getFullPath() << endl;
         }
     }
 }

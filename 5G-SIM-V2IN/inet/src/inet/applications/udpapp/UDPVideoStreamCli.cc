@@ -52,7 +52,7 @@ void UDPVideoStreamCli::handleMessageWhenUp(cMessage *msg)
         receiveStream(PK(msg));
     }
     else if (msg->getKind() == UDP_I_ERROR) {
-        EV_WARN << "Ignoring UDP error report\n";
+        //EV_WARN << "Ignoring UDP error report\n";
         delete msg;
     }
     else {
@@ -68,7 +68,7 @@ void UDPVideoStreamCli::requestStream()
     L3Address svrAddr = L3AddressResolver().resolve(address);
 
     if (svrAddr.isUnspecified()) {
-        EV_ERROR << "Server address is unspecified, skip sending video stream request\n";
+        //EV_ERROR << "Server address is unspecified, skip sending video stream request\n";
         return;
     }
 

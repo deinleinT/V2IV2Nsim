@@ -166,7 +166,7 @@ void SCTPSocket::bindx(AddressVector lAddresses, int lPort)
 {
     L3Address lAddr;
     for (auto & lAddresse : lAddresses) {
-        EV << "bindx: bind address " << (lAddresse) << "\n";
+        //EV << "bindx: bind address " << (lAddresse) << "\n";
         localAddresses.push_back((lAddresse));
     }
     localPrt = lPort;
@@ -424,7 +424,7 @@ void SCTPSocket::close(int id)
 
 void SCTPSocket::shutdown(int id)
 {
-    EV << "SCTPSocket::shutdown()\n";
+    //EV << "SCTPSocket::shutdown()\n";
 
     cMessage *msg = new cMessage("SHUTDOWN", SCTP_C_SHUTDOWN);
     SCTPCommand *cmd = new SCTPCommand();

@@ -71,10 +71,10 @@ void TCPAppBase::connect()
     L3Address destination;
     L3AddressResolver().tryResolve(connectAddress, destination);
     if (destination.isUnspecified()) {
-        EV_ERROR << "Connecting to " << connectAddress << " port=" << connectPort << ": cannot resolve destination address\n";
+        //EV_ERROR << "Connecting to " << connectAddress << " port=" << connectPort << ": cannot resolve destination address\n";
     }
     else {
-        EV_INFO << "Connecting to " << connectAddress << "(" << destination << ") port=" << connectPort << endl;
+        //EV_INFO << "Connecting to " << connectAddress << "(" << destination << ") port=" << connectPort << endl;
 
         socket.connect(destination, connectPort);
 
@@ -85,7 +85,7 @@ void TCPAppBase::connect()
 
 void TCPAppBase::close()
 {
-    EV_INFO << "issuing CLOSE command\n";
+    //EV_INFO << "issuing CLOSE command\n";
     socket.close();
     emit(connectSignal, -1L);
 }
@@ -108,7 +108,7 @@ void TCPAppBase::refreshDisplay() const
 void TCPAppBase::socketEstablished(int, void *)
 {
     // *redefine* to perform or schedule first sending
-    EV_INFO << "connected\n";
+    //EV_INFO << "connected\n";
 }
 
 void TCPAppBase::socketDataArrived(int, void *, cPacket *msg, bool)
@@ -124,7 +124,7 @@ void TCPAppBase::socketPeerClosed(int, void *)
 {
     // close the connection (if not already closed)
     if (socket.getState() == TCPSocket::PEER_CLOSED) {
-        EV_INFO << "remote TCP closed, closing here as well\n";
+        //EV_INFO << "remote TCP closed, closing here as well\n";
         close();
     }
 }
@@ -132,13 +132,13 @@ void TCPAppBase::socketPeerClosed(int, void *)
 void TCPAppBase::socketClosed(int, void *)
 {
     // *redefine* to start another session etc.
-    EV_INFO << "connection closed\n";
+    //EV_INFO << "connection closed\n";
 }
 
 void TCPAppBase::socketFailure(int, void *, int code)
 {
     // subclasses may override this function, and add code try to reconnect after a delay.
-    EV_WARN << "connection broken\n";
+    //EV_WARN << "connection broken\n";
     numBroken++;
 }
 
@@ -146,9 +146,9 @@ void TCPAppBase::finish()
 {
     std::string modulePath = getFullPath();
 
-    EV_INFO << modulePath << ": opened " << numSessions << " sessions\n";
-    EV_INFO << modulePath << ": sent " << bytesSent << " bytes in " << packetsSent << " packets\n";
-    EV_INFO << modulePath << ": received " << bytesRcvd << " bytes in " << packetsRcvd << " packets\n";
+    //EV_INFO << modulePath << ": opened " << numSessions << " sessions\n";
+    //EV_INFO << modulePath << ": sent " << bytesSent << " bytes in " << packetsSent << " packets\n";
+    //EV_INFO << modulePath << ": received " << bytesRcvd << " bytes in " << packetsRcvd << " packets\n";
 }
 
 } // namespace inet

@@ -87,14 +87,14 @@ void Contention::startContention(int cw, simtime_t ifs, simtime_t eifs, simtime_
     this->slotTime = slotTime;
     this->callback = callback;
     backoffSlots = intrand(cw + 1);
-    EV_DETAIL << "Starting contention: cw = " << cw << ", slots = " << backoffSlots << endl;
+    //EV_DETAIL << "Starting contention: cw = " << cw << ", slots = " << backoffSlots << endl;
     handleWithFSM(START);
 }
 
 void Contention::handleWithFSM(EventType event)
 {
     emit(stateChangedSignal, fsm.getState());
-    EV_DEBUG << "handleWithFSM: processing event " << getEventName(event) << "\n";
+    //EV_DEBUG << "handleWithFSM: processing event " << getEventName(event) << "\n";
     bool finallyReportChannelAccessGranted = false;
     FSMA_Switch(fsm) {
         FSMA_State(IDLE) {
@@ -173,7 +173,7 @@ void Contention::handleMessage(cMessage *msg)
     if (msg == startTxEvent)
         handleWithFSM(CHANNEL_ACCESS_GRANTED);
     else if (msg == channelGrantedEvent) {
-        EV_INFO << "Channel granted: contention started at " << startTime << std::endl;
+        //EV_INFO << "Channel granted: contention started at " << startTime << std::endl;
         callback->channelAccessGranted();
         callback = nullptr;
     }
@@ -209,18 +209,18 @@ void Contention::scheduleTransmissionRequest()
     simtime_t now = simTime();
     bool useEifs = endEifsTime > now + ifs;
     simtime_t waitInterval = (useEifs ? eifs : ifs) + backoffSlots * slotTime;
-    EV_INFO << "backoffslots = " << backoffSlots << " slotTime = " << slotTime << std::endl;
+    //EV_INFO << "backoffslots = " << backoffSlots << " slotTime = " << slotTime << std::endl;
     if (backoffOptimization && fsm.getState() == IDLE) {
         // we can pretend the frame has arrived into the queue a little bit earlier, and may be able to start transmitting immediately
         simtime_t elapsedFreeChannelTime = now - lastChannelBusyTime;
         simtime_t elapsedIdleTime = now - lastIdleStartTime;
-        EV_INFO << "lastBusyTime = " << lastChannelBusyTime << " lastIdle = " << lastIdleStartTime << std::endl;
+        //EV_INFO << "lastBusyTime = " << lastChannelBusyTime << " lastIdle = " << lastIdleStartTime << std::endl;
         backoffOptimizationDelta = std::min(waitInterval, std::min(elapsedFreeChannelTime, elapsedIdleTime));
         if (backoffOptimizationDelta > SIMTIME_ZERO)
             waitInterval -= backoffOptimizationDelta;
     }
     scheduledTransmissionTime = now + waitInterval;
-    EV_INFO << "waitInterval = " <<  waitInterval << std::endl;
+    //EV_INFO << "waitInterval = " <<  waitInterval << std::endl;
     scheduleTransmissionRequestFor(scheduledTransmissionTime);
 }
 

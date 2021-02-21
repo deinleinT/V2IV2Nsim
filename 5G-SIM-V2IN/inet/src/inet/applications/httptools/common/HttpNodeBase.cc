@@ -31,7 +31,7 @@ HttpNodeBase::HttpNodeBase()
 
 void HttpNodeBase::initialize(int stage)
 {
-    EV_DEBUG << "Initializing base HTTP browser component -- stage " << stage << endl;
+    //EV_DEBUG << "Initializing base HTTP browser component -- stage " << stage << endl;
 
     cSimpleModule::initialize(stage);
 
@@ -47,7 +47,7 @@ void HttpNodeBase::sendDirectToModule(HttpNodeBase *receiver, cPacket *pckt, sim
     simtime_t delay = constdelay + transmissionDelay(pckt);
     if (rdDelay != nullptr)
         delay += rdDelay->draw();
-    EV_DEBUG << "Sending " << pckt->getName() << " direct to " << getContainingNode(receiver)->getName() << " with a delay of " << delay << " s\n";
+    //EV_DEBUG << "Sending " << pckt->getName() << " direct to " << getContainingNode(receiver)->getName() << " with a delay of " << delay << " s\n";
     sendDirect(pckt, delay, 0, receiver, "httpIn");
 }
 
@@ -66,8 +66,9 @@ void HttpNodeBase::logRequest(const HttpRequestMessage *httpRequest)
         logEntry(formatHttpRequestShort(httpRequest));
     else
         logEntry(formatHttpRequestLong(httpRequest));
-    if (m_bDisplayMessage)
-        EV_INFO << "Request:\n" << formatHttpRequestLong(httpRequest);
+    if (m_bDisplayMessage){
+        //EV_INFO << "Request:\n" << formatHttpRequestLong(httpRequest);
+    }
 }
 
 void HttpNodeBase::logResponse(const HttpReplyMessage *httpResponse)
@@ -78,8 +79,9 @@ void HttpNodeBase::logResponse(const HttpReplyMessage *httpResponse)
         logEntry(formatHttpResponseShort(httpResponse));
     else
         logEntry(formatHttpResponseLong(httpResponse));
-    if (m_bDisplayMessage)
-        EV_INFO << "Response:\n" << formatHttpResponseLong(httpResponse);
+    if (m_bDisplayMessage){
+        //EV_INFO << "Response:\n" << formatHttpResponseLong(httpResponse);
+    }
 }
 
 void HttpNodeBase::logEntry(std::string line)

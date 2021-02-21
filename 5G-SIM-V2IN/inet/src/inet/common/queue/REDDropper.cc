@@ -105,18 +105,18 @@ bool REDDropper::shouldDrop(cPacket *packet)
         const double pa = pb / (1 - count[i] * pb); // TD: Adapted to work as in [Floyd93].
         if (dblrand() < pa)
         {
-            EV << "Random early packet drop (avg queue len=" << avg << ", pa=" << pb << ")\n";
+            //EV << "Random early packet drop (avg queue len=" << avg << ", pa=" << pb << ")\n";
             count[i] = 0;
             return true;
         }
     }
     else if (avg >= maxth) {
-        EV << "Avg queue len " << avg << " >= maxth, dropping packet.\n";
+        //EV << "Avg queue len " << avg << " >= maxth, dropping packet.\n";
         count[i] = 0;
         return true;
     }
     else if (queueLength >= maxth) {    // maxth is also the "hard" limit
-        EV << "Queue len " << queueLength << " >= maxth, dropping packet.\n";
+        //EV << "Queue len " << queueLength << " >= maxth, dropping packet.\n";
         count[i] = 0;
         return true;
     }

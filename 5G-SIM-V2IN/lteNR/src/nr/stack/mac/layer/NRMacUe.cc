@@ -896,7 +896,7 @@ void NRMacUe::checkRAC() {
 
 //EV << NOW << " NRMacUe::checkRAC , Ue  " << nodeId_ << ", racTimer : " << racBackoffTimer_ << " maxRacTryOuts : " << maxRacTryouts_ << ", raRespTimer:" << raRespTimer_ << endl;
 
-// to be set in omnetpp.ini --> if true, the ue do not send a rac request when the last transmission failed (a HARQNACK arrived)
+// to be set in omnetpp.ini --> if true, the ue does not send a rac request when the last transmission failed (a HARQNACK arrived)
 // a new rac request will be sent after a successfull rtx
 	if (rtxSignalisedFlagEnabled) {
 		if (rtxSignalised) {

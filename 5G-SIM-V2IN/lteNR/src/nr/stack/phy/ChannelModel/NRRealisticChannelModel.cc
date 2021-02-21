@@ -472,6 +472,7 @@ std::vector<double> NRRealisticChannelModel::getSINR(LteAirFrame *frame, UserCon
 
 		//cqiDl = true;
 		speed = computeSpeed(ueId, ueCoord, movement);
+
 	}
 	/*
 	 * if direction is DL and this is not a feedback packet,
@@ -556,8 +557,8 @@ std::vector<double> NRRealisticChannelModel::getSINR(LteAirFrame *frame, UserCon
 		speed = computeSpeed(ueId, ueCoord, movement);
 
 	}
-	LteCellInfo *eNbCell = getCellInfo(eNbId);
-	const char *eNbTypeString = eNbCell ? (eNbCell->getEnbType() == MACRO_ENB ? "MACRO" : "MICRO") : "NULL";
+	//LteCellInfo *eNbCell = getCellInfo(eNbId);
+	//const char *eNbTypeString = eNbCell ? (eNbCell->getEnbType() == MACRO_ENB ? "MACRO" : "MICRO") : "NULL";
 
 	double attenuation;
 
@@ -1626,6 +1627,7 @@ bool NRRealisticChannelModel::isCorrupted(LteAirFrame *frame, UserControlInfo *l
 			//EV << " NRRealisticChannelModel::error direction " << dirToA(dir) << " node " << id << " remote unit " << dasToA((*it).first) << " Band " << (*jt).first << " SNR " << snr << " CQI "<< cqi << " BLER " << bler << " success probability " << successPacket << " total success probability " << finalSuccess << endl;
 		}
 	}
+
 	//Compute total error probability
 	double per = 1 - finalSuccess;
 	//Harq Reduction
@@ -1633,12 +1635,21 @@ bool NRRealisticChannelModel::isCorrupted(LteAirFrame *frame, UserControlInfo *l
 
 	double er = omnetpp::uniform(getEnvir()->getRNG(0), 0.0, 1.0);
 
+	LteControlInfo *info = check_and_cast<LteControlInfo*>(lteInfo);
+
 	//EV << " NRRealisticChannelModel::error direction " << dirToA(dir) << " node " << id << " total ERROR probability  " << per << " per with H-ARQ error reduction " << totalPer << " - CQI[" << cqi << "]- random error extracted[" << er << "]" << endl;
 
 	if (er <= totalPer) {
 		//EV << "This is NOT your lucky day (" << er << " < " << totalPer << ") -> do not receive." << endl;
 		// Signal too weak, we can't receive it
 		tmp = false;
+
+		//simplified consideration of codeblockgroups
+		if (getSimulation()->getSystemModule()->par("useCodeBlockGroups").boolValue() && lteInfo->getFrameType() == DATAPKT) {
+			considerCodeBlockGroups(info, nTx, totalPer, frame);
+		}
+		//
+
 	} else {
 		// Signal is strong enough, receive this Signal
 		//EV << "This is your lucky day (" << er << " > " << totalPer << ") -> Receive AirFrame." << endl;
@@ -1657,16 +1668,83 @@ bool NRRealisticChannelModel::isCorrupted(LteAirFrame *frame, UserControlInfo *l
 	}
 
 	//std::cout << "NRRealisticChannelModel::error end at " << simTime().dbl() << std::endl;
+
 	return tmp;
+//	return true;
+}
+
+void NRRealisticChannelModel::considerCodeBlockGroups(LteControlInfo *& info, unsigned char & nTx, double & totalPer, LteAirFrame *& frame){
+
+	//std::cout << "NRRealisticChannelModel::considerCodeBlockGroups start at " << simTime().dbl() << std::endl;
+
+	unsigned int numberOfCodeBlockGroups = getSimulation()->getSystemModule()->par("numberOfCodeBlockGroups").intValue();
+	ASSERT(numberOfCodeBlockGroups == 2 || numberOfCodeBlockGroups == 4 || numberOfCodeBlockGroups == 6 || numberOfCodeBlockGroups == 8);
+	unsigned int wholeTransportBlockByteSize = frame->getByteLength();
+	unsigned int corruptedBytes, bytesOfOneCodeBlockGroup, numberOfCodeBlockGroupToRetransmit = 0;
+
+	//calculate corrupted bytes -> these must be retransmitted
+	corruptedBytes = ceil(wholeTransportBlockByteSize * totalPer);
+
+	if (nTx == 1) {
+
+		//calculate the number of bytes of one codeBlockGroup
+		bytesOfOneCodeBlockGroup = ceil(double(wholeTransportBlockByteSize) / double(numberOfCodeBlockGroups));
+		info->setInitialByteSize(wholeTransportBlockByteSize);
+
+		//if one codeblockgroup is 20 bytes large or less --> do not consider it!
+		if(bytesOfOneCodeBlockGroup <= 20){
+			info->setRestByteSize(wholeTransportBlockByteSize);
+			info->setCodeBlockGroupsActivated(true);
+			info->setNumberOfCodeBlockGroups(numberOfCodeBlockGroups);
+			return;
+		}
+
+	} else {
+
+		//if one codeblockgroup has left --> return
+		if (info->getBlocksForCodeBlockGroups() <= 1) {
+			return;
+		}
+
+		//reduced to the rest size from previous transmission
+		wholeTransportBlockByteSize = info->getRestByteSize();
+
+		//how many bytes in one codeblockgroup
+		bytesOfOneCodeBlockGroup = ceil(double(info->getInitialByteSize()) / double(numberOfCodeBlockGroups));
+
+		//calculate corrupted bytes -> has to be retransmitted
+		//totalPer considers the number of resource blocks which were used for that transmission (not for the first transmission)
+		corruptedBytes = ceil(wholeTransportBlockByteSize * totalPer);
+	}
+
+	for (unsigned int i = 1; i <= numberOfCodeBlockGroups; i++) {
+		//find the numberOfCodeBlockGroups which cover the erroneous bytes
+		if (i * bytesOfOneCodeBlockGroup >= corruptedBytes) {
+			numberOfCodeBlockGroupToRetransmit = i;
+			break;
+		}
+	}
+
+
+	unsigned int numberOfBytesToRetransmit = numberOfCodeBlockGroupToRetransmit * bytesOfOneCodeBlockGroup;
+	//this is needed to guarantee that the original size of the transport block is not exceeded
+	numberOfBytesToRetransmit = min(numberOfBytesToRetransmit, info->getInitialByteSize());
+	info->setRestByteSize(numberOfBytesToRetransmit);
+	info->setCodeBlockGroupsActivated(true);
+	info->setNumberOfCodeBlockGroups(numberOfCodeBlockGroups);
+	info->setBlocksForCodeBlockGroups(numberOfCodeBlockGroupToRetransmit);
+
+	//std::cout << "NRRealisticChannelModel::considerCodeBlockGroups end at " << simTime().dbl() << std::endl;
+
 }
 
 double NRRealisticChannelModel::computeExtCellPathLossNR(double &d3ddistance, double &d2ddistance, const MacNodeId &nodeId) {
 	//std::cout << "NRRealisticChannelModel::computeExtCellPathLossNR start at " << simTime().dbl() << std::endl;
 
-	double movement = .0;
-	double speed = .0;
-
-	speed = computeSpeed(nodeId, myCoord3d, movement);
+//	double movement = .0;
+//	double speed = .0;
+//
+//	speed = computeSpeed(nodeId, myCoord3d, movement);
 
 //compute attenuation based on selected scenario and based on LOS or NLOS
 	double attenuation = 0;
@@ -1831,6 +1909,8 @@ bool NRRealisticChannelModel::computeDownlinkInterference(MacNodeId eNbId, MacNo
 	std::vector<EnbInfo*> *enbList = binder_->getEnbList();
 	std::vector<EnbInfo*>::iterator it = enbList->begin(), et = enbList->end();
 
+	//iterate over all nodeBs and calculate the attenuation measured at the ue
+
 	while (it != et) {
 		MacNodeId id = (*it)->id;
 
@@ -1862,9 +1942,16 @@ bool NRRealisticChannelModel::computeDownlinkInterference(MacNodeId eNbId, MacNo
 			(*it)->init = true;
 		}
 
-		// compute attenuation using data structures within the cell
-		att = dynamic_cast<NRRealisticChannelModel*>((*it)->realChan)->getAttenuationNR(ueId, DL, ueCoord, (*it)->position, false);
-		//EV << "EnbId [" << id << "] - attenuation [" << att << "]" << endl;
+		if ((ueId >= UE_MIN_ID && ueId <= UE_MAX_ID)) {
+			//we use the physical layer from the UE to calculate the attenuation
+			LtePhyBase *uePhy = check_and_cast<LtePhyBase*>(getSimulation()->getModule(binder_->getOmnetId(ueId))->getSubmodule("lteNic")->getSubmodule("phy"));
+			att = dynamic_cast<NRRealisticChannelModel*>(uePhy->getChannelModel())->getAttenuationNR(ueId, DL, ueCoord, (*it)->position, false);
+		} else {
+			//this happens during initialize function, ueId is not determined so far
+			//--> call getAttenuation from cellPhy
+			att = dynamic_cast<NRRealisticChannelModel*>((*it)->realChan)->getAttenuationNR(ueId, DL, ueCoord, (*it)->position, false);
+			//EV << "EnbId [" << id << "] - attenuation [" << att << "]" << endl;
+		}
 
 		//=============== ANGOLAR ATTENUATION =================
 		double angolarAtt = 0;
@@ -1960,8 +2047,10 @@ bool NRRealisticChannelModel::computeUplinkInterference(MacNodeId eNbId, MacNode
 				// get tx power and attenuation from this UE
 				double txPwr = uePhy->getTxPwr(dir) - cableLoss_ + antennaGainUe_ + antennaGainEnB_;
 				LtePhyBase *gNodeBPhy = check_and_cast<LtePhyBase*>(getBinder()->getMacFromMacNodeId(eNbId)->getParentModule()->getSubmodule("phy", 0));
-				double att = getAttenuationNR(ueId, UL, check_and_cast<NRRealisticChannelModel*>(uePhy->getChannelModel())->getMyPosition(),
-						check_and_cast<NRRealisticChannelModel*>(gNodeBPhy->getChannelModel())->getMyPosition(), false);
+//				double att = getAttenuationNR(ueId, UL, check_and_cast<NRRealisticChannelModel*>(uePhy->getChannelModel())->getMyPosition(),
+//						check_and_cast<NRRealisticChannelModel*>(gNodeBPhy->getChannelModel())->getMyPosition(), false);
+				double att = dynamic_cast<NRRealisticChannelModel*>(gNodeBPhy->getChannelModel())->getAttenuationNR(ueId, UL, check_and_cast<NRRealisticChannelModel*>(uePhy->getChannelModel())->getMyPosition(),
+										check_and_cast<NRRealisticChannelModel*>(gNodeBPhy->getChannelModel())->getMyPosition(), false);
 				(*interference)[i] += dBmToLinear(txPwr - att); //(dBm-dB)=dBm
 
 				//EV << "\t band " << i << "/pwr[" << txPwr-att << "]-int[" << (*interference)[i] << "]" << endl;
@@ -2006,8 +2095,10 @@ bool NRRealisticChannelModel::computeUplinkInterference(MacNodeId eNbId, MacNode
 				// get tx power and attenuation from this UE
 				double txPwr = uePhy->getTxPwr(dir) - cableLoss_ + antennaGainUe_ + antennaGainEnB_;
 				LtePhyBase *gNodeBPhy = check_and_cast<LtePhyBase*>(getBinder()->getMacFromMacNodeId(eNbId)->getParentModule()->getSubmodule("phy", 0));
-				double att = getAttenuationNR(ueId, UL, check_and_cast<NRRealisticChannelModel*>(uePhy->getChannelModel())->getMyPosition(),
-						check_and_cast<NRRealisticChannelModel*>(gNodeBPhy->getChannelModel())->getMyPosition(), false);
+//				double att = getAttenuationNR(ueId, UL, check_and_cast<NRRealisticChannelModel*>(uePhy->getChannelModel())->getMyPosition(),
+//						check_and_cast<NRRealisticChannelModel*>(gNodeBPhy->getChannelModel())->getMyPosition(), false);
+				double att = dynamic_cast<NRRealisticChannelModel*>(gNodeBPhy->getChannelModel())->getAttenuationNR(ueId, UL, check_and_cast<NRRealisticChannelModel*>(uePhy->getChannelModel())->getMyPosition(),
+														check_and_cast<NRRealisticChannelModel*>(gNodeBPhy->getChannelModel())->getMyPosition(), false);
 				(*interference)[i] += dBmToLinear(txPwr - att); //(dBm-dB)=dBm
 
 				//EV << "\t band " << i << "/pwr[" << txPwr-att << "]-int[" << (*interference)[i] << "]" << endl;

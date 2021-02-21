@@ -19,7 +19,7 @@
 // @titlepage
 //
 // <center><h1>INET Framework for OMNeT++/OMNEST</h1></center>
-// <center>release ##BUILDID##</center>
+// <center>release 3.7.0-cbd2095364</center>
 //
 // INET Framework contains IPv4, IPv6, TCP, SCTP, UDP protocol implementations,
 // and several application models. The framework also includes an MPLS model

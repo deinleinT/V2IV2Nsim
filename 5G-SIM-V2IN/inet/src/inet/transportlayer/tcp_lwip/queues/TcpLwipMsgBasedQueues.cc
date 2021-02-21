@@ -42,9 +42,7 @@ TcpLwipMsgBasedSendQueue::TcpLwipMsgBasedSendQueue()
 TcpLwipMsgBasedSendQueue::~TcpLwipMsgBasedSendQueue()
 {
     while (!payloadQueueM.empty()) {
-        EV_TRACE << "SendQueue Destructor: Drop msg from " << connM->tcpLwipM.getFullPath()
-                 << " Queue: seqno=" << payloadQueueM.front().endSequenceNo
-                 << ", length=" << payloadQueueM.front().msg->getByteLength() << endl;
+        //EV_TRACE << "SendQueue Destructor: Drop msg from " << connM->tcpLwipM.getFullPath()                 << " Queue: seqno=" << payloadQueueM.front().endSequenceNo                 << ", length=" << payloadQueueM.front().msg->getByteLength() << endl;
         delete payloadQueueM.front().msg;
         payloadQueueM.pop_front();
     }
@@ -114,12 +112,10 @@ TCPSegment *TcpLwipMsgBasedSendQueue::createSegmentWithBytes(const void *tcpData
     if (numBytes && !seqLE(toSeq, endM))
         throw cRuntimeError("Implementation bug");
 
-    EV_DEBUG << "sendQueue: " << connM->connIdM << ": [" << fromSeq << ":" << toSeq
-             << ",l=" << numBytes << "] (unsent bytes:" << unsentTcpLayerBytesM << "\n";
+    //EV_DEBUG << "sendQueue: " << connM->connIdM << ": [" << fromSeq << ":" << toSeq             << ",l=" << numBytes << "] (unsent bytes:" << unsentTcpLayerBytesM << "\n";
 
     for (auto & elem : payloadQueueM) {
-        EV_DEBUG << "  buffered msg: endseq=" << elem.endSequenceNo
-                 << ", length=" << elem.msg->getByteLength() << endl;
+        //EV_DEBUG << "  buffered msg: endseq=" << elem.endSequenceNo                 << ", length=" << elem.msg->getByteLength() << endl;
     }
 
     const char *payloadName = nullptr;
@@ -264,8 +260,7 @@ cPacket *TcpLwipMsgBasedReceiveQueue::extractBytesUpTo()
 
     // remove old messages
     while ((!payloadListM.empty()) && seqLE(payloadListM.front().seqNo, firstSeqNo)) {
-        EV_DEBUG << "Remove old payload MSG: seqno=" << payloadListM.front().seqNo
-                 << ", len=" << payloadListM.front().packet->getByteLength() << endl;
+        //EV_DEBUG << "Remove old payload MSG: seqno=" << payloadListM.front().seqNo                 << ", len=" << payloadListM.front().packet->getByteLength() << endl;
         delete payloadListM.front().packet;
         payloadListM.erase(payloadListM.begin());
     }

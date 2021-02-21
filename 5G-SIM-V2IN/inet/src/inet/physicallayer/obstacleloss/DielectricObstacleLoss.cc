@@ -45,8 +45,8 @@ void DielectricObstacleLoss::initialize(int stage)
 
 void DielectricObstacleLoss::finish()
 {
-    EV_INFO << "Obstacle loss intersection computation count: " << intersectionComputationCount << endl;
-    EV_INFO << "Obstacle loss intersection count: " << intersectionCount << endl;
+    //EV_INFO << "Obstacle loss intersection computation count: " << intersectionComputationCount << endl;
+    //EV_INFO << "Obstacle loss intersection count: " << intersectionCount << endl;
     recordScalar("Obstacle loss intersection computation count", intersectionComputationCount);
     recordScalar("Obstacle loss intersection count", intersectionCount);
 }

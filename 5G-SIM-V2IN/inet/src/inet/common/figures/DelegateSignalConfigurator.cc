@@ -43,7 +43,7 @@ void DelegateSignalConfigurator::configure(cModule *module)
 void DelegateSignalConfigurator::configureDisplaySignal(cModule *module, cProperty *property)
 {
     try {
-        EV_DETAIL << "Processing @" << property->getFullName() << " on " << module->getFullPath() << endl;
+        //EV_DETAIL << "Processing @" << property->getFullName() << " on " << module->getFullPath() << endl;
 
         // find source signal
         cModule *sourceModule;
@@ -90,7 +90,7 @@ void DelegateSignalConfigurator::configureDisplaySignal(cModule *module, cProper
 void DelegateSignalConfigurator::configureDelegateSignal(cModule *module, cProperty *property)
 {
     try {
-        EV_DETAIL << "Processing @" << property->getFullName() << " on " << module->getFullPath() << endl;
+        //EV_DETAIL << "Processing @" << property->getFullName() << " on " << module->getFullPath() << endl;
 
         // parse signals
         cModule *sourceModule, *targetModule;

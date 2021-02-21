@@ -44,7 +44,7 @@ HttpBrowserBase::~HttpBrowserBase()
 
 void HttpBrowserBase::initialize(int stage)
 {
-    EV_DEBUG << "Initializing base HTTP browser component -- stage " << stage << endl;
+    //EV_DEBUG << "Initializing base HTTP browser component -- stage " << stage << endl;
 
     HttpNodeBase::initialize(stage);
 
@@ -139,7 +139,7 @@ void HttpBrowserBase::initialize(int stage)
         eventTimer = new cMessage("eventTimer");
     }
     else if (stage == INITSTAGE_APPLICATION_LAYER) {
-        EV_DEBUG << "Initializing base HTTP browser component -- phase 1\n";
+        //EV_DEBUG << "Initializing base HTTP browser component -- phase 1\n";
 
         NodeStatus *nodeStatus = dynamic_cast<NodeStatus *>(findContainingNode(this)->getSubmodule("status"));
         bool isOperational = (!nodeStatus) || nodeStatus->getState() == NodeStatus::UP;
@@ -149,14 +149,14 @@ void HttpBrowserBase::initialize(int stage)
         std::string scriptFile = par("scriptFile").stdstringValue();
         scriptedMode = !scriptFile.empty();
         if (scriptedMode) {
-            EV_DEBUG << "Scripted mode. Script file: " << scriptFile << endl;
+            //EV_DEBUG << "Scripted mode. Script file: " << scriptFile << endl;
             readScriptedEvents(scriptFile.c_str());
         }
         else {
             double activationTime = par("activationTime");    // This is the activation delay. Optional
             if (rdActivityLength != nullptr)
                 activationTime += (86400.0 - rdActivityLength->draw()) / 2; // First activate after half the sleep period
-            EV_INFO << "Initial activation time is " << activationTime << endl;
+            //EV_INFO << "Initial activation time is " << activationTime << endl;
             eventTimer->setKind(MSGKIND_ACTIVITY_START);
             scheduleAt(simTime() + (simtime_t)activationTime, eventTimer);
         }
@@ -165,14 +165,14 @@ void HttpBrowserBase::initialize(int stage)
 
 void HttpBrowserBase::finish()
 {
-    EV_INFO << "Sessions: " << sessionCount << endl;
-    EV_INFO << "HTML requested " << htmlRequested << "\n";
-    EV_INFO << "HTML received " << htmlReceived << "\n";
-    EV_INFO << "HTML errors received " << htmlErrorsReceived << "\n";
-    EV_INFO << "Image resources requested " << imgResourcesRequested << "\n";
-    EV_INFO << "Image resources received " << imgResourcesReceived << "\n";
-    EV_INFO << "Text resources requested " << textResourcesRequested << "\n";
-    EV_INFO << "Text resources received " << textResourcesReceived << "\n";
+    //EV_INFO << "Sessions: " << sessionCount << endl;
+    //EV_INFO << "HTML requested " << htmlRequested << "\n";
+    //EV_INFO << "HTML received " << htmlReceived << "\n";
+    //EV_INFO << "HTML errors received " << htmlErrorsReceived << "\n";
+    //EV_INFO << "Image resources requested " << imgResourcesRequested << "\n";
+    //EV_INFO << "Image resources received " << imgResourcesReceived << "\n";
+    //EV_INFO << "Text resources requested " << textResourcesRequested << "\n";
+    //EV_INFO << "Text resources received " << textResourcesReceived << "\n";
 
     recordScalar("session.count", sessionCount);
     recordScalar("html.requested", htmlRequested);
@@ -211,40 +211,39 @@ void HttpBrowserBase::handleSelfMessages(cMessage *msg)
 
 void HttpBrowserBase::handleSelfActivityStart()
 {
-    EV_DEBUG << "Starting new activity period @ T=" << simTime() << endl;
+    //EV_DEBUG << "Starting new activity period @ T=" << simTime() << endl;
     eventTimer->setKind(MSGKIND_START_SESSION);
     messagesInCurrentSession = 0;
     reqNoInCurSession = 0;
     double activityPeriodLength = rdActivityLength->draw();    // Get the length of the activity period
     acitivityPeriodEnd = simTime() + activityPeriodLength;    // The end of the activity period
-    EV_INFO << "Activity period starts @ T=" << simTime() << ". Activity period is " << activityPeriodLength / 3600 << " hours." << endl;
+    //EV_INFO << "Activity period starts @ T=" << simTime() << ". Activity period is " << activityPeriodLength / 3600 << " hours." << endl;
     scheduleAt(simTime() + (simtime_t)rdInterSessionInterval->draw() / 2, eventTimer);
 }
 
 void HttpBrowserBase::handleSelfStartSession()
 {
-    EV_DEBUG << "Starting new session @ T=" << simTime() << endl;
+    //EV_DEBUG << "Starting new session @ T=" << simTime() << endl;
     sessionCount++;
     messagesInCurrentSession = 0;
     reqInCurSession = 0;
     reqNoInCurSession = (int)rdReqInSession->draw();
-    EV_INFO << "Starting session # " << sessionCount << " @ T=" << simTime() << ". Requests in session are " << reqNoInCurSession << "\n";
+    //EV_INFO << "Starting session # " << sessionCount << " @ T=" << simTime() << ". Requests in session are " << reqNoInCurSession << "\n";
     sendRequestToRandomServer();
     scheduleNextBrowseEvent();
 }
 
 void HttpBrowserBase::handleSelfNextMessage()
 {
-    EV_DEBUG << "New browse event triggered @ T=" << simTime() << endl;
-    EV_INFO << "Next message in session # " << sessionCount << " @ T=" << simTime() << ". "
-            << "Current request is " << reqInCurSession << "/" << reqNoInCurSession << "\n";
+    //EV_DEBUG << "New browse event triggered @ T=" << simTime() << endl;
+    //EV_INFO << "Next message in session # " << sessionCount << " @ T=" << simTime() << ". "            << "Current request is " << reqInCurSession << "/" << reqNoInCurSession << "\n";
     sendRequestToRandomServer();
     scheduleNextBrowseEvent();
 }
 
 void HttpBrowserBase::handleSelfScriptedEvent()
 {
-    EV_DEBUG << "Scripted browse event @ T=" << simTime() << "\n";
+    //EV_DEBUG << "Scripted browse event @ T=" << simTime() << "\n";
     sessionCount++;
     messagesInCurrentSession = 0;
     // Get the browse event
@@ -256,18 +255,18 @@ void HttpBrowserBase::handleSelfScriptedEvent()
     // Schedule the next event
     if (!browseEvents.empty()) {
         be = browseEvents.back();
-        EV_DEBUG << "Scheduling next event @ " << be.time << "\n";
+        //EV_DEBUG << "Scheduling next event @ " << be.time << "\n";
         eventTimer->setKind(MSGKIND_SCRIPT_EVENT);
         scheduleAt(be.time, eventTimer);
     }
     else {
-        EV_DEBUG << "No more browsing events\n";
+        //EV_DEBUG << "No more browsing events\n";
     }
 }
 
 void HttpBrowserBase::handleSelfDelayedRequestMessage(cMessage *msg)
 {
-    EV_DEBUG << "Sending delayed message " << msg->getName() << " @ T=" << simTime() << endl;
+    //EV_DEBUG << "Sending delayed message " << msg->getName() << " @ T=" << simTime() << endl;
     HttpRequestMessage *reqmsg = check_and_cast<HttpRequestMessage *>(msg);
     reqmsg->setKind(HTTPT_REQUEST_MESSAGE);
     sendRequestToServer(reqmsg);
@@ -286,10 +285,10 @@ void HttpBrowserBase::handleDataMessage(cMessage *msg)
     int serial = appmsg->serial();
 
     std::string senderWWW = appmsg->originatorUrl();
-    EV_DEBUG << "Handling received message from " << senderWWW << ": " << msg->getName() << ". Received @T=" << simTime() << endl;
+    //EV_DEBUG << "Handling received message from " << senderWWW << ": " << msg->getName() << ". Received @T=" << simTime() << endl;
 
     if (appmsg->result() != 200 || (HttpContentType)appmsg->contentType() == CT_UNKNOWN) {
-        EV_INFO << "Result for " << appmsg->getName() << " was other than OK. Code: " << appmsg->result() << endl;
+        //EV_INFO << "Result for " << appmsg->getName() << " was other than OK. Code: " << appmsg->result() << endl;
         htmlErrorsReceived++;
         delete msg;
         return;
@@ -297,40 +296,41 @@ void HttpBrowserBase::handleDataMessage(cMessage *msg)
     else {
         switch ((HttpContentType)appmsg->contentType()) {
             case CT_HTML:
-                EV_INFO << "HTML Document received: " << appmsg->getName() << "'. Size is " << appmsg->getByteLength() << " bytes and serial " << serial << endl;
-                if (strlen(appmsg->payload()) != 0)
-                    EV_DEBUG << "Payload of " << appmsg->getName() << " is: " << endl << appmsg->payload()
-                             << ", " << strlen(appmsg->payload()) << " bytes" << endl;
-                else
-                    EV_DEBUG << appmsg->getName() << " has no referenced resources. No GETs will be issued in parsing" << endl;
+                //EV_INFO << "HTML Document received: " << appmsg->getName() << "'. Size is " << appmsg->getByteLength() << " bytes and serial " << serial << endl;
+                if (strlen(appmsg->payload()) != 0){
+                    //EV_DEBUG << "Payload of " << appmsg->getName() << " is: " << endl << appmsg->payload()                             << ", " << strlen(appmsg->payload()) << " bytes" << endl;
+                }
+                else{
+                    //EV_DEBUG << appmsg->getName() << " has no referenced resources. No GETs will be issued in parsing" << endl;
+                }
                 htmlReceived++;
                 if (hasGUI())
                     bubble("Received a HTML document");
                 break;
 
             case CT_TEXT:
-                EV_INFO << "Text resource received: " << appmsg->getName() << "'. Size is " << appmsg->getByteLength() << " bytes and serial " << serial << endl;
+                //EV_INFO << "Text resource received: " << appmsg->getName() << "'. Size is " << appmsg->getByteLength() << " bytes and serial " << serial << endl;
                 textResourcesReceived++;
                 if (hasGUI())
                     bubble("Received a text resource");
                 break;
 
             case CT_IMAGE:
-                EV_INFO << "Image resource received: " << appmsg->getName() << "'. Size is " << appmsg->getByteLength() << " bytes and serial " << serial << endl;
+                //EV_INFO << "Image resource received: " << appmsg->getName() << "'. Size is " << appmsg->getByteLength() << " bytes and serial " << serial << endl;
                 imgResourcesReceived++;
                 if (hasGUI())
                     bubble("Received an image resource");
                 break;
 
             case CT_UNKNOWN:
-                EV_DEBUG << "UNKNOWN RESOURCE TYPE RECEIVED: " << (HttpContentType)appmsg->contentType() << endl;
+                //EV_DEBUG << "UNKNOWN RESOURCE TYPE RECEIVED: " << (HttpContentType)appmsg->contentType() << endl;
                 if (hasGUI())
                     bubble("Received an unknown resource type");
                 break;
         }
         // Parse the html page body
         if ((HttpContentType)appmsg->contentType() == CT_HTML && strlen(appmsg->payload()) != 0) {
-            EV_DEBUG << "Processing HTML document body:\n";
+            //EV_DEBUG << "Processing HTML document body:\n";
             cStringTokenizer lineTokenizer((const char *)appmsg->payload(), "\n");
             std::vector<std::string> lines = lineTokenizer.asVector();
             std::map<std::string, HttpRequestQueue> requestQueues;
@@ -338,7 +338,7 @@ void HttpBrowserBase::handleDataMessage(cMessage *msg)
                 cStringTokenizer fieldTokenizer(resourceLine.c_str(), ";");
                 std::vector<std::string> fields = fieldTokenizer.asVector();
                 if (fields.size() < 1) {
-                    EV_ERROR << "Invalid resource reference in received message: " << resourceLine << endl;
+                    //EV_ERROR << "Invalid resource reference in received message: " << resourceLine << endl;
                     continue;
                 }
                 // Get the resource name -- this is mandatory for all references
@@ -360,8 +360,7 @@ void HttpBrowserBase::handleDataMessage(cMessage *msg)
                 if (fields.size() > 4)
                     refSize = safeatoi(fields[4].c_str());
 
-                EV_DEBUG << "Generating resource request: " << resourceName << ". Provider: " << providerName
-                         << ", delay: " << delay << ", bad: " << bad << ", ref.size: " << refSize << endl;
+                //EV_DEBUG << "Generating resource request: " << resourceName << ". Provider: " << providerName                         << ", delay: " << delay << ", bad: " << bad << ", ref.size: " << refSize << endl;
 
                 // Generate a request message and push on queue for the intended recipient
                 HttpRequestMessage *reqmsg = generateResourceRequest(providerName, resourceName, serial++, bad, refSize);    // TODO: KVJ: CHECK HERE FOR XSITE
@@ -387,10 +386,10 @@ void HttpBrowserBase::handleDataMessage(cMessage *msg)
 
 HttpRequestMessage *HttpBrowserBase::generatePageRequest(std::string www, std::string pageName, bool bad, int size)
 {
-    EV_DEBUG << "Generating page request for URL " << www << ", page " << pageName << endl;
+    //EV_DEBUG << "Generating page request for URL " << www << ", page " << pageName << endl;
 
     if (www.size() + pageName.size() > MAX_URL_LENGTH) {
-        EV_ERROR << "URL for site " << www << " exceeds allowed maximum size" << endl;
+        //EV_ERROR << "URL for site " << www << " exceeds allowed maximum size" << endl;
         return nullptr;
     }
 
@@ -421,23 +420,23 @@ HttpRequestMessage *HttpBrowserBase::generatePageRequest(std::string www, std::s
 
 HttpRequestMessage *HttpBrowserBase::generateRandomPageRequest(std::string www, bool bad, int size)
 {
-    EV_DEBUG << "Generating random page request, URL: " << www << endl;
+    //EV_DEBUG << "Generating random page request, URL: " << www << endl;
     return generatePageRequest(www, "random_page.html", bad, size);
 }
 
 HttpRequestMessage *HttpBrowserBase::generateResourceRequest(std::string www, std::string resource, int serial, bool bad, int size)
 {
-    EV_DEBUG << "Generating resource request for URL " << www << ", resource: " << resource << endl;
+    //EV_DEBUG << "Generating resource request for URL " << www << ", resource: " << resource << endl;
 
     if (www.size() + resource.size() > MAX_URL_LENGTH) {
-        EV_ERROR << "URL for site " << www << " exceeds allowed maximum size" << endl;
+        //EV_ERROR << "URL for site " << www << " exceeds allowed maximum size" << endl;
         return nullptr;
     }
 
     long requestLength = (long)rdRequestSize->draw() + size;
 
     if (resource.empty()) {
-        EV_ERROR << "Unable to request resource -- empty resource string" << endl;
+        //EV_ERROR << "Unable to request resource -- empty resource string" << endl;
         return nullptr;
     }
     else if (resource[0] != '/')
@@ -478,7 +477,7 @@ void HttpBrowserBase::scheduleNextBrowseEvent()
         if (rdActivityLength == nullptr || simTime() < acitivityPeriodEnd) {
             // Scheduling next session start within an activity period.
             nextEventTime = simTime() + (simtime_t)rdInterSessionInterval->draw();
-            EV_INFO << "Scheduling a new session start @ T=" << nextEventTime << endl;
+            //EV_INFO << "Scheduling a new session start @ T=" << nextEventTime << endl;
             messagesInCurrentSession = 0;
             eventTimer->setKind(MSGKIND_START_SESSION);
             scheduleAt(nextEventTime, eventTimer);
@@ -488,7 +487,7 @@ void HttpBrowserBase::scheduleNextBrowseEvent()
             // when the user is near his workstation and periodically browsing the web. Inactivity periods then
             // correspond to sleep time or time away from the office
             simtime_t activationTime = simTime() + (simtime_t)(86400.0 - rdActivityLength->draw());    // Sleep for a while
-            EV_INFO << "Terminating current activity @ T=" << simTime() << ". Next activation time is " << activationTime << endl;
+            //EV_INFO << "Terminating current activity @ T=" << simTime() << ". Next activation time is " << activationTime << endl;
             eventTimer->setKind(MSGKIND_ACTIVITY_START);
             scheduleAt(activationTime, eventTimer);
         }
@@ -496,8 +495,7 @@ void HttpBrowserBase::scheduleNextBrowseEvent()
     else {
         // Schedule another browse event in a while.
         nextEventTime = simTime() + (simtime_t)rdInterRequestInterval->draw();
-        EV_INFO << "Scheduling a browse event @ T=" << nextEventTime
-                << ". Request " << reqInCurSession << " of " << reqNoInCurSession << endl;
+        //EV_INFO << "Scheduling a browse event @ T=" << nextEventTime                << ". Request " << reqInCurSession << " of " << reqNoInCurSession << endl;
         eventTimer->setKind(MSGKIND_NEXT_MESSAGE);
         scheduleAt(nextEventTime, eventTimer);
     }
@@ -505,7 +503,7 @@ void HttpBrowserBase::scheduleNextBrowseEvent()
 
 void HttpBrowserBase::readScriptedEvents(const char *filename)
 {
-    EV_DEBUG << "Reading scripted events from " << filename << "\n";
+    //EV_DEBUG << "Reading scripted events from " << filename << "\n";
 
     std::ifstream scriptfilestream;
     scriptfilestream.open(filename);
@@ -544,7 +542,7 @@ void HttpBrowserBase::readScriptedEvents(const char *filename)
         if (be.serverModule == nullptr)
             throw cRuntimeError("Unable to locate server %s in the scenario", wwwpart.c_str());
 
-        EV_DEBUG << "Creating scripted browse event @ T=" << t << ", " << be.wwwhost << " / " << be.resourceName << endl;
+        //EV_DEBUG << "Creating scripted browse event @ T=" << t << ", " << be.wwwhost << " / " << be.resourceName << endl;
         browseEvents.push_front(be);
     }
     scriptfilestream.close();

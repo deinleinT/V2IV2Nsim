@@ -231,7 +231,7 @@ uint32 TCPVirtualDataRcvQueue::getQueueLength()
 
 void TCPVirtualDataRcvQueue::getQueueStatus()
 {
-    EV_DEBUG << "receiveQLength=" << regionList.size() << " " << str() << "\n";
+    //EV_DEBUG << "receiveQLength=" << regionList.size() << " " << str() << "\n";
 }
 
 uint32 TCPVirtualDataRcvQueue::getLE(uint32 fromSeqNum)

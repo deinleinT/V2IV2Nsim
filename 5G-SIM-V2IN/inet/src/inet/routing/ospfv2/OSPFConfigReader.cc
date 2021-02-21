@@ -114,7 +114,7 @@ void OSPFConfigReader::loadAreaFromXML(const cXMLElement& asConfig, AreaID areaI
         throw cRuntimeError("No configuration for Area ID: %s at %s", areaID.str(false).c_str(), asConfig.getSourceLocation());
     }
     else {
-        EV_DEBUG << "    loading info for Area id = " << areaID.str(false) << "\n";
+        //EV_DEBUG << "    loading info for Area id = " << areaID.str(false) << "\n";
     }
 
     Area *area = new Area(ift, areaID);
@@ -221,7 +221,7 @@ void OSPFConfigReader::loadInterfaceParameters(const cXMLElement& ifConfig)
 
     std::string interfaceType = ifConfig.getTagName();
 
-    EV_DEBUG << "        loading " << interfaceType << " " << ie->getName() << " (ifIndex=" << ifIndex << ")\n";
+    //EV_DEBUG << "        loading " << interfaceType << " " << ie->getName() << " (ifIndex=" << ifIndex << ")\n";
 
     intf->setIfIndex(ift, ifIndex);
     if (interfaceType == "PointToPointInterface") {
@@ -314,7 +314,7 @@ void OSPFConfigReader::loadExternalRoute(const cXMLElement& externalRouteConfig)
     //RoutingTableEntry externalRoutingEntry; // only used here to keep the path cost calculation in one place
     IPv4AddressRange networkAddress;
 
-    EV_DEBUG << "        loading ExternalInterface " << ie->getName() << " ifIndex[" << ifIndex << "]\n";
+    //EV_DEBUG << "        loading ExternalInterface " << ie->getName() << " ifIndex[" << ifIndex << "]\n";
 
     joinMulticastGroups(ifIndex);
 
@@ -367,7 +367,7 @@ void OSPFConfigReader::loadHostRoute(const cXMLElement& hostRouteConfig)
 
     hostParameters.ifIndex = ifIndex;
 
-    EV_DEBUG << "        loading HostInterface " << ie->getName() << " ifIndex[" << ifIndex << "]\n";
+    //EV_DEBUG << "        loading HostInterface " << ie->getName() << " ifIndex[" << ifIndex << "]\n";
 
     joinMulticastGroups(hostParameters.ifIndex);
 
@@ -391,7 +391,7 @@ void OSPFConfigReader::loadVirtualLink(const cXMLElement& virtualLinkConfig)
     std::string endPoint = getRequiredAttribute(virtualLinkConfig, "endPointRouterID");
     Neighbor *neighbor = new Neighbor;
 
-    EV_DEBUG << "        loading VirtualLink to " << endPoint << "\n";
+    //EV_DEBUG << "        loading VirtualLink to " << endPoint << "\n";
 
     intf->setType(Interface::VIRTUAL);
     neighbor->setNeighborID(ipv4AddressFromAddressString(endPoint.c_str()));
@@ -450,7 +450,7 @@ bool OSPFConfigReader::loadConfigFromXML(cXMLElement *asConfig, Router *ospfRout
         throw cRuntimeError("No configuration for Router '%s' at '%s'", nodeFullPath.c_str(), asConfig->getSourceLocation());
     }
 
-    EV_DEBUG << "OSPFConfigReader: Loading info for Router " << nodeFullPath << "\n";
+    //EV_DEBUG << "OSPFConfigReader: Loading info for Router " << nodeFullPath << "\n";
 
     bool rfc1583Compatible = getBoolAttrOrPar(*routerNode, "RFC1583Compatible");
     ospfRouter->setRFC1583Compatibility(rfc1583Compatible);

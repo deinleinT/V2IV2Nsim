@@ -56,7 +56,7 @@ bool NodeStatus::handleOperationStage(LifecycleOperation *operation, int opStage
     cModule *node = getContainingNode(this);
     if (dynamic_cast<NodeStartOperation *>(operation)) {
         if (opStage == 0) {
-            EV << node->getFullPath() << " starting up" << endl;
+            //EV << node->getFullPath() << " starting up" << endl;
             if (getState() != DOWN)
                 throw cRuntimeError("Current node status is not 'down' at NodeStartOperation");
             setState(GOING_UP);
@@ -65,13 +65,13 @@ bool NodeStatus::handleOperationStage(LifecycleOperation *operation, int opStage
         if (opStage == operation->getNumStages() - 1) {
             ASSERT(getState() == GOING_UP);
             setState(UP);
-            EV << node->getFullPath() << " started" << endl;
+            //EV << node->getFullPath() << " started" << endl;
             node->bubble("Node started");
         }
     }
     else if (dynamic_cast<NodeShutdownOperation *>(operation)) {
         if (opStage == 0) {
-            EV << node->getFullPath() << " shutting down" << endl;
+            //EV << node->getFullPath() << " shutting down" << endl;
             if (getState() != UP)
                 throw cRuntimeError("Current node status is not 'up' at NodeShutdownOperation");
             setState(GOING_DOWN);
@@ -80,13 +80,13 @@ bool NodeStatus::handleOperationStage(LifecycleOperation *operation, int opStage
         if (opStage == operation->getNumStages() - 1) {
             ASSERT(getState() == GOING_DOWN);
             setState(DOWN);
-            EV << node->getFullPath() << " shut down" << endl;
+            //EV << node->getFullPath() << " shut down" << endl;
             node->bubble("Node shut down");
         }
     }
     else if (dynamic_cast<NodeCrashOperation *>(operation)) {
         if (opStage == 0) {
-            EV << node->getFullPath() << " crashing" << endl;
+            //EV << node->getFullPath() << " crashing" << endl;
             if (getState() != UP)
                 throw cRuntimeError("Current node status is not 'up' at NodeCrashOperation");
             setState(GOING_DOWN);
@@ -95,7 +95,7 @@ bool NodeStatus::handleOperationStage(LifecycleOperation *operation, int opStage
         if (opStage == operation->getNumStages() - 1) {
             ASSERT(getState() == GOING_DOWN);
             setState(DOWN);
-            EV << node->getFullPath() << " crashed" << endl;
+            //EV << node->getFullPath() << " crashed" << endl;
             node->bubble("Node crashed");
         }
     }

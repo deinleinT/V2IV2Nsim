@@ -109,7 +109,7 @@ bool PIMBase::handleNodeStart(IDoneCallback *doneCallback)
     }
 
     if (isEnabled) {
-        EV_INFO << "PIM is enabled on device " << hostname << endl;
+        //EV_INFO << "PIM is enabled on device " << hostname << endl;
         helloTimer = new cMessage("PIM HelloTimer", HelloTimer);
         scheduleAt(simTime() + par("triggeredHelloDelay").doubleValue(), helloTimer);
     }
@@ -135,7 +135,7 @@ void PIMBase::handleNodeCrash()
 void PIMBase::processHelloTimer(cMessage *timer)
 {
     ASSERT(timer == helloTimer);
-    EV_DETAIL << "Hello Timer expired.\n";
+    //EV_DETAIL << "Hello Timer expired.\n";
     sendHelloPackets();
     scheduleAt(simTime() + helloPeriod, helloTimer);
 }
@@ -151,7 +151,7 @@ void PIMBase::sendHelloPackets()
 
 void PIMBase::sendHelloPacket(PIMInterface *pimInterface)
 {
-    EV_INFO << "Sending Hello packet on interface '" << pimInterface->getInterfacePtr()->getName() << "'\n";
+    //EV_INFO << "Sending Hello packet on interface '" << pimInterface->getInterfacePtr()->getName() << "'\n";
 
     PIMHello *msg = new PIMHello("PIMHello");
 
@@ -212,7 +212,7 @@ void PIMBase::processHelloPacket(PIMHello *packet)
 
     InterfaceEntry *ie = ift->getInterfaceById(interfaceId);
 
-    EV_INFO << "Received PIM Hello from neighbor: interface=" << ie->getName() << " address=" << address << "\n";
+    //EV_INFO << "Received PIM Hello from neighbor: interface=" << ie->getName() << " address=" << address << "\n";
 
     PIMNeighbor *neighbor = pimNbt->findNeighbor(interfaceId, address);
     if (neighbor)

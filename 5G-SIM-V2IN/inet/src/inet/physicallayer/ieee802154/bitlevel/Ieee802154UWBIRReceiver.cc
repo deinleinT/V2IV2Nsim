@@ -68,7 +68,7 @@ bool Ieee802154UWBIRReceiver::computeIsReceptionSuccessful(const IListening *lis
     bool isReceptionSuccessful = true;
     for (int i = 0; i < bitLength; i++) {
         bool bitValue = bits->at(i);
-        EV_INFO << "Received bit at " << i << " is " << (int)bitValue << endl;
+        //EV_INFO << "Received bit at " << i << " is " << (int)bitValue << endl;
     }
     // KLUDGE: check fake CRC
     for (int i = 0; i < 8; i++) {

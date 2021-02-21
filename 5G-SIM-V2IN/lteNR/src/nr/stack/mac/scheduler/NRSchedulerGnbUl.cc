@@ -110,6 +110,21 @@ bool NRSchedulerGnbUl::racschedule() {
 					}
 				}
 			}
+			//default behavior from simuLTE
+//			blocks = 1;
+//			for (Band b = 0; b < numBands; ++b) {
+//				if (allocator_->availableBlocks(nodeId, MACRO, b) > 0) {
+//					unsigned int bytes = mac_->getAmc()->computeBytesOnNRbs(nodeId, b, cw, blocks, UL);
+//					if (bytes > 0) {
+//						allocator_->addBlocks(MACRO, b, nodeId, 1, bytes);
+//						sumReqBlocks = 1;
+//						sumBytes = bytes;
+//
+//						allocation = true;
+//						break;
+//					}
+//				}
+//			}
 		} else {
 
 			for (Band b = 0; b < numBands; ++b) {
@@ -148,7 +163,7 @@ bool NRSchedulerGnbUl::racschedule() {
 			std::pair<unsigned int, Codeword> scListId = std::pair<unsigned int, Codeword>(cid, cw);
 			scheduleList_[scListId].first = sumReqBlocks;
 			scheduleList_[scListId].second = sumBytes;
-			allocation = false;
+
 		}
 	}
 
@@ -613,6 +628,7 @@ unsigned int NRSchedulerGnbUl::schedulePerAcidRtxWithNRHarq(MacNodeId nodeId, Co
 		}
 		// get current process buffered PDU byte length
 		unsigned int bytes = currentProcess->getByteLength(cw);
+
 		// bytes to serve
 		int toServe = bytes;
 		// blocks to allocate for each band

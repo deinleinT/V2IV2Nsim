@@ -34,7 +34,7 @@ BitVector Ieee80211OFDMInterleaver::interleave(const BitVector& deinterleavedBit
     if (deinterleavedBits.getSize() % numberOfCodedBitsPerSymbol)
         throw cRuntimeError("deinterleavedBits length = %d must be a multiple of numberOfCodedBitsPerSymbol = %d", deinterleavedBits.getSize(), numberOfCodedBitsPerSymbol);
     int numberOfSymbols = deinterleavedBits.getSize() / numberOfCodedBitsPerSymbol;
-    EV_DEBUG << "Interleaving the following bits: " << deinterleavedBits << endl;
+    //EV_DEBUG << "Interleaving the following bits: " << deinterleavedBits << endl;
     BitVector interleavedBits;
     for (int i = 0; i < numberOfSymbols; i++) {
         for (int j = 0; j < numberOfCodedBitsPerSymbol; j++) {
@@ -48,7 +48,7 @@ BitVector Ieee80211OFDMInterleaver::interleave(const BitVector& deinterleavedBit
             interleavedBits.setBit(shiftedSecondPerm, deinterleavedBits.getBit(i * numberOfCodedBitsPerSymbol + j));
         }
     }
-    EV_DEBUG << "The interleaved bits are: " << interleavedBits << endl;
+    //EV_DEBUG << "The interleaved bits are: " << interleavedBits << endl;
     return interleavedBits;
 }
 
@@ -56,7 +56,7 @@ BitVector Ieee80211OFDMInterleaver::deinterleave(const BitVector& interleavedBit
 {
     if (interleavedBits.getSize() % numberOfCodedBitsPerSymbol)
         throw cRuntimeError("interleavedBits length must be a multiple of numberOfCodedBitsPerSymbol = %d", numberOfCodedBitsPerSymbol);
-    EV_DEBUG << "Deinterleaving the following bits: " << interleavedBits << endl;
+    //EV_DEBUG << "Deinterleaving the following bits: " << interleavedBits << endl;
     int numberOfSymbols = interleavedBits.getSize() / numberOfCodedBitsPerSymbol;
     BitVector deinterleavedBits;
     for (int i = 0; i < numberOfSymbols; i++) {
@@ -70,7 +70,7 @@ BitVector Ieee80211OFDMInterleaver::deinterleave(const BitVector& interleavedBit
             deinterleavedBits.setBit(shiftedSecondPerm, interleavedBits.getBit(i * numberOfCodedBitsPerSymbol + j));
         }
     }
-    EV_DEBUG << "The deinterleaved bits are: " << deinterleavedBits << endl;
+    //EV_DEBUG << "The deinterleaved bits are: " << deinterleavedBits << endl;
     return deinterleavedBits;
 }
 

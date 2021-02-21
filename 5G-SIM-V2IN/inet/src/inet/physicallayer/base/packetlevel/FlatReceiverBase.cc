@@ -66,7 +66,7 @@ const IListeningDecision *FlatReceiverBase::computeListeningDecision(const IList
     W maxPower = narrowbandNoise->computeMaxPower(listening->getStartTime(), listening->getEndTime());
     bool isListeningPossible = maxPower >= energyDetection;
     delete noise;
-    EV_DEBUG << "Computing whether listening is possible: maximum power = " << maxPower << ", energy detection = " << energyDetection << " -> listening is " << (isListeningPossible ? "possible" : "impossible") << endl;
+    //EV_DEBUG << "Computing whether listening is possible: maximum power = " << maxPower << ", energy detection = " << energyDetection << " -> listening is " << (isListeningPossible ? "possible" : "impossible") << endl;
     return new ListeningDecision(listening, isListeningPossible);
 }
 
@@ -79,7 +79,7 @@ bool FlatReceiverBase::computeIsReceptionPossible(const IListening *listening, c
         const FlatReceptionBase *flatReception = check_and_cast<const FlatReceptionBase *>(reception);
         W minReceptionPower = flatReception->computeMinPower(reception->getStartTime(part), reception->getEndTime(part));
         bool isReceptionPossible = minReceptionPower >= sensitivity;
-        EV_DEBUG << "Computing whether reception is possible: minimum reception power = " << minReceptionPower << ", sensitivity = " << sensitivity << " -> reception is " << (isReceptionPossible ? "possible" : "impossible") << endl;
+        //EV_DEBUG << "Computing whether reception is possible: minimum reception power = " << minReceptionPower << ", sensitivity = " << sensitivity << " -> reception is " << (isReceptionPossible ? "possible" : "impossible") << endl;
         return isReceptionPossible;
     }
 }

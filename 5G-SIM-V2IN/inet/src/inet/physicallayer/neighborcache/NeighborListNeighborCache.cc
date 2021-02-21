@@ -129,7 +129,7 @@ void NeighborListNeighborCache::removeRadio(const IRadio *radio)
 
 void NeighborListNeighborCache::updateNeighborLists()
 {
-    EV_DETAIL << "Updating the neighbor lists" << endl;
+    //EV_DETAIL << "Updating the neighbor lists" << endl;
     for (auto & elem : radios)
         updateNeighborList(elem);
 }

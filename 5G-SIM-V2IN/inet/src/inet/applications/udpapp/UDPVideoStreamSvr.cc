@@ -73,7 +73,7 @@ void UDPVideoStreamSvr::handleMessageWhenUp(cMessage *msg)
         processStreamRequest(msg);
     }
     else if (msg->getKind() == UDP_I_ERROR) {
-        EV_WARN << "Ignoring UDP error report\n";
+        //EV_WARN << "Ignoring UDP error report\n";
         delete msg;
     }
     else {

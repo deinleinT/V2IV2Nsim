@@ -55,7 +55,7 @@ void Rx::initialize(int stage)
 void Rx::handleMessage(cMessage *msg)
 {
     if (msg == endNavTimer) {
-        EV_INFO << "The radio channel has become free according to the NAV" << std::endl;
+        //EV_INFO << "The radio channel has become free according to the NAV" << std::endl;
         recomputeMediumFree();
     }
     else
@@ -69,14 +69,14 @@ bool Rx::lowerFrameReceived(Ieee80211Frame *frame)
 
     bool isFrameOk = isFcsOk(frame);
     if (isFrameOk) {
-        EV_INFO << "Received frame from PHY: " << frame << endl;
+        //EV_INFO << "Received frame from PHY: " << frame << endl;
         if (frame->getReceiverAddress() != address)
             setOrExtendNav(frame->getDuration());
 //        statistics->frameReceived(frame);
         return true;
     }
     else {
-        EV_INFO << "Received an erroneous frame from PHY, dropping it." << std::endl;
+        //EV_INFO << "Received an erroneous frame from PHY, dropping it." << std::endl;
         delete frame;
         for (auto contention : contentions)
             contention->corruptedFrameReceived();
@@ -147,7 +147,7 @@ void Rx::setOrExtendNav(simtime_t navInterval)
                 return;    // never decrease NAV
             cancelEvent(endNavTimer);
         }
-        EV_INFO << "Setting NAV to " << navInterval << std::endl;
+        //EV_INFO << "Setting NAV to " << navInterval << std::endl;
         scheduleAt(endNav, endNavTimer);
         recomputeMediumFree();
     }

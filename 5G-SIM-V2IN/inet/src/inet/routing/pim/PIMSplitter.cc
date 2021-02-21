@@ -61,7 +61,7 @@ void PIMSplitter::handleMessage(cMessage *msg)
             processPIMPacket(pimPacket);
         }
         else if (dynamic_cast<ICMPMessage *>(msg)) {
-            EV_WARN << "Received ICMP error, ignoring.\n";
+            //EV_WARN << "Received ICMP error, ignoring.\n";
             delete msg;
         }
         else
@@ -74,7 +74,7 @@ void PIMSplitter::handleMessage(cMessage *msg)
         }
         else {
             // Send other packets to the network layer
-            EV_INFO << "Received packet from PIM module, sending it to the network." << endl;
+            //EV_INFO << "Received packet from PIM module, sending it to the network." << endl;
             send(msg, ipOut);
         }
     }
@@ -88,23 +88,23 @@ void PIMSplitter::processPIMPacket(PIMPacket *pkt)
     InterfaceEntry *ie = ift->getInterfaceById(ctrlInfo->getInterfaceId());
     ASSERT(ie);
 
-    EV_INFO << "Received packet on interface '" << ie->getName() << "'" << endl;
+    //EV_INFO << "Received packet on interface '" << ie->getName() << "'" << endl;
 
     PIMInterface *pimInt = pimIft->getInterfaceById(ie->getInterfaceId());
     if (!pimInt) {
-        EV_WARN << "PIM is not enabled on interface '" << ie->getName() << "', dropping packet." << endl;
+        //EV_WARN << "PIM is not enabled on interface '" << ie->getName() << "', dropping packet." << endl;
         delete pkt;
         return;
     }
 
     switch (pimInt->getMode()) {
         case PIMInterface::DenseMode:
-            EV_INFO << "Sending packet to PIMDM.\n";
+            //EV_INFO << "Sending packet to PIMDM.\n";
             send(pkt, pimDMOut);
             break;
 
         case PIMInterface::SparseMode:
-            EV_INFO << "Sending packet to PIMSM.\n";
+            //EV_INFO << "Sending packet to PIMSM.\n";
             send(pkt, pimSMOut);
             break;
 

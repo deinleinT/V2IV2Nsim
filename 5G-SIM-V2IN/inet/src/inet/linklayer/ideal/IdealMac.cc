@@ -167,7 +167,7 @@ void IdealMac::startTransmitting(cPacket *msg)
         frame->setSrcModuleId(-1);
 
     // send
-    EV << "Starting transmission of " << frame << endl;
+    //EV << "Starting transmission of " << frame << endl;
     radio->setRadioMode(fullDuplex ? IRadio::RADIO_MODE_TRANSCEIVER : IRadio::RADIO_MODE_TRANSMITTER);
     sendDown(frame);
 }
@@ -191,7 +191,7 @@ void IdealMac::handleUpperPacket(cPacket *msg)
     }
     else {
         // We are idle, so we can start transmitting right away.
-        EV << "Received " << msg << " for transmission\n";
+        //EV << "Received " << msg << " for transmission\n";
         startTransmitting(msg);
     }
 }
@@ -200,7 +200,7 @@ void IdealMac::handleLowerPacket(cPacket *msg)
 {
     IdealMacFrame *frame = check_and_cast<IdealMacFrame *>(msg);
     if (frame->hasBitError()) {
-        EV << "Received " << frame << " contains bit errors or collision, dropping it\n";
+        //EV << "Received " << frame << " contains bit errors or collision, dropping it\n";
         // TODO: add reason? emit(LayeredProtocolBase::packetFromLowerDroppedSignal, frame);
         delete frame;
         return;
@@ -214,7 +214,7 @@ void IdealMac::handleLowerPacket(cPacket *msg)
             senderMac->acked(frame);
         // decapsulate and attach control info
         cPacket *higherlayerMsg = decapsulate(frame);
-        EV << "Passing up contained packet `" << higherlayerMsg->getName() << "' to higher layer\n";
+        //EV << "Passing up contained packet `" << higherlayerMsg->getName() << "' to higher layer\n";
         sendUp(higherlayerMsg);
     }
 }
@@ -222,7 +222,7 @@ void IdealMac::handleLowerPacket(cPacket *msg)
 void IdealMac::handleSelfMessage(cMessage *message)
 {
     if (message == ackTimeoutMsg) {
-        EV_DETAIL << "IdealMac: timeout: " << lastSentPk->getFullName() << " is lost\n";
+        //EV_DETAIL << "IdealMac: timeout: " << lastSentPk->getFullName() << " is lost\n";
         // packet lost
         emit(NF_LINK_BREAK, lastSentPk);
         delete lastSentPk;
@@ -239,17 +239,18 @@ void IdealMac::acked(IdealMacFrame *frame)
     Enter_Method_Silent();
     ASSERT(useAck);
 
-    EV_DEBUG << "IdealMac::acked(" << frame->getFullName() << ") is ";
+    //EV_DEBUG << "IdealMac::acked(" << frame->getFullName() << ") is ";
 
     if (lastSentPk && lastSentPk->getTreeId() == frame->getTreeId()) {
-        EV_DEBUG << "accepted\n";
+        //EV_DEBUG << "accepted\n";
         cancelEvent(ackTimeoutMsg);
         delete lastSentPk;
         lastSentPk = nullptr;
         getNextMsgFromHL();
     }
-    else
-        EV_DEBUG << "unaccepted\n";
+    else{
+        //EV_DEBUG << "unaccepted\n";
+    }
 }
 
 IdealMacFrame *IdealMac::encapsulate(cPacket *msg)
@@ -283,7 +284,7 @@ bool IdealMac::dropFrameNotForUs(IdealMacFrame *frame)
     if (promiscuous || frame->getDest().isMulticast())
         return false;
 
-    EV << "Frame `" << frame->getName() << "' not destined to us, discarding\n";
+    //EV << "Frame `" << frame->getName() << "' not destined to us, discarding\n";
     emit(dropPkNotForUsSignal, frame);
     delete frame;
     return true;

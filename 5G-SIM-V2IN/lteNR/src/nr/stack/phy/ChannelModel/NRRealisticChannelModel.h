@@ -55,10 +55,6 @@ public:
 		losMap_.erase(nodeId);
 		lastComputedSF_.erase(nodeId);
 		jakesFadingMap_.erase(nodeId);
-		losMap_.erase(nodeId);
-		lastComputedSF_.erase(nodeId);
-		jakesFadingMap_.erase(nodeId);
-//        }
 	}
 	inet::Coord& getMyPosition() {
 		Enter_Method_Silent
@@ -144,11 +140,13 @@ protected:
 	bool computeMultiCellInterferenceNR(const MacNodeId &eNbId, const MacNodeId &ueId, const inet::Coord &uecoord, bool isCqi, std::vector<double> &interference, Direction dir,
 			const Coord &enodebcoord);
 
+	void considerCodeBlockGroups(LteControlInfo *& info, unsigned char & nTx, double & totalPer, LteAirFrame *& frame);
+
 	 /* compute speed (m/s) for a given node
 	   * @param nodeid mac node id of UE
 	   * @return the speed in m/s
 	   */
-	virtual double computeSpeed(const MacNodeId nodeId, const inet::Coord coord, double & mov);
+	virtual double computeSpeed(const MacNodeId nodeId, const inet::Coord coord, double & mov) override;
 
 	virtual bool computeUplinkInterference(MacNodeId eNbId, MacNodeId senderId, bool isCqi, RbMap rbmap, std::vector<double> *interference);
 	virtual bool computeDownlinkInterference(MacNodeId eNbId, MacNodeId ueId, inet::Coord ueCoord, bool isCqi, RbMap rbmap, std::vector<double> *interference);

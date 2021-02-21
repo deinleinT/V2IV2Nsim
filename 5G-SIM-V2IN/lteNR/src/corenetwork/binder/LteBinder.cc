@@ -33,7 +33,7 @@ void LteBinder::unregisterNode(MacNodeId id)
     //EV << NOW << " LteBinder::unregisterNode - unregistering node " << id << endl;
 
     if(nodeIds_.erase(id) != 1){
-        EV_ERROR << "Cannot unregister node - node id \"" << id << "\" - not found";
+        //EV_ERROR << "Cannot unregister node - node id \"" << id << "\" - not found";
     }
     std::map<IPv4Address, MacNodeId>::iterator it;
     for(it = macNodeIdToIPAddress_.begin(); it != macNodeIdToIPAddress_.end(); )
@@ -397,7 +397,7 @@ bool LteBinder::checkD2DCapability(MacNodeId src, MacNodeId dst)
         }
         else
         {
-            EV << "LteBinder::checkD2DCapability - UE " << src << " may not transmit to UE " << dst << " using D2D (UE " << dst << " is not D2D capable)" << endl;
+            //EV << "LteBinder::checkD2DCapability - UE " << src << " may not transmit to UE " << dst << " using D2D (UE " << dst << " is not D2D capable)" << endl;
             // this is not a D2D-capable flow
             return false;
         }

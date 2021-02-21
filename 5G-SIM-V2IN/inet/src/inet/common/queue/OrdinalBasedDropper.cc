@@ -39,10 +39,10 @@ void OrdinalBasedDropper::initialize()
     parseVector(vector);
 
     if (dropsVector.size() == 0) {
-        EV << "DropsGenerator: Empty dropsVector" << endl;
+        //EV << "DropsGenerator: Empty dropsVector" << endl;
     }
     else {
-        EV << "DropsGenerator: dropsVector=" << vector << endl;
+        //EV << "DropsGenerator: dropsVector=" << vector << endl;
         generateFurtherDrops = true;
     }
 }
@@ -54,13 +54,13 @@ void OrdinalBasedDropper::handleMessage(cMessage *msg)
 
     if (generateFurtherDrops) {
         if (numPackets == dropsVector[0]) {
-            EV << "DropsGenerator: Dropping packet number " << numPackets << " " << msg << endl;
+            //EV << "DropsGenerator: Dropping packet number " << numPackets << " " << msg << endl;
             emit(dropPkSignal, msg);
             delete msg;
             numDropped++;
             dropsVector.erase(dropsVector.begin());
             if (dropsVector.size() == 0) {
-                EV << "DropsGenerator: End of dropsVector reached." << endl;
+                //EV << "DropsGenerator: End of dropsVector reached." << endl;
                 generateFurtherDrops = false;
             }
             return;    // drop message

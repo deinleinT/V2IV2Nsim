@@ -38,7 +38,7 @@ double Ieee80211YansErrorModel::getBpskBer(double snr, Hz signalSpread, bps phyR
     double EbNo = snr * signalSpread.get() / phyRate.get();
     double z = sqrt(EbNo);
     double ber = 0.5 * erfc(z);
-    EV << "bpsk snr=" << snr << " ber=" << ber << endl;
+    //EV << "bpsk snr=" << snr << " ber=" << ber << endl;
     return ber;
 }
 
@@ -49,7 +49,7 @@ double Ieee80211YansErrorModel::getQamBer(double snr, unsigned int m, Hz signalS
     double z1 = ((1.0 - 1.0 / sqrt((double)m)) * erfc(z));
     double z2 = 1 - pow((1 - z1), 2.0);
     double ber = z2 / log2(m);
-    EV << "Qam m=" << m << " rate=" << phyRate << " snr=" << snr << " ber=" << ber << endl;
+    //EV << "Qam m=" << m << " rate=" << phyRate << " snr=" << snr << " ber=" << ber << endl;
     return ber;
 }
 
@@ -200,7 +200,7 @@ double Ieee80211YansErrorModel::getHeaderSuccessRate(const IIeee80211Mode* mode,
         successRate = getDSSSAndHrDSSSChunkSuccessRate(hrDsssMode->getHeaderMode()->getNetBitrate(), bitLength, snr);
     else
         throw cRuntimeError("Unsupported 802.11 mode");
-    EV_DEBUG << "Min SNIR = " << snr << ", header bit length = " << bitLength << ", header error rate = " << 1 - successRate << endl;
+    //EV_DEBUG << "Min SNIR = " << snr << ", header bit length = " << bitLength << ", header error rate = " << 1 - successRate << endl;
     if (successRate >= 1)
         successRate = 1;
     return successRate;
@@ -222,7 +222,7 @@ double Ieee80211YansErrorModel::getDataSuccessRate(const IIeee80211Mode* mode, u
         successRate = getDSSSAndHrDSSSChunkSuccessRate(hrDsssMode->getDataMode()->getNetBitrate(), bitLength, snr);
     else
         throw cRuntimeError("Unsupported 802.11 mode");
-    EV_DEBUG << "Min SNIR = " << snr << ", data bit length = " << bitLength << ", data error rate = " << 1 - successRate << endl;
+    //EV_DEBUG << "Min SNIR = " << snr << ", data bit length = " << bitLength << ", data error rate = " << 1 - successRate << endl;
     if (successRate >= 1)
         successRate = 1;
     return successRate;

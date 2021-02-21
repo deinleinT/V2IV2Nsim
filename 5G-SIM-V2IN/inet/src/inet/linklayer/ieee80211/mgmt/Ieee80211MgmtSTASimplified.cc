@@ -42,7 +42,7 @@ void Ieee80211MgmtSTASimplified::handleTimer(cMessage *msg)
 void Ieee80211MgmtSTASimplified::handleUpperMessage(cPacket *msg)
 {
     if (accessPointAddress.isUnspecified()) {
-        EV << "STA is not associated with an access point, discarding packet " << msg << "\n";
+        //EV << "STA is not associated with an access point, discarding packet " << msg << "\n";
         delete msg;
         return;
     }

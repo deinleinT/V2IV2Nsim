@@ -204,7 +204,7 @@ cPacket *ICMPv6Serializer::deserialize(const Buffer &b, Context& context)
         }
 
         default: {
-            EV_ERROR << "Can not parse ICMP packet: type " << type << " not supported.";
+            //EV_ERROR << "Can not parse ICMP packet: type " << type << " not supported.";
             return nullptr;
         }
     }

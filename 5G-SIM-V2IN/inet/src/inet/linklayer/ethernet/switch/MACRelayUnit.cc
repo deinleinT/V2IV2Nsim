@@ -49,7 +49,7 @@ void MACRelayUnit::initialize(int stage)
 void MACRelayUnit::handleMessage(cMessage *msg)
 {
     if (!isOperational) {
-        EV << "Message '" << msg << "' arrived when module status is down, dropped it\n";
+        //EV << "Message '" << msg << "' arrived when module status is down, dropped it\n";
         delete msg;
         return;
     }
@@ -70,7 +70,7 @@ void MACRelayUnit::handleAndDispatchFrame(EtherFrame *frame)
 
     // handle broadcast frames first
     if (frame->getDest().isBroadcast()) {
-        EV << "Broadcasting broadcast frame " << frame << endl;
+        //EV << "Broadcasting broadcast frame " << frame << endl;
         broadcastFrame(frame, inputport);
         return;
     }
@@ -81,20 +81,19 @@ void MACRelayUnit::handleAndDispatchFrame(EtherFrame *frame)
     // should not send out the same frame on the same ethernet port
     // (although wireless ports are ok to receive the same message)
     if (inputport == outputport) {
-        EV << "Output port is same as input port, " << frame->getFullName()
-           << " dest " << frame->getDest() << ", discarding frame\n";
+        //EV << "Output port is same as input port, " << frame->getFullName()           << " dest " << frame->getDest() << ", discarding frame\n";
         numDiscardedFrames++;
         delete frame;
         return;
     }
 
     if (outputport >= 0) {
-        EV << "Sending frame " << frame << " with dest address " << frame->getDest() << " to port " << outputport << endl;
+        //EV << "Sending frame " << frame << " with dest address " << frame->getDest() << " to port " << outputport << endl;
         emit(LayeredProtocolBase::packetSentToLowerSignal, frame);
         send(frame, "ifOut", outputport);
     }
     else {
-        EV << "Dest address " << frame->getDest() << " unknown, broadcasting frame " << frame << endl;
+        //EV << "Dest address " << frame->getDest() << " unknown, broadcasting frame " << frame << endl;
         broadcastFrame(frame, inputport);
     }
 }

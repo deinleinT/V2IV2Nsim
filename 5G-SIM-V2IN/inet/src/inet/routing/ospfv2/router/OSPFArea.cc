@@ -407,7 +407,7 @@ void Area::ageDatabase()
             lsa->getHeader().setLsAge(lsAge + 1);
             if ((lsAge + 1) % CHECK_AGE == 0) {
                 if (!lsa->validateLSChecksum()) {
-                    EV_ERROR << "Invalid LS checksum. Memory error detected!\n";
+                    //EV_ERROR << "Invalid LS checksum. Memory error detected!\n";
                 }
             }
             lsa->incrementInstallTime();
@@ -500,7 +500,7 @@ void Area::ageDatabase()
             lsa->getHeader().setLsAge(lsAge + 1);
             if ((lsAge + 1) % CHECK_AGE == 0) {
                 if (!lsa->validateLSChecksum()) {
-                    EV_ERROR << "Invalid LS checksum. Memory error detected!\n";
+                    //EV_ERROR << "Invalid LS checksum. Memory error detected!\n";
                 }
             }
             lsa->incrementInstallTime();
@@ -595,7 +595,7 @@ void Area::ageDatabase()
             lsa->getHeader().setLsAge(lsAge + 1);
             if ((lsAge + 1) % CHECK_AGE == 0) {
                 if (!lsa->validateLSChecksum()) {
-                    EV_ERROR << "Invalid LS checksum. Memory error detected!\n";
+                    //EV_ERROR << "Invalid LS checksum. Memory error detected!\n";
                 }
             }
             lsa->incrementInstallTime();

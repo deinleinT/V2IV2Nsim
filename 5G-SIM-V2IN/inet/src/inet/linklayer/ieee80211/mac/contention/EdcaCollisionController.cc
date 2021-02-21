@@ -34,7 +34,7 @@ void EdcaCollisionController::expectedChannelAccess(Edcaf *edcaf, simtime_t time
 {
     //Enter_Method("recordTxStartTime(%d)", edcaf->getAccessCategory());
     auto ac = edcaf->getAccessCategory();
-    EV_INFO << "The expected channel access of the " << printAccessCategory(ac) << " queue is: " << time << std::endl;
+    //EV_INFO << "The expected channel access of the " << printAccessCategory(ac) << " queue is: " << time << std::endl;
     txStartTimes[ac] = time;
 }
 

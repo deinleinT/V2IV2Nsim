@@ -53,14 +53,15 @@ void EtherBus::initialize()
     std::vector<double> pos = cStringTokenizer(par("positions").stringValue()).asDoubleVector();
     int numPos = pos.size();
 
-    if (numPos > numTaps)
-        EV << "Note: `positions' parameter contains more values (" << numPos << ") than "
-                                                                                "the number of taps (" << numTaps << "), ignoring excess values.\n";
-    else if (numPos < numTaps && numPos >= 2)
-        EV << "Note: `positions' parameter contains less values (" << numPos << ") than "
-                                                                                "the number of taps (" << numTaps << "), repeating distance between last 2 positions.\n";
-    else if (numPos < numTaps && numPos < 2)
-        EV << "Note: `positions' parameter contains too few values, using 5m distances.\n";
+    if (numPos > numTaps){
+        //EV << "Note: `positions' parameter contains more values (" << numPos << ") than "                                                         "the number of taps (" << numTaps << "), ignoring excess values.\n";
+    }
+    else if (numPos < numTaps && numPos >= 2){
+        //EV << "Note: `positions' parameter contains less values (" << numPos << ") than "                                                                                "the number of taps (" << numTaps << "), repeating distance between last 2 positions.\n";
+    }
+    else if (numPos < numTaps && numPos < 2){
+        //EV << "Note: `positions' parameter contains too few values, using 5m distances.\n";
+    }
 
     tap = new BusTap[numTaps];
 
@@ -78,19 +79,17 @@ void EtherBus::initialize()
     }
 
     // Prints out data of parameters for parameter checking...
-    EV << "Parameters of (" << getClassName() << ") " << getFullPath() << "\n";
-    EV << "propagationSpeed: " << propagationSpeed << "\n";
+    //EV << "Parameters of (" << getClassName() << ") " << getFullPath() << "\n";
+    //EV << "propagationSpeed: " << propagationSpeed << "\n";
 
     // Calculate propagation of delays between tap points on the bus
     for (i = 0; i < numTaps; i++) {
         // Propagation delay between adjacent tap points
         tap[i].propagationDelay[UPSTREAM] = (i > 0) ? tap[i - 1].propagationDelay[DOWNSTREAM] : 0;
         tap[i].propagationDelay[DOWNSTREAM] = (i + 1 < numTaps) ? (tap[i + 1].position - tap[i].position) / propagationSpeed : 0;
-        EV << "tap[" << i << "] pos: " << tap[i].position
-           << "  upstream delay: " << tap[i].propagationDelay[UPSTREAM]
-           << "  downstream delay: " << tap[i].propagationDelay[DOWNSTREAM] << endl;
+        //EV << "tap[" << i << "] pos: " << tap[i].position           << "  upstream delay: " << tap[i].propagationDelay[UPSTREAM]           << "  downstream delay: " << tap[i].propagationDelay[DOWNSTREAM] << endl;
     }
-    EV << "\n";
+    //EV << "\n";
 
     // ensure we receive frames when their first bits arrive
     for (int i = 0; i < numTaps; i++)
@@ -117,7 +116,7 @@ void EtherBus::checkConnections(bool errorWhenAsymmetric)
             if (errorWhenAsymmetric)
                 throw cRuntimeError("The input or output gate not connected at tap %i", i);
             dataratesDiffer = true;
-            EV << "The input or output gate not connected at tap " << i << ".\n";
+            //EV << "The input or output gate not connected at tap " << i << ".\n";
             continue;
         }
 
@@ -130,7 +129,7 @@ void EtherBus::checkConnections(bool errorWhenAsymmetric)
             if (errorWhenAsymmetric)
                 throw cRuntimeError("The input datarate at tap %i differs from datarates of previous taps", i);
             dataratesDiffer = true;
-            EV << "The input datarate at tap " << i << " differs from datarates of previous taps.\n";
+            //EV << "The input datarate at tap " << i << " differs from datarates of previous taps.\n";
         }
 
         cChannel *outTrChannel = ogate->getTransmissionChannel();
@@ -140,7 +139,7 @@ void EtherBus::checkConnections(bool errorWhenAsymmetric)
             if (errorWhenAsymmetric)
                 throw cRuntimeError("The output datarate at tap %i differs from datarates of previous taps", i);
             dataratesDiffer = true;
-            EV << "The output datarate at tap " << i << " differs from datarates of previous taps.\n";
+            //EV << "The output datarate at tap " << i << " differs from datarates of previous taps.\n";
         }
 
         if (!outTrChannel->isSubscribed(POST_MODEL_CHANGE, this))
@@ -196,7 +195,7 @@ void EtherBus::handleMessage(cMessage *msg)
     if (!msg->isSelfMessage()) {
         // Handle frame sent down from the network entity
         int tapPoint = msg->getArrivalGate()->getIndex();
-        EV << "Frame " << msg << " arrived on tap " << tapPoint << endl;
+        //EV << "Frame " << msg << " arrived on tap " << tapPoint << endl;
 
         // create upstream and downstream events
         if (tapPoint > 0) {
@@ -226,7 +225,7 @@ void EtherBus::handleMessage(cMessage *msg)
         BusTap *thistap = (BusTap *)msg->getContextPointer();
         int tapPoint = thistap->id;
 
-        EV << "Event " << msg << " on tap " << tapPoint << ", sending out frame\n";
+        //EV << "Event " << msg << " on tap " << tapPoint << ", sending out frame\n";
 
         // send out on gate
         bool isLast = (direction == UPSTREAM) ? (tapPoint == 0) : (tapPoint == numTaps - 1);
@@ -247,10 +246,10 @@ void EtherBus::handleMessage(cMessage *msg)
 
         // if not end of the bus, schedule for next tap
         if (isLast) {
-            EV << "End of bus reached\n";
+            //EV << "End of bus reached\n";
         }
         else {
-            EV << "Scheduling for next tap\n";
+            //EV << "Scheduling for next tap\n";
             int nextTap = (direction == UPSTREAM) ? (tapPoint - 1) : (tapPoint + 1);
             msg->setContextPointer(&tap[nextTap]);
             scheduleAt(simTime() + tap[tapPoint].propagationDelay[direction], msg);

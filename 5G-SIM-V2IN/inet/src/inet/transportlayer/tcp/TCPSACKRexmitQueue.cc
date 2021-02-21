@@ -50,14 +50,12 @@ std::string TCPSACKRexmitQueue::str() const
 
 void TCPSACKRexmitQueue::info() const
 {
-    EV_DETAIL << str() << endl;
+    //EV_DETAIL << str() << endl;
 
     uint j = 1;
 
     for (const auto & elem : rexmitQueue) {
-        EV_DETAIL << j << ". region: [" << elem.beginSeqNum << ".." << elem.endSeqNum
-                  << ") \t sacked=" << elem.sacked << "\t rexmitted=" << elem.rexmitted
-                  << endl;
+        //EV_DETAIL << j << ". region: [" << elem.beginSeqNum << ".." << elem.endSeqNum                  << ") \t sacked=" << elem.sacked << "\t rexmitted=" << elem.rexmitted                  << endl;
         j++;
     }
 }
@@ -91,7 +89,7 @@ void TCPSACKRexmitQueue::enqueueSentData(uint32 fromSeqNum, uint32 toSeqNum)
     bool found = false;
     Region region;
 
-    EV_INFO << "rexmitQ: " << str() << " enqueueSentData [" << fromSeqNum << ".." << toSeqNum << ")\n";
+    //EV_INFO << "rexmitQ: " << str() << " enqueueSentData [" << fromSeqNum << ".." << toSeqNum << ")\n";
 
     ASSERT(seqLess(fromSeqNum, toSeqNum));
 
@@ -149,7 +147,7 @@ void TCPSACKRexmitQueue::enqueueSentData(uint32 fromSeqNum, uint32 toSeqNum)
     ASSERT(fromSeqNum == toSeqNum);
 
     if (!found) {
-        EV_DEBUG << "Not found enqueueSentData(" << fromSeqNum << ", " << toSeqNum << ")\nThe Queue is:\n";
+        //EV_DEBUG << "Not found enqueueSentData(" << fromSeqNum << ", " << toSeqNum << ")\nThe Queue is:\n";
         info();
     }
 
@@ -178,7 +176,7 @@ bool TCPSACKRexmitQueue::checkQueue() const
     f = f && (b == end);
 
     if (!f) {
-        EV_DEBUG << "Invalid Queue\nThe Queue is:\n";
+        //EV_DEBUG << "Invalid Queue\nThe Queue is:\n";
         info();
     }
 
@@ -231,8 +229,9 @@ void TCPSACKRexmitQueue::setSackedBit(uint32 fromSeqNum, uint32 toSeqNum)
         }
     }
 
-    if (!found)
-        EV_DETAIL << "FAILED to set sacked bit for region: [" << fromSeqNum << ".." << toSeqNum << "). Not found in retransmission queue.\n";
+    if (!found){
+        //EV_DETAIL << "FAILED to set sacked bit for region: [" << fromSeqNum << ".." << toSeqNum << "). Not found in retransmission queue.\n";
+    }
 
     ASSERT(checkQueue());
 }

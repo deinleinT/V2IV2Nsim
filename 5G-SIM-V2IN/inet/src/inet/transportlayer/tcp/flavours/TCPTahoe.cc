@@ -56,8 +56,7 @@ void TCPTahoe::processRexmitTimer(TCPEventCode& event)
     if (cwndVector)
         cwndVector->record(state->snd_cwnd);
 
-    EV_INFO << "Begin Slow Start: resetting cwnd to " << state->snd_cwnd
-            << ", ssthresh=" << state->ssthresh << "\n";
+    //EV_INFO << "Begin Slow Start: resetting cwnd to " << state->snd_cwnd            << ", ssthresh=" << state->ssthresh << "\n";
 
     state->afterRto = true;
 
@@ -73,7 +72,7 @@ void TCPTahoe::receivedDataAck(uint32 firstSeqAcked)
     // Perform slow start and congestion avoidance.
     //
     if (state->snd_cwnd < state->ssthresh) {
-        EV_DETAIL << "cwnd <= ssthresh: Slow Start: increasing cwnd by SMSS bytes to ";
+        //EV_DETAIL << "cwnd <= ssthresh: Slow Start: increasing cwnd by SMSS bytes to ";
 
         // perform Slow Start. RFC 2581: "During slow start, a TCP increments cwnd
         // by at most SMSS bytes for each ACK received that acknowledges new data."
@@ -90,7 +89,7 @@ void TCPTahoe::receivedDataAck(uint32 firstSeqAcked)
         if (cwndVector)
             cwndVector->record(state->snd_cwnd);
 
-        EV_DETAIL << "cwnd=" << state->snd_cwnd << "\n";
+        //EV_DETAIL << "cwnd=" << state->snd_cwnd << "\n";
     }
     else {
         // perform Congestion Avoidance (RFC 2581)
@@ -112,7 +111,7 @@ void TCPTahoe::receivedDataAck(uint32 firstSeqAcked)
         // would require maintaining a bytes_acked variable here which we don't do
         //
 
-        EV_DETAIL << "cwnd>ssthresh: Congestion Avoidance: increasing cwnd linearly, to " << state->snd_cwnd << "\n";
+        //EV_DETAIL << "cwnd>ssthresh: Congestion Avoidance: increasing cwnd linearly, to " << state->snd_cwnd << "\n";
     }
 
     // ack and/or cwnd increase may have freed up some room in the window, try sending
@@ -124,7 +123,7 @@ void TCPTahoe::receivedDuplicateAck()
     TCPTahoeRenoFamily::receivedDuplicateAck();
 
     if (state->dupacks == DUPTHRESH) {    // DUPTHRESH = 3
-        EV_DETAIL << "Tahoe on dupAcks == DUPTHRESH(=3): perform Fast Retransmit, and enter Slow Start:\n";
+        //EV_DETAIL << "Tahoe on dupAcks == DUPTHRESH(=3): perform Fast Retransmit, and enter Slow Start:\n";
 
         // enter Slow Start
         recalculateSlowStartThreshold();
@@ -133,7 +132,7 @@ void TCPTahoe::receivedDuplicateAck()
         if (cwndVector)
             cwndVector->record(state->snd_cwnd);
 
-        EV_DETAIL << "Set cwnd=" << state->snd_cwnd << ", ssthresh=" << state->ssthresh << "\n";
+        //EV_DETAIL << "Set cwnd=" << state->snd_cwnd << ", ssthresh=" << state->ssthresh << "\n";
 
         // Fast Retransmission: retransmit missing segment without waiting
         // for the REXMIT timer to expire

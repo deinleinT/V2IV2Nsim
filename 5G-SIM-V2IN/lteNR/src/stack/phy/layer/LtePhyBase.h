@@ -155,6 +155,10 @@ class LtePhyBase : public ChannelAccess
      */
     ~LtePhyBase();
 
+    virtual void checkConnection(){
+    	//overwritten in NRPhyUe;
+    };
+
     LteChannelModel* getChannelModel()
     {
         Enter_Method_Silent("getChannelModel");

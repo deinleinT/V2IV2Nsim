@@ -80,7 +80,7 @@ void IPv4NetworkConfigurator::initialize(int stage)
 
 void IPv4NetworkConfigurator::computeConfiguration()
 {
-    EV_INFO << "Computing static network configuration (addresses and routes).\n";
+    //EV_INFO << "Computing static network configuration (addresses and routes).\n";
     long initializeStartTime = clock();
     topology.clear();
     // extract topology into the Topology object, then fill in a LinkInfo[] vector
@@ -139,7 +139,7 @@ void IPv4NetworkConfigurator::dumpConfiguration()
 void IPv4NetworkConfigurator::configureAllInterfaces()
 {
     ensureConfigurationComputed(topology);
-    EV_INFO << "Configuring all network interfaces.\n";
+    //EV_INFO << "Configuring all network interfaces.\n";
     for (int i = 0; i < topology.getNumNodes(); i++) {
         Node *node = (Node *)topology.getNode(i);
         for (auto & elem : node->interfaceInfos) {
@@ -164,7 +164,7 @@ void IPv4NetworkConfigurator::configureInterface(InterfaceEntry *interfaceEntry)
 void IPv4NetworkConfigurator::configureAllRoutingTables()
 {
     ensureConfigurationComputed(topology);
-    EV_INFO << "Configuring all routing tables.\n";
+    //EV_INFO << "Configuring all routing tables.\n";
     for (int i = 0; i < topology.getNumNodes(); i++) {
         Node *node = (Node *)topology.getNode(i);
         if (node->routingTable)
@@ -185,7 +185,7 @@ void IPv4NetworkConfigurator::configureRoutingTable(IIPv4RoutingTable *routingTa
 
 void IPv4NetworkConfigurator::configureInterface(InterfaceInfo *interfaceInfo)
 {
-    EV_DETAIL << "Configuring network interface " << interfaceInfo->getFullPath() << ".\n";
+    //EV_DETAIL << "Configuring network interface " << interfaceInfo->getFullPath() << ".\n";
     InterfaceEntry *interfaceEntry = interfaceInfo->interfaceEntry;
     IPv4InterfaceData *interfaceData = interfaceEntry->ipv4Data();
     if (interfaceInfo->mtu != -1)
@@ -203,7 +203,7 @@ void IPv4NetworkConfigurator::configureInterface(InterfaceInfo *interfaceInfo)
 
 void IPv4NetworkConfigurator::configureRoutingTable(Node *node)
 {
-    EV_DETAIL << "Configuring routing table of " << node->getModule()->getFullPath() << ".\n";
+    //EV_DETAIL << "Configuring routing table of " << node->getModule()->getFullPath() << ".\n";
     for (int i = 0; i < (int)node->staticRoutes.size(); i++) {
         IPv4Route *original = node->staticRoutes[i];
         IPv4Route *clone = new IPv4Route();
@@ -341,8 +341,8 @@ void IPv4NetworkConfigurator::collectCompatibleInterfaces(const std::vector<Inte
         uint32 candidateAddressSpecifiedBits = candidateInterface->addressSpecifiedBits;
         uint32 candidateNetmask = candidateInterface->netmask;
         uint32 candidateNetmaskSpecifiedBits = candidateInterface->netmaskSpecifiedBits;
-        EV_TRACE << "Trying to merge " << ie->getFullPath() << " interface with address specification: " << IPv4Address(candidateAddress) << " / " << IPv4Address(candidateAddressSpecifiedBits) << endl;
-        EV_TRACE << "Trying to merge " << ie->getFullPath() << " interface with netmask specification: " << IPv4Address(candidateNetmask) << " / " << IPv4Address(candidateNetmaskSpecifiedBits) << endl;
+        //EV_TRACE << "Trying to merge " << ie->getFullPath() << " interface with address specification: " << IPv4Address(candidateAddress) << " / " << IPv4Address(candidateAddressSpecifiedBits) << endl;
+        //EV_TRACE << "Trying to merge " << ie->getFullPath() << " interface with netmask specification: " << IPv4Address(candidateNetmask) << " / " << IPv4Address(candidateNetmaskSpecifiedBits) << endl;
 
         // determine merged netmask bits
         uint32 commonNetmaskSpecifiedBits = mergedNetmaskSpecifiedBits & candidateNetmaskSpecifiedBits;
@@ -376,13 +376,13 @@ void IPv4NetworkConfigurator::collectCompatibleInterfaces(const std::vector<Inte
 
         // add interface to the list of compatible interfaces
         compatibleInterfaces.push_back(candidateInterface);
-        EV_TRACE << "Merged address specification: " << IPv4Address(mergedAddress) << " / " << IPv4Address(mergedAddressSpecifiedBits) << " / " << IPv4Address(mergedAddressIncompatibleBits) << endl;
-        EV_TRACE << "Merged netmask specification: " << IPv4Address(mergedNetmask) << " / " << IPv4Address(mergedNetmaskSpecifiedBits) << " / " << IPv4Address(mergedNetmaskIncompatibleBits) << endl;
+        //EV_TRACE << "Merged address specification: " << IPv4Address(mergedAddress) << " / " << IPv4Address(mergedAddressSpecifiedBits) << " / " << IPv4Address(mergedAddressIncompatibleBits) << endl;
+        //EV_TRACE << "Merged netmask specification: " << IPv4Address(mergedNetmask) << " / " << IPv4Address(mergedNetmaskSpecifiedBits) << " / " << IPv4Address(mergedNetmaskIncompatibleBits) << endl;
     }
     // sort compatibleInterfaces moving the most constrained interfaces first
     // (stable sort tp garantee identical order if the interfaces are similarly constrained)
     std::stable_sort(compatibleInterfaces.begin(), compatibleInterfaces.end(), compareInterfaceInfos);
-    EV_TRACE << "Found " << compatibleInterfaces.size() << " compatible interfaces" << endl;
+    //EV_TRACE << "Found " << compatibleInterfaces.size() << " compatible interfaces" << endl;
 }
 
 void IPv4NetworkConfigurator::assignAddresses(Topology& topology)
@@ -423,7 +423,7 @@ void IPv4NetworkConfigurator::assignAddresses(Topology& topology)
             int compatibleInterfaceCount = compatibleInterfaces.size() + 2;
             int interfaceAddressBitCount = getRepresentationBitCount(compatibleInterfaceCount);
             maximumNetmaskLength = std::min(maximumNetmaskLength, bitSize - interfaceAddressBitCount);
-            EV_TRACE << "Netmask valid length range: " << minimumNetmaskLength << " - " << maximumNetmaskLength << endl;
+            //EV_TRACE << "Netmask valid length range: " << minimumNetmaskLength << " - " << maximumNetmaskLength << endl;
 
             // STEP 3.
             // determine network address and network netmask by iterating through valid netmasks from longest to shortest
@@ -434,7 +434,7 @@ void IPv4NetworkConfigurator::assignAddresses(Topology& topology)
             for (netmaskLength = maximumNetmaskLength; netmaskLength >= minimumNetmaskLength; netmaskLength--) {
                 ASSERT(netmaskLength < bitSize);
                 networkNetmask = ~(~((uint32)0) >> netmaskLength);
-                EV_TRACE << "Trying network netmask: " << IPv4Address(networkNetmask) << " : " << netmaskLength << endl;
+                //EV_TRACE << "Trying network netmask: " << IPv4Address(networkNetmask) << " : " << netmaskLength << endl;
                 networkAddress = mergedAddress & mergedAddressSpecifiedBits & networkNetmask;
                 uint32 networkAddressUnspecifiedBits = ~mergedAddressSpecifiedBits & networkNetmask;    // 1 means the network address unspecified
                 uint32 networkAddressUnspecifiedPartMaximum = 0;
@@ -442,7 +442,7 @@ void IPv4NetworkConfigurator::assignAddresses(Topology& topology)
                     uint32 assignedNetworkAddress = assignedNetworkAddresses[i];
                     uint32 assignedNetworkNetmask = assignedNetworkNetmasks[i];
                     uint32 assignedNetworkAddressMaximum = assignedNetworkAddress | ~assignedNetworkNetmask;
-                    EV_TRACE << "Checking against assigned network address " << IPv4Address(assignedNetworkAddress) << endl;
+                    //EV_TRACE << "Checking against assigned network address " << IPv4Address(assignedNetworkAddress) << endl;
                     if ((assignedNetworkAddress & ~networkAddressUnspecifiedBits) == (networkAddress & ~networkAddressUnspecifiedBits)) {
                         uint32 assignedAddressUnspecifiedPart = getPackedBits(assignedNetworkAddressMaximum, networkAddressUnspecifiedBits);
                         if (assignedAddressUnspecifiedPart > networkAddressUnspecifiedPartMaximum)
@@ -450,12 +450,12 @@ void IPv4NetworkConfigurator::assignAddresses(Topology& topology)
                     }
                 }
                 uint32 networkAddressUnspecifiedPartLimit = getPackedBits(~(uint32)0, networkAddressUnspecifiedBits) + (uint32)1;
-                EV_TRACE << "Counting from: " << networkAddressUnspecifiedPartMaximum + (uint32)1 << " to: " << networkAddressUnspecifiedPartLimit << endl;
+                //EV_TRACE << "Counting from: " << networkAddressUnspecifiedPartMaximum + (uint32)1 << " to: " << networkAddressUnspecifiedPartLimit << endl;
 
                 // we start with +1 so that the network address will be more likely different
                 for (uint32 networkAddressUnspecifiedPart = networkAddressUnspecifiedPartMaximum; networkAddressUnspecifiedPart <= networkAddressUnspecifiedPartLimit; networkAddressUnspecifiedPart++) {
                     networkAddress = setPackedBits(networkAddress, networkAddressUnspecifiedBits, networkAddressUnspecifiedPart);
-                    EV_TRACE << "Trying network address: " << IPv4Address(networkAddress) << endl;
+                    //EV_TRACE << "Trying network address: " << IPv4Address(networkAddress) << endl;
 
                     // count interfaces that have the same address prefix
                     int interfaceCount = 0;
@@ -465,7 +465,7 @@ void IPv4NetworkConfigurator::assignAddresses(Topology& topology)
 
                     if (assignDisjunctSubnetAddressesParameter && interfaceCount != 0)
                         continue;
-                    EV_TRACE << "Matching interface count: " << interfaceCount << endl;
+                    //EV_TRACE << "Matching interface count: " << interfaceCount << endl;
 
                     // check if there's enough room for the interface addresses
                     if ((1 << (bitSize - netmaskLength)) >= interfaceCount + compatibleInterfaceCount)
@@ -476,9 +476,9 @@ void IPv4NetworkConfigurator::assignAddresses(Topology& topology)
                 throw cRuntimeError("Failed to find address prefix (using %s with specified bits %s) and netmask (length from %d bits to %d bits) for interface %s and %d other interface(s). Please refine your parameters and try again!",
                         IPv4Address(mergedAddress).str().c_str(), IPv4Address(mergedAddressSpecifiedBits).str().c_str(), minimumNetmaskLength, maximumNetmaskLength,
                         compatibleInterfaces[0]->interfaceEntry->getFullPath().c_str(), compatibleInterfaces.size() - 1);
-            EV_TRACE << "Selected netmask length: " << netmaskLength << endl;
-            EV_TRACE << "Selected network address: " << IPv4Address(networkAddress) << endl;
-            EV_TRACE << "Selected network netmask: " << IPv4Address(networkNetmask) << endl;
+            //EV_TRACE << "Selected netmask length: " << netmaskLength << endl;
+            //EV_TRACE << "Selected network address: " << IPv4Address(networkAddress) << endl;
+            //EV_TRACE << "Selected network netmask: " << IPv4Address(networkNetmask) << endl;
 
             // STEP 4.
             // determine the complete IP address for all compatible interfaces
@@ -510,7 +510,7 @@ void IPv4NetworkConfigurator::assignAddresses(Topology& topology)
                 assignedInterfaceAddresses.push_back(completeAddress);
 
                 // configure interface with the selected address and netmask
-                EV_DEBUG << "Setting interface address, interface = " << compatibleInterface->getFullPath() << ", address = " << IPv4Address(completeAddress) << ", netmask = " << IPv4Address(completeNetmask) << endl;
+                //EV_DEBUG << "Setting interface address, interface = " << compatibleInterface->getFullPath() << ", address = " << IPv4Address(completeAddress) << ", netmask = " << IPv4Address(completeNetmask) << endl;
                 compatibleInterface->address = completeAddress;
                 compatibleInterface->addressSpecifiedBits = 0xFFFFFFFF;
                 compatibleInterface->netmask = completeNetmask;
@@ -605,7 +605,7 @@ void IPv4NetworkConfigurator::readInterfaceConfiguration(Topology& topology)
                             (interfaceMatcher.matchesAny() || interfaceMatcher.matches(interfaceInfo->interfaceEntry->getFullName())) &&
                             (towardsMatcher.matchesAny() || linkContainsMatchingHostExcept(linkInfo, &towardsMatcher, hostModule)))
                         {
-                            EV_DEBUG << "Processing interface configuration for " << interfaceInfo->getFullPath() << endl;
+                            //EV_DEBUG << "Processing interface configuration for " << interfaceInfo->getFullPath() << endl;
 
                             // unicast address constraints
                             interfaceInfo->configure = haveAddressConstraint;
@@ -689,11 +689,11 @@ bool IPv4NetworkConfigurator::linkContainsMatchingHostExcept(LinkInfo *linkInfo,
 void IPv4NetworkConfigurator::dumpLinks(Topology& topology)
 {
     for (int i = 0; i < (int)topology.linkInfos.size(); i++) {
-        EV_INFO << "Link " << i << endl;
+        //EV_INFO << "Link " << i << endl;
         LinkInfo *linkInfo = topology.linkInfos[i];
         for (auto & element : linkInfo->interfaceInfos) {
             InterfaceInfo *interfaceInfo = static_cast<InterfaceInfo *>(element);
-            EV_INFO << "     " << interfaceInfo->interfaceEntry->getFullPath() << endl;
+            //EV_INFO << "     " << interfaceInfo->interfaceEntry->getFullPath() << endl;
         }
     }
 }
@@ -701,12 +701,12 @@ void IPv4NetworkConfigurator::dumpLinks(Topology& topology)
 void IPv4NetworkConfigurator::dumpAddresses(Topology& topology)
 {
     for (int i = 0; i < (int)topology.linkInfos.size(); i++) {
-        EV_INFO << "Link " << i << endl;
+        //EV_INFO << "Link " << i << endl;
         LinkInfo *linkInfo = topology.linkInfos[i];
         for (auto & interfaceInfo : linkInfo->interfaceInfos) {
             InterfaceEntry *interfaceEntry = interfaceInfo->interfaceEntry;
             cModule *host = interfaceInfo->node->module;
-            EV_INFO << "    " << host->getFullName() << " / " << interfaceEntry->str() << endl;
+            //EV_INFO << "    " << host->getFullName() << " / " << interfaceEntry->str() << endl;
         }
     }
 }
@@ -716,7 +716,7 @@ void IPv4NetworkConfigurator::dumpRoutes(Topology& topology)
     for (int i = 0; i < topology.getNumNodes(); i++) {
         Node *node = (Node *)topology.getNode(i);
         if (node->routingTable) {
-            EV_INFO << "Node " << node->module->getFullPath() << endl;
+            //EV_INFO << "Node " << node->module->getFullPath() << endl;
             check_and_cast<IIPv4RoutingTable *>(node->routingTable)->printRoutingTable();
             if (node->routingTable->getNumMulticastRoutes() > 0)
                 check_and_cast<IIPv4RoutingTable *>(node->routingTable)->printMulticastRoutingTable();
@@ -1236,7 +1236,7 @@ void IPv4NetworkConfigurator::addStaticRoutes(Topology& topology, cXMLElement *a
             }
         }
         double weight = computeNodeWeight(node, metric, selectedNodeElement);
-        EV_DEBUG << "Setting node weight, node = " << node->module->getFullPath() << ", weight = " << weight << endl;
+        //EV_DEBUG << "Setting node weight, node = " << node->module->getFullPath() << ", weight = " << weight << endl;
         node->setWeight(weight);
     }
     // set link weights
@@ -1265,7 +1265,7 @@ void IPv4NetworkConfigurator::addStaticRoutes(Topology& topology, cXMLElement *a
                 }
             }
             double weight = computeLinkWeight(link, metric, selectedLinkElement);
-            EV_DEBUG << "Setting link weight, link = " << link << ", weight = " << weight << endl;
+            //EV_DEBUG << "Setting link weight, link = " << link << ", weight = " << weight << endl;
             link->setWeight(weight);
         }
     }
@@ -1316,7 +1316,7 @@ void IPv4NetworkConfigurator::addStaticRoutes(Topology& topology, cXMLElement *a
             sourceNode->staticRoutes.push_back(route);
 
             // skip building and optimizing the whole routing table
-            EV_DEBUG << "Adding default routes to " << sourceNode->getModule()->getFullPath() << ", node has only one (non-loopback) interface\n";
+            //EV_DEBUG << "Adding default routes to " << sourceNode->getModule()->getFullPath() << ", node has only one (non-loopback) interface\n";
         }
         else {
             // add a route to all destinations in the network
@@ -1378,7 +1378,7 @@ void IPv4NetworkConfigurator::addStaticRoutes(Topology& topology, cXMLElement *a
                                 delete route;
                             else {
                                 sourceNode->staticRoutes.push_back(route);
-                                EV_DEBUG << "Adding route " << sourceInterfaceEntry->getFullPath() << " -> " << destinationInterfaceEntry->getFullPath() << " as " << route->str() << endl;
+                                //EV_DEBUG << "Adding route " << sourceInterfaceEntry->getFullPath() << " -> " << destinationInterfaceEntry->getFullPath() << " as " << route->str() << endl;
                             }
                         }
                     }

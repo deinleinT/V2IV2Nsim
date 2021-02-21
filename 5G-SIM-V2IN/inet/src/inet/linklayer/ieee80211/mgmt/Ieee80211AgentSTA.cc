@@ -83,7 +83,7 @@ void Ieee80211AgentSTA::handleMessage(cMessage *msg)
 void Ieee80211AgentSTA::handleTimer(cMessage *msg)
 {
     if (msg->getKind() == MK_STARTUP) {
-        EV << "Starting up\n";
+        //EV << "Starting up\n";
         sendScanRequest();
         delete msg;
     }
@@ -97,7 +97,7 @@ void Ieee80211AgentSTA::handleResponse(cMessage *msg)
     cObject *ctrl = msg->removeControlInfo();
     delete msg;
 
-    EV << "Processing confirmation from mgmt: " << ctrl->getClassName() << "\n";
+    //EV << "Processing confirmation from mgmt: " << ctrl->getClassName() << "\n";
 
     if (dynamic_cast<Ieee80211Prim_ScanConfirm *>(ctrl))
         processScanConfirm((Ieee80211Prim_ScanConfirm *)ctrl);
@@ -121,7 +121,7 @@ void Ieee80211AgentSTA::receiveSignal(cComponent *source, simsignal_t signalID, 
 
     if (signalID == NF_L2_BEACON_LOST) {
         //XXX should check details if it's about this NIC
-        EV << "beacon lost, starting scanning again\n";
+        //EV << "beacon lost, starting scanning again\n";
         getContainingNode(this)->bubble("Beacon lost!");
         //sendDisassociateRequest();
         sendScanRequest();
@@ -138,7 +138,7 @@ void Ieee80211AgentSTA::sendRequest(Ieee80211PrimRequest *req)
 
 void Ieee80211AgentSTA::sendScanRequest()
 {
-    EV << "Sending ScanRequest primitive to mgmt\n";
+    //EV << "Sending ScanRequest primitive to mgmt\n";
     Ieee80211Prim_ScanRequest *req = new Ieee80211Prim_ScanRequest();
     req->setBSSType(BSSTYPE_INFRASTRUCTURE);
     req->setActiveScan(activeScan);
@@ -156,7 +156,7 @@ void Ieee80211AgentSTA::sendScanRequest()
 
 void Ieee80211AgentSTA::sendAuthenticateRequest(const MACAddress& address)
 {
-    EV << "Sending AuthenticateRequest primitive to mgmt\n";
+    //EV << "Sending AuthenticateRequest primitive to mgmt\n";
     Ieee80211Prim_AuthenticateRequest *req = new Ieee80211Prim_AuthenticateRequest();
     req->setAddress(address);
     req->setTimeout(authenticationTimeout);
@@ -166,7 +166,7 @@ void Ieee80211AgentSTA::sendAuthenticateRequest(const MACAddress& address)
 
 void Ieee80211AgentSTA::sendDeauthenticateRequest(const MACAddress& address, int reasonCode)
 {
-    EV << "Sending DeauthenticateRequest primitive to mgmt\n";
+    //EV << "Sending DeauthenticateRequest primitive to mgmt\n";
     Ieee80211Prim_DeauthenticateRequest *req = new Ieee80211Prim_DeauthenticateRequest();
     req->setAddress(address);
     req->setReasonCode(reasonCode);
@@ -176,7 +176,7 @@ void Ieee80211AgentSTA::sendDeauthenticateRequest(const MACAddress& address, int
 
 void Ieee80211AgentSTA::sendAssociateRequest(const MACAddress& address)
 {
-    EV << "Sending AssociateRequest primitive to mgmt\n";
+    //EV << "Sending AssociateRequest primitive to mgmt\n";
     Ieee80211Prim_AssociateRequest *req = new Ieee80211Prim_AssociateRequest();
     req->setAddress(address);
     req->setTimeout(associationTimeout);
@@ -186,7 +186,7 @@ void Ieee80211AgentSTA::sendAssociateRequest(const MACAddress& address)
 
 void Ieee80211AgentSTA::sendReassociateRequest(const MACAddress& address)
 {
-    EV << "Sending ReassociateRequest primitive to mgmt\n";
+    //EV << "Sending ReassociateRequest primitive to mgmt\n";
     Ieee80211Prim_ReassociateRequest *req = new Ieee80211Prim_ReassociateRequest();
     req->setAddress(address);
     req->setTimeout(associationTimeout);
@@ -196,7 +196,7 @@ void Ieee80211AgentSTA::sendReassociateRequest(const MACAddress& address)
 
 void Ieee80211AgentSTA::sendDisassociateRequest(const MACAddress& address, int reasonCode)
 {
-    EV << "Sending DisassociateRequest primitive to mgmt\n";
+    //EV << "Sending DisassociateRequest primitive to mgmt\n";
     Ieee80211Prim_DisassociateRequest *req = new Ieee80211Prim_DisassociateRequest();
     req->setAddress(address);
     req->setReasonCode(reasonCode);
@@ -219,7 +219,7 @@ void Ieee80211AgentSTA::processScanConfirm(Ieee80211Prim_ScanConfirm *resp)
         for (int i = 0; i < (int)resp->getBssListArraySize(); i++) {
             std::string resp_ssid = resp->getBssList(i).getSSID();
             if (resp_ssid == this->default_ssid) {
-                EV << "found default SSID " << resp_ssid << endl;
+                //EV << "found default SSID " << resp_ssid << endl;
                 bssIndex = i;
                 break;
             }
@@ -227,7 +227,7 @@ void Ieee80211AgentSTA::processScanConfirm(Ieee80211Prim_ScanConfirm *resp)
     }
 
     if (bssIndex == -1) {
-        EV << "No (suitable) AP found, continue scanning\n";
+        //EV << "No (suitable) AP found, continue scanning\n";
         emit(dropConfirmSignal, PR_SCAN_CONFIRM);
         sendScanRequest();
         return;
@@ -237,22 +237,16 @@ void Ieee80211AgentSTA::processScanConfirm(Ieee80211Prim_ScanConfirm *resp)
     emit(acceptConfirmSignal, PR_SCAN_CONFIRM);
 
     Ieee80211Prim_BSSDescription& bssDesc = resp->getBssList(bssIndex);
-    EV << "Chosen AP address=" << bssDesc.getBSSID() << " from list, starting authentication\n";
+    //EV << "Chosen AP address=" << bssDesc.getBSSID() << " from list, starting authentication\n";
     sendAuthenticateRequest(bssDesc.getBSSID());
 }
 
 void Ieee80211AgentSTA::dumpAPList(Ieee80211Prim_ScanConfirm *resp)
 {
-    EV << "Received AP list:\n";
+    //EV << "Received AP list:\n";
     for (int i = 0; i < (int)resp->getBssListArraySize(); i++) {
         Ieee80211Prim_BSSDescription& bssDesc = resp->getBssList(i);
-        EV << "    " << i << ". "
-           << " address=" << bssDesc.getBSSID()
-           << " channel=" << bssDesc.getChannelNumber()
-           << " SSID=" << bssDesc.getSSID()
-           << " beaconIntvl=" << bssDesc.getBeaconInterval()
-           << " rxPower=" << bssDesc.getRxPower()
-           << endl;
+        //EV << "    " << i << ". "           << " address=" << bssDesc.getBSSID()           << " channel=" << bssDesc.getChannelNumber()           << " SSID=" << bssDesc.getSSID()           << " beaconIntvl=" << bssDesc.getBeaconInterval()           << " rxPower=" << bssDesc.getRxPower()           << endl;
         // later: supportedRates
     }
 }
@@ -275,15 +269,15 @@ int Ieee80211AgentSTA::chooseBSS(Ieee80211Prim_ScanConfirm *resp)
 void Ieee80211AgentSTA::processAuthenticateConfirm(Ieee80211Prim_AuthenticateConfirm *resp)
 {
     if (resp->getResultCode() != PRC_SUCCESS) {
-        EV << "Authentication error\n";
+        //EV << "Authentication error\n";
         emit(dropConfirmSignal, PR_AUTHENTICATE_CONFIRM);
 
         // try scanning again, maybe we'll have better luck next time, possibly with a different AP
-        EV << "Going back to scanning\n";
+        //EV << "Going back to scanning\n";
         sendScanRequest();
     }
     else {
-        EV << "Authentication successful, let's try to associate\n";
+        //EV << "Authentication successful, let's try to associate\n";
         emit(acceptConfirmSignal, PR_AUTHENTICATE_CONFIRM);
         sendAssociateRequest(resp->getAddress());
     }
@@ -292,15 +286,15 @@ void Ieee80211AgentSTA::processAuthenticateConfirm(Ieee80211Prim_AuthenticateCon
 void Ieee80211AgentSTA::processAssociateConfirm(Ieee80211Prim_AssociateConfirm *resp)
 {
     if (resp->getResultCode() != PRC_SUCCESS) {
-        EV << "Association error\n";
+        //EV << "Association error\n";
         emit(dropConfirmSignal, PR_ASSOCIATE_CONFIRM);
 
         // try scanning again, maybe we'll have better luck next time, possibly with a different AP
-        EV << "Going back to scanning\n";
+        //EV << "Going back to scanning\n";
         sendScanRequest();
     }
     else {
-        EV << "Association successful\n";
+        //EV << "Association successful\n";
         emit(acceptConfirmSignal, PR_ASSOCIATE_CONFIRM);
         // we are happy!
         getContainingNode(this)->bubble("Associated with AP");
@@ -317,13 +311,13 @@ void Ieee80211AgentSTA::processReassociateConfirm(Ieee80211Prim_ReassociateConfi
 {
     // treat the same way as AssociateConfirm
     if (resp->getResultCode() != PRC_SUCCESS) {
-        EV << "Reassociation error\n";
+        //EV << "Reassociation error\n";
         emit(dropConfirmSignal, PR_REASSOCIATE_CONFIRM);
-        EV << "Going back to scanning\n";
+        //EV << "Going back to scanning\n";
         sendScanRequest();
     }
     else {
-        EV << "Reassociation successful\n";
+        //EV << "Reassociation successful\n";
         emit(NF_L2_ASSOCIATED_OLDAP, myIface);    //XXX detail: InterfaceEntry?
         emit(acceptConfirmSignal, PR_REASSOCIATE_CONFIRM);
         // we are happy!

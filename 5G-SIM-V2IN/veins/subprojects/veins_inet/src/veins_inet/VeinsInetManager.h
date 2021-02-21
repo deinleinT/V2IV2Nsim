@@ -20,12 +20,6 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-//
-// This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
-// Author: Thomas Deinlein
-//
-
 #pragma once
 
 #include "veins_inet/veins_inet.h"

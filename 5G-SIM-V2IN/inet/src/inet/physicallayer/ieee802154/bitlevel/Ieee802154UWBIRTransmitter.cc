@@ -186,7 +186,7 @@ const ITransmission *Ieee802154UWBIRTransmitter::createTransmission(const IRadio
     std::vector<bool> *bits = new std::vector<bool>();
     for (int i = 0; i < bitLength; i++) {
         bool bitValue = intuniform(0, 1, 0);
-        EV_INFO << "Transmitted bit at " << i << " is " << (int)bitValue << endl;
+        //EV_INFO << "Transmitted bit at " << i << " is " << (int)bitValue << endl;
         bits->push_back(bitValue);
     }
     // KLUDGE: add a fake CRC

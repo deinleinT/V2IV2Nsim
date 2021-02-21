@@ -16,6 +16,7 @@
 
 #include "stack/mac/amc/LteMcs.h"
 
+#define round(x) floor((x) + 0.5)
 
 
 std::vector<unsigned char> cwMapping(const TxMode& txMode, const Rank& ri,
@@ -279,7 +280,9 @@ unsigned short getQm(LteMod mod){
 }
 
 //38.214, 5.1.3.2, UL 6.1.4.2
+//table 38.214-5.1.3.1-1 is used
 //calculates the TBS in bits for 5G
+//tested with https://5g-tools.com/5g-nr-tbs-transport-block-size-calculator/
 unsigned int calcTBS(MacNodeId nodeId, unsigned int numPRB, unsigned short mcsIndex,
         unsigned short numLayers) {
 
@@ -315,12 +318,12 @@ unsigned int calcTBS(MacNodeId nodeId, unsigned int numPRB, unsigned short mcsIn
     //N info
     unsigned int nInfo = NRE * coderate * qM * numLayers;
     //N' info
-    unsigned int NINFO = 0;
+    double NINFO = 0.0;
 
-    if (nInfo <= 3824) {
+    if (nInfo <= 3824.0) {
         //step 3;
-        unsigned int n = std::max(3.0, std::floor(log2(nInfo)) - 6);
-        NINFO = std::max(24.0, std::pow(2, n) * std::floor(nInfo / std::pow(2, n)));
+        double n = std::max(3.0, std::floor(log2(nInfo)) - 6.0);
+        NINFO = std::max(24.0, std::pow(2.0, n) * std::floor(nInfo / std::pow(2.0, n)));
         //find closest TBS to N'info
         for (const auto & var : tbsNRTable) {
             if (NINFO <= var) {
@@ -331,19 +334,19 @@ unsigned int calcTBS(MacNodeId nodeId, unsigned int numPRB, unsigned short mcsIn
 
     } else { // N info > 3824
         //step 4;
-        unsigned int n = std::floor(log2(nInfo - 24)) - 5;
+        double n = std::floor(log2(nInfo - 24.0)) - 5.0;
         //N'info
-        NINFO = std::max(3840.0, std::pow(2, n) * std::round((nInfo - 24) / std::pow(2, n)));
+        NINFO = std::max(3840.0, std::pow(2.0, n) * std::round((nInfo - 24.0) / std::pow(2.0, n)));
 
-        if (coderate <= (1 / 4)) { // R <= 1/4
-            unsigned int c = std::ceil((NINFO + 24) / 3816);
-            tbs = 8 * c * std::ceil((NINFO + 24) / (8 * c)) - 24;
+        if (coderate <= (1.0 / 4.0)) { // R <= 1/4
+            double c = std::ceil((NINFO + 24.0) / 3816.0);
+            tbs = 8.0 * c * std::ceil((NINFO + 24.0) / (8.0 * c)) - 24.0;
         } else {
-            if (NINFO > 8424) { //N'info > 8424
-                unsigned int c = std::ceil((NINFO + 24) / 8424);
-                tbs = 8 * c * std::ceil((NINFO + 24) / (8 * c)) - 24;
+            if (NINFO > 8424.0) { //N'info > 8424
+                double c = std::ceil((NINFO + 24.0) / 8424.0);
+                tbs = 8.0 * c * std::ceil((NINFO + 24.0) / (8.0 * c)) - 24.0;
             } else {
-                tbs = 8 * std::ceil((NINFO + 24) / 8) - 24;
+                tbs = 8.0 * std::ceil((NINFO + 24.0) / 8.0) - 24.0;
             }
         }
     }

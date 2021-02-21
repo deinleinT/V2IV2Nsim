@@ -65,10 +65,10 @@ void TCPNewReno::processRexmitTimer(TCPEventCode& event)
     // transmitted in the variable "recover" and exit the Fast Recovery
     // procedure if applicable."
     state->recover = (state->snd_max - 1);
-    EV_INFO << "recover=" << state->recover << "\n";
+    //EV_INFO << "recover=" << state->recover << "\n";
     state->lossRecovery = false;
     state->firstPartialACK = false;
-    EV_INFO << "Loss Recovery terminated.\n";
+    //EV_INFO << "Loss Recovery terminated.\n";
 
     // After REXMIT timeout TCP NewReno should start slow start with snd_cwnd = snd_mss.
     //
@@ -90,8 +90,7 @@ void TCPNewReno::processRexmitTimer(TCPEventCode& event)
     if (cwndVector)
         cwndVector->record(state->snd_cwnd);
 
-    EV_INFO << "Begin Slow Start: resetting cwnd to " << state->snd_cwnd
-            << ", ssthresh=" << state->ssthresh << "\n";
+    //EV_INFO << "Begin Slow Start: resetting cwnd to " << state->snd_cwnd            << ", ssthresh=" << state->ssthresh << "\n";
     state->afterRto = true;
     conn->retransmitOneSegment(true);
 }
@@ -130,7 +129,7 @@ void TCPNewReno::receivedDataAck(uint32 firstSeqAcked)
             // option (1): set cwnd to min (ssthresh, FlightSize + SMSS)
             uint32 flight_size = state->snd_max - state->snd_una;
             state->snd_cwnd = std::min(state->ssthresh, flight_size + state->snd_mss);
-            EV_INFO << "Fast Recovery - Full ACK received: Exit Fast Recovery, setting cwnd to " << state->snd_cwnd << "\n";
+            //EV_INFO << "Fast Recovery - Full ACK received: Exit Fast Recovery, setting cwnd to " << state->snd_cwnd << "\n";
             // option (2): set cwnd to ssthresh
             // state->snd_cwnd = state->ssthresh;
             // tcpEV << "Fast Recovery - Full ACK received: Exit Fast Recovery, setting cwnd to ssthresh=" << state->ssthresh << "\n";
@@ -140,7 +139,7 @@ void TCPNewReno::receivedDataAck(uint32 firstSeqAcked)
 
             state->lossRecovery = false;
             state->firstPartialACK = false;
-            EV_INFO << "Loss Recovery terminated.\n";
+            //EV_INFO << "Loss Recovery terminated.\n";
         }
         else {
             // RFC 3782, page 5:
@@ -165,7 +164,7 @@ void TCPNewReno::receivedDataAck(uint32 firstSeqAcked)
             // reset the retransmit timer.  Timer management is discussed in
             // more detail in Section 4."
 
-            EV_INFO << "Fast Recovery - Partial ACK received: retransmitting the first unacknowledged segment\n";
+            //EV_INFO << "Fast Recovery - Partial ACK received: retransmitting the first unacknowledged segment\n";
             // retransmit first unacknowledged segment
             conn->retransmitOneSegment(false);
 
@@ -175,7 +174,7 @@ void TCPNewReno::receivedDataAck(uint32 firstSeqAcked)
             if (cwndVector)
                 cwndVector->record(state->snd_cwnd);
 
-            EV_INFO << "Fast Recovery: deflating cwnd by amount of new data acknowledged, new cwnd=" << state->snd_cwnd << "\n";
+            //EV_INFO << "Fast Recovery: deflating cwnd by amount of new data acknowledged, new cwnd=" << state->snd_cwnd << "\n";
 
             // if the partial ACK acknowledges at least one SMSS of new data, then add back SMSS bytes to the cwnd
             if (state->snd_una - firstSeqAcked >= state->snd_mss) {
@@ -184,7 +183,7 @@ void TCPNewReno::receivedDataAck(uint32 firstSeqAcked)
                 if (cwndVector)
                     cwndVector->record(state->snd_cwnd);
 
-                EV_DETAIL << "Fast Recovery: inflating cwnd by SMSS, new cwnd=" << state->snd_cwnd << "\n";
+                //EV_DETAIL << "Fast Recovery: inflating cwnd by SMSS, new cwnd=" << state->snd_cwnd << "\n";
             }
 
             // try to send a new segment if permitted by the new value of cwnd
@@ -194,7 +193,7 @@ void TCPNewReno::receivedDataAck(uint32 firstSeqAcked)
             if (state->lossRecovery) {
                 if (!state->firstPartialACK) {
                     state->firstPartialACK = true;
-                    EV_DETAIL << "First partial ACK arrived during recovery, restarting REXMIT timer.\n";
+                    //EV_DETAIL << "First partial ACK arrived during recovery, restarting REXMIT timer.\n";
                     restartRexmitTimer();
                 }
             }
@@ -205,7 +204,7 @@ void TCPNewReno::receivedDataAck(uint32 firstSeqAcked)
         // Perform slow start and congestion avoidance.
         //
         if (state->snd_cwnd < state->ssthresh) {
-            EV_DETAIL << "cwnd <= ssthresh: Slow Start: increasing cwnd by SMSS bytes to ";
+            //EV_DETAIL << "cwnd <= ssthresh: Slow Start: increasing cwnd by SMSS bytes to ";
 
             // perform Slow Start. RFC 2581: "During slow start, a TCP increments cwnd
             // by at most SMSS bytes for each ACK received that acknowledges new data."
@@ -225,7 +224,7 @@ void TCPNewReno::receivedDataAck(uint32 firstSeqAcked)
             if (cwndVector)
                 cwndVector->record(state->snd_cwnd);
 
-            EV_DETAIL << "cwnd=" << state->snd_cwnd << "\n";
+            //EV_DETAIL << "cwnd=" << state->snd_cwnd << "\n";
         }
         else {
             // perform Congestion Avoidance (RFC 2581)
@@ -247,7 +246,7 @@ void TCPNewReno::receivedDataAck(uint32 firstSeqAcked)
             // would require maintaining a bytes_acked variable here which we don't do
             //
 
-            EV_DETAIL << "cwnd > ssthresh: Congestion Avoidance: increasing cwnd linearly, to " << state->snd_cwnd << "\n";
+            //EV_DETAIL << "cwnd > ssthresh: Congestion Avoidance: increasing cwnd linearly, to " << state->snd_cwnd << "\n";
         }
 
         // RFC 3782, page 13:
@@ -283,7 +282,7 @@ void TCPNewReno::receivedDuplicateAck()
             // the acknowledgement "ack_number" covers more than "recover" when:
             //      ack_number - 1 > recover;"
             if (state->snd_una - 1 > state->recover) {
-                EV_INFO << "NewReno on dupAcks == DUPTHRESH(=3): perform Fast Retransmit, and enter Fast Recovery:";
+                //EV_INFO << "NewReno on dupAcks == DUPTHRESH(=3): perform Fast Retransmit, and enter Fast Recovery:";
 
                 // RFC 3782, page 4:
                 // "1A) Invoking Fast Retransmit:
@@ -296,7 +295,7 @@ void TCPNewReno::receivedDuplicateAck()
                 state->recover = (state->snd_max - 1);
                 state->firstPartialACK = false;
                 state->lossRecovery = true;
-                EV_INFO << " set recover=" << state->recover;
+                //EV_INFO << " set recover=" << state->recover;
 
                 // RFC 3782, page 4:
                 // "2) Entering Fast Retransmit:
@@ -309,7 +308,7 @@ void TCPNewReno::receivedDuplicateAck()
                 if (cwndVector)
                     cwndVector->record(state->snd_cwnd);
 
-                EV_DETAIL << " , cwnd=" << state->snd_cwnd << ", ssthresh=" << state->ssthresh << "\n";
+                //EV_DETAIL << " , cwnd=" << state->snd_cwnd << ", ssthresh=" << state->ssthresh << "\n";
                 conn->retransmitOneSegment(false);
 
                 // RFC 3782, page 5:
@@ -319,7 +318,7 @@ void TCPNewReno::receivedDuplicateAck()
                 sendData(false);
             }
             else {
-                EV_INFO << "NewReno on dupAcks == DUPTHRESH(=3): not invoking Fast Retransmit and Fast Recovery\n";
+                //EV_INFO << "NewReno on dupAcks == DUPTHRESH(=3): not invoking Fast Retransmit and Fast Recovery\n";
 
                 // RFC 3782, page 4:
                 // "1B) Not invoking Fast Retransmit:
@@ -329,7 +328,7 @@ void TCPNewReno::receivedDuplicateAck()
                 // subsequent duplicate ACKs."
             }
         }
-        EV_INFO << "NewReno on dupAcks == DUPTHRESH(=3): TCP is already in Fast Recovery procedure\n";
+        //EV_INFO << "NewReno on dupAcks == DUPTHRESH(=3): TCP is already in Fast Recovery procedure\n";
     }
     else if (state->dupacks > DUPTHRESH) {    // DUPTHRESH = 3
         if (state->lossRecovery) {
@@ -344,7 +343,7 @@ void TCPNewReno::receivedDuplicateAck()
             if (cwndVector)
                 cwndVector->record(state->snd_cwnd);
 
-            EV_DETAIL << "NewReno on dupAcks > DUPTHRESH(=3): Fast Recovery: inflating cwnd by SMSS, new cwnd=" << state->snd_cwnd << "\n";
+            //EV_DETAIL << "NewReno on dupAcks > DUPTHRESH(=3): Fast Recovery: inflating cwnd by SMSS, new cwnd=" << state->snd_cwnd << "\n";
 
             // RFC 3782, page 5:
             // "4) Fast Recovery, continued:

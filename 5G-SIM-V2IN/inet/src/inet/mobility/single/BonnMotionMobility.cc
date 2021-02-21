@@ -61,7 +61,7 @@ void BonnMotionMobility::initialize(int stage)
 {
     LineSegmentsMobilityBase::initialize(stage);
 
-    EV_TRACE << "initializing BonnMotionMobility stage " << stage << endl;
+    //EV_TRACE << "initializing BonnMotionMobility stage " << stage << endl;
     if (stage == INITSTAGE_LOCAL) {
         is3D = par("is3D").boolValue();
         int nodeId = par("nodeId");

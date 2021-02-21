@@ -86,7 +86,7 @@ RecipientBlockAckAgreement* RecipientBlockAckAgreementHandler::addAgreement(Ieee
     if (it == blockAckAgreements.end()) {
         RecipientBlockAckAgreement *agreement = new RecipientBlockAckAgreement(originatorAddr, addbaReq->getTid(), addbaReq->getStartingSequenceNumber(), addbaReq->getBufferSize(), addbaReq->getBlockAckTimeoutValue());
         blockAckAgreements[id] = agreement;
-        EV_DETAIL << "Block Ack Agreement is added with the following parameters: " << *agreement << endl;
+        //EV_DETAIL << "Block Ack Agreement is added with the following parameters: " << *agreement << endl;
         return agreement;
     }
     else
@@ -160,12 +160,12 @@ void RecipientBlockAckAgreementHandler::processTransmittedAddbaResp(Ieee80211Add
 
 void RecipientBlockAckAgreementHandler::processReceivedAddbaRequest(Ieee80211AddbaRequest *addbaRequest, IRecipientBlockAckAgreementPolicy *blockAckAgreementPolicy, IProcedureCallback *callback)
 {
-    EV_INFO << "Processing Addba Request from " << addbaRequest->getTransmitterAddress() << endl;
+    //EV_INFO << "Processing Addba Request from " << addbaRequest->getTransmitterAddress() << endl;
     if (blockAckAgreementPolicy->isAddbaReqAccepted(addbaRequest)) {
-        EV_DETAIL << "Addba Request has been accepted. Creating a new Block Ack Agreement." << endl;
+        //EV_DETAIL << "Addba Request has been accepted. Creating a new Block Ack Agreement." << endl;
         auto agreement = addAgreement(addbaRequest);
-        EV_DETAIL << "Agreement is added with the following parameters: " << *agreement << endl;
-        EV_DETAIL << "Building Addba Response" << endl;
+        //EV_DETAIL << "Agreement is added with the following parameters: " << *agreement << endl;
+        //EV_DETAIL << "Building Addba Response" << endl;
         auto addbaResponse = buildAddbaResponse(addbaRequest, blockAckAgreementPolicy);
         callback->processMgmtFrame(addbaResponse);
     }

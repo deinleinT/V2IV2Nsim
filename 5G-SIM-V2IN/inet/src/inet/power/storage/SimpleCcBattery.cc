@@ -63,10 +63,10 @@ void SimpleCcBattery::setResidualCapacity(C newResidualCapacity)
 {
     residualCapacity = newResidualCapacity;
     lastResidualCapacityUpdate = simTime();
-    if (residualCapacity == C(0))
-        EV_WARN << "Battery depleted" << endl;
-    else if (residualCapacity == nominalCapacity)
-        EV_INFO << "Battery charged" << endl;
+//    if (residualCapacity == C(0))
+//        EV_WARN << "Battery depleted" << endl;
+//    else if (residualCapacity == nominalCapacity)
+//        EV_INFO << "Battery charged" << endl;
     if (networkNode != nullptr)
         executeNodeOperation(newResidualCapacity);
     emit(residualChargeCapacityChangedSignal, residualCapacity.get());
@@ -88,7 +88,7 @@ void SimpleCcBattery::updateResidualCapacity()
 void SimpleCcBattery::executeNodeOperation(C newResidualCapacity)
 {
     if (nodeStatus->getState() == NodeStatus::UP && newResidualCapacity <= C(0)) {
-        EV_WARN << "Battery failed" << endl;
+        //EV_WARN << "Battery failed" << endl;
         LifecycleOperation::StringMap params;
         NodeCrashOperation *operation = new NodeCrashOperation();
         operation->initialize(networkNode, params);

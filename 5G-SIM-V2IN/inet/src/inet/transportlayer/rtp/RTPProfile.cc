@@ -35,7 +35,7 @@ RTPProfile::RTPProfile()
 
 void RTPProfile::initialize()
 {
-    EV_TRACE << "initialize() Enter" << endl;
+    //EV_TRACE << "initialize() Enter" << endl;
     _profileName = "Profile";
     _rtcpPercentage = 5;
     _preferredPort = PORT_UNDEF;
@@ -44,7 +44,7 @@ void RTPProfile::initialize()
     _maxReceivers = gateSize("payloadReceiverOut");
     _ssrcGates.clear();
     _autoOutputFileNames = par("autoOutputFileNames").boolValue();
-    EV_TRACE << "initialize() Exit" << endl;
+    //EV_TRACE << "initialize() Exit" << endl;
 }
 
 RTPProfile::~RTPProfile()
@@ -73,7 +73,7 @@ void RTPProfile::handleMessage(cMessage *msg)
 
 void RTPProfile::handleMessageFromRTP(cMessage *msg)
 {
-    EV_TRACE << "handleMessageFromRTP Enter " << endl;
+    //EV_TRACE << "handleMessageFromRTP Enter " << endl;
 
     RTPInnerPacket *rinpIn = check_and_cast<RTPInnerPacket *>(msg);
 
@@ -103,7 +103,7 @@ void RTPProfile::handleMessageFromRTP(cMessage *msg)
             break;
     }
 
-    EV_TRACE << "handleMessageFromRTP Exit " << endl;
+    //EV_TRACE << "handleMessageFromRTP Exit " << endl;
 }
 
 void RTPProfile::handleMessageFromPayloadSender(cMessage *msg)
@@ -137,23 +137,23 @@ void RTPProfile::handleMessageFromPayloadReceiver(cMessage *msg)
 
 void RTPProfile::initializeProfile(RTPInnerPacket *rinp)
 {
-    EV_TRACE << "initializeProfile Enter" << endl;
+    //EV_TRACE << "initializeProfile Enter" << endl;
     _mtu = rinp->getMTU();
     delete rinp;
     RTPInnerPacket *rinpOut = new RTPInnerPacket("profileInitialized()");
     rinpOut->setProfileInitializedPkt(_rtcpPercentage, _preferredPort);
     send(rinpOut, "rtpOut");
-    EV_TRACE << "initializeProfile Exit" << endl;
+    //EV_TRACE << "initializeProfile Exit" << endl;
 }
 
 void RTPProfile::createSenderModule(RTPInnerPacket *rinp)
 {
-    EV_TRACE << "createSenderModule Enter" << endl;
+    //EV_TRACE << "createSenderModule Enter" << endl;
     int ssrc = rinp->getSsrc();
     int payloadType = rinp->getPayloadType();
     char moduleName[100];
 
-    EV_INFO << "ProfileName: " << _profileName << " payloadType: " << payloadType << endl;
+    //EV_INFO << "ProfileName: " << _profileName << " payloadType: " << payloadType << endl;
     const char *pkgPrefix = "inet.transportlayer.rtp.";    //FIXME hardcoded string
     sprintf(moduleName, "%sRTP%sPayload%iSender", pkgPrefix, _profileName, payloadType);
 
@@ -179,7 +179,7 @@ void RTPProfile::createSenderModule(RTPInnerPacket *rinp)
     send(rinpOut2, "payloadSenderOut");
 
     delete rinp;
-    EV_TRACE << "createSenderModule Exit" << endl;
+    //EV_TRACE << "createSenderModule Exit" << endl;
 }
 
 void RTPProfile::deleteSenderModule(RTPInnerPacket *rinpIn)
@@ -201,7 +201,7 @@ void RTPProfile::senderModuleControl(RTPInnerPacket *rinp)
 
 void RTPProfile::dataIn(RTPInnerPacket *rinp)
 {
-    EV_TRACE << "dataIn(RTPInnerPacket *rinp) Enter" << endl;
+    //EV_TRACE << "dataIn(RTPInnerPacket *rinp) Enter" << endl;
     processIncomingPacket(rinp);
 
     RTPPacket *packet = check_and_cast<RTPPacket *>(rinp->getEncapsulatedPacket());
@@ -242,7 +242,7 @@ void RTPProfile::dataIn(RTPInnerPacket *rinp)
     }
 
     send(rinp, ssrcGate->getGateId());
-    EV_TRACE << "dataIn(RTPInnerPacket *rinp) Exit" << endl;
+    //EV_TRACE << "dataIn(RTPInnerPacket *rinp) Exit" << endl;
 }
 
 void RTPProfile::dataOut(RTPInnerPacket *rinp)
@@ -253,13 +253,13 @@ void RTPProfile::dataOut(RTPInnerPacket *rinp)
 
 void RTPProfile::senderModuleInitialized(RTPInnerPacket *rinp)
 {
-    EV_TRACE << "senderModuleInitialized" << endl;
+    //EV_TRACE << "senderModuleInitialized" << endl;
     send(rinp, "rtpOut");
 }
 
 void RTPProfile::senderModuleStatus(RTPInnerPacket *rinp)
 {
-    EV_TRACE << "senderModuleStatus" << endl;
+    //EV_TRACE << "senderModuleStatus" << endl;
     send(rinp, "rtpOut");
 }
 

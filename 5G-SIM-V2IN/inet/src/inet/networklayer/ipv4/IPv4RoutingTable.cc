@@ -244,46 +244,34 @@ void IPv4RoutingTable::invalidateCache()
 
 void IPv4RoutingTable::printRoutingTable() const
 {
-    EV << "-- Routing table --\n";
-    EV << stringf("%-16s %-16s %-16s %-4s %-16s %s\n",
-            "Destination", "Netmask", "Gateway", "Iface", "", "Metric");
+    //EV << "-- Routing table --\n";
+    //EV << stringf("%-16s %-16s %-16s %-4s %-16s %s\n",            "Destination", "Netmask", "Gateway", "Iface", "", "Metric");
 
     for (int i = 0; i < getNumRoutes(); i++) {
         IPv4Route *route = getRoute(i);
         InterfaceEntry *interfacePtr = route->getInterface();
-        EV << stringf("%-16s %-16s %-16s %-4s (%s) %d\n",
-                route->getDestination().isUnspecified() ? "*" : route->getDestination().str().c_str(),
-                route->getNetmask().isUnspecified() ? "*" : route->getNetmask().str().c_str(),
-                route->getGateway().isUnspecified() ? "*" : route->getGateway().str().c_str(),
-                !interfacePtr ? "*" : interfacePtr->getName(),
-                !interfacePtr ? "*  " : interfacePtr->ipv4Data()->getIPAddress().str().c_str(),
-                route->getMetric());
+        //EV << stringf("%-16s %-16s %-16s %-4s (%s) %d\n",                route->getDestination().isUnspecified() ? "*" : route->getDestination().str().c_str(),                route->getNetmask().isUnspecified() ? "*" : route->getNetmask().str().c_str(),                route->getGateway().isUnspecified() ? "*" : route->getGateway().str().c_str(),                !interfacePtr ? "*" : interfacePtr->getName(),                !interfacePtr ? "*  " : interfacePtr->ipv4Data()->getIPAddress().str().c_str(),                route->getMetric());
     }
-    EV << "\n";
+    //EV << "\n";
 }
 
 void IPv4RoutingTable::printMulticastRoutingTable() const
 {
-    EV << "-- Multicast routing table --\n";
-    EV << stringf("%-16s %-16s %-16s %-6s %-6s %s\n",
-            "Source", "Netmask", "Group", "Metric", "In", "Outs");
+    //EV << "-- Multicast routing table --\n";
+    //EV << stringf("%-16s %-16s %-16s %-6s %-6s %s\n",            "Source", "Netmask", "Group", "Metric", "In", "Outs");
 
     for (int i = 0; i < getNumMulticastRoutes(); i++) {
         IPv4MulticastRoute *route = getMulticastRoute(i);
-        EV << stringf("%-16s %-16s %-16s %-6d %-6s ",
-                route->getOrigin().isUnspecified() ? "*" : route->getOrigin().str().c_str(),
-                route->getOriginNetmask().isUnspecified() ? "*" : route->getOriginNetmask().str().c_str(),
-                route->getMulticastGroup().isUnspecified() ? "*" : route->getMulticastGroup().str().c_str(),
-                route->getMetric(),
-                !route->getInInterface() ? "*" : route->getInInterface()->getInterface()->getName());
+        //EV << stringf("%-16s %-16s %-16s %-6d %-6s ",                route->getOrigin().isUnspecified() ? "*" : route->getOrigin().str().c_str(),                route->getOriginNetmask().isUnspecified() ? "*" : route->getOriginNetmask().str().c_str(),                route->getMulticastGroup().isUnspecified() ? "*" : route->getMulticastGroup().str().c_str(),                route->getMetric(),                !route->getInInterface() ? "*" : route->getInInterface()->getInterface()->getName());
         for (unsigned int i = 0; i < route->getNumOutInterfaces(); i++) {
-            if (i != 0)
-                EV << ",";
-            EV << route->getOutInterface(i)->getInterface()->getName();
+            if (i != 0){
+                //EV << ",";
+            }
+            //EV << route->getOutInterface(i)->getInterface()->getName();
         }
-        EV << "\n";
+        //EV << "\n";
     }
-    EV << "\n";
+    //EV << "\n";
 }
 
 std::vector<IPv4Address> IPv4RoutingTable::gatherAddresses() const
@@ -590,7 +578,7 @@ void IPv4RoutingTable::internalAddRoute(IPv4Route *entry)
 void IPv4RoutingTable::addRoute(IPv4Route *entry)
 {
     Enter_Method("addRoute(...)");
-    EV_INFO << "add route " << entry->str() << "\n";
+    //EV_INFO << "add route " << entry->str() << "\n";
 
     internalAddRoute(entry);
 
@@ -616,7 +604,7 @@ IPv4Route *IPv4RoutingTable::removeRoute(IPv4Route *entry)
     entry = internalRemoveRoute(entry);
 
     if (entry != nullptr) {
-        EV_INFO << "remove route " << entry->str() << "\n";
+        //EV_INFO << "remove route " << entry->str() << "\n";
         invalidateCache();
         ASSERT(entry->getRoutingTable() == this);    // still filled in, for the listeners' benefit
         emit(NF_ROUTE_DELETED, entry);
@@ -632,7 +620,7 @@ bool IPv4RoutingTable::deleteRoute(IPv4Route *entry)    //TODO this is almost du
     entry = internalRemoveRoute(entry);
 
     if (entry != nullptr) {
-        EV_INFO << "delete route " << entry->str() << "\n";
+        //EV_INFO << "delete route " << entry->str() << "\n";
         invalidateCache();
         ASSERT(entry->getRoutingTable() == this);    // still filled in, for the listeners' benefit
         emit(NF_ROUTE_DELETED, entry);

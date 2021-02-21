@@ -1095,7 +1095,7 @@ int PacketDrill::evaluate(PacketDrillExpression *in, PacketDrillExpression *out,
     out->setType(in->getType());
 
     if ((in->getType() <= EXPR_NONE) || (in->getType() >= NUM_EXPR_TYPES)) {
-        EV_ERROR << "bad expression type: " << in->getType() << endl;
+        //EV_ERROR << "bad expression type: " << in->getType() << endl;
         return STATUS_ERR;
     }
     switch (in->getType()) {
@@ -1720,15 +1720,15 @@ int PacketDrill::evaluate_binary_expression(PacketDrillExpression *in, PacketDri
     }
     if (strcmp("|", in->getBinary()->op) == 0) {
         if (lhs->getType() != EXPR_INTEGER) {
-            EV_ERROR << "left hand side of | not an integer\n";
+            //EV_ERROR << "left hand side of | not an integer\n";
         } else if (rhs->getType() != EXPR_INTEGER) {
-            EV_ERROR << "right hand side of | not an integer\n";
+            //EV_ERROR << "right hand side of | not an integer\n";
         } else {
             out->setNum(lhs->getNum() | rhs->getNum());
             result = STATUS_OK;
         }
     } else {
-        EV_ERROR << "bad binary operator '" << in->getBinary()->op << "'\n";
+        //EV_ERROR << "bad binary operator '" << in->getBinary()->op << "'\n";
     }
     delete(rhs);
     delete(lhs);

@@ -60,7 +60,7 @@ L2NetworkConfigurator::InterfaceInfo::InterfaceInfo(Node *node, Node *childNode,
 void L2NetworkConfigurator::extractTopology(L2Topology& topology)
 {
     topology.extractByProperty("networkNode");
-    EV_DEBUG << "Topology found " << topology.getNumNodes() << " nodes\n";
+    //EV_DEBUG << "Topology found " << topology.getNumNodes() << " nodes\n";
 
     if (topology.getNumNodes() == 0)
         throw cRuntimeError("Empty network!");
@@ -191,7 +191,7 @@ void L2NetworkConfigurator::readInterfaceConfiguration(Node *rootNode)
                             //edge
                             if (isNotEmpty(edge))
                                 currentNode->interfaceInfos[i]->portData.edge = strcmp(edge, "true") ? false : true;
-                            EV_DEBUG << hostModule->getFullPath() << ":" << ifEntry->getFullName() << endl;
+                            //EV_DEBUG << hostModule->getFullPath() << ":" << ifEntry->getFullName() << endl;
 
                             matchedBefore.insert(ifEntry);
                         }

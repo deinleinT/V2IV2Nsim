@@ -218,8 +218,9 @@ void BlockAckReordering::processReceivedDelba(Ieee80211Delba* delba)
         delete it->second;
         receiveBuffers.erase(it);
     }
-    else
-        EV_DETAIL << "Receive buffer is not found" << endl;
+    else{
+        //EV_DETAIL << "Receive buffer is not found" << endl;
+    }
 }
 
 void BlockAckReordering::passedUp(ReceiveBuffer *receiveBuffer, int sequenceNumber)

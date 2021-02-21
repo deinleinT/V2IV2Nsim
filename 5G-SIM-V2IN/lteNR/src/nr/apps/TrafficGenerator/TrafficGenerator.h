@@ -563,7 +563,7 @@ public:
 protected:
 	virtual bool handleNodeStart(IDoneCallback *doneCallback) override;
 	virtual void processStart() override;
-	virtual void sendPacket() override;
+	virtual void sendPacket(long bytes) override;
 	virtual void processSend() override;
 };
 
@@ -660,7 +660,7 @@ protected:
 	std::map<std::string, simtime_t> carsSendingIntervalRemoteDrivingDL;
 
 	virtual bool handleNodeStart(IDoneCallback *doneCallback) override;
-	virtual void sendPacket() override;
+	virtual void sendPacket(long bytes) override;
 	virtual void handleMessageWhenUp(cMessage *msg) override;
 	virtual void initialize(int stage) override;
 

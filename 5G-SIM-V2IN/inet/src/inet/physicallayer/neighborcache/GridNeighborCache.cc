@@ -66,7 +66,7 @@ void GridNeighborCache::handleMessage(cMessage *msg)
 {
     if (!msg->isSelfMessage())
         throw cRuntimeError("This module only handles self messages");
-    EV_DETAIL << "Updating the grid cells" << endl;
+    //EV_DETAIL << "Updating the grid cells" << endl;
     fillCubeVector();
     scheduleAt(simTime() + refillPeriod, msg);
 }

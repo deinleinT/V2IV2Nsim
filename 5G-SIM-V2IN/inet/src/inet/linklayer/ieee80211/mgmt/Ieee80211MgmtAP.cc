@@ -99,7 +99,7 @@ void Ieee80211MgmtAP::handleUpperMessage(cPacket *msg)
     if (!macAddr.isMulticast()) {
         auto it = staList.find(macAddr);
         if (it == staList.end() || it->second.status != ASSOCIATED) {
-            EV << "STA with MAC address " << macAddr << " not associated with this AP, dropping frame\n";
+            //EV << "STA with MAC address " << macAddr << " not associated with this AP, dropping frame\n";
             delete frame;    // XXX count drops?
             return;
         }
@@ -117,7 +117,7 @@ void Ieee80211MgmtAP::receiveSignal(cComponent *source, simsignal_t signalID, in
 {
     Enter_Method_Silent();
     if (signalID == Ieee80211Radio::radioChannelChangedSignal) {
-        EV << "updating channel number\n";
+        //EV << "updating channel number\n";
         channelNumber = value;
     }
 }
@@ -138,7 +138,7 @@ void Ieee80211MgmtAP::sendManagementFrame(Ieee80211ManagementFrame *frame, const
 
 void Ieee80211MgmtAP::sendBeacon()
 {
-    EV << "Sending beacon\n";
+    //EV << "Sending beacon\n";
     Ieee80211BeaconFrame *frame = new Ieee80211BeaconFrame("Beacon");
     Ieee80211BeaconFrameBody& body = frame->getBody();
     body.setSSID(ssid.c_str());
@@ -159,14 +159,14 @@ void Ieee80211MgmtAP::handleDataFrame(Ieee80211DataFrame *frame)
     // check toDS bit
     if (!frame->getToDS()) {
         // looks like this is not for us - discard
-        EV << "Frame is not for us (toDS=false) -- discarding\n";
+        //EV << "Frame is not for us (toDS=false) -- discarding\n";
         delete frame;
         return;
     }
 
     // handle broadcast/multicast frames
     if (frame->getAddress3().isMulticast()) {
-        EV << "Handling multicast frame\n";
+        //EV << "Handling multicast frame\n";
 
         if (isConnectedToHL)
             sendToUpperLayer(frame->dup());
@@ -183,7 +183,7 @@ void Ieee80211MgmtAP::handleDataFrame(Ieee80211DataFrame *frame)
             sendToUpperLayer(frame);
         }
         else {
-            EV << "Frame's destination address is not in our STA list -- dropping frame\n";
+            //EV << "Frame's destination address is not in our STA list -- dropping frame\n";
             delete frame;
         }
     }
@@ -192,7 +192,7 @@ void Ieee80211MgmtAP::handleDataFrame(Ieee80211DataFrame *frame)
         if (it->second.status == ASSOCIATED)
             distributeReceivedDataFrame(frame); // send it out to the destination STA
         else {
-            EV << "Frame's destination STA is not in associated state -- dropping frame\n";
+            //EV << "Frame's destination STA is not in associated state -- dropping frame\n";
             delete frame;
         }
     }
@@ -201,7 +201,7 @@ void Ieee80211MgmtAP::handleDataFrame(Ieee80211DataFrame *frame)
 void Ieee80211MgmtAP::handleAuthenticationFrame(Ieee80211AuthenticationFrame *frame)
 {
     int frameAuthSeq = frame->getBody().getSequenceNumber();
-    EV << "Processing Authentication frame, seqNum=" << frameAuthSeq << "\n";
+    //EV << "Processing Authentication frame, seqNum=" << frameAuthSeq << "\n";
 
     // create STA entry if needed
     STAInfo *sta = lookupSenderSTA(frame);
@@ -230,7 +230,7 @@ void Ieee80211MgmtAP::handleAuthenticationFrame(Ieee80211AuthenticationFrame *fr
     // check authentication sequence number is OK
     if (frameAuthSeq != sta->authSeqExpected) {
         // wrong sequence number: send error and return
-        EV << "Wrong sequence number, " << sta->authSeqExpected << " expected\n";
+        //EV << "Wrong sequence number, " << sta->authSeqExpected << " expected\n";
         Ieee80211AuthenticationFrame *resp = new Ieee80211AuthenticationFrame("Auth-ERROR");
         resp->getBody().setStatusCode(SC_AUTH_OUT_OF_SEQ);
         sendManagementFrame(resp, frame->getTransmitterAddress());
@@ -244,7 +244,7 @@ void Ieee80211MgmtAP::handleAuthenticationFrame(Ieee80211AuthenticationFrame *fr
 
     // send OK response (we don't model the cryptography part, just assume
     // successful authentication every time)
-    EV << "Sending Authentication frame, seqNum=" << (frameAuthSeq + 1) << "\n";
+    //EV << "Sending Authentication frame, seqNum=" << (frameAuthSeq + 1) << "\n";
     Ieee80211AuthenticationFrame *resp = new Ieee80211AuthenticationFrame(isLast ? "Auth-OK" : "Auth");
     resp->getBody().setSequenceNumber(frameAuthSeq + 1);
     resp->getBody().setStatusCode(SC_SUCCESSFUL);
@@ -259,17 +259,17 @@ void Ieee80211MgmtAP::handleAuthenticationFrame(Ieee80211AuthenticationFrame *fr
         if (sta->status == ASSOCIATED)
             sendDisAssocNotification(sta->address);
         sta->status = AUTHENTICATED;    // XXX only when ACK of this frame arrives
-        EV << "STA authenticated\n";
+        //EV << "STA authenticated\n";
     }
     else {
         sta->authSeqExpected += 2;
-        EV << "Expecting Authentication frame " << sta->authSeqExpected << "\n";
+        //EV << "Expecting Authentication frame " << sta->authSeqExpected << "\n";
     }
 }
 
 void Ieee80211MgmtAP::handleDeauthenticationFrame(Ieee80211DeauthenticationFrame *frame)
 {
-    EV << "Processing Deauthentication frame\n";
+    //EV << "Processing Deauthentication frame\n";
 
     STAInfo *sta = lookupSenderSTA(frame);
     delete frame;
@@ -285,7 +285,7 @@ void Ieee80211MgmtAP::handleDeauthenticationFrame(Ieee80211DeauthenticationFrame
 
 void Ieee80211MgmtAP::handleAssociationRequestFrame(Ieee80211AssociationRequestFrame *frame)
 {
-    EV << "Processing AssociationRequest frame\n";
+    //EV << "Processing AssociationRequest frame\n";
 
     // "11.3.2 AP association procedures"
     STAInfo *sta = lookupSenderSTA(frame);
@@ -321,7 +321,7 @@ void Ieee80211MgmtAP::handleAssociationResponseFrame(Ieee80211AssociationRespons
 
 void Ieee80211MgmtAP::handleReassociationRequestFrame(Ieee80211ReassociationRequestFrame *frame)
 {
-    EV << "Processing ReassociationRequest frame\n";
+    //EV << "Processing ReassociationRequest frame\n";
 
     // "11.3.4 AP reassociation procedures" -- almost the same as AssociationRequest processing
     STAInfo *sta = lookupSenderSTA(frame);
@@ -372,10 +372,10 @@ void Ieee80211MgmtAP::handleBeaconFrame(Ieee80211BeaconFrame *frame)
 
 void Ieee80211MgmtAP::handleProbeRequestFrame(Ieee80211ProbeRequestFrame *frame)
 {
-    EV << "Processing ProbeRequest frame\n";
+    //EV << "Processing ProbeRequest frame\n";
 
     if (strcmp(frame->getBody().getSSID(), "") != 0 && strcmp(frame->getBody().getSSID(), ssid.c_str()) != 0) {
-        EV << "SSID `" << frame->getBody().getSSID() << "' does not match, ignoring frame\n";
+        //EV << "SSID `" << frame->getBody().getSSID() << "' does not match, ignoring frame\n";
         dropManagementFrame(frame);
         return;
     }
@@ -383,7 +383,7 @@ void Ieee80211MgmtAP::handleProbeRequestFrame(Ieee80211ProbeRequestFrame *frame)
     MACAddress staAddress = frame->getTransmitterAddress();
     delete frame;
 
-    EV << "Sending ProbeResponse frame\n";
+    //EV << "Sending ProbeResponse frame\n";
     Ieee80211ProbeResponseFrame *resp = new Ieee80211ProbeResponseFrame("ProbeResp");
     Ieee80211ProbeResponseFrameBody& body = resp->getBody();
     body.setSSID(ssid.c_str());

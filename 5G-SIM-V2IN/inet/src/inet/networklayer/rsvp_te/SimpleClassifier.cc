@@ -75,7 +75,7 @@ bool SimpleClassifier::lookupLabel(IPv4Datagram *ipdatagram, LabelOpVector& outL
         if (!elem.src.isUnspecified() && !elem.src.equals(ipdatagram->getSrcAddress()))
             continue;
 
-        EV_DETAIL << "packet belongs to fecid=" << elem.id << endl;
+        //EV_DETAIL << "packet belongs to fecid=" << elem.id << endl;
 
         if (elem.inLabel < 0)
             return false;
@@ -137,7 +137,7 @@ void SimpleClassifier::readItemFromXML(const cXMLElement *fec)
         // bind-fec to label
         checkTags(fec, "id label destination source");
 
-        EV_INFO << "binding to a given label" << endl;
+        //EV_INFO << "binding to a given label" << endl;
 
         FECEntry newFec;
 
@@ -160,7 +160,7 @@ void SimpleClassifier::readItemFromXML(const cXMLElement *fec)
         // bind-fec to LSP
         checkTags(fec, "id destination source tunnel_id extended_tunnel_id endpoint lspid");
 
-        EV_INFO << "binding to a given path" << endl;
+        //EV_INFO << "binding to a given path" << endl;
 
         FECEntry newFec;
 

@@ -37,7 +37,7 @@ simple LteCellInfo {
         double positionUpdateInterval @unit(s) = default(0.001s);
           
         // broadcast messages interval (used for handover or das)
-        double broadcastMessageInterval @unit(s) = default(1s);
+        double broadcastMessageInterval @unit(s) = default(0.2s);
           
         // eNodeB type (MICRO / MACRO) - valid only for eNodeBs
         bool microCell = default(false);  

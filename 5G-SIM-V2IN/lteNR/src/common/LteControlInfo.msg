@@ -82,6 +82,13 @@ class LteControlInfo {
     uint16 lcid;                                        // Logical Connection Identifier
     int32 multicastGroupId = -1;                        // Identifier for a multicast group (it is in range [0:[2^28)-1] ) 
                                                         // For unicast communications, this field is -1
+                                                        
+   //# for codeBlockGroups
+   bool codeBlockGroupsActivated;
+   unsigned int numberOfCodeBlockGroups;
+   unsigned int restByteSize;
+   unsigned int blocksForCodeBlockGroups;
+   unsigned int initialByteSize;
 }
 
 //

@@ -57,7 +57,7 @@ void SimpleEpEnergyStorage::handleMessage(cMessage *message)
     if (message == timer) {
         setResidualCapacity(targetCapacity);
         scheduleTimer();
-        EV_INFO << "Residual capacity = " << residualCapacity.get() << " (" << (int)round(unit(residualCapacity / nominalCapacity).get() * 100) << "%)" << endl;
+        //EV_INFO << "Residual capacity = " << residualCapacity.get() << " (" << (int)round(unit(residualCapacity / nominalCapacity).get() * 100) << "%)" << endl;
     }
     else
         throw cRuntimeError("Unknown message");
@@ -80,7 +80,7 @@ void SimpleEpEnergyStorage::updateTotalPowerGeneration()
 void SimpleEpEnergyStorage::executeNodeOperation(J newResidualCapacity)
 {
     if (newResidualCapacity <= J(0) && nodeStatus->getState() == NodeStatus::UP) {
-        EV_WARN << "Energy storage failed" << endl;
+        //EV_WARN << "Energy storage failed" << endl;
         LifecycleOperation::StringMap params;
         NodeCrashOperation *operation = new NodeCrashOperation();
         operation->initialize(networkNode, params);
@@ -98,10 +98,10 @@ void SimpleEpEnergyStorage::setResidualCapacity(J newResidualCapacity)
 {
     residualCapacity = newResidualCapacity;
     lastResidualCapacityUpdate = simTime();
-    if (residualCapacity == J(0))
-        EV_WARN << "Energy storage depleted" << endl;
-    else if (residualCapacity == nominalCapacity)
-        EV_INFO << "Energy storage charged" << endl;
+//    if (residualCapacity == J(0))
+//        //EV_WARN << "Energy storage depleted" << endl;
+//    else if (residualCapacity == nominalCapacity)
+//        //EV_INFO << "Energy storage charged" << endl;
     if (networkNode != nullptr)
         executeNodeOperation(newResidualCapacity);
     emit(residualEnergyCapacityChangedSignal, residualCapacity.get());

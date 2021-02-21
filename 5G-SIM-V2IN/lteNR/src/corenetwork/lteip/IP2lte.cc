@@ -547,7 +547,7 @@ void IP2lte::signalHandoverCompleteTarget(MacNodeId ueId, MacNodeId sourceEnb)
 
 void IP2lte::triggerHandoverUe()
 {
-    EV << NOW << " IP2lte::triggerHandoverUe - start holding packets" << endl;
+    //EV << NOW << " IP2lte::triggerHandoverUe - start holding packets" << endl;
 
     // reception of handover command from X2
     ueHold_ = true;

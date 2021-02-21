@@ -88,7 +88,7 @@ void EthernetApplication::sendPacket()
 
     char msgname[30];
     sprintf(msgname, "req-%d-%ld", getId(), seqNum);
-    EV << "Generating packet `" << msgname << "'\n";
+    //EV << "Generating packet `" << msgname << "'\n";
 
     EtherAppReq *datapacket = new EtherAppReq(msgname, IEEE802CTRL_DATA);
 
@@ -110,7 +110,7 @@ void EthernetApplication::sendPacket()
 
 void EthernetApplication::receivePacket(cMessage *msg)
 {
-    EV << "Received packet `" << msg->getName() << "'\n";
+    //EV << "Received packet `" << msg->getName() << "'\n";
 
     packetsReceived++;
     // simtime_t lastEED = simTime() - msg->getCreationTime();
@@ -132,7 +132,7 @@ void EthernetApplication::receivePacket(cMessage *msg)
             std::ostringstream s;
             s << msg->getName() << "-resp-" << k;
 
-            EV << "Generating packet `" << s.str().c_str() << "'\n";
+            //EV << "Generating packet `" << s.str().c_str() << "'\n";
 
             EtherAppResp *datapacket = new EtherAppResp(s.str().c_str(), IEEE802CTRL_DATA);
             datapacket->setRequestId(requestId);

@@ -54,7 +54,7 @@ void XMacLayer::initialize(int stage)
         txPower       = hasPar("txPower")       ? par("txPower")       : 50.;
         useMacAcks    = hasPar("useMACAcks")    ? par("useMACAcks")    : false;
         maxTxAttempts = hasPar("maxTxAttempts") ? par("maxTxAttempts") : 2;
-        EV_DEBUG << "headerLength: " << headerLength << ", bitrate: " << bitrate << endl;
+        //EV_DEBUG << "headerLength: " << headerLength << ", bitrate: " << bitrate << endl;
 
         stats = par("stats");
         nbTxDataPackets = 0;
@@ -281,7 +281,7 @@ void XMacLayer::handleSelfMessage(cMessage *msg)
     case INIT:
         if (msg->getKind() == XMAC_START_XMAC)
         {
-            EV_DEBUG << "State INIT, message XMAC_START, new state SLEEP" << endl;
+            //EV_DEBUG << "State INIT, message XMAC_START, new state SLEEP" << endl;
             changeDisplayColor(BLACK);
             radio->setRadioMode(IRadio::RADIO_MODE_SLEEP);
             macState = SLEEP;
@@ -292,8 +292,7 @@ void XMacLayer::handleSelfMessage(cMessage *msg)
     case SLEEP:
         if (msg->getKind() == XMAC_WAKE_UP)
         {
-            EV_DEBUG << "node " << address << " : State SLEEP, message XMAC_WAKEUP, new state CCA, simTime " <<
-                    simTime() << " to " << simTime() + 1.7f * checkInterval << endl;
+            //EV_DEBUG << "node " << address << " : State SLEEP, message XMAC_WAKEUP, new state CCA, simTime " <<                    simTime() << " to " << simTime() + 1.7f * checkInterval << endl;
             // this CCA is useful when in RX to detect preamble and has to make room for
             // 0.2f = Tx switch, 0.5f = Tx send_preamble, 1f = time_for_ack_back
             scheduleAt(simTime() + 1.7f * checkInterval, cca_timeout);
@@ -346,7 +345,7 @@ void XMacLayer::handleSelfMessage(cMessage *msg)
             if (incoming_preamble->getDest() == address || incoming_preamble->getDest().isBroadcast() || incoming_preamble->getDest().isMulticast()) {
                 cancelEvent(cca_timeout);
                 nbRxPreambles++;
-                EV << "node " << address << " : State CCA, message XMAC_PREAMBLE received, new state SEND_ACK" << endl;
+                //EV << "node " << address << " : State CCA, message XMAC_PREAMBLE received, new state SEND_ACK" << endl;
                 macState = SEND_ACK;
                 lastPreamblePktSrcAddr = incoming_preamble->getSrc();
                 changeDisplayColor(YELLOW);
@@ -354,7 +353,7 @@ void XMacLayer::handleSelfMessage(cMessage *msg)
             }
             // the preamble is not for us
             else {
-                EV << "node " << address << " : State CCA, message XMAC_PREAMBLE not for me." << endl;
+                //EV << "node " << address << " : State CCA, message XMAC_PREAMBLE not for me." << endl;
                 //~ better overhearing management? :)
                 cancelEvent(cca_timeout);
                 scheduleAt(simTime() + slotDuration, wakeup);
@@ -370,7 +369,7 @@ void XMacLayer::handleSelfMessage(cMessage *msg)
         //of another communication
         if (msg->getKind() == XMAC_ACK)
         {
-            EV_DEBUG << "State CCA, message XMAC_ACK, new state CCA" << endl;
+            //EV_DEBUG << "State CCA, message XMAC_ACK, new state CCA" << endl;
             delete msg;
             return;
         }
@@ -383,7 +382,7 @@ void XMacLayer::handleSelfMessage(cMessage *msg)
 
             // packet is for me
             if (incoming_data->getDest() == address) {
-                EV << "node " << address << " : State CCA, received XMAC_DATA, accepting it." << endl;
+                //EV << "node " << address << " : State CCA, received XMAC_DATA, accepting it." << endl;
                 cancelEvent(cca_timeout);
                 cancelEvent(switch_preamble_phase);
                 cancelEvent(stop_preambles);
@@ -402,14 +401,14 @@ void XMacLayer::handleSelfMessage(cMessage *msg)
             if (radio->getRadioMode() == IRadio::RADIO_MODE_RECEIVER) {
                 radio->setRadioMode(IRadio::RADIO_MODE_TRANSMITTER);
                 changeDisplayColor(YELLOW);
-                EV_DEBUG << "node " << address << " : preamble_phase tx, simTime = " << simTime() << endl;
+                //EV_DEBUG << "node " << address << " : preamble_phase tx, simTime = " << simTime() << endl;
                 scheduleAt(simTime() + 0.5f * checkInterval, switch_preamble_phase);
             }
             // 1.0f* = 10ms
             else if (radio->getRadioMode() == IRadio::RADIO_MODE_TRANSMITTER) {
                 radio->setRadioMode(IRadio::RADIO_MODE_RECEIVER);
                 changeDisplayColor(GREEN);
-                EV_DEBUG << "node " << address << " : preamble_phase rx, simTime = " << simTime() << endl;
+                //EV_DEBUG << "node " << address << " : preamble_phase rx, simTime = " << simTime() << endl;
                 scheduleAt(simTime() + 1.0f *checkInterval, switch_preamble_phase);
             }
             return;
@@ -428,9 +427,9 @@ void XMacLayer::handleSelfMessage(cMessage *msg)
             //~ ADDED THE SECOND CONDITION! :) if not, below
             if (msg->getKind() == XMAC_ACK){
                 delete msg;
-                EV << "node " << address << " : State SEND_PREAMBLE, message XMAC_ACK, new state SEND_DATA" << endl;
+                //EV << "node " << address << " : State SEND_PREAMBLE, message XMAC_ACK, new state SEND_DATA" << endl;
             }else if (msg->getKind() == XMAC_STOP_PREAMBLES){
-                EV << "node " << address << " : State SEND_PREAMBLE, message XMAC_STOP_PREAMBLES" << endl;
+                //EV << "node " << address << " : State SEND_PREAMBLE, message XMAC_STOP_PREAMBLES" << endl;
             }
             macState = SEND_DATA;
             cancelEvent(stop_preambles);
@@ -450,7 +449,7 @@ void XMacLayer::handleSelfMessage(cMessage *msg)
             return;
         }
         else {
-            EV << "**node " << address << " : State SEND_PREAMBLE, received message " << msg->getKind() << endl;
+            //EV << "**node " << address << " : State SEND_PREAMBLE, received message " << msg->getKind() << endl;
             return;
         }
         break;
@@ -458,13 +457,13 @@ void XMacLayer::handleSelfMessage(cMessage *msg)
     case SEND_DATA:
         if (msg->getKind() == XMAC_STOP_PREAMBLES)
         {
-            EV << "node " << address << " : State SEND_DATA, message XMAC_STOP_PREAMBLES" << endl;
+            //EV << "node " << address << " : State SEND_DATA, message XMAC_STOP_PREAMBLES" << endl;
             // send the data packet
             sendDataPacket();
             macState = WAIT_TX_DATA_OVER;
             return;
         }else if (msg->getKind() == XMAC_SWITCHING_FINISHED) {
-            EV << "node " << address << " : State SEND_DATA, message RADIO_SWITCHING OVER, sending packet..." << endl;
+            //EV << "node " << address << " : State SEND_DATA, message RADIO_SWITCHING OVER, sending packet..." << endl;
             // send the data packet
             sendDataPacket();
             macState = WAIT_TX_DATA_OVER;
@@ -478,7 +477,7 @@ void XMacLayer::handleSelfMessage(cMessage *msg)
     case WAIT_TX_DATA_OVER:
         if (msg->getKind() == XMAC_DATA_TX_OVER)
         {
-            EV_DEBUG << "node " << address << " : State WAIT_TX_DATA_OVER, message XMAC_DATA_TX_OVER, new state  SLEEP" << endl;
+            //EV_DEBUG << "node " << address << " : State WAIT_TX_DATA_OVER, message XMAC_DATA_TX_OVER, new state  SLEEP" << endl;
             // remove the packet just served from the queue
             delete macQueue.front();
             macQueue.pop_front();
@@ -536,13 +535,13 @@ void XMacLayer::handleSelfMessage(cMessage *msg)
                 mac = NULL;
             }
 
-            EV << "node " << address << " : State WAIT_DATA, message XMAC_DATA, new state  SLEEP" << endl;
+            //EV << "node " << address << " : State WAIT_DATA, message XMAC_DATA, new state  SLEEP" << endl;
             return;
         }
         // data does not arrives in time
         if (msg->getKind() == XMAC_DATA_TIMEOUT)
         {
-            EV << "node " << address << " : State WAIT_DATA, message XMAC_DATA_TIMEOUT, new state SLEEP" << endl;
+            //EV << "node " << address << " : State WAIT_DATA, message XMAC_DATA_TIMEOUT, new state SLEEP" << endl;
             // if something in the queue, wakeup soon.
             if (macQueue.size() > 0)
                 scheduleAt(simTime() + dblrand()*checkInterval, wakeup);
@@ -557,7 +556,7 @@ void XMacLayer::handleSelfMessage(cMessage *msg)
     case SEND_ACK:
         // send now the ack packet
         if (msg->getKind() == DELAY_FOR_ACK_WITHIN_REMOTE_RX) {
-            EV_DEBUG << "node " << address << " : State SEND_ACK, message XMAC_SEND_ACK, new state WAIT_ACK_TX" << endl;
+            //EV_DEBUG << "node " << address << " : State SEND_ACK, message XMAC_SEND_ACK, new state WAIT_ACK_TX" << endl;
             sendMacAck();
             macState = WAIT_ACK_TX;
             return;
@@ -567,7 +566,7 @@ void XMacLayer::handleSelfMessage(cMessage *msg)
         // wait for the ACK to be sent back to the Transmitter
         if (msg->getKind() == XMAC_ACK_TX_OVER)
         {
-            EV_DEBUG << "node " << address << " : State WAIT_ACK_TX, message XMAC_ACK_TX_OVER, new state WAIT_DATA" << endl;
+            //EV_DEBUG << "node " << address << " : State WAIT_ACK_TX, message XMAC_ACK_TX_OVER, new state WAIT_DATA" << endl;
             changeDisplayColor(GREEN);
             macState = WAIT_DATA;
             cancelEvent(cca_timeout);
@@ -588,7 +587,7 @@ void XMacLayer::handleSelfMessage(cMessage *msg)
 void XMacLayer::handleLowerPacket(cPacket *msg)
 {
     if (msg->hasBitError()) {
-        EV << "Received " << msg << " contains bit errors or collision, dropping it\n";
+        //EV << "Received " << msg << " contains bit errors or collision, dropping it\n";
         nbRxBrokenDataPackets++;
         delete msg;
         return;
@@ -650,8 +649,7 @@ bool XMacLayer::addToQueue(cMessage *msg)
 {
     if (macQueue.size() >= queueLength) {
         // queue is full, message has to be deleted
-        EV_DEBUG << "New packet arrived, but queue is FULL, so new packet is"
-                  " deleted\n";
+        //EV_DEBUG << "New packet arrived, but queue is FULL, so new packet is"                  " deleted\n";
         emit(packetFromUpperDroppedSignal, msg);
         delete msg;
         nbDroppedDataPackets++;
@@ -662,7 +660,7 @@ bool XMacLayer::addToQueue(cMessage *msg)
     XMacFrame *macPkt = new XMacFrame(msg->getName());
     macPkt->setBitLength(headerLength);
     IMACProtocolControlInfo *const cInfo = check_and_cast<IMACProtocolControlInfo *>(msg->removeControlInfo());
-    EV_DETAIL << "CSMA received a message from upper layer, name is " << msg->getName() << ", CInfo removed, mac addr=" << cInfo->getDestinationAddress() << endl;
+    //EV_DETAIL << "CSMA received a message from upper layer, name is " << msg->getName() << ", CInfo removed, mac addr=" << cInfo->getDestinationAddress() << endl;
     MACAddress dest = cInfo->getDestinationAddress();
     macPkt->setDest(dest);
     delete cInfo;
@@ -670,11 +668,9 @@ bool XMacLayer::addToQueue(cMessage *msg)
 
     assert(static_cast<cPacket*>(msg));
     macPkt->encapsulate(static_cast<cPacket*>(msg));
-    EV_DETAIL << "pkt encapsulated, length: " << macPkt->getBitLength() << "\n";
+    //EV_DETAIL << "pkt encapsulated, length: " << macPkt->getBitLength() << "\n";
     macQueue.push_back(macPkt);
-    EV_DEBUG << "Max queue length: " << queueLength << ", packet put in queue"
-              "\n  queue size: " << macQueue.size() << " macState: "
-              << macState << endl;
+    //EV_DEBUG << "Max queue length: " << queueLength << ", packet put in queue"              "\n  queue size: " << macQueue.size() << " macState: "              << macState << endl;
     return true;
 }
 

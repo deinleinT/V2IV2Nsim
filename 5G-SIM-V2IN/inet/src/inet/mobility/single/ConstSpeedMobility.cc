@@ -33,7 +33,7 @@ void ConstSpeedMobility::initialize(int stage)
 {
     LineSegmentsMobilityBase::initialize(stage);
 
-    EV_TRACE << "initializing ConstSpeedMobility stage " << stage << endl;
+    //EV_TRACE << "initializing ConstSpeedMobility stage " << stage << endl;
     if (stage == INITSTAGE_LOCAL) {
         speed = par("speed");
         stationary = speed == 0;

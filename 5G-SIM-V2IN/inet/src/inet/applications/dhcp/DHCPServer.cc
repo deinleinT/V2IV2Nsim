@@ -79,7 +79,7 @@ void DHCPServer::openSocket()
     socket.setOutputGate(gate("udpOut"));
     socket.bind(serverPort);
     socket.setBroadcast(true);
-    EV_INFO << "DHCP server bound to port " << serverPort << endl;
+    //EV_INFO << "DHCP server bound to port " << serverPort << endl;
 }
 
 void DHCPServer::receiveSignal(cComponent *source, int signalID, cObject *obj, cObject *details)
@@ -135,7 +135,7 @@ void DHCPServer::handleMessage(cMessage *msg)
         processDHCPMessage(dhcpPacket);
     else {
         // note: unknown packets are likely ICMP errors in response to DHCP messages we sent out; just ignore them
-        EV_WARN << "Unknown packet '" << msg->getName() << "', discarding it." << endl;
+        //EV_WARN << "Unknown packet '" << msg->getName() << "', discarding it." << endl;
         delete msg;
     }
 }
@@ -158,7 +158,7 @@ void DHCPServer::processDHCPMessage(DHCPMessage *packet)
     int inputInterfaceId = ctrl->getInterfaceId();
     delete ctrl;
     if (inputInterfaceId != ie->getInterfaceId()) {
-        EV_WARN << "DHCP message arrived on a different interface, dropping\n";
+        //EV_WARN << "DHCP message arrived on a different interface, dropping\n";
         delete packet;
         return;
     }
@@ -168,7 +168,7 @@ void DHCPServer::processDHCPMessage(DHCPMessage *packet)
         int messageType = packet->getOptions().getMessageType();
 
         if (messageType == DHCPDISCOVER) {    // RFC 2131, 4.3.1
-            EV_INFO << "DHCPDISCOVER arrived. Handling it." << endl;
+            //EV_INFO << "DHCPDISCOVER arrived. Handling it." << endl;
 
             DHCPLease *lease = getLeaseByMac(packet->getChaddr());
             if (!lease) {
@@ -182,8 +182,9 @@ void DHCPServer::processDHCPMessage(DHCPMessage *packet)
                     lease->leased = true;    // TODO
                     sendOffer(lease, packet);
                 }
-                else
-                    EV_ERROR << "No lease available. Ignoring discover." << endl;
+                else{
+                    //EV_ERROR << "No lease available. Ignoring discover." << endl;
+                }
             }
             else {
                 // MAC already exist, offering the same lease
@@ -193,7 +194,7 @@ void DHCPServer::processDHCPMessage(DHCPMessage *packet)
             }
         }
         else if (messageType == DHCPREQUEST) {    // RFC 2131, 4.3.2
-            EV_INFO << "DHCPREQUEST arrived. Handling it." << endl;
+            //EV_INFO << "DHCPREQUEST arrived. Handling it." << endl;
 
             // check if the request was in response of an offering
             if (packet->getOptions().getServerIdentifier() == ie->ipv4Data()->getIPAddress()) {
@@ -203,11 +204,11 @@ void DHCPServer::processDHCPMessage(DHCPMessage *packet)
                 DHCPLease *lease = getLeaseByMac(packet->getChaddr());
                 if (lease != nullptr) {
                     if (lease->ip != packet->getOptions().getRequestedIp()) {
-                        EV_ERROR << "The 'requested IP address' must be filled in with the 'yiaddr' value from the chosen DHCPOFFER." << endl;
+                        //EV_ERROR << "The 'requested IP address' must be filled in with the 'yiaddr' value from the chosen DHCPOFFER." << endl;
                         sendNAK(packet);
                     }
                     else {
-                        EV_INFO << "From now " << lease->ip << " is leased to " << lease->mac << "." << endl;
+                        //EV_INFO << "From now " << lease->ip << " is leased to " << lease->mac << "." << endl;
                         lease->xid = packet->getXid();
                         lease->leaseTime = leaseTime;
                         lease->leased = true;
@@ -219,7 +220,7 @@ void DHCPServer::processDHCPMessage(DHCPMessage *packet)
                     }
                 }
                 else {
-                    EV_ERROR << "There is no available lease for " << packet->getChaddr() << ". Probably, the client missed to send DHCPDISCOVER before DHCPREQUEST." << endl;
+                    //EV_ERROR << "There is no available lease for " << packet->getChaddr() << ". Probably, the client missed to send DHCPDISCOVER before DHCPREQUEST." << endl;
                     sendNAK(packet);
                 }
             }
@@ -231,11 +232,11 @@ void DHCPServer::processDHCPMessage(DHCPMessage *packet)
                     if (it == leased.end()) {
                         // if DHCP server has no record of the requested IP, then it must remain silent
                         // and may output a warning to the network admin
-                        EV_WARN << "DHCP server has no record of IP " << requestedAddress << "." << endl;
+                        //EV_WARN << "DHCP server has no record of IP " << requestedAddress << "." << endl;
                     }
                     else if (IPv4Address::maskedAddrAreEqual(requestedAddress, it->second.ip, subnetMask)) {    // on the same network
                         DHCPLease *lease = &it->second;
-                        EV_INFO << "Initialization with known IP address (INIT-REBOOT) " << lease->ip << " on " << lease->mac << " was successful." << endl;
+                        //EV_INFO << "Initialization with known IP address (INIT-REBOOT) " << lease->ip << " on " << lease->mac << " was successful." << endl;
                         lease->xid = packet->getXid();
                         lease->leaseTime = leaseTime;
                         lease->leased = true;
@@ -244,7 +245,7 @@ void DHCPServer::processDHCPMessage(DHCPMessage *packet)
                         sendACK(lease, packet);
                     }
                     else {
-                        EV_ERROR << "The requested IP address is incorrect, or is on the wrong network." << endl;
+                        //EV_ERROR << "The requested IP address is incorrect, or is on the wrong network." << endl;
                         sendNAK(packet);
                     }
                 }
@@ -252,7 +253,7 @@ void DHCPServer::processDHCPMessage(DHCPMessage *packet)
                     auto it = leased.find(packet->getCiaddr());
                     DHCPLease *lease = &it->second;
                     if (it != leased.end()) {
-                        EV_INFO << "Request for renewal/rebinding IP " << lease->ip << " to " << lease->mac << "." << endl;
+                        //EV_INFO << "Request for renewal/rebinding IP " << lease->ip << " to " << lease->mac << "." << endl;
                         lease->xid = packet->getXid();
                         lease->leaseTime = leaseTime;
                         lease->leased = true;
@@ -261,20 +262,21 @@ void DHCPServer::processDHCPMessage(DHCPMessage *packet)
                         sendACK(lease, packet);
                     }
                     else {
-                        EV_ERROR << "Renewal/rebinding process failed: requested IP address " << packet->getCiaddr() << " not found in the server's database!" << endl;
+                        //EV_ERROR << "Renewal/rebinding process failed: requested IP address " << packet->getCiaddr() << " not found in the server's database!" << endl;
                         sendNAK(packet);
                     }
                 }
             }
         }
-        else
-            EV_WARN << "BOOTREQUEST arrived, but DHCP message type is unknown. Dropping it." << endl;
+        else{
+            //EV_WARN << "BOOTREQUEST arrived, but DHCP message type is unknown. Dropping it." << endl;
+        }
     }
     else {
-        EV_WARN << "Message opcode is unknown. This DHCP server only handles BOOTREQUEST messages. Dropping it." << endl;
+        //EV_WARN << "Message opcode is unknown. This DHCP server only handles BOOTREQUEST messages. Dropping it." << endl;
     }
 
-    EV_DEBUG << "Deleting " << packet << "." << endl;
+    //EV_DEBUG << "Deleting " << packet << "." << endl;
     delete packet;
 
     numReceived++;
@@ -310,7 +312,7 @@ void DHCPServer::sendNAK(DHCPMessage *msg)
 
 void DHCPServer::sendACK(DHCPLease *lease, DHCPMessage *packet)
 {
-    EV_INFO << "Sending the ACK to " << lease->mac << "." << endl;
+    //EV_INFO << "Sending the ACK to " << lease->mac << "." << endl;
 
     DHCPMessage *ack = new DHCPMessage("DHCPACK");
     ack->setOp(BOOTREPLY);
@@ -375,7 +377,7 @@ void DHCPServer::sendACK(DHCPLease *lease, DHCPMessage *packet)
 
 void DHCPServer::sendOffer(DHCPLease *lease, DHCPMessage *packet)
 {
-    EV_INFO << "Offering " << *lease << endl;
+    //EV_INFO << "Offering " << *lease << endl;
 
     DHCPMessage *offer = new DHCPMessage("DHCPOFFER");
     offer->setOp(BOOTREPLY);
@@ -444,11 +446,11 @@ DHCPLease *DHCPServer::getLeaseByMac(MACAddress mac)
     for (auto & elem : leased) {
         // lease exist
         if (elem.second.mac == mac) {
-            EV_DETAIL << "Found lease for MAC " << mac << "." << endl;
+            //EV_DETAIL << "Found lease for MAC " << mac << "." << endl;
             return &(elem.second);
         }
     }
-    EV_DETAIL << "Lease not found for MAC " << mac << "." << endl;
+    //EV_DETAIL << "Lease not found for MAC " << mac << "." << endl;
 
     // lease does not exist
     return nullptr;
@@ -495,7 +497,7 @@ DHCPLease *DHCPServer::getAvailableLease(IPv4Address requestedAddress, MACAddres
 
 void DHCPServer::sendToUDP(cPacket *msg, int srcPort, const L3Address& destAddr, int destPort)
 {
-    EV_INFO << "Sending packet: " << msg << "." << endl;
+    //EV_INFO << "Sending packet: " << msg << "." << endl;
     numSent++;
     UDPSocket::SendOptions options;
     options.outInterfaceId = ie->getInterfaceId();

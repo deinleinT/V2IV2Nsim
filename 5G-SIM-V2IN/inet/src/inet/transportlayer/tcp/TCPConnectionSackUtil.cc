@@ -39,7 +39,7 @@ namespace tcp {
 bool TCPConnection::processSACKOption(TCPSegment *tcpseg, const TCPOptionSack& option)
 {
     if (option.getLength() % 8 != 2) {
-        EV_ERROR << "ERROR: option length incorrect\n";
+        //EV_ERROR << "ERROR: option length incorrect\n";
         return false;
     }
 
@@ -47,25 +47,25 @@ bool TCPConnection::processSACKOption(TCPSegment *tcpseg, const TCPOptionSack& o
     ASSERT(option.getLength() == 2 + n*8);
 
     if (!state->sack_enabled) {
-        EV_ERROR << "ERROR: " << n << " SACK(s) received, but sack_enabled is set to false\n";
+        //EV_ERROR << "ERROR: " << n << " SACK(s) received, but sack_enabled is set to false\n";
         return false;
     }
 
     if (fsm.getState() != TCP_S_SYN_RCVD && fsm.getState() != TCP_S_ESTABLISHED
         && fsm.getState() != TCP_S_FIN_WAIT_1 && fsm.getState() != TCP_S_FIN_WAIT_2)
     {
-        EV_ERROR << "ERROR: TCP Header Option SACK received, but in unexpected state\n";
+        //EV_ERROR << "ERROR: TCP Header Option SACK received, but in unexpected state\n";
         return false;
     }
 
     if (n > 0) {    // sacks present?
-        EV_INFO << n << " SACK(s) received:\n";
+        //EV_INFO << n << " SACK(s) received:\n";
         for (uint i = 0; i < n; i++) {
             Sack tmp;
             tmp.setStart(option.getSackItem(i).getStart());
             tmp.setEnd(option.getSackItem(i).getEnd());
 
-            EV_INFO << (i + 1) << ". SACK: " << tmp.str() << endl;
+            //EV_INFO << (i + 1) << ". SACK: " << tmp.str() << endl;
 
             // check for D-SACK
             if (i == 0 && seqLE(tmp.getEnd(), tcpseg->getAckNo())) {
@@ -80,8 +80,7 @@ bool TCPConnection::processSACKOption(TCPSegment *tcpseg, const TCPOptionSack& o
                 // sequence space in the SACK block to the TCP state variable snd.una
                 // (which carries the total cumulative ACK), as this may result in the
                 // wrong conclusion if ACK packets are reordered."
-                EV_DETAIL << "Received D-SACK below cumulative ACK=" << tcpseg->getAckNo()
-                          << " D-SACK: " << tmp.str() << endl;
+                //EV_DETAIL << "Received D-SACK below cumulative ACK=" << tcpseg->getAckNo()                          << " D-SACK: " << tmp.str() << endl;
                 // Note: RFC 2883 does not specify what should be done in this case.
                 // RFC 2883, page 9:
                 // "5. Detection of Duplicate Packets
@@ -100,9 +99,7 @@ bool TCPConnection::processSACKOption(TCPSegment *tcpseg, const TCPOptionSack& o
                 Sack tmp2(option.getSackItem(1).getStart(), option.getSackItem(1).getEnd());
 
                 if (tmp2.contains(tmp)) {
-                    EV_DETAIL << "Received D-SACK above cumulative ACK=" << tcpseg->getAckNo()
-                              << " D-SACK: " << tmp.str()
-                              << ", SACK: " << tmp2.str() << endl;
+                    //EV_DETAIL << "Received D-SACK above cumulative ACK=" << tcpseg->getAckNo()                              << " D-SACK: " << tmp.str()                              << ", SACK: " << tmp2.str() << endl;
                     // Note: RFC 2883 does not specify what should be done in this case.
                     // RFC 2883, page 9:
                     // "5. Detection of Duplicate Packets
@@ -114,8 +111,9 @@ bool TCPConnection::processSACKOption(TCPSegment *tcpseg, const TCPOptionSack& o
 
             if (seqGreater(tmp.getEnd(), tcpseg->getAckNo()) && seqGreater(tmp.getEnd(), state->snd_una))
                 rexmitQueue->setSackedBit(tmp.getStart(), tmp.getEnd());
-            else
-                EV_DETAIL << "Received SACK below total cumulative ACK snd_una=" << state->snd_una << "\n";
+            else{
+                //EV_DETAIL << "Received SACK below total cumulative ACK snd_una=" << state->snd_una << "\n";
+            }
         }
         state->rcv_sacks += n;    // total counter, no current number
 
@@ -431,7 +429,7 @@ void TCPConnection::sendSegmentDuringLossRecoveryPhase(uint32 seqNum)
 
     if (old_highRxt != state->highRxt) {
         // Note: Restart of REXMIT timer on retransmission is not part of RFC 2581, however optional in RFC 3517 if sent during recovery.
-        EV_INFO << "Retransmission sent during recovery, restarting REXMIT timer.\n";
+        //EV_INFO << "Retransmission sent during recovery, restarting REXMIT timer.\n";
         tcpAlgorithm->restartRexmitTimer();
     }
     else // don't measure RTT for retransmitted packets
@@ -449,15 +447,15 @@ TCPSegment TCPConnection::addSacks(TCPSegment *tcpseg)
 
     // delete old sacks (below rcv_nxt), delete duplicates and print previous status of sacks_array:
     auto it = state->sacks_array.begin();
-    EV_INFO << "Previous status of sacks_array: \n" << ((it != state->sacks_array.end()) ? "" : "\t EMPTY\n");
+    //EV_INFO << "Previous status of sacks_array: \n" << ((it != state->sacks_array.end()) ? "" : "\t EMPTY\n");
 
     while (it != state->sacks_array.end()) {
         if (seqLE(it->getEnd(), state->rcv_nxt) || it->empty()) {
-            EV_DETAIL << "\t SACK in sacks_array: " << " " << it->str() << " delete now\n";
+            //EV_DETAIL << "\t SACK in sacks_array: " << " " << it->str() << " delete now\n";
             it = state->sacks_array.erase(it);
         }
         else {
-            EV_DETAIL << "\t SACK in sacks_array: " << " " << it->str() << endl;
+            //EV_DETAIL << "\t SACK in sacks_array: " << " " << it->str() << endl;
 
             ASSERT(seqGE(it->getStart(), state->rcv_nxt));
 
@@ -466,7 +464,7 @@ TCPSegment TCPConnection::addSacks(TCPSegment *tcpseg)
     }
 
     if (used_options_len > TCP_OPTIONS_MAX_SIZE - TCP_OPTION_SACK_MIN_SIZE) {
-        EV_ERROR << "ERROR: Failed to addSacks - at least 10 free bytes needed for SACK - used_options_len=" << used_options_len << endl;
+        //EV_ERROR << "ERROR: Failed to addSacks - at least 10 free bytes needed for SACK - used_options_len=" << used_options_len << endl;
 
         //reset flags:
         state->snd_sack = false;
@@ -489,7 +487,7 @@ TCPSegment TCPConnection::addSacks(TCPSegment *tcpseg)
             dsack_inserted = true;
             Sack nSack(start, end);
             state->sacks_array.push_front(nSack);
-            EV_DETAIL << "inserted DSACK entry: " << nSack.str() << "\n";
+            //EV_DETAIL << "inserted DSACK entry: " << nSack.str() << "\n";
         }
         else {
             uint32 contStart = receiveQueue->getLE(start);
@@ -497,7 +495,7 @@ TCPSegment TCPConnection::addSacks(TCPSegment *tcpseg)
 
             Sack newSack(contStart, contEnd);
             state->sacks_array.push_front(newSack);
-            EV_DETAIL << "Inserted SACK entry: " << newSack.str() << "\n";
+            //EV_DETAIL << "Inserted SACK entry: " << newSack.str() << "\n";
         }
 
         // RFC 2883, page 3:
@@ -547,7 +545,7 @@ TCPSegment TCPConnection::addSacks(TCPSegment *tcpseg)
             it2++;
             while (it2 != state->sacks_array.end()) {
                 if (it->contains(*it2)) {
-                    EV_DETAIL << "sack matched, delete contained : a=" << it->str() << ", b=" << it2->str() << endl;
+                    //EV_DETAIL << "sack matched, delete contained : a=" << it->str() << ", b=" << it2->str() << endl;
                     it2 = state->sacks_array.erase(it2);
                 }
                 else
@@ -617,21 +615,22 @@ TCPSegment TCPConnection::addSacks(TCPSegment *tcpseg)
     if (sndSacksVector)
         sndSacksVector->record(state->snd_sacks);
 
-    EV_INFO << n << " SACK(s) added to header:\n";
+    //EV_INFO << n << " SACK(s) added to header:\n";
 
     for (uint t = 0; t < n; t++) {
-        EV_INFO << t << ". SACK:" << " [" << option->getSackItem(t).getStart() << ".." << option->getSackItem(t).getEnd() << ")";
+        //EV_INFO << t << ". SACK:" << " [" << option->getSackItem(t).getStart() << ".." << option->getSackItem(t).getEnd() << ")";
 
         if (t == 0) {
-            if (state->snd_dsack)
-                EV_INFO << " (D-SACK)";
+            if (state->snd_dsack){
+                //EV_INFO << " (D-SACK)";
+            }
             else if (seqLE(option->getSackItem(t).getEnd(), state->rcv_nxt)) {
-                EV_INFO << " (received segment filled out a gap)";
+                //EV_INFO << " (received segment filled out a gap)";
                 state->snd_dsack = true;    // Note: Set snd_dsack to delete first sack from sacks_array
             }
         }
 
-        EV_INFO << endl;
+        //EV_INFO << endl;
     }
 
     // RFC 2883, page 3:

@@ -53,7 +53,7 @@ BitVector Ieee80211OFDMDemodulator::demodulateSymbol(const Ieee80211OFDMSymbol *
                 field.appendBit(bits.getBit(j));
         }
     }
-    EV_DEBUG << "The field symbols has been demodulated into the following bit stream: " << field << endl;
+    //EV_DEBUG << "The field symbols has been demodulated into the following bit stream: " << field << endl;
     return field;
 }
 

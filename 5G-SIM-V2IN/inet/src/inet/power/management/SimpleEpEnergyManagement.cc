@@ -63,14 +63,14 @@ void SimpleEpEnergyManagement::handleMessage(cMessage *message)
 void SimpleEpEnergyManagement::executeNodeOperation(J estimatedEnergyCapacity)
 {
     if (!std::isnan(nodeShutdownCapacity.get()) && estimatedEnergyCapacity <= nodeShutdownCapacity && nodeStatus->getState() == NodeStatus::UP) {
-        EV_WARN << "Capacity reached node shutdown threshold" << endl;
+        //EV_WARN << "Capacity reached node shutdown threshold" << endl;
         LifecycleOperation::StringMap params;
         NodeShutdownOperation *operation = new NodeShutdownOperation();
         operation->initialize(networkNode, params);
         lifecycleController->initiateOperation(operation);
     }
     else if (!std::isnan(nodeStartCapacity.get()) && estimatedEnergyCapacity >= nodeStartCapacity && nodeStatus->getState() == NodeStatus::DOWN) {
-        EV_INFO << "Capacity reached node start threshold" << endl;
+        //EV_INFO << "Capacity reached node start threshold" << endl;
         LifecycleOperation::StringMap params;
         NodeStartOperation *operation = new NodeStartOperation();
         operation->initialize(networkNode, params);

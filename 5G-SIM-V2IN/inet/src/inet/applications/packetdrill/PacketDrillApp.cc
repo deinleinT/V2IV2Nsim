@@ -526,7 +526,7 @@ void PacketDrillApp::runEvent(PacketDrillEvent* event)
         } else
             throw cRuntimeError("Invalid direction");
     } else if (event->getType() == SYSCALL_EVENT) {
-        //EV_INFO << "syscallEvent: time_type = " << event->getTimeType() << " event time = " << event->getEventTime() << " end event time = " << event->getEventTimeEnd() << endl;
+        //EV_INFO << "syscallEvent: time_type = " << event->getTimeType() << " event time = " << event->getEventTime()                << " end event time = " << event->getEventTimeEnd() << endl;
         runSystemCallEvent(event, event->getSyscall());
     } else if (event->getType() == COMMAND_EVENT) {
         eventCounter++;
@@ -597,7 +597,7 @@ void PacketDrillApp::closeAllSockets()
     datagram->setTypeOfService(0);
     datagram->setByteLength(20);
     datagram->encapsulate(sctpmsg);
-    EV_DETAIL << "Send Abort to cleanup association." << endl;
+    //EV_DETAIL << "Send Abort to cleanup association." << endl;
     send(datagram, "tunOut");
 }
 
@@ -667,7 +667,7 @@ void PacketDrillApp::runSystemCallEvent(PacketDrillEvent* event, struct syscall_
     delete(syscall->arguments);
     free (syscall);
     if (result == STATUS_ERR) {
-        EV_ERROR << event->getLineNumber() << ": runtime error in " << syscall->name << " call: " << error << endl;
+        //EV_ERROR << event->getLineNumber() << ": runtime error in " << syscall->name << " call: " << error << endl;
         closeAllSockets();
         free(error);
     }
@@ -1441,7 +1441,7 @@ int PacketDrillApp::syscallClose(struct syscall_spec *syscall, cQueue *args, cha
 
     switch (protocol) {
         case IP_PROT_UDP: {
-            EV_DETAIL << "close UDP socket\n";
+            //EV_DETAIL << "close UDP socket\n";
             udpSocket.close();
             break;
         }
@@ -1523,9 +1523,9 @@ int PacketDrillApp::verifyTime(enum eventTime_t timeType, simtime_t scriptTime, 
     if (timeType == ABSOLUTE_RANGE_TIME || timeType == RELATIVE_RANGE_TIME) {
         if (actualTime < (expectedTime - tolerance) || actualTime > (expectedTimeEnd + tolerance)) {
             if (timeType == ABSOLUTE_RANGE_TIME) {
-                //EV_INFO << "timing error: expected " << description << " in time range " << scriptTime << " ~ " << scriptTimeEnd << " sec, but happened at " << actualTime << " sec" << endl;
+                //EV_INFO << "timing error: expected " << description << " in time range " << scriptTime << " ~ "                        << scriptTimeEnd << " sec, but happened at " << actualTime << " sec" << endl;
             } else if (timeType == RELATIVE_RANGE_TIME) {
-                //EV_INFO << "timing error: expected " << description << " in relative time range +" << scriptTime - offset << " ~ " << scriptTimeEnd - offset << " sec, but happened at +" << actualTime - offset << " sec" << endl;
+                //EV_INFO << "timing error: expected " << description << " in relative time range +"                        << scriptTime - offset << " ~ " << scriptTimeEnd - offset << " sec, but happened at +"                        << actualTime - offset << " sec" << endl;
             }
             return STATUS_ERR;
         } else {
@@ -1534,7 +1534,7 @@ int PacketDrillApp::verifyTime(enum eventTime_t timeType, simtime_t scriptTime, 
     }
 
     if ((actualTime < (expectedTime - tolerance)) || (actualTime > (expectedTime + tolerance))) {
-        //EV_INFO << "timing error: expected " << description << " at " << scriptTime << " sec, but happened at " << actualTime << " sec" << endl;
+        EV_INFO << "timing error: expected " << description << " at " << scriptTime << " sec, but happened at "                << actualTime << " sec" << endl;
         return STATUS_ERR;
     } else {
         return STATUS_OK;
@@ -1601,7 +1601,7 @@ bool PacketDrillApp::compareDatagram(IPv4Datagram *storedDatagram, IPv4Datagram 
             SCTPMessage *storedSctp = check_and_cast<SCTPMessage *>(storedDatagram->decapsulate());
             SCTPMessage *liveSctp = check_and_cast<SCTPMessage *>(liveDatagram->decapsulate());
             if (!(compareSctpPacket(storedSctp, liveSctp))) {
-                EV_DETAIL << "SCTP packets are not the same" << endl;
+                //EV_DETAIL << "SCTP packets are not the same" << endl;
                 return false;
             }
             delete storedSctp;
@@ -1645,7 +1645,7 @@ bool PacketDrillApp::compareTcpPacket(TCPSegment *storedTcp, TCPSegment *liveTcp
     }
 
     if (storedTcp->getHeaderOptionArraySize() > 0 || liveTcp->getHeaderOptionArraySize()) {
-     EV_DETAIL << "Options present";
+     //EV_DETAIL << "Options present";
         if (storedTcp->getHeaderOptionArraySize() == 0) {
             return true;
         }
@@ -1735,8 +1735,7 @@ bool PacketDrillApp::compareSctpPacket(SCTPMessage *storedSctp, SCTPMessage *liv
         const uint8 type = storedHeader->getChunkType();
 
         if ((type != INIT && type != INIT_ACK) && type != ABORT && (liveSctp->getTag() != localVTag)) {
-            EV_DETAIL << " VTag " << liveSctp->getTag() << " incorrect. Should be " << localVTag << " peerVTag="
-                    << peerVTag << endl;
+            //EV_DETAIL << " VTag " << liveSctp->getTag() << " incorrect. Should be " << localVTag << " peerVTag="                    << peerVTag << endl;
             return false;
         }
 
@@ -1747,7 +1746,7 @@ bool PacketDrillApp::compareSctpPacket(SCTPMessage *storedSctp, SCTPMessage *liv
                 if (!(compareDataPacket(storedDataChunk, liveDataChunk))) {
                     delete storedDataChunk;
                     delete liveDataChunk;
-                    EV_DETAIL << "DATA chunks are not the same" << endl;
+                    //EV_DETAIL << "DATA chunks are not the same" << endl;
                     return false;
                 }
                 delete storedDataChunk;
@@ -1760,7 +1759,7 @@ bool PacketDrillApp::compareSctpPacket(SCTPMessage *storedSctp, SCTPMessage *liv
                 if (!(compareInitPacket(storedInitChunk, liveInitChunk))) {
                     delete storedInitChunk;
                     delete liveInitChunk;
-                    EV_DETAIL << "INIT chunks are not the same" << endl;
+                    //EV_DETAIL << "INIT chunks are not the same" << endl;
                     return false;
                 }
                 delete storedInitChunk;
@@ -1773,7 +1772,7 @@ bool PacketDrillApp::compareSctpPacket(SCTPMessage *storedSctp, SCTPMessage *liv
                 if (!(compareInitAckPacket(storedInitAckChunk, liveInitAckChunk))) {
                     delete storedInitAckChunk;
                     delete liveInitAckChunk;
-                    EV_DETAIL << "INIT-ACK chunks are not the same" << endl;
+                    //EV_DETAIL << "INIT-ACK chunks are not the same" << endl;
                     return false;
                 }
                 delete storedInitAckChunk;
@@ -1786,7 +1785,7 @@ bool PacketDrillApp::compareSctpPacket(SCTPMessage *storedSctp, SCTPMessage *liv
                 if (!(compareSackPacket(storedSackChunk, liveSackChunk))) {
                     delete storedSackChunk;
                     delete liveSackChunk;
-                    EV_DETAIL << "SACK chunks are not the same" << endl;
+                    //EV_DETAIL << "SACK chunks are not the same" << endl;
                     return false;
                 }
                 delete storedSackChunk;
@@ -1811,7 +1810,7 @@ bool PacketDrillApp::compareSctpPacket(SCTPMessage *storedSctp, SCTPMessage *liv
                     if (!(storedShutdownChunk->getCumTsnAck() == liveShutdownChunk->getCumTsnAck())) {
                         delete storedShutdownChunk;
                         delete liveShutdownChunk;
-                        EV_DETAIL << "SHUTDOWN chunks are not the same" << endl;
+                        //EV_DETAIL << "SHUTDOWN chunks are not the same" << endl;
                         return false;
                     }
                 }
@@ -1828,7 +1827,7 @@ bool PacketDrillApp::compareSctpPacket(SCTPMessage *storedSctp, SCTPMessage *liv
                     if (!(storedShutdownCompleteChunk->getTBit() == liveShutdownCompleteChunk->getTBit())) {
                         delete storedShutdownCompleteChunk;
                         delete liveShutdownCompleteChunk;
-                        EV_DETAIL << "SHUTDOWN-COMPLETE chunks are not the same" << endl;
+                        //EV_DETAIL << "SHUTDOWN-COMPLETE chunks are not the same" << endl;
                         return false;
                     }
                 delete storedShutdownCompleteChunk;
@@ -1842,7 +1841,7 @@ bool PacketDrillApp::compareSctpPacket(SCTPMessage *storedSctp, SCTPMessage *liv
                     if (!(storedAbortChunk->getT_Bit() == liveAbortChunk->getT_Bit())) {
                         delete storedAbortChunk;
                         delete liveAbortChunk;
-                        EV_DETAIL << "ABORT chunks are not the same" << endl;
+                        //EV_DETAIL << "ABORT chunks are not the same" << endl;
                         return false;
                     }
                 delete storedAbortChunk;
@@ -1892,7 +1891,7 @@ bool PacketDrillApp::compareSctpPacket(SCTPMessage *storedSctp, SCTPMessage *liv
                 if (!(compareReconfigPacket(storedReconfigChunk, liveReconfigChunk))) {
                     delete storedReconfigChunk;
                     delete liveReconfigChunk;
-                    EV_DETAIL << "RECONFIG chunks are not the same" << endl;
+                    //EV_DETAIL << "RECONFIG chunks are not the same" << endl;
                     return false;
                 }
                 delete storedReconfigChunk;

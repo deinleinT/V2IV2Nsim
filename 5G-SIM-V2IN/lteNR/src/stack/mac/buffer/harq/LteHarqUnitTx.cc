@@ -110,14 +110,16 @@ LteMacPdu *LteHarqUnitTx::extractPdu()
 bool LteHarqUnitTx::pduFeedback(HarqAcknowledgment a)
 {
     //EV << "LteHarqUnitTx::pduFeedback - Welcome!" << endl;
-    double sample;
-    bool reset = false;
-    UserControlInfo *lteInfo;
-    lteInfo = check_and_cast<UserControlInfo *>(pdu_->getControlInfo());
-    short unsigned int dir = lteInfo->getDirection();
-    unsigned int ntx = transmissions_;
-    if (!(status_ == TXHARQ_PDU_WAITING))
-    throw cRuntimeError("Feedback sent to an H-ARQ unit not waiting for it");
+	double sample;
+	bool reset = false;
+	UserControlInfo *lteInfo = check_and_cast<UserControlInfo*>(pdu_->getControlInfo());
+	//added
+	LteControlInfo *info = check_and_cast<LteControlInfo*>(pdu_->getControlInfo());
+
+	short unsigned int dir = lteInfo->getDirection();
+	unsigned int ntx = transmissions_;
+	if (!(status_ == TXHARQ_PDU_WAITING))
+		throw cRuntimeError("Feedback sent to an H-ARQ unit not waiting for it");
 
     if (a == HARQACK)
     {

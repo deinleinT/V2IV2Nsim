@@ -150,7 +150,7 @@ void RTP::handleMessageFromProfile(cMessage *msg)
         default:
             throw cRuntimeError("Unknown RTPInnerPacket type %d from profile", rinp->getType());
     }
-    EV_DEBUG << "handleMessageFromProfile(cMessage *msg) Exit" << endl;
+    //EV_DEBUG << "handleMessageFromProfile(cMessage *msg) Exit" << endl;
 }
 
 void RTP::handleMessageFromRTCP(cMessage *msg)
@@ -214,7 +214,7 @@ void RTP::leaveSession(RTPCILeaveSession *rifp)
 void RTP::createSenderModule(RTPCICreateSenderModule *rifp)
 {
     RTPInnerPacket *rinp = new RTPInnerPacket("createSenderModule()");
-    EV_INFO << rifp->getSsrc() << endl;
+    //EV_INFO << rifp->getSsrc() << endl;
     rinp->setCreateSenderModulePkt(rifp->getSsrc(), rifp->getPayloadType(), rifp->getFileName());
     send(rinp, "profileOut");
 

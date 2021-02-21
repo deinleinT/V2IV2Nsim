@@ -29,7 +29,7 @@ LteFeedbackComputationRealistic::LteFeedbackComputationRealistic(double targetBl
     lambdaRatioTh_ = lambdaRatioTh;
     phyPisaData_ = &(getBinder()->phyPisaData);
 
-    baseMin_.resize(phyPisaData_->nMcs(), 2);
+    baseMin_.resize(phyPisaData_->nMcs(), 1);
 }
 
 LteFeedbackComputationRealistic::~LteFeedbackComputationRealistic()
@@ -158,13 +158,13 @@ Cqi LteFeedbackComputationRealistic::getCqi(TxMode txmode, double snr)
 	} else {
 		int newsnr = floor(snr + 0.5);
 		if (newsnr < 0)
-			return 0;
+			return 0 + 1;
 		if (newsnr > phyPisaData_->maxSnr())
 			return 15;
 		unsigned int txm = txModeToIndex[txmode];
 		std::vector<double> min;
 		int found = 0;
-		double low = 2;
+		double low = 1;
 
 		min = baseMin_;
 		for (int i = 0; i < phyPisaData_->nMcs(); i++) {

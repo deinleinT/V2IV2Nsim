@@ -112,7 +112,7 @@ void GenericNetworkConfigurator::addStaticRoutes(Topology& topology)
                         L3Address nextHopAddress = nextHopInterfaceEntry->getGenericNetworkProtocolData()->getAddress();
                         if (nextHopAddress != destinationAddress)
                             route->setNextHop(nextHopAddress);
-                        EV_DEBUG << "Adding route " << sourceInterfaceEntry->getFullPath() << " -> " << destinationInterfaceEntry->getFullPath() << " as " << route->str() << endl;
+                        //EV_DEBUG << "Adding route " << sourceInterfaceEntry->getFullPath() << " -> " << destinationInterfaceEntry->getFullPath() << " as " << route->str() << endl;
                         sourceRoutingTable->addRoute(route);
                     }
                 }
@@ -126,7 +126,7 @@ void GenericNetworkConfigurator::dumpRoutes(Topology& topology)
     for (int i = 0; i < topology.getNumNodes(); i++) {
         Node *node = (Node *)topology.getNode(i);
         if (node->routingTable) {
-            EV_INFO << "Node " << node->module->getFullPath() << endl;
+            //EV_INFO << "Node " << node->module->getFullPath() << endl;
             node->routingTable->printRoutingTable();
             if (node->routingTable->getNumMulticastRoutes() > 0)
                 ; // TODO: node->routingTable->printMulticastRoutingTable();

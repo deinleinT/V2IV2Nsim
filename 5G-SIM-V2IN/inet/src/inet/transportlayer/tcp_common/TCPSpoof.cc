@@ -65,7 +65,7 @@ void TCPSpoof::sendSpoofPacket()
 
 void TCPSpoof::sendToIP(TCPSegment *tcpseg, L3Address src, L3Address dest)
 {
-    EV_INFO << "Sending: ";
+    //EV_INFO << "Sending: ";
     //printSegmentBrief(tcpseg);
 
     IL3AddressType *addressType = dest.getAddressType();

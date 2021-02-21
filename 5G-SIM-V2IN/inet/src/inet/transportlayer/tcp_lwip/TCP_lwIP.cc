@@ -83,7 +83,7 @@ void TCP_lwIP::initialize(int stage)
 {
     cSimpleModule::initialize(stage);
 
-    EV_TRACE << this << ": initialize stage " << stage << endl;
+    //EV_TRACE << this << ": initialize stage " << stage << endl;
 
     if (stage == INITSTAGE_LOCAL) {
         const char *q;
@@ -101,7 +101,7 @@ void TCP_lwIP::initialize(int stage)
 
         pLwipTcpLayerM = new LwipTcpLayer(*this);
         pLwipFastTimerM = new cMessage("lwip_fast_timer");
-        EV_INFO << "TCP_lwIP " << this << " has stack " << pLwipTcpLayerM << "\n";
+        //EV_INFO << "TCP_lwIP " << this << " has stack " << pLwipTcpLayerM << "\n";
     }
     else if (stage == INITSTAGE_TRANSPORT_LAYER) {
         bool isOperational;
@@ -119,12 +119,14 @@ void TCP_lwIP::initialize(int stage)
 
 TCP_lwIP::~TCP_lwIP()
 {
-    EV_TRACE << this << ": destructor\n";
+    //EV_TRACE << this << ": destructor\n";
     isAliveM = false;
 
     while (!tcpAppConnMapM.empty()) {
         auto i = tcpAppConnMapM.begin();
+#if OMNETPP_BUILDNUM < 1505   //OMNETPP_VERSION < 0x0600    // 6.0 pre9 KLUDGE
         delete i->second;
+#endif
         tcpAppConnMapM.erase(i);
     }
 
@@ -231,7 +233,7 @@ void TCP_lwIP::notifyAboutIncomingSegmentProcessing(LwipTcpLayer::tcp_pcb *pcb, 
         if (pCurTcpSegM->getPayloadLength())
             throw cRuntimeError("conn is null, and received packet has data");
 
-        EV_WARN << "notifyAboutIncomingSegmentProcessing: conn is null\n";
+        //EV_WARN << "notifyAboutIncomingSegmentProcessing: conn is null\n";
     }
 }
 
@@ -299,7 +301,7 @@ err_t TCP_lwIP::tcp_event_accept(TcpLwipConnection& conn, LwipTcpLayer::tcp_pcb 
 
     newConn->sendEstablishedMsg();
 
-    EV_DETAIL << this << ": TCP_lwIP: got accept!\n";
+    //EV_DETAIL << this << ": TCP_lwIP: got accept!\n";
     conn.do_SEND();
     return err;
 }
@@ -314,17 +316,15 @@ err_t TCP_lwIP::tcp_event_recv(TcpLwipConnection& conn, struct pbuf *p, err_t er
 {
     if (p == nullptr) {
         // Received FIN:
-        EV_DETAIL << this << ": tcp_event_recv(" << conn.connIdM
-                  << ", pbuf[nullptr], " << (int)err << "):FIN\n";
+        //EV_DETAIL << this << ": tcp_event_recv(" << conn.connIdM                  << ", pbuf[nullptr], " << (int)err << "):FIN\n";
         TcpStatusInd ind = (conn.pcbM->state == LwipTcpLayer::TIME_WAIT) ? TCP_I_CLOSED : TCP_I_PEER_CLOSED;
-        EV_INFO << "Connection " << conn.connIdM << ((ind == TCP_I_CLOSED) ? " closed" : "closed by peer") << endl;
+        //EV_INFO << "Connection " << conn.connIdM << ((ind == TCP_I_CLOSED) ? " closed" : "closed by peer") << endl;
         conn.sendIndicationToApp(ind);
         // TODO is it good?
         pLwipTcpLayerM->tcp_recved(conn.pcbM, 0);
     }
     else {
-        EV_DETAIL << this << ": tcp_event_recv(" << conn.connIdM << ", pbuf[" << p->len << ", "
-                  << p->tot_len << "], " << (int)err << ")\n";
+        //EV_DETAIL << this << ": tcp_event_recv(" << conn.connIdM << ", pbuf[" << p->len << ", "                  << p->tot_len << "], " << (int)err << ")\n";
         conn.receiveQueueM->enqueueTcpLayerData(p->payload, p->tot_len);
         pLwipTcpLayerM->tcp_recved(conn.pcbM, p->tot_len);
         pbuf_free(p);
@@ -365,13 +365,13 @@ err_t TCP_lwIP::tcp_event_err(TcpLwipConnection& conn, err_t err)
 {
     switch (err) {
         case ERR_ABRT:
-            EV_INFO << "Connection " << conn.connIdM << " aborted, closed\n";
+            //EV_INFO << "Connection " << conn.connIdM << " aborted, closed\n";
             conn.sendIndicationToApp(TCP_I_CLOSED);
             removeConnection(conn);
             break;
 
         case ERR_RST:
-            EV_INFO << "Connection " << conn.connIdM << " reset\n";
+            //EV_INFO << "Connection " << conn.connIdM << " reset\n";
             conn.sendIndicationToApp(TCP_I_CONNECTION_RESET);
             removeConnection(conn);
             break;
@@ -410,7 +410,7 @@ void TCP_lwIP::handleAppMessage(cMessage *msgP)
         conn = new TcpLwipConnection(*this, connId, msgP->getArrivalGate()->getIndex(), dataTransferMode);
         tcpAppConnMapM[connId] = conn;
 
-        EV_INFO << this << ": TCP connection created for " << msgP << "\n";
+        //EV_INFO << this << ": TCP connection created for " << msgP << "\n";
     }
 
     processAppCommand(*conn, msgP);
@@ -430,10 +430,10 @@ void TCP_lwIP::handleMessage(cMessage *msgP)
     if (msgP->isSelfMessage()) {
         // timer expired
         if (msgP == pLwipFastTimerM) {    // lwip fast timer
-            EV_TRACE << "Call tcp_fasttmr()\n";
+            //EV_TRACE << "Call tcp_fasttmr()\n";
             pLwipTcpLayerM->tcp_fasttmr();
             if (simTime() == roundTime(simTime(), 2)) {
-                EV_TRACE << "Call tcp_slowtmr()\n";
+                //EV_TRACE << "Call tcp_slowtmr()\n";
                 pLwipTcpLayerM->tcp_slowtmr();
             }
         }
@@ -451,18 +451,18 @@ void TCP_lwIP::handleMessage(cMessage *msgP)
 #endif // ifdef WITH_IPv6
             )
         {
-            EV_WARN << "ICMP error received -- discarding\n";    // FIXME can ICMP packets really make it up to TCP???
+            //EV_WARN << "ICMP error received -- discarding\n";    // FIXME can ICMP packets really make it up to TCP???
             delete msgP;
         }
         else {
             // must be a TCPSegment
             TCPSegment *tcpseg = check_and_cast<TCPSegment *>(msgP);
-            EV_TRACE << this << ": handle tcp segment: " << msgP->getName() << "\n";
+            //EV_TRACE << this << ": handle tcp segment: " << msgP->getName() << "\n";
             handleIpInputMessage(tcpseg);
         }
     }
     else {    // must be from app
-        EV_TRACE << this << ": handle msg: " << msgP->getName() << "\n";
+        //EV_TRACE << this << ": handle msg: " << msgP->getName() << "\n";
         handleAppMessage(msgP);
     }
 
@@ -585,7 +585,7 @@ void TCP_lwIP::finish()
 
 void TCP_lwIP::printConnBrief(TcpLwipConnection& connP)
 {
-    EV_TRACE << this << ": connId=" << connP.connIdM << " appGateIndex=" << connP.appGateIndexM;
+    //EV_TRACE << this << ": connId=" << connP.connIdM << " appGateIndex=" << connP.appGateIndexM;
 }
 
 void TCP_lwIP::ip_output(LwipTcpLayer::tcp_pcb *pcb, L3Address const& srcP,
@@ -605,8 +605,7 @@ void TCP_lwIP::ip_output(LwipTcpLayer::tcp_pcb *pcb, L3Address const& srcP,
 
     ASSERT(tcpseg);
 
-    EV_TRACE << this << ": Sending: conn=" << conn << ", data: " << dataP << " of len " << lenP
-             << " from " << srcP << " to " << destP << "\n";
+    //EV_TRACE << this << ": Sending: conn=" << conn << ", data: " << dataP << " of len " << lenP             << " from " << srcP << " to " << destP << "\n";
 
     IL3AddressType *addressType = destP.getAddressType();
     INetworkProtocolControlInfo *controlInfo = addressType->createNetworkProtocolControlInfo();
@@ -619,21 +618,26 @@ void TCP_lwIP::ip_output(LwipTcpLayer::tcp_pcb *pcb, L3Address const& srcP,
         conn->notifyAboutSending(*tcpseg);
     }
 
-    EV_INFO << this << ": Send segment: conn ID=" << conn->connIdM << " from " << srcP
-            << " to " << destP << " SEQ=" << tcpseg->getSequenceNo();
-    if (tcpseg->getSynBit())
-        EV_INFO << " SYN";
-    if (tcpseg->getAckBit())
-        EV_INFO << " ACK=" << tcpseg->getAckNo();
-    if (tcpseg->getFinBit())
-        EV_INFO << " FIN";
-    if (tcpseg->getRstBit())
-        EV_INFO << " RST";
-    if (tcpseg->getPshBit())
-        EV_INFO << " PSH";
-    if (tcpseg->getUrgBit())
-        EV_INFO << " URG";
-    EV_INFO << " len=" << tcpseg->getPayloadLength() << "\n";
+    //EV_INFO << this << ": Send segment: conn ID=" << conn->connIdM << " from " << srcP            << " to " << destP << " SEQ=" << tcpseg->getSequenceNo();
+    if (tcpseg->getSynBit()){
+        //EV_INFO << " SYN";
+    }
+    if (tcpseg->getAckBit()){
+        //EV_INFO << " ACK=" << tcpseg->getAckNo();
+    }
+    if (tcpseg->getFinBit()){
+        //EV_INFO << " FIN";
+    }
+    if (tcpseg->getRstBit()){
+        //EV_INFO << " RST";
+    }
+    if (tcpseg->getPshBit()){
+        //EV_INFO << " PSH";
+    }
+    if (tcpseg->getUrgBit()){
+        //EV_INFO << " URG";
+    }
+    //EV_INFO << " len=" << tcpseg->getPayloadLength() << "\n";
 
     send(tcpseg, "ipOut");
 }
@@ -688,9 +692,7 @@ void TCP_lwIP::process_OPEN_ACTIVE(TcpLwipConnection& connP, TCPOpenCommand *tcp
     if (localPort == -1)
         localPort = 0;
 
-    EV_INFO << this << ": OPEN: "
-            << tcpCommandP->getLocalAddr() << ":" << localPort << " --> "
-            << tcpCommandP->getRemoteAddr() << ":" << tcpCommandP->getRemotePort() << "\n";
+    //EV_INFO << this << ": OPEN: "            << tcpCommandP->getLocalAddr() << ":" << localPort << " --> "            << tcpCommandP->getRemoteAddr() << ":" << tcpCommandP->getRemotePort() << "\n";
     connP.connect(tcpCommandP->getLocalAddr(), localPort,
             tcpCommandP->getRemoteAddr(), tcpCommandP->getRemotePort());
 
@@ -708,8 +710,7 @@ void TCP_lwIP::process_OPEN_PASSIVE(TcpLwipConnection& connP, TCPOpenCommand *tc
     if (tcpCommandP->getLocalPort() == -1)
         throw cRuntimeError("Error processing command OPEN_PASSIVE: local port must be specified");
 
-    EV_INFO << this << "Starting to listen on: " << tcpCommandP->getLocalAddr() << ":"
-            << tcpCommandP->getLocalPort() << "\n";
+    //EV_INFO << this << "Starting to listen on: " << tcpCommandP->getLocalAddr() << ":"            << tcpCommandP->getLocalPort() << "\n";
 
     /*
        process passive open request
@@ -723,7 +724,7 @@ void TCP_lwIP::process_OPEN_PASSIVE(TcpLwipConnection& connP, TCPOpenCommand *tc
 
 void TCP_lwIP::process_SEND(TcpLwipConnection& connP, TCPSendCommand *tcpCommandP, cPacket *msgP)
 {
-    EV_INFO << this << ": processing SEND command, len=" << msgP->getByteLength() << endl;
+    //EV_INFO << this << ": processing SEND command, len=" << msgP->getByteLength() << endl;
 
     delete tcpCommandP;
 
@@ -732,7 +733,7 @@ void TCP_lwIP::process_SEND(TcpLwipConnection& connP, TCPSendCommand *tcpCommand
 
 void TCP_lwIP::process_CLOSE(TcpLwipConnection& connP, TCPCommand *tcpCommandP, cMessage *msgP)
 {
-    EV_INFO << this << ": processing CLOSE(" << connP.connIdM << ") command\n";
+    //EV_INFO << this << ": processing CLOSE(" << connP.connIdM << ") command\n";
 
     delete tcpCommandP;
     delete msgP;
@@ -742,7 +743,7 @@ void TCP_lwIP::process_CLOSE(TcpLwipConnection& connP, TCPCommand *tcpCommandP, 
 
 void TCP_lwIP::process_ABORT(TcpLwipConnection& connP, TCPCommand *tcpCommandP, cMessage *msgP)
 {
-    EV_INFO << this << ": processing ABORT(" << connP.connIdM << ") command\n";
+    //EV_INFO << this << ": processing ABORT(" << connP.connIdM << ") command\n";
 
     delete tcpCommandP;
     delete msgP;
@@ -752,7 +753,7 @@ void TCP_lwIP::process_ABORT(TcpLwipConnection& connP, TCPCommand *tcpCommandP, 
 
 void TCP_lwIP::process_STATUS(TcpLwipConnection& connP, TCPCommand *tcpCommandP, cMessage *msgP)
 {
-    EV_INFO << this << ": processing STATUS(" << connP.connIdM << ") command\n";
+    //EV_INFO << this << ": processing STATUS(" << connP.connIdM << ") command\n";
 
     delete tcpCommandP;    // but we'll reuse msg for reply
 

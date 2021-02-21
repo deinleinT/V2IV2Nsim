@@ -617,7 +617,13 @@ void SCTPAssociation::bytesAllowedToSend(SCTPPathVariables *path,
         }
     }
 
-    //EV_INFO << "bytesAllowedToSend(" << path->remoteAddress << "):"            << " osb=" << path->outstandingBytes            << " cwnd=" << path->cwnd            << " tempCwnd=" << path->tempCwnd            << " bytes.packet=" << (bytes.packet ? "YES!" : "no")            << " bytes.chunk=" << (bytes.chunk ? "YES!" : "no")            << " bytes.bytesToSend=" << bytes.bytesToSend << endl;
+    EV_INFO << "bytesAllowedToSend(" << path->remoteAddress << "):"
+            << " osb=" << path->outstandingBytes
+            << " cwnd=" << path->cwnd
+            << " tempCwnd=" << path->tempCwnd
+            << " bytes.packet=" << (bytes.packet ? "YES!" : "no")
+            << " bytes.chunk=" << (bytes.chunk ? "YES!" : "no")
+            << " bytes.bytesToSend=" << bytes.bytesToSend << endl;
 }
 
 void SCTPAssociation::sendOnPath(SCTPPathVariables *pathId, bool firstPass)
@@ -1009,7 +1015,7 @@ void SCTPAssociation::sendOnPath(SCTPPathVariables *pathId, bool firstPass)
                             const uint32 limit = ((state->sendQueueLimit != 0) ? state->sendQueueLimit : 0xffffffff) / sctpPathMap.size();
                             if (bytesOnPath + path->pmtu > limit) {
                                 rejected = true;
-                                //EV << simTime() << ":\tSenderBufferSplitting: Rejecting transmission on "                                   << path->remoteAddress << ", since "                                   << bytesOnPath << " + " << path->pmtu << " > "                                   << state->sendQueueLimit / sctpPathMap.size() << endl;
+                                //EV << simTime() << ":\tSenderBufferSplitting: Rejecting transmission on "                                   << path->remoteAddress << ", since "                                 << bytesOnPath << " + " << path->pmtu << " > "                                   << state->sendQueueLimit / sctpPathMap.size() << endl;
                             }
                         }
 

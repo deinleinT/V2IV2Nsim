@@ -133,7 +133,7 @@ void Ns2MotionMobility::initialize(int stage)
 {
     LineSegmentsMobilityBase::initialize(stage);
 
-    EV_TRACE << "initializing Ns2MotionMobility stage " << stage << endl;
+    //EV_TRACE << "initializing Ns2MotionMobility stage " << stage << endl;
     if (stage == INITSTAGE_LOCAL) {
         scrollX = par("scrollX");
         scrollY = par("scrollY");

@@ -194,7 +194,7 @@ void DHCPClient::refreshDisplay() const
 void DHCPClient::handleMessage(cMessage *msg)
 {
     if (!isOperational) {
-        EV_ERROR << "Message '" << msg << "' arrived when module status is down, dropping." << endl;
+        //EV_ERROR << "Message '" << msg << "' arrived when module status is down, dropping." << endl;
         delete msg;
         return;
     }
@@ -229,21 +229,21 @@ void DHCPClient::handleTimer(cMessage *msg)
         }
     }
     else if (category == WAIT_OFFER) {
-        EV_DETAIL << "No DHCP offer received within timeout. Restarting. " << endl;
+        //EV_DETAIL << "No DHCP offer received within timeout. Restarting. " << endl;
         initClient();
     }
     else if (category == WAIT_ACK) {
-        EV_DETAIL << "No DHCP ACK received within timeout. Restarting." << endl;
+        //EV_DETAIL << "No DHCP ACK received within timeout. Restarting." << endl;
         initClient();
     }
     else if (category == T1) {
-        EV_DETAIL << "T1 expired. Starting RENEWING state." << endl;
+        //EV_DETAIL << "T1 expired. Starting RENEWING state." << endl;
         clientState = RENEWING;
         scheduleTimerTO(WAIT_ACK);
         sendRequest();
     }
     else if (category == T2 && clientState == RENEWING) {
-        EV_DETAIL << "T2 expired. Starting REBINDING state." << endl;
+        //EV_DETAIL << "T2 expired. Starting REBINDING state." << endl;
         clientState = REBINDING;
         cancelEvent(timerT1);
         cancelEvent(timerT2);
@@ -258,7 +258,7 @@ void DHCPClient::handleTimer(cMessage *msg)
         throw cRuntimeError("T2 occurred in wrong state. (T1 must be earlier than T2.)");
     }
     else if (category == LEASE_TIMEOUT) {
-        EV_INFO << "Lease has expired. Starting DHCP process in INIT state." << endl;
+        //EV_INFO << "Lease has expired. Starting DHCP process in INIT state." << endl;
         unbindLease();
         clientState = INIT;
         initClient();
@@ -283,15 +283,16 @@ void DHCPClient::recordOffer(DHCPMessage *dhcpOffer)
         lease->mac = macAddress;
         lease->serverId = serverId;
     }
-    else
-        EV_WARN << "DHCPOFFER arrived, but no IP address has been offered. Discarding it and remaining in SELECTING." << endl;
+    else{
+        //EV_WARN << "DHCPOFFER arrived, but no IP address has been offered. Discarding it and remaining in SELECTING." << endl;
+    }
 }
 
 void DHCPClient::recordLease(DHCPMessage *dhcpACK)
 {
     if (!dhcpACK->getYiaddr().isUnspecified()) {
         IPv4Address ip = dhcpACK->getYiaddr();
-        EV_DETAIL << "DHCPACK arrived with " << "IP: " << ip << endl;
+        //EV_DETAIL << "DHCPACK arrived with " << "IP: " << ip << endl;
 
         lease->subnetMask = dhcpACK->getOptions().getSubnetMask();
 
@@ -308,8 +309,9 @@ void DHCPClient::recordLease(DHCPMessage *dhcpACK)
 
         // std::cout << lease->leaseTime << " " << lease->renewalTime << " " << lease->rebindTime << endl;
     }
-    else
-        EV_ERROR << "DHCPACK arrived, but no IP address confirmed." << endl;
+    else{
+        //EV_ERROR << "DHCPACK arrived, but no IP address confirmed." << endl;
+    }
 }
 
 void DHCPClient::bindLease()
@@ -328,8 +330,7 @@ void DHCPClient::bindLease()
         initClient();
      */
 
-    EV_INFO << "The requested IP " << lease->ip << "/" << lease->subnetMask << " is available. Assigning it to "
-            << host->getFullName() << "." << endl;
+    //EV_INFO << "The requested IP " << lease->ip << "/" << lease->subnetMask << " is available. Assigning it to "            << host->getFullName() << "." << endl;
 
     IPv4Route *iroute = nullptr;
     for (int i = 0; i < irt->getNumRoutes(); i++) {
@@ -357,7 +358,7 @@ void DHCPClient::bindLease()
 
 void DHCPClient::unbindLease()
 {
-    EV_INFO << "Unbinding lease on " << ie->getName() << "." << endl;
+    //EV_INFO << "Unbinding lease on " << ie->getName() << "." << endl;
 
     cancelEvent(timerT1);
     cancelEvent(timerT2);
@@ -371,7 +372,7 @@ void DHCPClient::unbindLease()
 
 void DHCPClient::initClient()
 {
-    EV_INFO << "Starting DHCP configuration process." << endl;
+    //EV_INFO << "Starting DHCP configuration process." << endl;
 
     cancelEvent(timerT1);
     cancelEvent(timerT2);
@@ -395,100 +396,101 @@ void DHCPClient::handleDHCPMessage(DHCPMessage *msg)
     ASSERT(isOperational && ie != nullptr);
 
     if (msg->getOp() != BOOTREPLY) {
-        EV_WARN << "Client received a non-BOOTREPLY message, dropping." << endl;
+        //EV_WARN << "Client received a non-BOOTREPLY message, dropping." << endl;
         return;
     }
 
     if (msg->getXid() != xid) {
-        EV_WARN << "Message transaction ID is not valid, dropping." << endl;
+        //EV_WARN << "Message transaction ID is not valid, dropping." << endl;
         return;
     }
 
     DHCPMessageType messageType = (DHCPMessageType)msg->getOptions().getMessageType();
     switch (clientState) {
         case INIT:
-            EV_WARN << getAndCheckMessageTypeName(messageType) << " message arrived in INIT state. In this state, client does not wait for any message at all, dropping." << endl;
+            //EV_WARN << getAndCheckMessageTypeName(messageType) << " message arrived in INIT state. In this state, client does not wait for any message at all, dropping." << endl;
             break;
 
         case SELECTING:
             if (messageType == DHCPOFFER) {
-                EV_INFO << "DHCPOFFER message arrived in SELECTING state with IP address: " << msg->getYiaddr() << "." << endl;
+                //EV_INFO << "DHCPOFFER message arrived in SELECTING state with IP address: " << msg->getYiaddr() << "." << endl;
                 scheduleTimerTO(WAIT_ACK);
                 clientState = REQUESTING;
                 recordOffer(msg);
                 sendRequest();    // we accept the first offer
             }
-            else
-                EV_WARN << "Client is in SELECTING and the arriving packet is not a DHCPOFFER, dropping." << endl;
+            else{
+                //EV_WARN << "Client is in SELECTING and the arriving packet is not a DHCPOFFER, dropping." << endl;
+            }
             break;
 
         case REQUESTING:
             if (messageType == DHCPOFFER) {
-                EV_WARN << "We don't accept DHCPOFFERs in REQUESTING state, dropping." << endl;    // remains in REQUESTING
+                //EV_WARN << "We don't accept DHCPOFFERs in REQUESTING state, dropping." << endl;    // remains in REQUESTING
             }
             else if (messageType == DHCPACK) {
-                EV_INFO << "DHCPACK message arrived in REQUESTING state. The requested IP address is available in the server's pool of addresses." << endl;
+                //EV_INFO << "DHCPACK message arrived in REQUESTING state. The requested IP address is available in the server's pool of addresses." << endl;
                 handleDHCPACK(msg);
                 clientState = BOUND;
             }
             else if (messageType == DHCPNAK) {
-                EV_INFO << "DHCPNAK message arrived in REQUESTING state. Restarting the configuration process." << endl;
+                //EV_INFO << "DHCPNAK message arrived in REQUESTING state. Restarting the configuration process." << endl;
                 initClient();
             }
             else {
-                EV_WARN << getAndCheckMessageTypeName(messageType) << " message arrived in REQUESTING state. In this state, client does not expect messages of this type, dropping." << endl;
+                //EV_WARN << getAndCheckMessageTypeName(messageType) << " message arrived in REQUESTING state. In this state, client does not expect messages of this type, dropping." << endl;
             }
             break;
 
         case BOUND:
-            EV_DETAIL << "We are in BOUND, discard all DHCP messages." << endl;    // remain in BOUND
+            //EV_DETAIL << "We are in BOUND, discard all DHCP messages." << endl;    // remain in BOUND
             break;
 
         case RENEWING:
             if (messageType == DHCPACK) {
                 handleDHCPACK(msg);
-                EV_INFO << "DHCPACK message arrived in RENEWING state. The renewing process was successful." << endl;
+                //EV_INFO << "DHCPACK message arrived in RENEWING state. The renewing process was successful." << endl;
                 clientState = BOUND;
             }
             else if (messageType == DHCPNAK) {
-                EV_INFO << "DHPCNAK message arrived in RENEWING state. The renewing process was unsuccessful. Restarting the DHCP configuration process." << endl;
+                //EV_INFO << "DHPCNAK message arrived in RENEWING state. The renewing process was unsuccessful. Restarting the DHCP configuration process." << endl;
                 unbindLease();
                 initClient();
             }
             else {
-                EV_WARN << getAndCheckMessageTypeName(messageType) << " message arrived in RENEWING state. In this state, client does not expect messages of this type, dropping." << endl;
+                //EV_WARN << getAndCheckMessageTypeName(messageType) << " message arrived in RENEWING state. In this state, client does not expect messages of this type, dropping." << endl;
             }
             break;
 
         case REBINDING:
             if (messageType == DHCPNAK) {
-                EV_INFO << "DHPCNAK message arrived in REBINDING state. The rebinding process was unsuccessful. Restarting the DHCP configuration process." << endl;
+                //EV_INFO << "DHPCNAK message arrived in REBINDING state. The rebinding process was unsuccessful. Restarting the DHCP configuration process." << endl;
                 unbindLease();
                 initClient();
             }
             else if (messageType == DHCPACK) {
                 handleDHCPACK(msg);
-                EV_INFO << "DHCPACK message arrived in REBINDING state. The rebinding process was successful." << endl;
+                //EV_INFO << "DHCPACK message arrived in REBINDING state. The rebinding process was successful." << endl;
                 clientState = BOUND;
             }
             else {
-                EV_WARN << getAndCheckMessageTypeName(messageType) << " message arrived in REBINDING state. In this state, client does not expect messages of this type, dropping." << endl;
+                //EV_WARN << getAndCheckMessageTypeName(messageType) << " message arrived in REBINDING state. In this state, client does not expect messages of this type, dropping." << endl;
             }
             break;
 
         case REBOOTING:
             if (messageType == DHCPACK) {
                 handleDHCPACK(msg);
-                EV_INFO << "DHCPACK message arrived in REBOOTING state. Initialization with known IP address was successful." << endl;
+                //EV_INFO << "DHCPACK message arrived in REBOOTING state. Initialization with known IP address was successful." << endl;
                 clientState = BOUND;
             }
             else if (messageType == DHCPNAK) {
-                EV_INFO << "DHCPNAK message arrived in REBOOTING. Initialization with known IP address was unsuccessful." << endl;
+                //EV_INFO << "DHCPNAK message arrived in REBOOTING. Initialization with known IP address was unsuccessful." << endl;
                 unbindLease();
                 initClient();
             }
             else {
-                EV_WARN << getAndCheckMessageTypeName(messageType) << " message arrived in REBOOTING state. In this state, client does not expect messages of this type, dropping." << endl;
+                //EV_WARN << getAndCheckMessageTypeName(messageType) << " message arrived in REBOOTING state. In this state, client does not expect messages of this type, dropping." << endl;
             }
             break;
 
@@ -506,7 +508,7 @@ void DHCPClient::receiveSignal(cComponent *source, int signalID, cObject *obj, c
     if (signalID == NF_L2_ASSOCIATED) {
         InterfaceEntry *associatedIE = check_and_cast_nullable<InterfaceEntry *>(obj);
         if (associatedIE && ie == associatedIE) {
-            EV_INFO << "Interface associated, starting DHCP." << endl;
+            //EV_INFO << "Interface associated, starting DHCP." << endl;
             unbindLease();
             initClient();
         }
@@ -550,24 +552,24 @@ void DHCPClient::sendRequest()
     if (clientState == INIT_REBOOT) {
         request->getOptions().setRequestedIp(lease->ip);
         request->setCiaddr(IPv4Address());    // zero
-        EV_INFO << "Sending DHCPREQUEST asking for IP " << lease->ip << " via broadcast." << endl;
+        //EV_INFO << "Sending DHCPREQUEST asking for IP " << lease->ip << " via broadcast." << endl;
         sendToUDP(request, clientPort, IPv4Address::ALLONES_ADDRESS, serverPort);
     }
     else if (clientState == REQUESTING) {
         request->getOptions().setServerIdentifier(lease->serverId);
         request->getOptions().setRequestedIp(lease->ip);
         request->setCiaddr(IPv4Address());    // zero
-        EV_INFO << "Sending DHCPREQUEST asking for IP " << lease->ip << " via broadcast." << endl;
+        //EV_INFO << "Sending DHCPREQUEST asking for IP " << lease->ip << " via broadcast." << endl;
         sendToUDP(request, clientPort, IPv4Address::ALLONES_ADDRESS, serverPort);
     }
     else if (clientState == RENEWING) {
         request->setCiaddr(lease->ip);    // the client IP
-        EV_INFO << "Sending DHCPREQUEST extending lease for IP " << lease->ip << " via unicast to " << lease->serverId << "." << endl;
+        //EV_INFO << "Sending DHCPREQUEST extending lease for IP " << lease->ip << " via unicast to " << lease->serverId << "." << endl;
         sendToUDP(request, clientPort, lease->serverId, serverPort);
     }
     else if (clientState == REBINDING) {
         request->setCiaddr(lease->ip);    // the client IP
-        EV_INFO << "Sending DHCPREQUEST renewing the IP " << lease->ip << " via broadcast." << endl;
+        //EV_INFO << "Sending DHCPREQUEST renewing the IP " << lease->ip << " via broadcast." << endl;
         sendToUDP(request, clientPort, IPv4Address::ALLONES_ADDRESS, serverPort);
     }
     else
@@ -602,7 +604,7 @@ void DHCPClient::sendDiscover()
     discover->getOptions().setParameterRequestList(2, DNS);
     discover->getOptions().setParameterRequestList(3, NTP_SRV);
 
-    EV_INFO << "Sending DHCPDISCOVER." << endl;
+    //EV_INFO << "Sending DHCPDISCOVER." << endl;
     sendToUDP(discover, clientPort, IPv4Address::ALLONES_ADDRESS, serverPort);
 }
 
@@ -623,7 +625,7 @@ void DHCPClient::sendDecline(IPv4Address declinedIp)
     decline->setFile("");    // no file given
     decline->getOptions().setMessageType(DHCPDECLINE);
     decline->getOptions().setRequestedIp(declinedIp);
-    EV_INFO << "Sending DHCPDECLINE." << endl;
+    //EV_INFO << "Sending DHCPDECLINE." << endl;
     sendToUDP(decline, clientPort, IPv4Address::ALLONES_ADDRESS, serverPort);
 }
 
@@ -660,7 +662,7 @@ void DHCPClient::scheduleTimerT2()
 
 void DHCPClient::sendToUDP(cPacket *msg, int srcPort, const L3Address& destAddr, int destPort)
 {
-    EV_INFO << "Sending packet " << msg << endl;
+    //EV_INFO << "Sending packet " << msg << endl;
     UDPSocket::SendOptions options;
     options.outInterfaceId = ie->getInterfaceId();
     socket.sendTo(msg, destAddr, destPort, &options);
@@ -671,7 +673,7 @@ void DHCPClient::openSocket()
     socket.setOutputGate(gate("udpOut"));
     socket.bind(clientPort);
     socket.setBroadcast(true);
-    EV_INFO << "DHCP server bound to port " << serverPort << "." << endl;
+    //EV_INFO << "DHCP server bound to port " << serverPort << "." << endl;
 }
 
 void DHCPClient::startApp()

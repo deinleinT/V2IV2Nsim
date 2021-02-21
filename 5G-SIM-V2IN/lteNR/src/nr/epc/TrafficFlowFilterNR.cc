@@ -102,7 +102,7 @@ void TrafficFlowFilterNR::handleMessage(cMessage *msg) {
 		//EV << "TrafficFlowFilterNR::handleMessage - Destination has been removed from the simulation. Delete packet." << endl;
 		delete msg;
 	} else if (tftId == -3) {
-		//need to send the packet to an other upf
+		//need to send the packet to another upf
 		//send to connectedUPF_ if connected, else send to random connected upf
 		int index = gateSize("fromToN9Interface");
 		std::string upfConnected;

@@ -74,7 +74,7 @@ void Radio::initialize(int stage)
         parseRadioModeSwitchingTimes();
     }
     else if (stage == INITSTAGE_LAST) {
-        EV_INFO << "Initialized " << getCompleteStringRepresentation() << endl;
+        //EV_INFO << "Initialized " << getCompleteStringRepresentation() << endl;
     }
 }
 
@@ -139,7 +139,7 @@ void Radio::parseRadioModeSwitchingTimes()
 
 void Radio::startRadioModeSwitch(RadioMode newRadioMode, simtime_t switchingTime)
 {
-    EV_DETAIL << "Starting to change radio mode from " << getRadioModeName(radioMode) << " to " << getRadioModeName(newRadioMode) << endl;
+    //EV_DETAIL << "Starting to change radio mode from " << getRadioModeName(radioMode) << " to " << getRadioModeName(newRadioMode) << endl;
     previousRadioMode = radioMode;
     radioMode = RADIO_MODE_SWITCHING;
     nextRadioMode = newRadioMode;
@@ -149,7 +149,7 @@ void Radio::startRadioModeSwitch(RadioMode newRadioMode, simtime_t switchingTime
 
 void Radio::completeRadioModeSwitch(RadioMode newRadioMode)
 {
-    EV_INFO << "Radio mode changed from " << getRadioModeName(previousRadioMode) << " to " << getRadioModeName(newRadioMode) << endl;
+    //EV_INFO << "Radio mode changed from " << getRadioModeName(previousRadioMode) << " to " << getRadioModeName(newRadioMode) << endl;
     if (!isReceiverMode(newRadioMode) && receptionTimer != nullptr)
         abortReception(receptionTimer);
     if (!isTransmitterMode(newRadioMode) && transmissionTimer->isScheduled())
@@ -291,7 +291,7 @@ void Radio::handleUpperPacket(cPacket *packet)
             startTransmission(packet, IRadioSignal::SIGNAL_PART_WHOLE);
     }
     else {
-        EV_ERROR << "Radio is not in transmitter or transceiver mode, dropping frame." << endl;
+        //EV_ERROR << "Radio is not in transmitter or transceiver mode, dropping frame." << endl;
         delete packet;
     }
 }
@@ -359,7 +359,7 @@ void Radio::startTransmission(cPacket *macFrame, IRadioSignal::SignalPart part)
 #endif
 
     scheduleAt(transmission->getEndTime(part), transmissionTimer);
-    EV_INFO << "Transmission started: " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(part) << " as " << transmission << endl;
+    //EV_INFO << "Transmission started: " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(part) << " as " << transmission << endl;
     updateTransceiverState();
     updateTransceiverPart();
     check_and_cast<RadioMedium *>(medium)->emit(IRadioMedium::transmissionStartedSignal, check_and_cast<const cObject *>(transmission));
@@ -371,10 +371,10 @@ void Radio::continueTransmission()
     auto nextPart = (IRadioSignal::SignalPart)(previousPart + 1);
     auto radioFrame = static_cast<RadioFrame *>(transmissionTimer->getContextPointer());
     auto transmission = radioFrame->getTransmission();
-    EV_INFO << "Transmission ended: " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(previousPart) << " as " << radioFrame->getTransmission() << endl;
+    //EV_INFO << "Transmission ended: " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(previousPart) << " as " << radioFrame->getTransmission() << endl;
     transmissionTimer->setKind(nextPart);
     scheduleAt(transmission->getEndTime(nextPart), transmissionTimer);
-    EV_INFO << "Transmission started: " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(nextPart) << " as " << transmission << endl;
+    //EV_INFO << "Transmission started: " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(nextPart) << " as " << transmission << endl;
     updateTransceiverState();
     updateTransceiverPart();
 }
@@ -385,7 +385,7 @@ void Radio::endTransmission()
     auto radioFrame = static_cast<RadioFrame *>(transmissionTimer->getContextPointer());
     auto transmission = radioFrame->getTransmission();
     transmissionTimer->setContextPointer(nullptr);
-    EV_INFO << "Transmission ended: " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(part) << " as " << transmission << endl;
+    //EV_INFO << "Transmission ended: " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(part) << " as " << transmission << endl;
     updateTransceiverState();
     updateTransceiverPart();
     check_and_cast<RadioMedium *>(medium)->emit(IRadioMedium::transmissionEndedSignal, check_and_cast<const cObject *>(transmission));
@@ -397,8 +397,8 @@ void Radio::abortTransmission()
     auto radioFrame = static_cast<RadioFrame *>(transmissionTimer->getContextPointer());
     auto transmission = radioFrame->getTransmission();
     transmissionTimer->setContextPointer(nullptr);
-    EV_INFO << "Transmission aborted: " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(part) << " as " << transmission << endl;
-    EV_WARN << "Aborting ongoing transmissions is not supported" << endl;
+    //EV_INFO << "Transmission aborted: " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(part) << " as " << transmission << endl;
+    //EV_WARN << "Aborting ongoing transmissions is not supported" << endl;
     cancelEvent(transmissionTimer);
     updateTransceiverState();
     updateTransceiverPart();
@@ -420,12 +420,13 @@ void Radio::startReception(cMessage *timer, IRadioSignal::SignalPart part)
     if (isReceiverMode(radioMode) && arrival->getStartTime(part) == simTime()) {
         auto transmission = radioFrame->getTransmission();
         auto isReceptionAttempted = medium->isReceptionAttempted(this, transmission, part);
-        EV_INFO << "Reception started: " << (isReceptionAttempted ? "attempting" : "not attempting") << " " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(part) << " as " << reception << endl;
+        //EV_INFO << "Reception started: " << (isReceptionAttempted ? "attempting" : "not attempting") << " " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(part) << " as " << reception << endl;
         if (isReceptionAttempted)
             receptionTimer = timer;
     }
-    else
-        EV_INFO << "Reception started: ignoring " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(part) << " as " << reception << endl;
+    else{
+        //EV_INFO << "Reception started: ignoring " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(part) << " as " << reception << endl;
+    }
     timer->setKind(part);
     scheduleAt(arrival->getEndTime(part), timer);
     updateTransceiverState();
@@ -443,17 +444,17 @@ void Radio::continueReception(cMessage *timer)
     if (timer == receptionTimer && isReceiverMode(radioMode) && arrival->getEndTime(previousPart) == simTime()) {
         auto transmission = radioFrame->getTransmission();
         bool isReceptionSuccessful = medium->isReceptionSuccessful(this, transmission, previousPart);
-        EV_INFO << "Reception ended: " << (isReceptionSuccessful ? "successfully" : "unsuccessfully") << " for " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(previousPart) << " as " << reception << endl;
+        //EV_INFO << "Reception ended: " << (isReceptionSuccessful ? "successfully" : "unsuccessfully") << " for " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(previousPart) << " as " << reception << endl;
         if (!isReceptionSuccessful)
             receptionTimer = nullptr;
         auto isReceptionAttempted = medium->isReceptionAttempted(this, transmission, nextPart);
-        EV_INFO << "Reception started: " << (isReceptionAttempted ? "attempting" : "not attempting") << " " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(nextPart) << " as " << reception << endl;
+        //EV_INFO << "Reception started: " << (isReceptionAttempted ? "attempting" : "not attempting") << " " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(nextPart) << " as " << reception << endl;
         if (!isReceptionAttempted)
             receptionTimer = nullptr;
     }
     else {
-        EV_INFO << "Reception ended: ignoring " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(previousPart) << " as " << reception << endl;
-        EV_INFO << "Reception started: ignoring " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(nextPart) << " as " << reception << endl;
+        //EV_INFO << "Reception ended: ignoring " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(previousPart) << " as " << reception << endl;
+        //EV_INFO << "Reception started: ignoring " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(nextPart) << " as " << reception << endl;
     }
     timer->setKind(nextPart);
     scheduleAt(arrival->getEndTime(nextPart), timer);
@@ -471,14 +472,14 @@ void Radio::endReception(cMessage *timer)
         auto transmission = radioFrame->getTransmission();
 // TODO: this would draw twice from the random number generator in isReceptionSuccessful: auto isReceptionSuccessful = medium->isReceptionSuccessful(this, transmission, part);
         auto isReceptionSuccessful = medium->getReceptionDecision(this, radioFrame->getListening(), transmission, part)->isReceptionSuccessful();
-        EV_INFO << "Reception ended: " << (isReceptionSuccessful ? "successfully" : "unsuccessfully") << " for " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(part) << " as " << reception << endl;
+        //EV_INFO << "Reception ended: " << (isReceptionSuccessful ? "successfully" : "unsuccessfully") << " for " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(part) << " as " << reception << endl;
         auto macFrame = medium->receivePacket(this, radioFrame);
         emit(LayeredProtocolBase::packetSentToUpperSignal, macFrame);
         sendUp(macFrame);
         receptionTimer = nullptr;
     }
     else {
-        EV_INFO << "Reception ended: ignoring " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(part) << " as " << reception << endl;
+        //EV_INFO << "Reception ended: ignoring " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(part) << " as " << reception << endl;
         if (timer == receptionTimer)
             receptionTimer = nullptr;
     }
@@ -493,7 +494,7 @@ void Radio::abortReception(cMessage *timer)
     auto radioFrame = static_cast<RadioFrame *>(timer->getControlInfo());
     auto part = (IRadioSignal::SignalPart)timer->getKind();
     auto reception = radioFrame->getReception();
-    EV_INFO << "Reception aborted: for " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(part) << " as " << reception << endl;
+    //EV_INFO << "Reception aborted: for " << (IRadioFrame *)radioFrame << " " << IRadioSignal::getSignalPartName(part) << " as " << reception << endl;
     if (timer == receptionTimer)
         receptionTimer = nullptr;
     updateTransceiverState();
@@ -516,7 +517,7 @@ void Radio::sendUp(cPacket *macFrame)
         emit(bitErrorRateSignal, indication->getBitErrorRate());
     if (!std::isnan(indication->getSymbolErrorRate()))
         emit(symbolErrorRateSignal, indication->getSymbolErrorRate());
-    EV_INFO << "Sending up " << macFrame << endl;
+    //EV_INFO << "Sending up " << macFrame << endl;
     send(macFrame, upperLayerOut);
 }
 
@@ -568,7 +569,7 @@ void Radio::updateTransceiverState()
     else
         newRadioReceptionState = RECEPTION_STATE_IDLE;
     if (receptionState != newRadioReceptionState) {
-        EV_INFO << "Changing radio reception state from " << getRadioReceptionStateName(receptionState) << " to " << getRadioReceptionStateName(newRadioReceptionState) << "." << endl;
+        //EV_INFO << "Changing radio reception state from " << getRadioReceptionStateName(receptionState) << " to " << getRadioReceptionStateName(newRadioReceptionState) << "." << endl;
         receptionState = newRadioReceptionState;
         emit(receptionStateChangedSignal, newRadioReceptionState);
     }
@@ -581,7 +582,7 @@ void Radio::updateTransceiverState()
     else
         newRadioTransmissionState = TRANSMISSION_STATE_IDLE;
     if (transmissionState != newRadioTransmissionState) {
-        EV_INFO << "Changing radio transmission state from " << getRadioTransmissionStateName(transmissionState) << " to " << getRadioTransmissionStateName(newRadioTransmissionState) << "." << endl;
+        //EV_INFO << "Changing radio transmission state from " << getRadioTransmissionStateName(transmissionState) << " to " << getRadioTransmissionStateName(newRadioTransmissionState) << "." << endl;
         transmissionState = newRadioTransmissionState;
         emit(transmissionStateChangedSignal, newRadioTransmissionState);
     }
@@ -591,13 +592,13 @@ void Radio::updateTransceiverPart()
 {
     IRadioSignal::SignalPart newReceivedPart = receptionTimer == nullptr ? IRadioSignal::SIGNAL_PART_NONE : (IRadioSignal::SignalPart)receptionTimer->getKind();
     if (receivedSignalPart != newReceivedPart) {
-        EV_INFO << "Changing radio received signal part from " << IRadioSignal::getSignalPartName(receivedSignalPart) << " to " << IRadioSignal::getSignalPartName(newReceivedPart) << "." << endl;
+        //EV_INFO << "Changing radio received signal part from " << IRadioSignal::getSignalPartName(receivedSignalPart) << " to " << IRadioSignal::getSignalPartName(newReceivedPart) << "." << endl;
         receivedSignalPart = newReceivedPart;
         emit(receivedSignalPartChangedSignal, receivedSignalPart);
     }
     IRadioSignal::SignalPart newTransmittedPart = !transmissionTimer->isScheduled() ? IRadioSignal::SIGNAL_PART_NONE : (IRadioSignal::SignalPart)transmissionTimer->getKind();
     if (transmittedSignalPart != newTransmittedPart) {
-        EV_INFO << "Changing radio transmitted signal part from " << IRadioSignal::getSignalPartName(transmittedSignalPart) << " to " << IRadioSignal::getSignalPartName(newTransmittedPart) << "." << endl;
+        //EV_INFO << "Changing radio transmitted signal part from " << IRadioSignal::getSignalPartName(transmittedSignalPart) << " to " << IRadioSignal::getSignalPartName(newTransmittedPart) << "." << endl;
         transmittedSignalPart = newTransmittedPart;
         emit(transmittedSignalPartChangedSignal, transmittedSignalPart);
     }

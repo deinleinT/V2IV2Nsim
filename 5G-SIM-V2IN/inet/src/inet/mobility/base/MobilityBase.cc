@@ -63,7 +63,7 @@ MobilityBase::MobilityBase() :
 void MobilityBase::initialize(int stage)
 {
     cSimpleModule::initialize(stage);
-    EV_TRACE << "initializing MobilityBase stage " << stage << endl;
+    //EV_TRACE << "initializing MobilityBase stage " << stage << endl;
     if (stage == INITSTAGE_LOCAL) {
         constraintAreaMin.x = par("constraintAreaMinX");
         constraintAreaMin.y = par("constraintAreaMinY");
@@ -156,7 +156,7 @@ void MobilityBase::handleMessage(cMessage *message)
 
 void MobilityBase::updateVisualRepresentation()
 {
-    EV_DEBUG << "current position = " << lastPosition << endl;
+    //EV_DEBUG << "current position = " << lastPosition << endl;
 #ifdef WITH_VISUALIZERS
     if (hasGUI() && visualRepresentation != nullptr) {
         inet::visualizer::MobilityCanvasVisualizer::setPosition(visualRepresentation, canvasProjection->computeCanvasPoint(lastPosition));

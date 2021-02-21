@@ -190,13 +190,7 @@ void DatabaseDescriptionHandler::processPacket(OSPFPacket *packet, Interface *in
 
 bool DatabaseDescriptionHandler::processDDPacket(OSPFDatabaseDescriptionPacket *ddPacket, Interface *intf, Neighbor *neighbor, bool inExchangeStart)
 {
-    EV_INFO << "  Processing packet contents(ddOptions="
-            << ((ddPacket->getDdOptions().I_Init) ? "I " : "_ ")
-            << ((ddPacket->getDdOptions().M_More) ? "M " : "_ ")
-            << ((ddPacket->getDdOptions().MS_MasterSlave) ? "MS" : "__")
-            << "; seqNumber="
-            << ddPacket->getDdSequenceNumber()
-            << "):\n";
+    //EV_INFO << "  Processing packet contents(ddOptions="            << ((ddPacket->getDdOptions().I_Init) ? "I " : "_ ")            << ((ddPacket->getDdOptions().M_More) ? "M " : "_ ")            << ((ddPacket->getDdOptions().MS_MasterSlave) ? "MS" : "__")            << "; seqNumber="            << ddPacket->getDdSequenceNumber()            << "):\n";
 
     unsigned int headerCount = ddPacket->getLsaHeadersArraySize();
 
@@ -204,12 +198,12 @@ bool DatabaseDescriptionHandler::processDDPacket(OSPFDatabaseDescriptionPacket *
         OSPFLSAHeader& currentHeader = ddPacket->getLsaHeaders(i);
         LSAType lsaType = static_cast<LSAType>(currentHeader.getLsType());
 
-        EV_DETAIL << "    " << currentHeader;
+        //EV_DETAIL << "    " << currentHeader;
 
         if ((lsaType < ROUTERLSA_TYPE) || (lsaType > AS_EXTERNAL_LSA_TYPE) ||
             ((lsaType == AS_EXTERNAL_LSA_TYPE) && (!intf->getArea()->getExternalRoutingCapability())))
         {
-            EV_ERROR << " Error!\n";
+            //EV_ERROR << " Error!\n";
             neighbor->processEvent(Neighbor::SEQUENCE_NUMBER_MISMATCH);
             return false;
         }
@@ -223,11 +217,11 @@ bool DatabaseDescriptionHandler::processDDPacket(OSPFDatabaseDescriptionPacket *
 
             // operator< and operator== on OSPFLSAHeaders determines which one is newer(less means older)
             if ((lsaInDatabase == nullptr) || (lsaInDatabase->getHeader() < currentHeader)) {
-                EV_DETAIL << " (newer)";
+                //EV_DETAIL << " (newer)";
                 neighbor->addToRequestList(&currentHeader);
             }
         }
-        EV_DETAIL << "\n";
+        //EV_DETAIL << "\n";
     }
 
     if (neighbor->getDatabaseExchangeRelationship() == Neighbor::MASTER) {

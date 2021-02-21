@@ -113,7 +113,7 @@ void MACBase::handleMessageWhenDown(cMessage *msg)
         throw cRuntimeError("Message received from higher layer while interface is off");
     }
     else {
-        EV << "Interface is turned off, dropping packet\n";
+        //EV << "Interface is turned off, dropping packet\n";
         delete msg;
     }
 }
