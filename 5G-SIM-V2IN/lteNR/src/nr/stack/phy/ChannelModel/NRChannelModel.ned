@@ -94,6 +94,13 @@ simple NRRealisticChannelModel extends LteRealisticChannelModel
 	useTorus = default(false);
 	
 	//bool cqiFlag = default(false);
+	
+	//for Indoor Factory channel models from 38.901, table 7.2-4
+	double d_clutter = default(0); //typical clutter size (10m, 2m or above)
+	double clutter_density_r = default(0); //percentage of surface area occupied by clutter, about 40 %
+	double hClutter = default(0); // hc, effective clutter heigth, 0-10m
+	double ceilingHeight = default(15); // height of factory ceiling
+	//
 
     // statistics
     @signal[rcvdSinr];

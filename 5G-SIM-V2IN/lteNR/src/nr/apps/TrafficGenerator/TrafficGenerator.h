@@ -35,6 +35,7 @@
 #include "nr/apps/TrafficGenerator/packet/VoIPMessage_m.h"
 #include "nr/apps/TrafficGenerator/packet/DataMessage_m.h"
 #include "veins/modules/mobility/traci/TraCIScenarioManager.h"
+#include "nr/stack/phy/layer/NRPhyUe.h"
 
 using namespace omnetpp;
 using namespace inet;
@@ -331,6 +332,8 @@ protected:
 	std::set<std::string> carsV2X;
 	std::set<std::string> carsData;
 
+	double sendInterval;
+
 protected:
 	/*
 	 * checks whether a car is a remote vehicle or not
@@ -372,6 +375,29 @@ protected:
 	virtual bool handleNodeStart(IDoneCallback *doneCallback) override;
 	virtual bool handleNodeShutdown(IDoneCallback *doneCallback) override;
 	virtual void handleNodeCrash() override;
+
+	/*
+	 * records the position of the vehicle when a packet loss was detected at application layer
+	 */
+	virtual void recordVehiclePositionAndLostPackets(MacNodeId nodeId, Direction direction, unsigned int lostPackets) {
+
+		Enter_Method_Silent("recordVehiclePositionAndLostPackets");
+
+		if(!(getSystemModule()->par("recordPositionAndPacketLoss"))){
+			return;
+		}
+
+		if (direction == DL) {
+			//server sends to car, this is called on UE side, get access to its physical layer, lteNic
+			check_and_cast<NRPhyUe*>(getParentModule()->getSubmodule("lteNic")->getSubmodule("phy"))->recordPositionAndLostPackets(lostPackets, direction);
+			//
+		} else {
+			//server sends to car, this is called on UE side, get access to its physical layer, lteNic
+			cModule * module = getMacUe(nodeId);
+			check_and_cast<NRPhyUe*>(module->getParentModule()->getSubmodule("phy"))->recordPositionAndLostPackets(lostPackets, direction);
+			//
+		}
+	}
 
 	/**
 	 * Calculates the Packet delay variation

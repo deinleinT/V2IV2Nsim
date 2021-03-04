@@ -38,7 +38,6 @@
 class NRSchedulerGnbUl: public LteSchedulerEnbUl {
 protected:
 
-
 	virtual LteMacScheduleListWithSizes* schedule();
 
 	virtual bool racschedule();

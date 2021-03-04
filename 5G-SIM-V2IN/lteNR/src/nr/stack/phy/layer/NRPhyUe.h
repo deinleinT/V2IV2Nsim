@@ -50,6 +50,7 @@ public:
     virtual void recordTotalPer(const double & totalPerVal);
     virtual void recordBler(const double & blerVal);
     virtual void recordSpeed(const double & speedVal);
+    virtual void recordPositionAndLostPackets(unsigned int lostPackets, Direction direction);
     virtual void errorDetected();
     virtual void deleteOldBuffers(MacNodeId masterId);
     virtual void exchangeBuffersOnHandover(MacNodeId masterId, MacNodeId newMaster);
@@ -70,4 +71,11 @@ protected:
     virtual void initialize(int stage) override;
     virtual void handleMessage(cMessage *msg);
     virtual void finish();
+
+    cOutVector lostPacketsDownlink;
+    cOutVector lostPacketsUplink;
+    cOutVector downlinkXPosition;
+    cOutVector downlinkYPosition;
+    cOutVector uplinkXPosition;
+    cOutVector uplinkYPosition;
 };

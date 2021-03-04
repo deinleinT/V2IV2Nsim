@@ -88,6 +88,22 @@ bool NRSchedulerGnbUl::racschedule() {
 		unsigned int bytesize = racStatusInfo_[nodeId]->getBytesize();    //bytes UE want to send
 		int restBytes = bytesize;
 
+//					//default behavior from simuLTE
+//					blocks = 1;
+//					for (Band b = 0; b < numBands; ++b) {
+//						if (allocator_->availableBlocks(nodeId, MACRO, b) > 0) {
+//							unsigned int bytes = mac_->getAmc()->computeBytesOnNRbs(nodeId, b, cw, blocks, UL);
+//							if (bytes > 0) {
+//								allocator_->addBlocks(MACRO, b, nodeId, 1, bytes);
+//								sumReqBlocks = 1;
+//								sumBytes = bytes;
+//
+//								allocation = true;
+//								break;
+//							}
+//						}
+//					}
+
 		if (!fairSchedule) {
 			for (Band b = 0; b < numBands; ++b) {
 				blocks = allocator_->availableBlocks(nodeId, MACRO, b); //in this band available blocks
@@ -110,21 +126,6 @@ bool NRSchedulerGnbUl::racschedule() {
 					}
 				}
 			}
-			//default behavior from simuLTE
-//			blocks = 1;
-//			for (Band b = 0; b < numBands; ++b) {
-//				if (allocator_->availableBlocks(nodeId, MACRO, b) > 0) {
-//					unsigned int bytes = mac_->getAmc()->computeBytesOnNRbs(nodeId, b, cw, blocks, UL);
-//					if (bytes > 0) {
-//						allocator_->addBlocks(MACRO, b, nodeId, 1, bytes);
-//						sumReqBlocks = 1;
-//						sumBytes = bytes;
-//
-//						allocation = true;
-//						break;
-//					}
-//				}
-//			}
 		} else {
 
 			for (Band b = 0; b < numBands; ++b) {

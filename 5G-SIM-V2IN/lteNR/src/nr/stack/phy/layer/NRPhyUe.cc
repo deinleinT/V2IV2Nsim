@@ -38,6 +38,7 @@ NRPhyUe::NRPhyUe() :
 }
 NRPhyUe::~NRPhyUe() {
 	cancelAndDelete(checkConnectionTimer);
+	checkConnectionTimer = nullptr;
 }
 
 void NRPhyUe::initialize(int stage) {
@@ -82,6 +83,13 @@ void NRPhyUe::initialize(int stage) {
 
 		if (!hasListeners(averageCqiDl_))
 			error("no phy listeners");
+
+		lostPacketsDownlink.setName("lostPacketsDownlink");
+		lostPacketsUplink.setName("lostPacketsUplink");
+		downlinkXPosition.setName("downlinkXPosition");
+		downlinkYPosition.setName("downlinkYPosition");
+		uplinkXPosition.setName("uplinkXPosition");
+		uplinkYPosition.setName("uplinkYPosition");
 
 		WATCH(nodeType_);
 		WATCH(masterId_);
@@ -252,9 +260,10 @@ void NRPhyUe::checkConnection() {
 		//signal to all nodeBs is weak
 		if (maxRssiUL <= getSimulation()->getSystemModule()->par("SINRThreshold").intValue()) {
 			getBinder()->insertUeToNotConnectedList(nodeId_);
+			deleteOldBuffers(masterId_);
 		} else {
 			//best sinr from last master --> reattach
-			if (bestGNB == masterId_) {
+			if (bestGNB == masterId_ && getBinder()->isNotConnected(nodeId_)) {
 				getBinder()->deleteFromUeNotConnectedList(nodeId_);
 				//to guarantee that no old packets are in the buffers
 				deleteOldBuffers(masterId_);
@@ -266,15 +275,28 @@ void NRPhyUe::checkConnection() {
 	}
 }
 
+void NRPhyUe::recordPositionAndLostPackets(unsigned int lostPackets, Direction direction){
+	if(direction == DL){
+		//save in downlinkVectors
+		inet::Coord coord = getPosition();
+		lostPacketsDownlink.record(lostPackets);
+		downlinkXPosition.record(coord.x);
+		downlinkYPosition.record(coord.y);
+	} else {
+		//save in uplinkVectors
+		inet::Coord coord = getPosition();
+		lostPacketsUplink.record(lostPackets);
+		uplinkXPosition.record(coord.x);
+		uplinkYPosition.record(coord.y);
+	}
+}
 
 void NRPhyUe::recordAttenuation(const double & att) {
 	emit(attenuation, att);
-	//std::cout << "Test PhyUE " << att << std::endl;
 }
 
 void NRPhyUe::recordSNIR(const double & snirVal) {
 	emit(snir, snirVal);
-	//std::cout << "Test PhyUE SNIR" << snir << std::endl;
 }
 
 void NRPhyUe::recordDistance3d(const double & d3dVal) {

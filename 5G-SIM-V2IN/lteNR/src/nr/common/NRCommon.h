@@ -79,7 +79,7 @@ typedef unsigned int bitrate;
 //REMARK
 //added for the NR Channel Models
 enum DeploymentScenarioNR {
-	INDOOR_HOTSPOT_EMBB = 0, DENSE_URBAN_EMBB, RURAL_EMBB, URBAN_MACRO_MMTC, URBAN_MACRO_URLLC, UNKNOW_SCENARIO_NR
+	INDOOR_HOTSPOT_EMBB = 0, DENSE_URBAN_EMBB, RURAL_EMBB, URBAN_MACRO_MMTC, URBAN_MACRO_URLLC, INDOOR_FACTORY, UNKNOW_SCENARIO_NR
 };
 
 struct DeploymentScenarioMappingNR {
@@ -89,7 +89,7 @@ struct DeploymentScenarioMappingNR {
 
 const DeploymentScenarioMappingNR DeploymentScenarioTableNR[] = {
 ELEM(INDOOR_HOTSPOT_EMBB), ELEM(DENSE_URBAN_EMBB),
-ELEM(RURAL_EMBB), ELEM(URBAN_MACRO_MMTC), ELEM(URBAN_MACRO_URLLC),
+ELEM(RURAL_EMBB), ELEM(URBAN_MACRO_MMTC), ELEM(URBAN_MACRO_URLLC), ELEM(INDOOR_FACTORY),
 ELEM(UNKNOW_SCENARIO_NR) };
 
 const std::string DeploymentScenarioNRToA(DeploymentScenarioNR type);
@@ -97,7 +97,7 @@ DeploymentScenarioNR aToDeploymentScenarioNR(std::string s);
 
 //
 enum NRChannelModel {
-	InH_A, InH_B, UMa_A, UMa_B, UMi_A, UMi_B, RMa_A, RMa_B, UNKNOWN
+	InH_A, InH_B, UMa_A, UMa_B, UMi_A, UMi_B, RMa_A, RMa_B, InFSL, InFDL, InFSH, InFDH, InFHH, UNKNOWN
 };
 
 struct NRChannelModelMapping {
@@ -105,9 +105,20 @@ struct NRChannelModelMapping {
 	std::string channelModelName;
 };
 
-const NRChannelModelMapping NRChannelModelTable[] = { ELEM(InH_A), ELEM(InH_B),
-ELEM(UMa_A), ELEM(UMa_B), ELEM(UMi_A), ELEM(UMi_B), ELEM(RMa_A),
-ELEM(RMa_B) };
+const NRChannelModelMapping NRChannelModelTable[] = {
+		ELEM(InH_A),
+		ELEM(InH_B),
+		ELEM(UMa_A),
+		ELEM(UMa_B),
+		ELEM(UMi_A),
+		ELEM(UMi_B),
+		ELEM(RMa_A),
+		ELEM(RMa_B),
+		ELEM(InFSL),
+		ELEM(InFDL),
+		ELEM(InFSH),
+		ELEM(InFDH),
+};
 
 const std::string NRChannelModelToA(NRChannelModel type);
 NRChannelModel aToNRChannelModel(std::string s);

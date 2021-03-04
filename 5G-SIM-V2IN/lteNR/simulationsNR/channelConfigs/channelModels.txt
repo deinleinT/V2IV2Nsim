@@ -26,15 +26,12 @@ INDOOR_HOTSPOT_EMMB: InH_A
 **.downlink_interference = false 
 **.uplink_interference = false 
 **.tolerateMaxDistViolation = true 
-**.dynamic_los = true 
-**.fixed_los = false 
 **.targetBler = 0.1 
 **.harqReduction = 0.2 
 **.lambdaMinTh = 0.02 
 **.lambdaMaxTh = 0.2 
 **.lambdaRatioTh = 20 
-**.correlation_distance = 50 
-**.dynamic_los = false 
+**.correlation_distance = 1 
 **.dynamicNlos = true
 **.cqiFlag = false 
 -----------------------------------
@@ -62,15 +59,12 @@ InH_B
 **.downlink_interference = false 
 **.uplink_interference = false 
 **.tolerateMaxDistViolation = true 
-**.dynamic_los = true 
-**.fixed_los = false 
 **.targetBler = 0.1 
 **.harqReduction = 0.2 
 **.lambdaMinTh = 0.02 
 **.lambdaMaxTh = 0.2 
 **.lambdaRatioTh = 20 
-**.correlation_distance = 50 
-**.dynamic_los = false 
+**.correlation_distance = 1 
 **.dynamicNlos = true
 **.cqiFlag = false 		
 ---------------------------------------
@@ -99,15 +93,12 @@ DENSE_URBAN_EMBB: UMa_A
 **.downlink_interference = false 
 **.uplink_interference = false 
 **.tolerateMaxDistViolation = true 
-**.dynamic_los = true 
-**.fixed_los = false 
 **.targetBler = 0.1 
 **.harqReduction = 0.2 
 **.lambdaMinTh = 0.02 
 **.lambdaMaxTh = 0.2 
 **.lambdaRatioTh = 20 
-**.correlation_distance = 50 
-**.dynamic_los = false 
+**.correlation_distance = 1 
 **.dynamicNlos = true
 **.cqiFlag = false 
 ----------------------------------
@@ -135,15 +126,12 @@ UMa_B
 **.downlink_interference = false 
 **.uplink_interference = false 
 **.tolerateMaxDistViolation = true 
-**.dynamic_los = true 
-**.fixed_los = false 
 **.targetBler = 0.1 
 **.harqReduction = 0.2 
 **.lambdaMinTh = 0.02 
 **.lambdaMaxTh = 0.2 
 **.lambdaRatioTh = 20 
-**.correlation_distance = 50 
-**.dynamic_los = false 
+**.correlation_distance = 1
 **.dynamicNlos = true
 **.cqiFlag = false 
 -----------------------------------------
@@ -171,15 +159,12 @@ UMi_A
 **.downlink_interference = false 
 **.uplink_interference = false 
 **.tolerateMaxDistViolation = true 
-**.dynamic_los = true 
-**.fixed_los = false 
 **.targetBler = 0.1 
 **.harqReduction = 0.2 
 **.lambdaMinTh = 0.02 
 **.lambdaMaxTh = 0.2 
 **.lambdaRatioTh = 20 
-**.correlation_distance = 50 
-**.dynamic_los = false 
+**.correlation_distance = 1 
 **.dynamicNlos = true
 **.cqiFlag = false 
 
@@ -206,21 +191,18 @@ UMi_B
 **.downlink_interference = false 
 **.uplink_interference = false 
 **.tolerateMaxDistViolation = true 
-**.dynamic_los = true 
-**.fixed_los = false 
 **.targetBler = 0.1 
 **.harqReduction = 0.2 
 **.lambdaMinTh = 0.02 
 **.lambdaMaxTh = 0.2 
 **.lambdaRatioTh = 20 
-**.correlation_distance = 50 
-**.dynamic_los = false 
+**.correlation_distance = 1
 **.dynamicNlos = true
 **.cqiFlag = false 
 ----------------------------------------------
 ----------------------------------------------
 
-RURAL_EMBB: RMa_A (default)
+RURAL_EMBB: RMa_A 
 
 RMa_A	
 
@@ -245,20 +227,17 @@ RMa_A
 **.extCell_interference = false 
 **.downlink_interference = false 
 **.uplink_interference = false 
-**.tolerateMaxDistViolation = true 
-**.dynamic_los = true 
-**.fixed_los = false 
+**.tolerateMaxDistViolation = true  
 **.targetBler = 0.1 
 **.harqReduction = 0.2 
 **.lambdaMinTh = 0.02 
 **.lambdaMaxTh = 0.2 
 **.lambdaRatioTh = 20 
-**.correlation_distance = 50 
-**.dynamic_los = false 
+**.correlation_distance = 1
 **.dynamicNlos = true
 **.cqiFlag = false 	
 
-RMa_B
+RMa_B (default)
 
 **.scenarioNR = "RURAL_EMBB" 
 **.channelModelType = "RMa_B"       
@@ -282,15 +261,12 @@ RMa_B
 **.downlink_interference = false 
 **.uplink_interference = false 
 **.tolerateMaxDistViolation = true 
-**.dynamic_los = true 
-**.fixed_los = false 
 **.targetBler = 0.1 
 **.harqReduction = 0.2 
 **.lambdaMinTh = 0.02 
 **.lambdaMaxTh = 0.2 
 **.lambdaRatioTh = 20 
-**.correlation_distance = 50 
-**.dynamic_los = false 
+**.correlation_distance = 1
 **.dynamicNlos = true
 **.cqiFlag = false 						
 
@@ -320,15 +296,12 @@ UMa_A
 **.downlink_interference = false 
 **.uplink_interference = false 
 **.tolerateMaxDistViolation = true 
-**.dynamic_los = true 
-**.fixed_los = false 
 **.targetBler = 0.1 
 **.harqReduction = 0.2 
 **.lambdaMinTh = 0.02 
 **.lambdaMaxTh = 0.2 
 **.lambdaRatioTh = 20 
-**.correlation_distance = 50 
-**.dynamic_los = false 
+**.correlation_distance = 50  
 **.dynamicNlos = true
 **.cqiFlag = false 	
 
@@ -356,15 +329,12 @@ UMa_B
 **.downlink_interference = false 
 **.uplink_interference = false 
 **.tolerateMaxDistViolation = true 
-**.dynamic_los = true 
-**.fixed_los = false 
 **.targetBler = 0.1 
 **.harqReduction = 0.2 
 **.lambdaMinTh = 0.02 
 **.lambdaMaxTh = 0.2 
 **.lambdaRatioTh = 20 
-**.correlation_distance = 50 
-**.dynamic_los = false 
+**.correlation_distance = 1 
 **.dynamicNlos = true
 **.cqiFlag = false 
 
@@ -394,19 +364,47 @@ UMa_A
 **.downlink_interference = false 
 **.uplink_interference = false 
 **.tolerateMaxDistViolation = true 
-**.dynamic_los = true 
-**.fixed_los = false 
 **.targetBler = 0.1 
 **.harqReduction = 0.2 
 **.lambdaMinTh = 0.02 
 **.lambdaMaxTh = 0.2 
 **.lambdaRatioTh = 20 
-**.correlation_distance = 50 
-**.dynamic_los = false 
+**.correlation_distance = 1
 **.dynamicNlos = true
 **.cqiFlag = false 
 
 UMa_B
+**.scenarioNR = "URBAN_MACRO_URLLC" 
+**.channelModelType = "UMa_B"       
+**.shadowing = true 
+**.nodeb_height = 25 
+**.ue_height = 1.5 
+**.carrierfrequency = 4 
+**.building_height = 20 
+**.street_wide = 20 
+**.antennaGainUe = 0 
+**.antennGainEnB = 8 
+**.antennGainMicro = 5 
+**.thermalNoise = -104.5 
+**.ue_noise_figure = 7 
+**.bs_noise_figure = 5 
+**.cable_loss = 2 
+**.fading = true  
+**.fading_type = "JAKES" 
+**.fading_paths = 6 
+**.extCell_interference = false 
+**.downlink_interference = false 
+**.uplink_interference = false 
+**.tolerateMaxDistViolation = true 
+**.targetBler = 0.1 
+**.harqReduction = 0.2 
+**.lambdaMinTh = 0.02 
+**.lambdaMaxTh = 0.2 
+**.lambdaRatioTh = 20 
+**.correlation_distance = 1
+**.dynamicNlos = true
+**.cqiFlag = false 
+
 
 UMa_A
 
@@ -432,15 +430,295 @@ UMa_A
 **.downlink_interference = false 
 **.uplink_interference = false 
 **.tolerateMaxDistViolation = true 
-**.dynamic_los = true 
+**.targetBler = 0.1 
+**.harqReduction = 0.2 
+**.lambdaMinTh = 0.02 
+**.lambdaMaxTh = 0.2 
+**.lambdaRatioTh = 20 
+**.correlation_distance = 1 
+**.dynamicNlos = true
+**.cqiFlag = false 	
+
+
+
+###############
+from 38.901
+Indoor Factory:
+
+**.scenarioNR = "INDOOR_FACTORY" 
+**.channelModelType = "InFSL"       
+**.shadowing = true 
+**.nodeb_height = 9
+**.ue_height =  1
+**.carrierfrequency = 2.1 
+**.building_height = 20 # no use for this channel model 
+**.street_wide = 20 # no use for this channel model 
+**.antennaGainUe = 0 
+**.antennGainEnB = 8 
+**.antennGainMicro = 5 
+**.thermalNoise = -104.5 
+**.ue_noise_figure = 7 
+**.bs_noise_figure = 5 
+**.cable_loss = 2 
+**.fading = true  
+**.fading_type = "JAKES" 
+**.fading_paths = 6 
+**.extCell_interference = false 
+**.downlink_interference = false 
+**.uplink_interference = false 
+**.tolerateMaxDistViolation = true  
+**.targetBler = 0.1 
+**.harqReduction = 0.2 
+**.lambdaMinTh = 0.02 
+**.lambdaMaxTh = 0.2 
+**.lambdaRatioTh = 20 
+**.correlation_distance = 1  
+**.dynamicNlos = true
+**.cqiFlag = false 	
+**.d_clutter = 10 #m
+**.clutter_density_r = 0.39 #lower than 0.4 
+**.ceilingHeight = 25 #m 5-25 
+**.hClutter = 10 #m lower than ceilingHeight (0-10)
+
+
+**.scenarioNR = "INDOOR_FACTORY" 
+**.channelModelType = "InFDL"       
+**.shadowing = true 
+**.nodeb_height = 9
+**.ue_height = 1
+**.carrierfrequency = 2.1 
+**.building_height = 20 # no use for this channel model 
+**.street_wide = 20 # no use for this channel model 
+**.antennaGainUe = 0 
+**.antennGainEnB = 8 
+**.antennGainMicro = 5 
+**.thermalNoise = -104.5 
+**.ue_noise_figure = 7 
+**.bs_noise_figure = 5 
+**.cable_loss = 2 
+**.fading = true  
+**.fading_type = "JAKES" 
+**.fading_paths = 6 
+**.extCell_interference = false 
+**.downlink_interference = false 
+**.uplink_interference = false 
+**.tolerateMaxDistViolation = true  
+**.targetBler = 0.1 
+**.harqReduction = 0.2 
+**.lambdaMinTh = 0.02 
+**.lambdaMaxTh = 0.2 
+**.lambdaRatioTh = 20 
+**.correlation_distance = 1 
+**.dynamicNlos = true
+**.cqiFlag = false 	
+**.d_clutter = 2 #m
+**.clutter_density_r = 0.4 #greater than 0.4 
+**.ceilingHeight = 15 #m 5-15 
+**.hClutter = 5 #m lower than ceilingHeight (0-10)
+
+
+**.scenarioNR = "INDOOR_FACTORY" 
+**.channelModelType = "InFSH"       
+**.shadowing = true 
+**.nodeb_height = 15
+**.ue_height = 1
+**.carrierfrequency = 2.1 
+**.building_height = 20 # no use for this channel model 
+**.street_wide = 20 # no use for this channel model 
+**.antennaGainUe = 0 
+**.antennGainEnB = 8 
+**.antennGainMicro = 5 
+**.thermalNoise = -104.5 
+**.ue_noise_figure = 7 
+**.bs_noise_figure = 5 
+**.cable_loss = 2 
+**.fading = true  
+**.fading_type = "JAKES" 
+**.fading_paths = 6 
+**.extCell_interference = false 
+**.downlink_interference = false 
+**.uplink_interference = false 
+**.tolerateMaxDistViolation = true  
+**.targetBler = 0.1 
+**.harqReduction = 0.2 
+**.lambdaMinTh = 0.02 
+**.lambdaMaxTh = 0.2 
+**.lambdaRatioTh = 20 
+**.correlation_distance = 1 
+**.dynamicNlos = true
+**.cqiFlag = false 	
+**.d_clutter = 10 #m
+**.clutter_density_r = 0.39 #lower than 0.4 
+**.ceilingHeight = 25 #m 5-25 
+**.hClutter = 10 #m lower than ceilingHeight (0-10)
+
+
+**.scenarioNR = "INDOOR_FACTORY" 
+**.channelModelType = "InFDH"       
+**.shadowing = true 
+**.nodeb_height =  14
+**.ue_height = 1
+**.carrierfrequency = 2.1 
+**.building_height = 20 # no use for this channel model 
+**.street_wide = 20 # no use for this channel model 
+**.antennaGainUe = 0 
+**.antennGainEnB = 8 
+**.antennGainMicro = 5 
+**.thermalNoise = -104.5 
+**.ue_noise_figure = 7 
+**.bs_noise_figure = 5 
+**.cable_loss = 2 
+**.fading = true  
+**.fading_type = "JAKES" 
+**.fading_paths = 6 
+**.extCell_interference = false 
+**.downlink_interference = false 
+**.uplink_interference = false 
+**.tolerateMaxDistViolation = true 
+**.targetBler = 0.1 
+**.harqReduction = 0.2 
+**.lambdaMinTh = 0.02 
+**.lambdaMaxTh = 0.2 
+**.lambdaRatioTh = 20 
+**.correlation_distance = 1 
+**.dynamicNlos = true
+**.cqiFlag = false 	
+**.d_clutter = 2 #m
+**.clutter_density_r = 0.4 #greater than 0.4 
+**.ceilingHeight = 15 #m 5-15 
+**.hClutter = 10 #m lower than ceilingHeight (0-10)
+
+
+**.scenarioNR = "INDOOR_FACTORY" 
+**.channelModelType = "InFHH"       
+**.shadowing = true 
+**.nodeb_height = 20
+**.ue_height =  1
+**.carrierfrequency = 2.1 
+**.building_height = 20 # no use for this channel model 
+**.street_wide = 20 # no use for this channel model 
+**.antennaGainUe = 0 
+**.antennGainEnB = 8 
+**.antennGainMicro = 5 
+**.thermalNoise = -104.5 
+**.ue_noise_figure = 7 
+**.bs_noise_figure = 5 
+**.cable_loss = 2 
+**.fading = true  
+**.fading_type = "JAKES" 
+**.fading_paths = 6 
+**.extCell_interference = false 
+**.downlink_interference = false 
+**.uplink_interference = false 
+**.tolerateMaxDistViolation = true 
+**.targetBler = 0.1 
+**.harqReduction = 0.2 
+**.lambdaMinTh = 0.02 
+**.lambdaMaxTh = 0.2 
+**.lambdaRatioTh = 20 
+**.correlation_distance = 1  
+**.dynamicNlos = true
+**.cqiFlag = false 	
+**.d_clutter = 10 #m
+**.clutter_density_r = 0.39 #any 
+**.ceilingHeight = 25 #m 5-25 
+**.hClutter = 15 #m lower than ceilingHeight (0-10)
+
+UMa --> same as UMa_B from ITU-Guidelines
+**.scenarioNR = "DENSE_URBAN_EMBB" 
+**.channelModelType = "UMa_B"       
+**.shadowing = true 
+**.nodeb_height = 25 
+**.ue_height = 1.5 
+**.carrierfrequency = 2.1 
+**.building_height = 20 
+**.street_wide = 20 
+**.antennaGainUe = 0 
+**.antennGainEnB = 8 
+**.antennGainMicro = 5 
+**.thermalNoise = -104.5 
+**.ue_noise_figure = 7 
+**.bs_noise_figure = 5 
+**.cable_loss = 2 
+**.fading = true  
+**.fading_type = "JAKES" 
+**.fading_paths = 1 
+**.extCell_interference = false 
+**.downlink_interference = false 
+**.uplink_interference = false 
+**.tolerateMaxDistViolation = true 
 **.fixed_los = false 
 **.targetBler = 0.1 
 **.harqReduction = 0.2 
 **.lambdaMinTh = 0.02 
 **.lambdaMaxTh = 0.2 
 **.lambdaRatioTh = 20 
-**.correlation_distance = 50 
-**.dynamic_los = false 
+**.correlation_distance = 1 
 **.dynamicNlos = true
-**.cqiFlag = false 	
+**.cqiFlag = false 
+
+RMa --> same as RMa_B from ITU-Guidelines
+**.scenarioNR = "RURAL_EMBB" 
+**.channelModelType = "RMa_B"       
+**.shadowing = true 
+**.nodeb_height = 35 
+**.ue_height = 1.5 
+**.carrierfrequency = 4 
+**.building_height = 5 
+**.street_wide = 20 
+**.antennaGainUe = 0 
+**.antennGainEnB = 8 
+**.antennGainMicro = 5 
+**.thermalNoise = -104.5 
+**.ue_noise_figure = 7 
+**.bs_noise_figure = 5 
+**.cable_loss = 2 
+**.fading = true  
+**.fading_type = "JAKES" 
+**.fading_paths = 1
+**.extCell_interference = false 
+**.downlink_interference = false 
+**.uplink_interference = false 
+**.tolerateMaxDistViolation = true 
+**.targetBler = 0.1 
+**.harqReduction = 0.2 
+**.lambdaMinTh = 0.02 
+**.lambdaMaxTh = 0.2 
+**.lambdaRatioTh = 20 
+**.correlation_distance = 1 
+**.dynamicNlos = true
+**.cqiFlag = false 
+
+UMi --> same as UMi_B from ITU-Guidelines
+**.scenarioNR = "DENSE_URBAN_EMBB" 
+**.channelModelType = "UMi_B"       
+**.shadowing = true 
+**.nodeb_height = 10 
+**.ue_height = 5 
+**.carrierfrequency = 4 
+**.building_height = 20 
+**.street_wide = 20 
+**.antennaGainUe = 0 
+**.antennGainEnB = 8 
+**.antennGainMicro = 5 
+**.thermalNoise = -104.5 
+**.ue_noise_figure = 7 
+**.bs_noise_figure = 5 
+**.cable_loss = 2 
+**.fading = true  
+**.fading_type = "JAKES" 
+**.fading_paths = 1 
+**.extCell_interference = false 
+**.downlink_interference = false 
+**.uplink_interference = false 
+**.tolerateMaxDistViolation = true 
+**.targetBler = 0.1 
+**.harqReduction = 0.2 
+**.lambdaMinTh = 0.02 
+**.lambdaMaxTh = 0.2 
+**.lambdaRatioTh = 20 
+**.correlation_distance = 1 
+**.dynamicNlos = true
+**.cqiFlag = false 
+
 

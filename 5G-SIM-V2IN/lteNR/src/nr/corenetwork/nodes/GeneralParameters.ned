@@ -21,7 +21,7 @@
 // Part of 5G-Sim-V2I/N
 //
 
-//used for parameters, that can be set in omnetpp.ini file
+//used for parameters, which can be set in omnetpp.ini file
 //
 //
 package nr.corenetwork.nodes;
@@ -40,9 +40,9 @@ network GeneralParameters{
         bool remoteCarJustOne = default(false); // if true, just one car is a remote vehicle --> the car identity can set via the parameter remoteCarFactor, e.g., this flag is true and remoteCarFactor = 10 --> the car with MacNodeId 1035 (or car[9]) is a remoteVehicle
         bool remoteCarByColour = default(false);// if true, only red cars are remote vehicles
         
-        int mtu @unit("B") = default(1500B);
+        int mtu @unit("B") = default(40000B);
         
-        bool nrHarq = default(false); //if true, the NR HarqProcess-procedure is activeted (shorter intervals for scheduling grant and HARQ ACK/NACK)
+        bool nrHarq = default(true); //if true, the NR HarqProcess-procedure is activeted (shorter intervals for scheduling grant and HARQ ACK/NACK)
         int numberHarqProcesses = default(8); //Number of LTE HarqProcesses
         int numberHarqProcessesNR = default(16); //Number of NR HarqProcesses
         int harqFBEvaluationIntervalLTE = default(3); //time of ms in LTE, until ACK/NACK is evaluated
@@ -61,5 +61,14 @@ network GeneralParameters{
         int SINRThreshold = default(5); // if useSINRThreshold true, the SINR in UL is used to check, whether a UE is in coverage or not (during Handover), if the SINR to all Base stations is lower than this value, the UE is not connected to any base station
         double checkConnectionInterval @unit(s) = default(0.1s);
         **.dasRssiThreshold = SINRThreshold; 
+        
+        //
+        //if true, the VideoStream Confic in the ini file is modified --> every 10th vehicle sends or receives a videostream with 5Mbps (packet size 15625 byte, packet intervall 25ms)
+        //one half of all other vehicles send or receive a voip stream with 80kbps (packet size 100byte), packet interval 10ms
+        //the other half send or receive random streams (packet size uniform(50byte,1500byte), packet interval uniform(10ms, 500ms)
+        bool realisticApproach = default(true); 
+        
+        //Records the vehicle position in downlink and uplink when a packet loss at application layer was detected
+        bool recordPositionAndPacketLoss = default(false);
         
 }

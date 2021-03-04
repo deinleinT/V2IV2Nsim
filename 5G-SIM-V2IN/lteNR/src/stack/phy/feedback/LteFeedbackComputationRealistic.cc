@@ -154,7 +154,6 @@ Cqi LteFeedbackComputationRealistic::getCqi(TxMode txmode, double snr)
 		else
 			return 15;
 
-
 	} else {
 		int newsnr = floor(snr + 0.5);
 		if (newsnr < 0)

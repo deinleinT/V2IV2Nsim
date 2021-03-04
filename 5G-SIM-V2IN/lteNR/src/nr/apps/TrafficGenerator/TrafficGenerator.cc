@@ -220,6 +220,7 @@ void TrafficGenerator::initialize(int stage) {
 		lastSentStatusUpdateSN = 0;
 
 		selfMsg = new cMessage("sendTimer");
+		sendInterval = par("sendInterval").doubleValue();
 		take(selfMsg);
 		//for DL and UL, set in OmnetINI
 		startTime = NOW + uniform(0, par("startTime").doubleValue());
@@ -838,6 +839,10 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 				lostPacketsV2X = connectionsUEtoServ[nodeId].statReport.lostPacketsV2X; //all over summary of lost packets
 
 				calcPVV2XUL(nodeId, temp, false);
+
+				//save number of lost packets for direction and each car
+				// check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
+				recordVehiclePositionAndLostPackets(nodeId, UL, lostPackets);
 			}
 
 			if (NOW - pk->getCreationTime() > v2xDelayBudget) {
@@ -946,6 +951,9 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 
 				calcPVVideoUL(nodeId, temp, false);
 
+				//save number of lost packets for direction and each car
+				// check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
+				recordVehiclePositionAndLostPackets(nodeId, UL, lostPackets);
 			}
 			//Reliability
 			if (NOW - pk->getCreationTime() > videoDelayBudget) {
@@ -1054,6 +1062,9 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 
 				calcPVVoipUL(nodeId, temp, false);
 
+				//save number of lost packets for direction and each car
+				// check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
+				recordVehiclePositionAndLostPackets(nodeId, UL, lostPackets);
 			}
 			//Reliability
 			if (NOW - pk->getCreationTime() > voipDelayBudget) {
@@ -1201,6 +1212,9 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 
 				calcPVDataUL(nodeId, temp, false);
 
+				//save number of lost packets for direction and each car
+				// check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
+				recordVehiclePositionAndLostPackets(nodeId, UL, lostPackets);
 			}
 
 			delete connectionsUEtoServ[nodeId].statReport.lastData;
@@ -1274,6 +1288,7 @@ void TrafficGeneratorCarUL::processStart() {
 
 }
 
+//send packet from vehicle to server
 void TrafficGeneratorCarUL::sendPacket(long bytes) {
 
 	unsigned short nodeId = getNRBinder()->getMacNodeId(localAddress_.toIPv4());
@@ -1379,6 +1394,35 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 		payload->setSenderName(getParentModule()->getFullName());
 		payload->setTimestamp(NOW);
 		payload->setSequenceNumber(0);
+
+
+		/*
+		 * realisticApproach
+		 * every 10th car: interval 25ms, 15625byte
+		 * even node Id: VoipStream, 80kbps, 100byte, 10ms
+		 * odd node Id: random traffic, 10ms 500ms, 50 1500byte
+		 */
+		if (getSimulation()->getSystemModule()->par("realisticApproach")) {
+
+			if (nodeId % 10 == 0) {
+				//VideoStream with 5Mbps
+				//packet size 15625 byte, packet interval 25ms
+				payload->setByteLength(15625);
+				sendInterval = 0.025;
+			} else if (nodeId % 2 == 0) {
+				//VoipStream with 80kpbs
+				//packet size 100byte, packet interval 10ms
+				payload->setByteLength(100);
+				sendInterval = 0.01;
+			} else {
+				//random streams (packet size uniform(50byte,1500byte), packet interval uniform(10ms, 500ms)
+				unsigned int bytes = uniform(50, 1500);
+				payload->setByteLength(bytes);
+				sendInterval = uniform(0.01, 0.500);
+			}
+		}
+		//
+
 
 		if (connectionsUEtoServ.find(nodeId) != connectionsUEtoServ.end()) {
 			//already one entry
@@ -1539,7 +1583,7 @@ void TrafficGeneratorCarUL::processSend() {
 	if (!sendDataPacket)
 		return;
 
-	double sendInterval = par("sendInterval").doubleValue();
+	//double sendInterval = par("sendInterval").doubleValue();
 	double resendingDelay = par("resendingDelay").doubleValue();
 	double uniForm = uniform(0.000, resendingDelay);
 	simtime_t duration = simTime() + sendInterval + uniForm;
@@ -1737,6 +1781,10 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 
 				calcPVV2XDL(nodeId, temp, false);
 
+				//save number of lost packets for direction and each car
+				// check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
+				recordVehiclePositionAndLostPackets(nodeId, DL, lostPackets);
+
 			}
 			//
 			if (NOW - pk->getCreationTime() > v2xDelayBudget) {
@@ -1910,6 +1958,10 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 
 				calcPVVideoDL(nodeId, temp, false);
 
+				//save number of lost packets for direction and each car
+				// check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
+				recordVehiclePositionAndLostPackets(nodeId, DL, lostPackets);
+
 			}
 
 			if (NOW - pk->getCreationTime() > videoDelayBudget) {
@@ -2018,6 +2070,10 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 				lostPacketsVoip = connectionsServToUE[nodeId].statReport.lostPacketsVoip; //all over summary of lost packets
 				//packetDelayVariation
 				calcPVVoipDL(nodeId, temp, false);
+
+				//save number of lost packets for direction and each car
+				// check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
+				recordVehiclePositionAndLostPackets(nodeId, DL, lostPackets);
 			}
 
 			if (NOW - pk->getCreationTime() > voipDelayBudget) {
@@ -2169,6 +2225,10 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 				lostPacketsData = connectionsServToUE[nodeId].statReport.lostPacketsData; //all over summary of lost packets
 
 				calcPVDataDL(nodeId, temp, false);
+
+				//save number of lost packets for direction and each car
+				// check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
+				recordVehiclePositionAndLostPackets(nodeId, DL, lostPackets);
 			}
 
 			delete connectionsServToUE[nodeId].statReport.lastData;
@@ -2266,7 +2326,8 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 		return;
 	}
 
-	simtime_t nextSelfMsgTime = NOW + par("sendInterval").doubleValue() + uniform(0, par("resendingDelay").doubleValue());
+	double sendInterval = par("sendInterval").doubleValue();
+	simtime_t nextSelfMsgTime = NOW + sendInterval + uniform(0, par("resendingDelay").doubleValue());
 
 	std::set<std::string>::const_iterator itr = names.begin();
 	while (itr != names.end()) {
@@ -2378,6 +2439,33 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 				payload->setSenderName(getParentModule()->getFullName());
 				payload->setTimestamp(NOW);
 				payload->setSequenceNumber(0);
+
+				//
+				if(getSimulation()->getSystemModule()->par("realisticApproach")){
+
+					//10th car
+					if(nodeId % 10 == 0){
+						//VideoStream with 5Mbps
+						//packet size 15625 byte, packet intervall 25ms
+						payload->setByteLength(15625);
+						sendInterval = 0.025;
+					}else if(nodeId % 2 == 0){
+						//VoipStream with 80kpbs
+						//packet size 100byte, packet interval 10ms
+						payload->setByteLength(100);
+						sendInterval = 0.01;
+					}else{
+						//random streams (packet size uniform(50byte,1500byte), packet interval uniform(10ms, 500ms)
+						unsigned int bytes = uniform(50,1500);
+						payload->setByteLength(bytes);
+						sendInterval = uniform(0.01,0.500);
+					}
+					//
+
+					nextSelfMsgTime = NOW + sendInterval + uniform(0, par("resendingDelay").doubleValue());
+					carsSendingTimes[carName] = nextSelfMsgTime;
+				}
+				//
 
 				if (connectionsServToUE.find(nodeId) != connectionsServToUE.end()) {
 					//already one entry
@@ -2519,6 +2607,8 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 
 		++itr;
 	}
+
+
 
 	selfMsg->setKind(START);
 	for (auto &var : names) {

@@ -81,6 +81,13 @@ protected:
 
 	double antennaGainGnB_;
 
+	//for Indoor Factory channel models from 38.901, table 7.2-4
+	double d_clutter; //typical clutter size (10m, 2m or above)
+	double clutter_density_r; //percentage of surface area occupied by clutter
+	double hClutter; // hc, effective clutter heigth
+	double ceilingHeight; // height of factory ceiling
+	//
+
 	virtual std::vector<double> getSINR(LteAirFrame *frame, UserControlInfo *lteInfo, bool recordStats);
 
 	virtual double getAttenuationNR(const MacNodeId &nodeId, const Direction &dir, const inet::Coord &uecoord, const inet::Coord &enodebcoord, bool recordStats);
@@ -96,6 +103,14 @@ protected:
 	virtual double computeUrbanMacroMmtc(double &d3ddistance, double &d2ddistance, const MacNodeId &nodeId);
 
 	virtual double computeUrbanMacroUrllc(double &d3ddistance, double &d2ddistance, const MacNodeId &nodeId);
+
+	virtual double computeIndoorFactory(double &d3ddistance, double &d2ddistance, const MacNodeId &nodeId);
+
+	virtual double computeInFSL(double &d3ddistance, double &d2ddistance, const MacNodeId &nodeId);
+
+	virtual double computeInFLOS(double &d3ddistance, double &d2ddistance, const MacNodeId &nodeId);
+
+	void checkIndoorFactoryParameters();
 
 	virtual bool isCorrupted(LteAirFrame *frame, UserControlInfo *lteInfo);
 

@@ -34,6 +34,20 @@
  * RuralMBB --> RMa_A, RMa_B
  * UrbanMacromMTC --> UMa_A, UMa_B
  * UrbanMacroURLLC --> UMa_A, UMa_B
+ *
+ *
+ * from 3gpp 38.901 IndoorFactory --> InFSL, InFDL, InFSH, InFDH, InFHH
+ * InFSL: sparse clutter, low BS, ceilingHeight 5-25m, d_clutter 10m, clutter_density_r < 0.4, hClutter < ceilingHeight || 0-10m
+ * InFDL: dense clutter, low BS, ceilingHeight 5-15m, d_clutter 2m, clutter_density_r >= 0.4, hClutter < ceilingHeight || 0-10m
+ * InFSH: sparse clutter, high BS, ceilingHeight 5-25m, d_clutter 10m, clutter_density_r < 0.4, hClutter < ceilingHeight || 0-10m
+ * InFDH: dense clutter, high BS, ceilingHeight 5-15m, d_clutter 2m, clutter_density_r >= 0.4, hClutter < ceilingHeight || 0-10m
+ * InFHH: high Tx, high Rx, ceilingHeight 5-25m, d_clutter any, clutter_density_r any, hClutter < ceilingHeight || 0-10m
+ *
+ * Remark:
+ * RMa_B is based on the same formulas as RMa in 38.901
+ * UMa_B is based on the same formulas as UMa in 38.901
+ * UMi_B is based on the same formulas as UMi-Street Canyon in 38.901
+ *
  */
 
 Define_Module(NRRealisticChannelModel);
@@ -48,6 +62,13 @@ void NRRealisticChannelModel::initialize(int stage) {
 
 		tolerateMaxDistViolation_ = par("tolerateMaxDistViolation");
 		hUe_ = par("ue_height").doubleValue();
+
+		//for Indoor Factory channel models from 38.901, table 7.2-4
+		d_clutter = par("d_clutter").doubleValue();; //typical clutter size (10m, 2m or above)
+		clutter_density_r = par("clutter_density_r").doubleValue();; //percentage of surface area occupied by clutter
+		hClutter = par("hClutter").doubleValue(); // hc, effective clutter heigth
+		ceilingHeight = par("ceilingHeight").doubleValue();
+		//
 
 		wStreet_ = par("street_wide").doubleValue();
 
@@ -102,6 +123,7 @@ void NRRealisticChannelModel::initialize(int stage) {
 		isNodeB_ = par("isNodeB").boolValue(); //OK in NRNic
 
 		checkScenarioAndChannelModel();
+		checkIndoorFactoryParameters();
 
 		myCoord_ = check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
 		if (isNodeB_) {
@@ -127,6 +149,48 @@ void NRRealisticChannelModel::initialize(int stage) {
 		lastStatisticRecord = -1;
 	}
 
+}
+
+
+/*
+ * InFSL: sparse clutter, low BS, ceilingHeight 5-25m, d_clutter 10m, clutter_density_r < 0.4, hClutter < ceilingHeight || 0-10m
+ * InFDL: dense clutter, low BS, ceilingHeight 5-15m, d_clutter 2m, clutter_density_r >= 0.4, hClutter < ceilingHeight || 0-10m
+ * InFSH: sparse clutter, high BS, ceilingHeight 5-25m, d_clutter 10m, clutter_density_r < 0.4, hClutter < ceilingHeight || 0-10m
+ * InFDH: dense clutter, high BS, ceilingHeight 5-15m, d_clutter 2m, clutter_density_r >= 0.4, hClutter < ceilingHeight || 0-10m
+ * InFHH: high Tx, high Rx, ceilingHeight 5-25m, d_clutter any, clutter_density_r any, hClutter < ceilingHeight || 0-10m
+ */
+void NRRealisticChannelModel::checkIndoorFactoryParameters() {
+	//std::cout << "NRRealisticChannelModel::checkIndoorFactoryParameters start at " << simTime().dbl() << std::endl;
+
+	if (channelModelType_ == InFSL) {
+		if (d_clutter != 10 || clutter_density_r > 0.4 || (ceilingHeight > 25 || ceilingHeight < 5) || (hClutter > ceilingHeight) || hNodeB_ > hClutter) {
+			throw cRuntimeError("Error - InddorFactoryParameters not valid - check clutter and ceiling values");
+		}
+		return;
+	}
+
+	if (channelModelType_ == InFDL) {
+		if (d_clutter != 2 || clutter_density_r < 0.4 || (ceilingHeight > 15 || ceilingHeight < 5) || (hClutter > ceilingHeight) || hNodeB_ > hClutter) {
+			throw cRuntimeError("Error - InddorFactoryParameters not valid - check clutter and ceiling values");
+		}
+		return;
+	}
+
+	if (channelModelType_ == InFSH) {
+		if (d_clutter != 10 || clutter_density_r > 0.4 || (ceilingHeight > 25 || ceilingHeight < 5) || (hClutter > ceilingHeight) || hNodeB_ < hClutter) {
+			throw cRuntimeError("Error - InddorFactoryParameters not valid - check clutter and ceiling values");
+		}
+		return;
+	}
+
+	if (channelModelType_ == InFDH) {
+		if (d_clutter != 2 || clutter_density_r < 0.4 || (ceilingHeight > 15 || ceilingHeight < 5) || (hClutter > ceilingHeight) || hNodeB_ < hClutter) {
+			throw cRuntimeError("Error - InddorFactoryParameters not valid - check clutter and ceiling values");
+		}
+		return;
+	}
+
+	//std::cout << "NRRealisticChannelModel::checkIndoorFactoryParameters end at " << simTime().dbl() << std::endl;
 }
 
 double NRRealisticChannelModel::getStdDevNR(const double &d3d, const double &d2d, const MacNodeId &nodeId) {
@@ -303,9 +367,35 @@ double NRRealisticChannelModel::getStdDevNR(const double &d3d, const double &d2d
 				if (10 < d2d && d2d < 21000)
 					return 8.0;
 				else
-					throw cRuntimeError("Error NLOS RMa_A path loss model is not valid");
+					throw cRuntimeError("Error NLOS RMa_B path loss model is not valid");
 			} else
-				throw cRuntimeError("Error NLOS RMa_A path loss model is not valid");
+				throw cRuntimeError("Error NLOS RMa_B path loss model is not valid");
+		}
+
+	}
+	//INDOOR FACTORY from 3gpp 38.901, Table 7.4.1-1
+	else if (channelModelType_ == InFDH || channelModelType_ == InFDL || channelModelType_ == InFHH || channelModelType_ == InFSH || channelModelType_ == InFSL) {
+		if (!(1 <= d3d && d3d <= 600))
+			throw cRuntimeError("Error LOS INDOOR_FACTORY path loss model is not valid");
+		if (!(0.5 <= carrierFrequency_ && carrierFrequency_ <= 30))
+			throw cRuntimeError("Error LOS INDOOR_FACTORY path loss model is not valid");
+
+		if (losMap_[nodeId]) {
+			return 4.3;
+		} else {
+			//NLOS
+			switch (channelModelType_) {
+			case InFSL:
+				return 5.7;
+			case InFDL:
+				return 7.2;
+			case InFSH:
+				return 5.9;
+			case InFDH:
+				return 4.0;
+			default:
+				throw cRuntimeError("Error NLOS path loss model INDOOR_FACTORY is not valid");
+			}
 		}
 	} else
 		throw cRuntimeError("Error NLOS path loss model is not valid");
@@ -331,6 +421,9 @@ void NRRealisticChannelModel::checkScenarioAndChannelModel() {
 			return;
 	case URBAN_MACRO_URLLC:
 		if (channelModelType_ == UMa_A || channelModelType_ == UMa_B)
+			return;
+	case INDOOR_FACTORY:
+		if(channelModelType_ == InFDH || channelModelType_ == InFDL ||channelModelType_ == InFHH ||channelModelType_ == InFSH ||channelModelType_ == InFSL)
 			return;
 	default:
 		throw cRuntimeError("Wrong value %s for path-loss scenario: Channel model %s not allowed", DeploymentScenarioNRToA(scenarioNR_).c_str(), NRChannelModelToA(channelModelType_).c_str());
@@ -730,6 +823,7 @@ void NRRealisticChannelModel::computeLosProbabilityNR(const double &d2d, const M
 	//std::cout << "NRRealisticChannelModel::computeLosProbabilityNR start at " << simTime().dbl() << std::endl;
 
 	double p = 0;
+	double k_subsce;
 	if (!dynamicLos_) { //set by default to true
 		losMap_[nodeId] = fixedLos_; // fixedLos_ set by default to false
 		return;
@@ -780,6 +874,21 @@ void NRRealisticChannelModel::computeLosProbabilityNR(const double &d2d, const M
 			p = exp(-((d2d - 10) / 1000));
 		else
 			throw cRuntimeError("Error NLOS RMaA/RMaB loss model wrong distance (2d)");
+		break;
+
+	//from 38.901, Indoor Factory
+	case InFSL:
+	case InFDL:
+		k_subsce = -(d_clutter / log(1 - clutter_density_r));
+		p = exp(-(d2d / k_subsce));
+		break;
+	case InFSH:
+	case InFDH:
+		k_subsce = -(d_clutter / log(1 - clutter_density_r)) * ((hNodeB_ - hUe_)/(hClutter - hUe_));
+		p = exp(-(d2d / k_subsce));
+		break;
+	case InFHH:
+		p = 1;
 		break;
 
 	default:
@@ -852,6 +961,8 @@ double NRRealisticChannelModel::getAttenuationNR(const MacNodeId &nodeId, const 
 		case URBAN_MACRO_URLLC:
 			attenuation = computeUrbanMacroUrllc(d3ddistance, d2ddistance, nodeId);
 			break;
+		case INDOOR_FACTORY:
+			attenuation = computeIndoorFactory(d3ddistance, d2ddistance, nodeId);
 		default:
 			throw cRuntimeError("Wrong value %d for path-loss scenario", scenarioNR_);
 		}
@@ -1087,9 +1198,16 @@ double NRRealisticChannelModel::computePLrmaLos(const double &d3d, double &d2d) 
 double NRRealisticChannelModel::computePLrmaNlos(const double &d3d, double &d2d) {
 	//std::cout << "NRRealisticChannelModel::computePLrmaNlos start at " << simTime().dbl() << std::endl;
 
-	if (10 < d2d && d2d < 21000)
-		return 161.04 - 7.1 * log10(wStreet_) + 7.5 * log10(hBuilding_) - (24.37 - 3.7 * pow((hBuilding_ / hNodeB_), 2)) * log10(hNodeB_) + (43.42 - 3.1 * log10(hNodeB_)) * (log10(d3d) - 3)
-				+ 20 * log10(carrierFrequency_) - (3.2 * pow((log10(11.75 * hUe_)), 2) - 4.97);
+	if (10 < d2d && d2d < 21000){
+		return 161.04 - 7.1
+				* log10(wStreet_) + 7.5
+				* log10(hBuilding_)
+				- (24.37 - 3.7 * pow((hBuilding_ / hNodeB_), 2))
+				* log10(hNodeB_) + (43.42 - 3.1 * log10(hNodeB_))
+				* (log10(d3d) - 3) + 20
+				* log10(carrierFrequency_)
+				- (3.2 * pow((log10(11.75 * hUe_)), 2) - 4.97);
+	}
 	else
 		throw cRuntimeError("Error Path Loss RMa --> invalid distance (2d)");
 
@@ -1135,6 +1253,9 @@ double NRRealisticChannelModel::computeRMaA(double &d3ddistance, double &d2ddist
 	//std::cout << "NRRealisticChannelModel::computeRMaA end at " << simTime().dbl() << std::endl;
 }
 
+/*
+ * from ITU-R M.2412-0, also defined in 3gpp 38.901 Table 7.4.1-1 (RMa)
+ */
 double NRRealisticChannelModel::computeRMaB(double &d3ddistance, double &d2ddistance, const MacNodeId &nodeId) {
 	//std::cout << "NRRealisticChannelModel::computeRMaB start at " << simTime().dbl() << std::endl;
 
@@ -1176,7 +1297,7 @@ double NRRealisticChannelModel::computeRMaB(double &d3ddistance, double &d2ddist
 double NRRealisticChannelModel::computeUMiB(double &d3d, double &d2d, const MacNodeId &nodeId) {
 	//std::cout << "NRRealisticChannelModel::computeUMiB start at " << simTime().dbl() << std::endl;
 
-	if (!(/*hNodeB_ == 10 &&*/(1.5 <= hUe_ && hUe_ <= 22.5)))
+	if (!(hNodeB_ == 10 && (1.5 <= hUe_ && hUe_ <= 22.5)))
 		throw cRuntimeError("Error Path Loss UMiB --> invalid, height enodeb or ue not valid");
 
 	if (d2d < 10)
@@ -1288,7 +1409,7 @@ double NRRealisticChannelModel::computeUMaB(double &d3d, double &d2d, const MacN
 			throw cRuntimeError("Error LOS UMaB path loss model is valid for d<5000 m");
 	}
 
-	if (!(/*hNodeB_ == 25 &&*/(1.5 <= hUe_ && hUe_ <= 22.5)))
+	if (!(hNodeB_ == 25 && (1.5 <= hUe_ && hUe_ <= 22.5)))
 		throw cRuntimeError("Error Path Loss UMaB --> invalid, height enodeb or ue not valid");
 
 	if (losMap_[nodeId]) {
@@ -1322,9 +1443,9 @@ double NRRealisticChannelModel::computePLumiBLos(const double &d3d, double &d2d)
 	double dbp = calcDistanceBreakPoint(d2d);
 
 	if (10 <= d2d && d2d <= dbp)
-		return 32.4 + 21 * log10(d3d) + 20 * log10(carrierFrequency_);
+		return 32.4 + 21.0 * log10(d3d) + 20.0 * log10(carrierFrequency_);
 	else if (dbp <= d2d && d2d <= 5000)
-		return 32.4 + 40 * log10(d3d) + 20 * log10(carrierFrequency_) - 9.5 * log10(pow(dbp, 2) + pow(hNodeB_ - hUe_, 2));
+		return 32.4 + 40.0 * log10(d3d) + 20.0 * log10(carrierFrequency_) - 9.5 * log10(pow(dbp, 2) + pow(hNodeB_ - hUe_, 2));
 	else
 		throw cRuntimeError("Error LOS UMiA/UMiB path loss model --> distance not valid");
 
@@ -1394,7 +1515,7 @@ double NRRealisticChannelModel::computeUMaA(double &d3d, double &d2d, const MacN
 			throw cRuntimeError("Error LOS UMaA path loss model is valid for d<5000 m");
 	}
 
-	if (!(/*hNodeB_ == 25 &&*/(1.5 <= hUe_ && hUe_ <= 22.5)))
+	if (!(hNodeB_ == 25 && (1.5 <= hUe_ && hUe_ <= 22.5)))
 		throw cRuntimeError("Error Path Loss UMa_A invalid, height enodeb or ue not valid");
 
 	if (losMap_[nodeId]) {
@@ -1480,6 +1601,46 @@ double NRRealisticChannelModel::computeUrbanMacroUrllc(double &d3ddistance, doub
 		return computeUMaB(d3ddistance, d2ddistance, nodeId);
 	} else
 		throw cRuntimeError("Error LOS UrbanMacroUrllc path loss model is not valid --> invalid channelModel");
+}
+
+/*
+ * Taken from 38.901, IndoorFactory, Table 7.4.1-1
+ */
+double NRRealisticChannelModel::computeIndoorFactory(double &d3ddistance, double &d2ddistance, const MacNodeId &nodeId) {
+	//std::cout << "NRRealisticChannelModel::computeIndoorFactory start at " << simTime().dbl() << std::endl;
+	double pathloss = 0.0;
+	if (losMap_[nodeId]) {
+		pathloss = computeInFLOS(d3ddistance, d2ddistance, nodeId);
+	} else if (channelModelType_ == InFSL) {
+		return computeInFSL(d3ddistance, d2ddistance, nodeId);
+	} else if (channelModelType_ == InFDL) {
+		double pathlossLOS = computeInFLOS(d3ddistance, d2ddistance, nodeId);
+		double pathlossNLOS = 33.0 + 25.5 * log10(d3ddistance) + 20.0 * log10(carrierFrequency_);
+		double pathlossInFSL = computeInFSL(d3ddistance, d2ddistance, nodeId);
+		pathloss = max(pathlossLOS, max(pathlossNLOS, pathlossInFSL));
+	} else if (channelModelType_ == InFSH) {
+		double pathlossLOS = computeInFLOS(d3ddistance, d2ddistance, nodeId);
+		double pathlossNLOS = 32.4 + 23.0 * log10(d3ddistance) + 20.0 * log10(carrierFrequency_);
+		pathloss = max(pathlossLOS, pathlossNLOS);
+	} else if (channelModelType_ == InFDH) {
+		double pathlossLOS = computeInFLOS(d3ddistance, d2ddistance, nodeId);
+		double pathlossNLOS = 33.63 + 21.9 * log10(d3ddistance) + 20.0 * log10(carrierFrequency_);
+		pathloss = max(pathlossLOS, pathlossNLOS);
+	}
+	return pathloss;
+	throw cRuntimeError("Error LOS Indoor Factory path loss model is not valid --> invalid channelModel");
+}
+
+double NRRealisticChannelModel::computeInFLOS(double &d3ddistance, double &d2ddistance, const MacNodeId &nodeId) {
+	//std::cout << "NRRealisticChannelModel::computeInFLOS start at " << simTime().dbl() << std::endl;
+	return (31.84 + 21.50 * log10(d3ddistance) + 19.00 * log10(carrierFrequency_));
+}
+
+double NRRealisticChannelModel::computeInFSL(double &d3ddistance, double &d2ddistance, const MacNodeId &nodeId) {
+	//std::cout << "NRRealisticChannelModel::computeInFSL start at " << simTime().dbl() << std::endl;
+	double pathlossLOS = 31.84 + 21.50 * log10(d3ddistance) + 19.00 * log10(carrierFrequency_);
+	double pathlossNLOS = 33.0 + 25.5 * log10(d3ddistance) + 20.0 * log10(carrierFrequency_);
+	return max(pathlossLOS, pathlossNLOS);
 }
 
 //TODO

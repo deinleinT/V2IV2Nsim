@@ -169,7 +169,6 @@ void GtpUserNR::handleFromUdp(GtpUserMsg * gtpMsg) {
 
 		socket_.sendTo(gtpMsg, upfAddress_, tunnelPeerPort_);
 
-		EV << "GtpUserSimplified::handleFromUdp - Destination is not served by this eNodeB. Sending GTP packet to the PGW" << endl;
 	}
 
 	//std::cout << "GtpUserNR::handleFromUdp end at " << simTime().dbl() << std::endl;
