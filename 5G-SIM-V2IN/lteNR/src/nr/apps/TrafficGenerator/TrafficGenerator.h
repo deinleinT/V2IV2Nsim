@@ -388,11 +388,11 @@ protected:
 		}
 
 		if (direction == DL) {
-			//server sends to car, this is called on UE side, get access to its physical layer, lteNic
+			//server sends to car, this is called on UE side, get access to its physical layer
 			check_and_cast<NRPhyUe*>(getParentModule()->getSubmodule("lteNic")->getSubmodule("phy"))->recordPositionAndLostPackets(lostPackets, direction);
 			//
 		} else {
-			//server sends to car, this is called on UE side, get access to its physical layer, lteNic
+			//car sends to server, this is called on server side, but the value is recorded in the corresponding car!
 			cModule * module = getMacUe(nodeId);
 			check_and_cast<NRPhyUe*>(module->getParentModule()->getSubmodule("phy"))->recordPositionAndLostPackets(lostPackets, direction);
 			//
@@ -400,11 +400,9 @@ protected:
 	}
 
 	/**
-	 * Calculates the Packet delay variation
-	 * The Statistic-Vector delayV2XVariationReal consideres all calculated values
-	 * delayV2XVariation only records values greater than zero
-	 * @param nodeId
-	 * @param pk
+	 * Calculates the Packet delay variation, two variations are considered:
+	 * - the statistic vector delayV2XVariationReal considers all calculated jitter values for consecutive packets (if at least one packet was lost, the calculated jitter is not recorded in that vector)
+	 * - the statistic vector delayV2XVariation considers all calculated jitter values (the sequence numbers of the latest and the previous packet are not taken into account)
 	 */
 	virtual void calcPVV2XUL(MacNodeId nodeId, V2XMessage *pk, bool consecutivePacket) {
 		V2XMessage *lastPk = connectionsUEtoServ[nodeId].statReport.lastV2X;
