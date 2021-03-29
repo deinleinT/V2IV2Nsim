@@ -963,6 +963,7 @@ double NRRealisticChannelModel::getAttenuationNR(const MacNodeId &nodeId, const 
 			break;
 		case INDOOR_FACTORY:
 			attenuation = computeIndoorFactory(d3ddistance, d2ddistance, nodeId);
+			break;
 		default:
 			throw cRuntimeError("Wrong value %d for path-loss scenario", scenarioNR_);
 		}
