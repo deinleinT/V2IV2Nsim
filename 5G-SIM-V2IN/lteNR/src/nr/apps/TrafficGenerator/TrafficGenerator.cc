@@ -65,11 +65,6 @@ void TrafficGenerator::initialize(int stage) {
 		dataSize = par("dataSize").intValue();
 		sendDataPacket = true;
 
-		v2xDelayBudget = par("v2xDelayBudget").doubleValue();
-		voipDelayBudget = par("voipDelayBudget").doubleValue();
-		videoDelayBudget = par("videoDelayBudget").doubleValue();
-		dataDelayBudget = par("dataDelayBudget").doubleValue();
-
 		delayVoip = registerSignal("delayVoip");
 		delayVideo = registerSignal("delayVideo");
 		delayV2X = registerSignal("delayV2X");
@@ -118,18 +113,6 @@ void TrafficGenerator::initialize(int stage) {
 		WATCH(sentPacketsVoip);
 		WATCH(sentPacketsData);
 
-		//packets that arrived NOT in the delayBudget
-		recPacketsVideoOutBudget = 0;
-		recPacketsV2XOutBudget = 0;
-		recPacketsVoipOutBudget = 0;
-		recPacketsDataOutBudget = 0;
-
-		WATCH(recPacketsVideoOutBudget);
-		WATCH(recPacketsV2XOutBudget);
-		WATCH(recPacketsVoipOutBudget);
-		WATCH(recPacketsDataOutBudget);
-
-		//
 		delayDataTransferFinished.setName("delayDataTransferFinished");
 
 		messages = par("messages").intValue();
@@ -141,78 +124,6 @@ void TrafficGenerator::initialize(int stage) {
 		delayBudget200ms = par("delayBudget200ms").doubleValue();
 		delayBudget500ms = par("delayBudget500ms").doubleValue();
 		delayBudget1s = par("delayBudget1s").doubleValue();
-
-		//Data
-		reliabilityData10msVecUL.setName("reliabilityData10msVecUL");
-		reliabilityData20msVecUL.setName("reliabilityData20msVecUL");
-		reliabilityData50msVecUL.setName("reliabilityData50msVecUL");
-		reliabilityData100msVecUL.setName("reliabilityData100msVecUL");
-		reliabilityData200msVecUL.setName("reliabilityData200msVecUL");
-		reliabilityData500msVecUL.setName("reliabilityData500msVecUL");
-		reliabilityData1sVecUL.setName("reliabilityData1sVecUL");
-
-		reliabilityData10msVecDL.setName("reliabilityData10msVecDL");
-		reliabilityData20msVecDL.setName("reliabilityData20msVecDL");
-		reliabilityData50msVecDL.setName("reliabilityData50msVecDL");
-		reliabilityData100msVecDL.setName("reliabilityData100msVecDL");
-		reliabilityData200msVecDL.setName("reliabilityData200msVecDL");
-		reliabilityData500msVecDL.setName("reliabilityData500msVecDL");
-		reliabilityData1sVecDL.setName("reliabilityData1sVecDL");
-		//
-
-		//V2X
-		reliabilityV2X10msVecUL.setName("reliabilityV2X10msVecUL");
-		reliabilityV2X20msVecUL.setName("reliabilityV2X20msVecUL");
-		reliabilityV2X50msVecUL.setName("reliabilityV2X50msVecUL");
-		reliabilityV2X100msVecUL.setName("reliabilityV2X100msVecUL");
-		reliabilityV2X200msVecUL.setName("reliabilityV2X200msVecUL");
-		reliabilityV2X500msVecUL.setName("reliabilityV2X500msVecUL");
-		reliabilityV2X1sVecUL.setName("reliabilityV2X1sVecUL");
-
-		reliabilityV2X10msVecDL.setName("reliabilityV2X10msVecDL");
-		reliabilityV2X20msVecDL.setName("reliabilityV2X20msVecDL");
-		reliabilityV2X50msVecDL.setName("reliabilityV2X50msVecDL");
-		reliabilityV2X100msVecDL.setName("reliabilityV2X100msVecDL");
-		reliabilityV2X200msVecDL.setName("reliabilityV2X200msVecDL");
-		reliabilityV2X500msVecDL.setName("reliabilityV2X500msVecDL");
-		reliabilityV2X1sVecDL.setName("reliabilityV2X1sVecDL");
-		//
-
-		//Voip
-		reliabilityVoip10msVecDL.setName("reliabilityVoip10msVecDL");
-		reliabilityVoip20msVecDL.setName("reliabilityVoip20msVecDL");
-		reliabilityVoip50msVecDL.setName("reliabilityVoip50msVecDL");
-		reliabilityVoip100msVecDL.setName("reliabilityVoip100msVecDL");
-		reliabilityVoip200msVecDL.setName("reliabilityVoip200msVecDL");
-		reliabilityVoip500msVecDL.setName("reliabilityVoip500msVecDL");
-		reliabilityVoip1sVecDL.setName("reliabilityVoip1sVecDL");
-
-		reliabilityVoip10msVecUL.setName("reliabilityVoip10msVecUL");
-		reliabilityVoip20msVecUL.setName("reliabilityVoip20msVecUL");
-		reliabilityVoip50msVecUL.setName("reliabilityVoip50msVecUL");
-		reliabilityVoip100msVecUL.setName("reliabilityVoip100msVecUL");
-		reliabilityVoip200msVecUL.setName("reliabilityVoip200msVecUL");
-		reliabilityVoip500msVecUL.setName("reliabilityVoip500msVecUL");
-		reliabilityVoip1sVecUL.setName("reliabilityVoip1sVecUL");
-		//
-
-		//Video
-		reliabilityVideo10msVecDL.setName("reliabilityVideo10msVecDL");
-		reliabilityVideo20msVecDL.setName("reliabilityVideo20msVecDL");
-		reliabilityVideo50msVecDL.setName("reliabilityVideo50msVecDL");
-		reliabilityVideo100msVecDL.setName("reliabilityVideo100msVecDL");
-		reliabilityVideo200msVecDL.setName("reliabilityVideo200msVecDL");
-		reliabilityVideo500msVecDL.setName("reliabilityVideo500msVecDL");
-		reliabilityVideo1sVecDL.setName("reliabilityVideo1sVecDL");
-
-		reliabilityVideo10msVecUL.setName("reliabilityVideo10msVecUL");
-		reliabilityVideo20msVecUL.setName("reliabilityVideo20msVecUL");
-		reliabilityVideo50msVecUL.setName("reliabilityVideo50msVecUL");
-		reliabilityVideo100msVecUL.setName("reliabilityVideo100msVecUL");
-		reliabilityVideo200msVecUL.setName("reliabilityVideo200msVecUL");
-		reliabilityVideo500msVecUL.setName("reliabilityVideo500msVecUL");
-		reliabilityVideo1sVecUL.setName("reliabilityVideo1sVecUL");
-		//
 
 		considerDatasizeAndMessages = par("considerDatasizeAndMessages").boolValue();
 		//
@@ -230,35 +141,22 @@ void TrafficGenerator::initialize(int stage) {
 	}
 }
 
-//saving statistics
-void TrafficGenerator::finish() {
-	recordScalar("packets sent", numberSentPackets);
-	recordScalar("packets received", numberReceivedPackets);
+void TrafficGenerator::recordReliability() {
 
-	if (recPacketsVideoOutBudget > 0 && recPacketsVideo > 0) {
-		double reliabilityVideo = 1.0 - double(recPacketsVideoOutBudget / recPacketsVideo);
-		recordScalar("reliabilityVideo", reliabilityVideo);
-	}
-
-	if (recPacketsV2XOutBudget > 0 && recPacketsV2X > 0) {
-		double reliabilityV2X = 1.0 - double(recPacketsV2XOutBudget / recPacketsV2X);
-		recordScalar("reliabilityV2X", reliabilityV2X);
-	}
-
-	if (recPacketsVoipOutBudget > 0 && recPacketsVoip > 0) {
-		double reliabilityVoip = 1.0 - double(recPacketsVoipOutBudget / recPacketsVoip);
-		recordScalar("reliabilityVoip", reliabilityVoip);
-	}
-
-	if (recPacketsDataOutBudget > 0 && recPacketsData > 0) {
-		double reliabilityData = 1.0 - double(recPacketsDataOutBudget / recPacketsData);
-		recordScalar("reliabilityData", reliabilityData);
-	}
+	ConnectionsMap tmpMap;
 
 	if (nodeType == "car") {
+		tmpMap = connectionsServToUE;
+	} else {
+		tmpMap = connectionsUEtoServ;
+	}
 
-		for (auto &var : connectionsServToUE) {
-			//record all values for the four applications
+	for (auto &var : tmpMap) {
+		//record all different reliabilities
+
+		double recPacketsData = var.second.statReport.recPacketsData;
+
+		if (recPacketsData >= 0) {
 
 			double recPacketsDataOutBudget10ms = var.second.statReport.recPacketsDataOutBudget10ms;
 			double recPacketsDataOutBudget20ms = var.second.statReport.recPacketsDataOutBudget20ms;
@@ -267,49 +165,70 @@ void TrafficGenerator::finish() {
 			double recPacketsDataOutBudget200ms = var.second.statReport.recPacketsDataOutBudget200ms;
 			double recPacketsDataOutBudget500ms = var.second.statReport.recPacketsDataOutBudget500ms;
 			double recPacketsDataOutBudget1s = var.second.statReport.recPacketsDataOutBudget1s;
-			double recPacketsData = var.second.statReport.recPacketsData;
+			double lostPacketsData = var.second.statReport.lostPacketsData;
+			MacNodeId carNodeId = var.first;
 
-			if (recPacketsData < 0) {
+			double reliabilityData10ms = 1.0 - double(recPacketsDataOutBudget10ms / recPacketsData);
+			std::string nameString = "reliabilityData10msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityData10ms);
+			nameString = "TotalReliabilityData10msUL" + std::to_string(carNodeId);
+			double TotalReliabilityData10ms = 1.0 - double((recPacketsDataOutBudget10ms + lostPacketsData) / (lostPacketsData + recPacketsData));
+			recordScalar(nameString.c_str(), TotalReliabilityData10ms);
 
-			} else {
+			double reliabilityData20ms = 1.0 - double(recPacketsDataOutBudget20ms / recPacketsData);
+			nameString = "reliabilityData20msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityData20ms);
+			nameString = "TotalReliabilityData20msUL" + std::to_string(carNodeId);
+			double TotalReliabilityData20ms = 1.0 - double((recPacketsDataOutBudget20ms + lostPacketsData) / (lostPacketsData + recPacketsData));
+			recordScalar(nameString.c_str(), TotalReliabilityData20ms);
 
-				double reliabilityData10ms = 1.0 - double(recPacketsDataOutBudget10ms / recPacketsData);
-				recordScalar("reliabilityData10msDL", reliabilityData10ms);
-				reliabilityData10msVecDL.record(reliabilityData10ms);
+			double reliabilityData50ms = 1.0 - double(recPacketsDataOutBudget50ms / recPacketsData);
+			nameString = "reliabilityData50msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityData50ms);
+			nameString = "TotalReliabilityData50msUL" + std::to_string(carNodeId);
+			double TotalReliabilityData50ms = 1.0 - double((recPacketsDataOutBudget50ms + lostPacketsData) / (lostPacketsData + recPacketsData));
+			recordScalar(nameString.c_str(), TotalReliabilityData50ms);
 
-				double reliabilityData20ms = 1.0 - double(recPacketsDataOutBudget20ms / recPacketsData);
-				recordScalar("reliabilityData20msDL", reliabilityData20ms);
-				reliabilityData20msVecDL.record(reliabilityData20ms);
+			double reliabilityData100ms = 1.0 - double(recPacketsDataOutBudget100ms / recPacketsData);
+			nameString = "reliabilityData100msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityData100ms);
+			nameString = "TotalReliabilityData100msUL" + std::to_string(carNodeId);
+			double TotalReliabilityData100ms = 1.0 - double((recPacketsDataOutBudget100ms + lostPacketsData) / (lostPacketsData + recPacketsData));
+			recordScalar(nameString.c_str(), TotalReliabilityData100ms);
 
-				double reliabilityData50ms = 1.0 - double(recPacketsDataOutBudget50ms / recPacketsData);
-				recordScalar("reliabilityData50msDL", reliabilityData50ms);
-				reliabilityData50msVecDL.record(reliabilityData50ms);
+			double reliabilityData200ms = 1.0 - double(recPacketsDataOutBudget200ms / recPacketsData);
+			nameString = "reliabilityData200msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityData200ms);
+			nameString = "TotalReliabilityData200msUL" + std::to_string(carNodeId);
+			double TotalReliabilityData200ms = 1.0 - double((recPacketsDataOutBudget200ms + lostPacketsData) / (lostPacketsData + recPacketsData));
+			recordScalar(nameString.c_str(), TotalReliabilityData200ms);
 
-				double reliabilityData100ms = 1.0 - double(recPacketsDataOutBudget100ms / recPacketsData);
-				recordScalar("reliabilityData100msDL", reliabilityData100ms);
-				reliabilityData100msVecDL.record(reliabilityData100ms);
+			double reliabilityData500ms = 1.0 - double(recPacketsDataOutBudget500ms / recPacketsData);
+			nameString = "reliabilityData500msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityData500ms);
+			nameString = "TotalReliabilityData500msUL" + std::to_string(carNodeId);
+			double TotalReliabilityData500ms = 1.0 - double((recPacketsDataOutBudget500ms + lostPacketsData) / (lostPacketsData + recPacketsData));
+			recordScalar(nameString.c_str(), TotalReliabilityData500ms);
 
-				double reliabilityData200ms = 1.0 - double(recPacketsDataOutBudget200ms / recPacketsData);
-				recordScalar("reliabilityData200msDL", reliabilityData200ms);
-				reliabilityData200msVecDL.record(reliabilityData200ms);
+			double reliabilityData1s = 1.0 - double(recPacketsDataOutBudget1s / recPacketsData);
+			nameString = "reliabilityData1sUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityData1s);
+			nameString = "TotalReliabilityData1sUL" + std::to_string(carNodeId);
+			double TotalReliabilityData1s = 1.0 - double((recPacketsDataOutBudget1s + lostPacketsData) / (lostPacketsData + recPacketsData));
+			recordScalar(nameString.c_str(), TotalReliabilityData1s);
 
-				double reliabilityData500ms = 1.0 - double(recPacketsDataOutBudget500ms / recPacketsData);
-				recordScalar("reliabilityData500msDL", reliabilityData500ms);
-				reliabilityData500msVecDL.record(reliabilityData500ms);
+			nameString = "lostPacketsData" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), lostPacketsData);
+			nameString = "recPacketsData" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsData);
+			recordScalar("numberCarsData", carsData.size());
+		}
 
-				double reliabilityData1s = 1.0 - double(recPacketsDataOutBudget1s / recPacketsData);
-				recordScalar("reliabilityData1sDL", reliabilityData1s);
-				reliabilityData1sVecDL.record(reliabilityData1s);
+		//V2X
+		double recPacketsV2X = var.second.statReport.recPacketsV2X;
 
-				recordScalar("lostPacketsData", lostPacketsData);
-				recordScalar("recPacketsData", recPacketsData);
-				recordScalar("sentPacketsData", sentPacketsData);
-				recordScalar("recPacketsDataOutBudget", recPacketsDataOutBudget);
+		if (recPacketsV2X >= 0) {
 
-			}
-			//
-
-			//V2X
 			double recPacketsV2XOutBudget10ms = var.second.statReport.recPacketsV2XOutBudget10ms;
 			double recPacketsV2XOutBudget20ms = var.second.statReport.recPacketsV2XOutBudget20ms;
 			double recPacketsV2XOutBudget50ms = var.second.statReport.recPacketsV2XOutBudget50ms;
@@ -317,49 +236,70 @@ void TrafficGenerator::finish() {
 			double recPacketsV2XOutBudget200ms = var.second.statReport.recPacketsV2XOutBudget200ms;
 			double recPacketsV2XOutBudget500ms = var.second.statReport.recPacketsV2XOutBudget500ms;
 			double recPacketsV2XOutBudget1s = var.second.statReport.recPacketsV2XOutBudget1s;
-			double recPacketsV2X = var.second.statReport.recPacketsV2X;
+			double lostPacketsV2X = var.second.statReport.lostPacketsV2X;
+			MacNodeId carNodeId = var.first;
 
-			if (recPacketsV2X < 0) {
+			double reliabilityV2X10ms = 1.0 - double(recPacketsV2XOutBudget10ms / recPacketsV2X);
+			std::string nameString = "reliabilityV2X10msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityV2X10ms);
+			nameString = "TotalReliabilityV2X10msUL" + std::to_string(carNodeId);
+			double TotalReliabilityV2X10ms = 1.0 - double((recPacketsV2XOutBudget10ms + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
+			recordScalar(nameString.c_str(), TotalReliabilityV2X10ms);
 
-			} else {
+			double reliabilityV2X20ms = 1.0 - double(recPacketsV2XOutBudget20ms / recPacketsV2X);
+			nameString = "reliabilityV2X20msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityV2X20ms);
+			nameString = "TotalReliabilityV2X20msUL" + std::to_string(carNodeId);
+			double TotalReliabilityV2X20ms = 1.0 - double((recPacketsV2XOutBudget20ms + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
+			recordScalar(nameString.c_str(), TotalReliabilityV2X20ms);
 
-				double reliabilityV2X10ms = 1.0 - double(recPacketsV2XOutBudget10ms / recPacketsV2X);
-				recordScalar("reliabilityV2X10msDL", reliabilityV2X10ms);
-				reliabilityV2X10msVecDL.record(reliabilityV2X10ms);
+			double reliabilityV2X50ms = 1.0 - double(recPacketsV2XOutBudget50ms / recPacketsV2X);
+			nameString = "reliabilityV2X50msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityV2X50ms);
+			nameString = "TotalReliabilityV2X50msUL" + std::to_string(carNodeId);
+			double TotalReliabilityV2X50ms = 1.0 - double((recPacketsV2XOutBudget50ms + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
+			recordScalar(nameString.c_str(), TotalReliabilityV2X50ms);
 
-				double reliabilityV2X20ms = 1.0 - double(recPacketsV2XOutBudget20ms / recPacketsV2X);
-				recordScalar("reliabilityV2X20msDL", reliabilityV2X20ms);
-				reliabilityV2X20msVecDL.record(reliabilityV2X20ms);
+			double reliabilityV2X100ms = 1.0 - double(recPacketsV2XOutBudget100ms / recPacketsV2X);
+			nameString = "reliabilityV2X100msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityV2X100ms);
+			nameString = "TotalReliabilityV2X100msUL" + std::to_string(carNodeId);
+			double TotalReliabilityV2X100ms = 1.0 - double((recPacketsV2XOutBudget100ms + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
+			recordScalar(nameString.c_str(), TotalReliabilityV2X100ms);
 
-				double reliabilityV2X50ms = 1.0 - double(recPacketsV2XOutBudget50ms / recPacketsV2X);
-				recordScalar("reliabilityV2X50msDL", reliabilityV2X50ms);
-				reliabilityV2X50msVecDL.record(reliabilityV2X50ms);
+			double reliabilityV2X200ms = 1.0 - double(recPacketsV2XOutBudget200ms / recPacketsV2X);
+			nameString = "reliabilityV2X200msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityV2X200ms);
+			nameString = "TotalReliabilityV2X200msUL" + std::to_string(carNodeId);
+			double TotalReliabilityV2X200ms = 1.0 - double((recPacketsV2XOutBudget200ms + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
+			recordScalar(nameString.c_str(), TotalReliabilityV2X200ms);
 
-				double reliabilityV2X100ms = 1.0 - double(recPacketsV2XOutBudget100ms / recPacketsV2X);
-				recordScalar("reliabilityV2X100msDL", reliabilityV2X100ms);
-				reliabilityV2X100msVecDL.record(reliabilityV2X100ms);
+			double reliabilityV2X500ms = 1.0 - double(recPacketsV2XOutBudget500ms / recPacketsV2X);
+			nameString = "reliabilityV2X500msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityV2X500ms);
+			nameString = "TotalReliabilityV2X500msUL" + std::to_string(carNodeId);
+			double TotalReliabilityV2X500ms = 1.0 - double((recPacketsV2XOutBudget500ms + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
+			recordScalar(nameString.c_str(), TotalReliabilityV2X500ms);
 
-				double reliabilityV2X200ms = 1.0 - double(recPacketsV2XOutBudget200ms / recPacketsV2X);
-				recordScalar("reliabilityV2X200msDL", reliabilityV2X200ms);
-				reliabilityV2X200msVecDL.record(reliabilityV2X200ms);
+			double reliabilityV2X1s = 1.0 - double(recPacketsV2XOutBudget1s / recPacketsV2X);
+			nameString = "reliabilityV2X1sUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityV2X1s);
+			nameString = "TotalReliabilityV2X1sUL" + std::to_string(carNodeId);
+			double TotalReliabilityV2X1s = 1.0 - double((recPacketsV2XOutBudget1s + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
+			recordScalar(nameString.c_str(), TotalReliabilityV2X1s);
 
-				double reliabilityV2X500ms = 1.0 - double(recPacketsV2XOutBudget500ms / recPacketsV2X);
-				recordScalar("reliabilityV2X500msDL", reliabilityV2X500ms);
-				reliabilityV2X500msVecDL.record(reliabilityV2X500ms);
+			nameString = "lostPacketsV2X" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), lostPacketsV2X);
+			nameString = "recPacketsV2X" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsV2X);
+			recordScalar("numberCarsV2X", carsData.size());
+		}
 
-				double reliabilityV2X1s = 1.0 - double(recPacketsV2XOutBudget1s / recPacketsV2X);
-				recordScalar("reliabilityV2X1sDL", reliabilityV2X1s);
-				reliabilityV2X1sVecDL.record(reliabilityV2X1s);
+		//Voip
+		double recPacketsVoip = var.second.statReport.recPacketsVoip;
 
-				recordScalar("lostPacketsV2X", lostPacketsV2X);
-				recordScalar("recPacketsV2X", recPacketsV2X);
-				recordScalar("sentPacketsV2X", sentPacketsV2X);
-				recordScalar("recPacketsV2XOutBudget", recPacketsV2XOutBudget);
+		if (recPacketsVoip >= 0) {
 
-			}
-			//
-
-			//Voip
 			double recPacketsVoipOutBudget10ms = var.second.statReport.recPacketsVoipOutBudget10ms;
 			double recPacketsVoipOutBudget20ms = var.second.statReport.recPacketsVoipOutBudget20ms;
 			double recPacketsVoipOutBudget50ms = var.second.statReport.recPacketsVoipOutBudget50ms;
@@ -367,48 +307,71 @@ void TrafficGenerator::finish() {
 			double recPacketsVoipOutBudget200ms = var.second.statReport.recPacketsVoipOutBudget200ms;
 			double recPacketsVoipOutBudget500ms = var.second.statReport.recPacketsVoipOutBudget500ms;
 			double recPacketsVoipOutBudget1s = var.second.statReport.recPacketsVoipOutBudget1s;
-			double recPacketsVoip = var.second.statReport.recPacketsVoip;
+			double lostPacketsVoip = var.second.statReport.lostPacketsVoip;
+			MacNodeId carNodeId = var.first;
 
-			if (recPacketsVoip < 0) {
+			double reliabilityVoip10ms = 1.0 - double(recPacketsVoipOutBudget10ms / recPacketsVoip);
+			std::string nameString = "reliabilityVoip10msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityVoip10ms);
+			nameString = "TotalReliabilityVoip10msUL" + std::to_string(carNodeId);
+			double TotalReliabilityVoip10ms = 1.0 - double((recPacketsVoipOutBudget10ms  + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
+			recordScalar(nameString.c_str(), TotalReliabilityVoip10ms);
 
-			} else {
+			double reliabilityVoip20ms = 1.0 - double(recPacketsVoipOutBudget20ms / recPacketsVoip);
+			nameString = "reliabilityVoip20msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityVoip20ms);
+			nameString = "TotalReliabilityVoip20msUL" + std::to_string(carNodeId);
+			double TotalReliabilityVoip20ms = 1.0 - double((recPacketsVoipOutBudget20ms + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
+			recordScalar(nameString.c_str(), TotalReliabilityVoip20ms);
 
-				double reliabilityVoip10ms = 1.0 - double(recPacketsVoipOutBudget10ms / recPacketsVoip);
-				recordScalar("reliabilityVoip10msDL", reliabilityVoip10ms);
-				reliabilityVoip10msVecDL.record(reliabilityVoip10ms);
+			double reliabilityVoip50ms = 1.0 - double(recPacketsVoipOutBudget50ms / recPacketsVoip);
+			nameString = "reliabilityVoip50msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityVoip50ms);
+			nameString = "TotalReliabilityVoip50msUL" + std::to_string(carNodeId);
+			double TotalReliabilityVoip50ms = 1.0 - double((recPacketsVoipOutBudget50ms + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
+			recordScalar(nameString.c_str(), TotalReliabilityVoip50ms);
 
-				double reliabilityVoip20ms = 1.0 - double(recPacketsVoipOutBudget20ms / recPacketsVoip);
-				recordScalar("reliabilityVoip20msDL", reliabilityVoip20ms);
-				reliabilityVoip20msVecDL.record(reliabilityVoip20ms);
+			double reliabilityVoip100ms = 1.0 - double(recPacketsVoipOutBudget100ms / recPacketsVoip);
+			nameString = "reliabilityVoip100msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityVoip100ms);
+			nameString = "TotalReliabilityVoip100msUL" + std::to_string(carNodeId);
+			double TotalReliabilityVoip100ms = 1.0 - double((recPacketsVoipOutBudget100ms + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
+			recordScalar(nameString.c_str(), TotalReliabilityVoip100ms);
 
-				double reliabilityVoip50ms = 1.0 - double(recPacketsVoipOutBudget50ms / recPacketsVoip);
-				recordScalar("reliabilityVoip50msDL", reliabilityVoip50ms);
-				reliabilityVoip50msVecDL.record(reliabilityVoip50ms);
+			double reliabilityVoip200ms = 1.0 - double(recPacketsVoipOutBudget200ms / recPacketsVoip);
+			nameString = "reliabilityVoip200msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityVoip200ms);
+			nameString = "TotalReliabilityVoip200msUL" + std::to_string(carNodeId);
+			double TotalReliabilityVoip200ms = 1.0 - double((recPacketsVoipOutBudget200ms + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
+			recordScalar(nameString.c_str(), TotalReliabilityVoip200ms);
 
-				double reliabilityVoip100ms = 1.0 - double(recPacketsVoipOutBudget100ms / recPacketsVoip);
-				recordScalar("reliabilityVoip100msDL", reliabilityVoip100ms);
-				reliabilityVoip100msVecDL.record(reliabilityVoip100ms);
+			double reliabilityVoip500ms = 1.0 - double(recPacketsVoipOutBudget500ms / recPacketsVoip);
+			nameString = "reliabilityVoip500msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityVoip500ms);
+			nameString = "TotalReliabilityVoip500msUL" + std::to_string(carNodeId);
+			double TotalReliabilityVoip500ms = 1.0 - double((recPacketsVoipOutBudget500ms + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
+			recordScalar(nameString.c_str(), TotalReliabilityVoip500ms);
 
-				double reliabilityVoip200ms = 1.0 - double(recPacketsVoipOutBudget200ms / recPacketsVoip);
-				recordScalar("reliabilityVoip200msDL", reliabilityVoip200ms);
-				reliabilityVoip200msVecDL.record(reliabilityVoip200ms);
+			double reliabilityVoip1s = 1.0 - double(recPacketsVoipOutBudget1s / recPacketsVoip);
+			nameString = "reliabilityVoip1sUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityVoip1s);
+			nameString = "TotalReliabilityVoip1sUL" + std::to_string(carNodeId);
+			double TotalReliabilityVoip1s = 1.0 - double((recPacketsVoipOutBudget1s + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
+			recordScalar(nameString.c_str(), TotalReliabilityVoip1s);
 
-				double reliabilityVoip500ms = 1.0 - double(recPacketsVoipOutBudget500ms / recPacketsVoip);
-				recordScalar("reliabilityVoip500msDL", reliabilityVoip500ms);
-				reliabilityVoip500msVecDL.record(reliabilityVoip500ms);
+			nameString = "lostPacketsVoip" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), lostPacketsVoip);
+			nameString = "recPacketsVoip" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsVoip);
 
-				double reliabilityVoip1s = 1.0 - double(recPacketsVoipOutBudget1s / recPacketsVoip);
-				recordScalar("reliabilityVoip1sDL", reliabilityVoip1s);
-				reliabilityVoip1sVecDL.record(reliabilityVoip1s);
+		}
+		//
 
-				recordScalar("lostPacketsVoip", lostPacketsVoip);
-				recordScalar("recPacketsVoip", recPacketsVoip);
-				recordScalar("sentPacketsVoip", sentPacketsVoip);
-				recordScalar("recPacketsVoipOutBudget", recPacketsVoipOutBudget);
-			}
-			//
+		//Video
+		double recPacketsVideo = var.second.statReport.recPacketsVideo;
 
-			//Video
+		if (recPacketsVideo >= 0) {
+
 			double recPacketsVideoOutBudget10ms = var.second.statReport.recPacketsVideoOutBudget10ms;
 			double recPacketsVideoOutBudget20ms = var.second.statReport.recPacketsVideoOutBudget20ms;
 			double recPacketsVideoOutBudget50ms = var.second.statReport.recPacketsVideoOutBudget50ms;
@@ -416,258 +379,71 @@ void TrafficGenerator::finish() {
 			double recPacketsVideoOutBudget200ms = var.second.statReport.recPacketsVideoOutBudget200ms;
 			double recPacketsVideoOutBudget500ms = var.second.statReport.recPacketsVideoOutBudget500ms;
 			double recPacketsVideoOutBudget1s = var.second.statReport.recPacketsVideoOutBudget1s;
-			double recPacketsVideo = var.second.statReport.recPacketsVideo;
+			double lostPacketsVideo = var.second.statReport.lostPacketsVideo;
+			MacNodeId carNodeId = var.first;
 
-			if (recPacketsVideo < 0) {
+			double reliabilityVideo10ms = 1.0 - double(recPacketsVideoOutBudget10ms / recPacketsVideo);
+			std::string nameString = "reliabilityVideo10msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityVideo10ms);
+			nameString = "TotalReliabilityVideo10msUL" + std::to_string(carNodeId);
+			double TotalReliabilityVideo10ms = 1.0 - double((recPacketsVideoOutBudget10ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
+			recordScalar(nameString.c_str(), TotalReliabilityVideo10ms);
 
-			} else {
+			double reliabilityVideo20ms = 1.0 - double(recPacketsVideoOutBudget20ms / recPacketsVideo);
+			nameString = "reliabilityVideo20msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityVideo20ms);
+			nameString = "TotalReliabilityVideo20msUL" + std::to_string(carNodeId);
+			double TotalReliabilityVideo20ms = 1.0 - double((recPacketsVideoOutBudget20ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
+			recordScalar(nameString.c_str(), TotalReliabilityVideo20ms);
 
-				double reliabilityVideo10ms = 1.0 - double(recPacketsVideoOutBudget10ms / recPacketsVideo);
-				recordScalar("reliabilityVideo10msDL", reliabilityVideo10ms);
-				reliabilityVideo10msVecDL.record(reliabilityVideo10ms);
+			double reliabilityVideo50ms = 1.0 - double(recPacketsVideoOutBudget50ms / recPacketsVideo);
+			nameString = "reliabilityVideo50msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityVideo50ms);
+			nameString = "TotalReliabilityVideo50msUL" + std::to_string(carNodeId);
+			double TotalReliabilityVideo50ms = 1.0 - double((recPacketsVideoOutBudget50ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
+			recordScalar(nameString.c_str(), TotalReliabilityVideo50ms);
 
-				double reliabilityVideo20ms = 1.0 - double(recPacketsVideoOutBudget20ms / recPacketsVideo);
-				recordScalar("reliabilityVideo20msDL", reliabilityVideo20ms);
-				reliabilityVideo20msVecDL.record(reliabilityVideo20ms);
+			double reliabilityVideo100ms = 1.0 - double(recPacketsVideoOutBudget100ms / recPacketsVideo);
+			nameString = "reliabilityVideo100msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityVideo100ms);
+			nameString = "TotalReliabilityVideo100msUL" + std::to_string(carNodeId);
+			double TotalReliabilityVideo100ms = 1.0 - double((recPacketsVideoOutBudget100ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
+			recordScalar(nameString.c_str(), TotalReliabilityVideo100ms);
 
-				double reliabilityVideo50ms = 1.0 - double(recPacketsVideoOutBudget50ms / recPacketsVideo);
-				recordScalar("reliabilityVideo50msDL", reliabilityVideo50ms);
-				reliabilityVideo50msVecDL.record(reliabilityVideo50ms);
+			double reliabilityVideo200ms = 1.0 - double(recPacketsVideoOutBudget200ms / recPacketsVideo);
+			nameString = "reliabilityVideo200msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityVideo200ms);
+			nameString = "TotalReliabilityVideo200msUL" + std::to_string(carNodeId);
+			double TotalReliabilityVideo200ms = 1.0 - double((recPacketsVideoOutBudget200ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
+			recordScalar(nameString.c_str(), TotalReliabilityVideo200ms);
 
-				double reliabilityVideo100ms = 1.0 - double(recPacketsVideoOutBudget100ms / recPacketsVideo);
-				recordScalar("reliabilityVideo100msDL", reliabilityVideo100ms);
-				reliabilityVideo100msVecDL.record(reliabilityVideo100ms);
+			double reliabilityVideo500ms = 1.0 - double(recPacketsVideoOutBudget500ms / recPacketsVideo);
+			nameString = "reliabilityVideo500msUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityVideo500ms);
+			nameString = "TotalReliabilityVideo500msUL" + std::to_string(carNodeId);
+			double TotalReliabilityVideo500ms = 1.0 - double((recPacketsVideoOutBudget500ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
+			recordScalar(nameString.c_str(), TotalReliabilityVideo500ms);
 
-				double reliabilityVideo200ms = 1.0 - double(recPacketsVideoOutBudget200ms / recPacketsVideo);
-				recordScalar("reliabilityVideo200msDL", reliabilityVideo200ms);
-				reliabilityVideo200msVecDL.record(reliabilityVideo200ms);
+			double reliabilityVideo1s = 1.0 - double(recPacketsVideoOutBudget1s / recPacketsVideo);
+			nameString = "reliabilityVideo1sUL" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), reliabilityVideo1s);
+			nameString = "TotalReliabilityVideo1sUL" + std::to_string(carNodeId);
+			double TotalReliabilityVideo1s = 1.0 - double((recPacketsVideoOutBudget1s + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
+			recordScalar(nameString.c_str(), TotalReliabilityVideo1s);
 
-				double reliabilityVideo500ms = 1.0 - double(recPacketsVideoOutBudget500ms / recPacketsVideo);
-				recordScalar("reliabilityVideo500msDL", reliabilityVideo500ms);
-				reliabilityVideo500msVecDL.record(reliabilityVideo500ms);
-
-				double reliabilityVideo1s = 1.0 - double(recPacketsVideoOutBudget1s / recPacketsVideo);
-				recordScalar("reliabilityVideo1sDL", reliabilityVideo1s);
-				reliabilityVideo1sVecDL.record(reliabilityVideo1s);
-
-				recordScalar("lostPacketsVideo", lostPacketsVideo);
-				recordScalar("recPacketsVideo", recPacketsVideo);
-				recordScalar("sentPacketsVideo", sentPacketsVideo);
-				recordScalar("recPacketsVideoOutBudget", recPacketsVideoOutBudget);
-			}
-			//
+			nameString = "lostPacketsVideo" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), lostPacketsVideo);
+			nameString = "recPacketsVideo" + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsVideo);
 		}
 
 	}
+}
 
-	//on server side
-	if (nodeType == "server") {
+//saving statistics
+void TrafficGenerator::finish() {
 
-		for (auto &var : connectionsUEtoServ) {
-			//record all different reliabilities
-
-			double recPacketsDataOutBudget10ms = var.second.statReport.recPacketsDataOutBudget10ms;
-			double recPacketsDataOutBudget20ms = var.second.statReport.recPacketsDataOutBudget20ms;
-			double recPacketsDataOutBudget50ms = var.second.statReport.recPacketsDataOutBudget50ms;
-			double recPacketsDataOutBudget100ms = var.second.statReport.recPacketsDataOutBudget100ms;
-			double recPacketsDataOutBudget200ms = var.second.statReport.recPacketsDataOutBudget200ms;
-			double recPacketsDataOutBudget500ms = var.second.statReport.recPacketsDataOutBudget500ms;
-			double recPacketsDataOutBudget1s = var.second.statReport.recPacketsDataOutBudget1s;
-			double recPacketsData = var.second.statReport.recPacketsData;
-
-			if (recPacketsData < 0) {
-
-			} else {
-
-				double reliabilityData10ms = 1.0 - double(recPacketsDataOutBudget10ms / recPacketsData);
-				recordScalar("reliabilityData10msUL", reliabilityData10ms);
-				reliabilityData10msVecUL.record(reliabilityData10ms);
-
-				double reliabilityData20ms = 1.0 - double(recPacketsDataOutBudget20ms / recPacketsData);
-				recordScalar("reliabilityData20msUL", reliabilityData20ms);
-				reliabilityData20msVecUL.record(reliabilityData20ms);
-
-				double reliabilityData50ms = 1.0 - double(recPacketsDataOutBudget50ms / recPacketsData);
-				recordScalar("reliabilityData50msUL", reliabilityData50ms);
-				reliabilityData50msVecUL.record(reliabilityData50ms);
-
-				double reliabilityData100ms = 1.0 - double(recPacketsDataOutBudget100ms / recPacketsData);
-				recordScalar("reliabilityData100msUL", reliabilityData100ms);
-				reliabilityData100msVecUL.record(reliabilityData100ms);
-
-				double reliabilityData200ms = 1.0 - double(recPacketsDataOutBudget200ms / recPacketsData);
-				recordScalar("reliabilityData200msUL", reliabilityData200ms);
-				reliabilityData200msVecUL.record(reliabilityData200ms);
-
-				double reliabilityData500ms = 1.0 - double(recPacketsDataOutBudget500ms / recPacketsData);
-				recordScalar("reliabilityData500msUL", reliabilityData500ms);
-				reliabilityData500msVecUL.record(reliabilityData500ms);
-
-				double reliabilityData1s = 1.0 - double(recPacketsDataOutBudget1s / recPacketsData);
-				recordScalar("reliabilityData1sUL", reliabilityData1s);
-				reliabilityData1sVecUL.record(reliabilityData1s);
-
-				recordScalar("numberCarsData", carsData.size());
-
-				recordScalar("lostPacketsData", var.second.statReport.lostPacketsData);
-				recordScalar("recPacketsData", var.second.statReport.recPacketsData);
-				recordScalar("sentPacketsData", var.second.statReport.sentPacketsData);
-				recordScalar("recPacketsDataOutBudget", recPacketsDataOutBudget);
-
-			}
-
-			//V2X
-			double recPacketsV2XOutBudget10ms = var.second.statReport.recPacketsV2XOutBudget10ms;
-			double recPacketsV2XOutBudget20ms = var.second.statReport.recPacketsV2XOutBudget20ms;
-			double recPacketsV2XOutBudget50ms = var.second.statReport.recPacketsV2XOutBudget50ms;
-			double recPacketsV2XOutBudget100ms = var.second.statReport.recPacketsV2XOutBudget100ms;
-			double recPacketsV2XOutBudget200ms = var.second.statReport.recPacketsV2XOutBudget200ms;
-			double recPacketsV2XOutBudget500ms = var.second.statReport.recPacketsV2XOutBudget500ms;
-			double recPacketsV2XOutBudget1s = var.second.statReport.recPacketsV2XOutBudget1s;
-			double recPacketsV2X = var.second.statReport.recPacketsV2X;
-
-			if (recPacketsV2X < 0) {
-
-			} else {
-
-				double reliabilityV2X10ms = 1.0 - double(recPacketsV2XOutBudget10ms / recPacketsV2X);
-				recordScalar("reliabilityV2X10msUL", reliabilityV2X10ms);
-				reliabilityV2X10msVecUL.record(reliabilityV2X10ms);
-
-				double reliabilityV2X20ms = 1.0 - double(recPacketsV2XOutBudget20ms / recPacketsV2X);
-				recordScalar("reliabilityV2X20msUL", reliabilityV2X20ms);
-				reliabilityV2X20msVecUL.record(reliabilityV2X20ms);
-
-				double reliabilityV2X50ms = 1.0 - double(recPacketsV2XOutBudget50ms / recPacketsV2X);
-				recordScalar("reliabilityV2X50msUL", reliabilityV2X50ms);
-				reliabilityV2X50msVecUL.record(reliabilityV2X50ms);
-
-				double reliabilityV2X100ms = 1.0 - double(recPacketsV2XOutBudget100ms / recPacketsV2X);
-				recordScalar("reliabilityV2X100msUL", reliabilityV2X100ms);
-				reliabilityV2X100msVecUL.record(reliabilityV2X100ms);
-
-				double reliabilityV2X200ms = 1.0 - double(recPacketsV2XOutBudget200ms / recPacketsV2X);
-				recordScalar("reliabilityV2X200msUL", reliabilityV2X200ms);
-				reliabilityV2X200msVecUL.record(reliabilityV2X200ms);
-
-				double reliabilityV2X500ms = 1.0 - double(recPacketsV2XOutBudget500ms / recPacketsV2X);
-				recordScalar("reliabilityV2X500msUL", reliabilityV2X500ms);
-				reliabilityV2X500msVecUL.record(reliabilityV2X500ms);
-
-				double reliabilityV2X1s = 1.0 - double(recPacketsV2XOutBudget1s / recPacketsV2X);
-				recordScalar("reliabilityV2X1sUL", reliabilityV2X1s);
-				reliabilityV2X1sVecUL.record(reliabilityV2X1s);
-
-				recordScalar("numberCarsV2X", carsV2X.size());
-
-				recordScalar("lostPacketsV2X", var.second.statReport.lostPacketsV2X);
-				recordScalar("recPacketsV2X", var.second.statReport.recPacketsV2X);
-				recordScalar("sentPacketsV2X", var.second.statReport.sentPacketsV2X);
-				recordScalar("recPacketsV2XOutBudget", recPacketsV2XOutBudget);
-
-			}
-			//
-
-			//Voip
-			double recPacketsVoipOutBudget10ms = var.second.statReport.recPacketsVoipOutBudget10ms;
-			double recPacketsVoipOutBudget20ms = var.second.statReport.recPacketsVoipOutBudget20ms;
-			double recPacketsVoipOutBudget50ms = var.second.statReport.recPacketsVoipOutBudget50ms;
-			double recPacketsVoipOutBudget100ms = var.second.statReport.recPacketsVoipOutBudget100ms;
-			double recPacketsVoipOutBudget200ms = var.second.statReport.recPacketsVoipOutBudget200ms;
-			double recPacketsVoipOutBudget500ms = var.second.statReport.recPacketsVoipOutBudget500ms;
-			double recPacketsVoipOutBudget1s = var.second.statReport.recPacketsVoipOutBudget1s;
-			double recPacketsVoip = var.second.statReport.recPacketsVoip;
-
-			if (recPacketsVoip < 0) {
-
-			} else {
-
-				double reliabilityVoip10ms = 1.0 - double(recPacketsVoipOutBudget10ms / recPacketsVoip);
-				recordScalar("reliabilityVoip10msUL", reliabilityVoip10ms);
-				reliabilityVoip10msVecUL.record(reliabilityVoip10ms);
-
-				double reliabilityVoip20ms = 1.0 - double(recPacketsVoipOutBudget20ms / recPacketsVoip);
-				recordScalar("reliabilityVoip20msUL", reliabilityVoip20ms);
-				reliabilityVoip20msVecUL.record(reliabilityVoip20ms);
-
-				double reliabilityVoip50ms = 1.0 - double(recPacketsVoipOutBudget50ms / recPacketsVoip);
-				recordScalar("reliabilityVoip50msUL", reliabilityVoip50ms);
-				reliabilityVoip50msVecUL.record(reliabilityVoip50ms);
-
-				double reliabilityVoip100ms = 1.0 - double(recPacketsVoipOutBudget100ms / recPacketsVoip);
-				recordScalar("reliabilityVoip100msUL", reliabilityVoip100ms);
-				reliabilityVoip100msVecUL.record(reliabilityVoip100ms);
-
-				double reliabilityVoip200ms = 1.0 - double(recPacketsVoipOutBudget200ms / recPacketsVoip);
-				recordScalar("reliabilityVoip200msUL", reliabilityVoip200ms);
-				reliabilityVoip200msVecUL.record(reliabilityVoip200ms);
-
-				double reliabilityVoip500ms = 1.0 - double(recPacketsVoipOutBudget500ms / recPacketsVoip);
-				recordScalar("reliabilityVoip500msUL", reliabilityVoip500ms);
-				reliabilityVoip500msVecUL.record(reliabilityVoip500ms);
-
-				double reliabilityVoip1s = 1.0 - double(recPacketsVoipOutBudget1s / recPacketsVoip);
-				recordScalar("reliabilityVoip1sUL", reliabilityVoip1s);
-				reliabilityVoip1sVecUL.record(reliabilityVoip1s);
-
-				recordScalar("lostPacketsVoip", var.second.statReport.lostPacketsVoip);
-				recordScalar("recPacketsVoip", var.second.statReport.recPacketsVoip);
-				recordScalar("sentPacketsVoip", var.second.statReport.sentPacketsVoip);
-				recordScalar("recPacketsVoipOutBudget", recPacketsVoipOutBudget);
-
-			}
-			//
-
-			//Video
-			double recPacketsVideoOutBudget10ms = var.second.statReport.recPacketsVideoOutBudget10ms;
-			double recPacketsVideoOutBudget20ms = var.second.statReport.recPacketsVideoOutBudget20ms;
-			double recPacketsVideoOutBudget50ms = var.second.statReport.recPacketsVideoOutBudget50ms;
-			double recPacketsVideoOutBudget100ms = var.second.statReport.recPacketsVideoOutBudget100ms;
-			double recPacketsVideoOutBudget200ms = var.second.statReport.recPacketsVideoOutBudget200ms;
-			double recPacketsVideoOutBudget500ms = var.second.statReport.recPacketsVideoOutBudget500ms;
-			double recPacketsVideoOutBudget1s = var.second.statReport.recPacketsVideoOutBudget1s;
-			double recPacketsVideo = var.second.statReport.recPacketsVideo;
-
-			if (recPacketsVideo < 0) {
-
-			} else {
-
-				double reliabilityVideo10ms = 1.0 - double(recPacketsVideoOutBudget10ms / recPacketsVideo);
-				recordScalar("reliabilityVideo10msUL", reliabilityVideo10ms);
-				reliabilityVideo10msVecUL.record(reliabilityVideo10ms);
-
-				double reliabilityVideo20ms = 1.0 - double(recPacketsVideoOutBudget20ms / recPacketsVideo);
-				recordScalar("reliabilityVideo20msUL", reliabilityVideo20ms);
-				reliabilityVideo20msVecUL.record(reliabilityVideo20ms);
-
-				double reliabilityVideo50ms = 1.0 - double(recPacketsVideoOutBudget50ms / recPacketsVideo);
-				recordScalar("reliabilityVideo50msUL", reliabilityVideo50ms);
-				reliabilityVideo50msVecUL.record(reliabilityVideo50ms);
-
-				double reliabilityVideo100ms = 1.0 - double(recPacketsVideoOutBudget100ms / recPacketsVideo);
-				recordScalar("reliabilityVideo100msUL", reliabilityVideo100ms);
-				reliabilityVideo100msVecUL.record(reliabilityVideo100ms);
-
-				double reliabilityVideo200ms = 1.0 - double(recPacketsVideoOutBudget200ms / recPacketsVideo);
-				recordScalar("reliabilityVideo200msUL", reliabilityVideo200ms);
-				reliabilityVideo200msVecUL.record(reliabilityVideo200ms);
-
-				double reliabilityVideo500ms = 1.0 - double(recPacketsVideoOutBudget500ms / recPacketsVideo);
-				recordScalar("reliabilityVideo500msUL", reliabilityVideo500ms);
-				reliabilityVideo500msVecUL.record(reliabilityVideo500ms);
-
-				double reliabilityVideo1s = 1.0 - double(recPacketsVideoOutBudget1s / recPacketsVideo);
-				recordScalar("reliabilityVideo1sUL", reliabilityVideo1s);
-				reliabilityVideo1sVecUL.record(reliabilityVideo1s);
-
-				recordScalar("lostPacketsVideo", var.second.statReport.lostPacketsVideo);
-				recordScalar("recPacketsVideo", var.second.statReport.recPacketsVideo);
-				recordScalar("sentPacketsVideo", var.second.statReport.sentPacketsVideo);
-				recordScalar("recPacketsVideoOutBudget", recPacketsVideoOutBudget);
-			}
-			//
-		}
-	}
+	recordReliability();
 
 	ApplicationBase::finish();
 }
@@ -791,12 +567,6 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 			connectionsUEtoServ[nodeId].statReport.recPacketsV2X++;
 
 			//Reliability
-			if (NOW - pk->getCreationTime() > v2xDelayBudget) {
-				//out of Budget
-				connectionsUEtoServ[nodeId].statReport.recPacketsV2XOutBudget++;
-				recPacketsV2XOutBudget++;
-			}
-			//
 			if (NOW - pk->getCreationTime() > delayBudget10ms) {
 				//out of Budget
 				connectionsUEtoServ[nodeId].statReport.recPacketsV2XOutBudget10ms++;
@@ -843,14 +613,6 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 				//save number of lost packets for direction and each car
 				// check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
 				recordVehiclePositionAndLostPackets(nodeId, UL, lostPackets);
-			}
-
-			if (NOW - pk->getCreationTime() > v2xDelayBudget) {
-				//out of Budget
-				connectionsUEtoServ[nodeId].statReport.recPacketsV2XOutBudget++;
-				recPacketsV2XOutBudget++;
-			} else {
-				connectionsUEtoServ[nodeId].statReport.recPacketsV2X++;
 			}
 
 			delete connectionsUEtoServ[nodeId].statReport.lastV2X;
@@ -902,12 +664,6 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 			connectionsUEtoServ[nodeId].statReport.recPacketsVideo++;
 
 			//Reliability
-			if (NOW - pk->getCreationTime() > videoDelayBudget) {
-				//out of Budget
-				connectionsUEtoServ[nodeId].statReport.recPacketsVideoOutBudget++;
-				recPacketsVideoOutBudget++;
-			}
-			//
 			if (NOW - pk->getCreationTime() > delayBudget10ms) {
 				//out of Budget
 				connectionsUEtoServ[nodeId].statReport.recPacketsVideoOutBudget10ms++;
@@ -954,14 +710,6 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 				//save number of lost packets for direction and each car
 				// check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
 				recordVehiclePositionAndLostPackets(nodeId, UL, lostPackets);
-			}
-			//Reliability
-			if (NOW - pk->getCreationTime() > videoDelayBudget) {
-				//out of Budget
-				connectionsUEtoServ[nodeId].statReport.recPacketsVideoOutBudget++;
-				recPacketsVideoOutBudget++;
-			} else {
-				connectionsUEtoServ[nodeId].statReport.recPacketsVideo++;
 			}
 
 			delete connectionsUEtoServ[nodeId].statReport.lastVideo;
@@ -1013,12 +761,6 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 			connectionsUEtoServ[nodeId].statReport.recPacketsVoip++;
 
 			//Reliability
-			if (NOW - pk->getCreationTime() > voipDelayBudget) {
-				//out of Budget
-				connectionsUEtoServ[nodeId].statReport.recPacketsVoipOutBudget++;
-				recPacketsVoipOutBudget++;
-			}
-			//
 			if (NOW - pk->getCreationTime() > delayBudget10ms) {
 				//out of Budget
 				connectionsUEtoServ[nodeId].statReport.recPacketsVoipOutBudget10ms++;
@@ -1065,14 +807,6 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 				//save number of lost packets for direction and each car
 				// check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
 				recordVehiclePositionAndLostPackets(nodeId, UL, lostPackets);
-			}
-			//Reliability
-			if (NOW - pk->getCreationTime() > voipDelayBudget) {
-				//out of Budget
-				connectionsUEtoServ[nodeId].statReport.recPacketsVoipOutBudget++;
-				recPacketsVoipOutBudget++;
-			} else {
-				connectionsUEtoServ[nodeId].statReport.recPacketsVoip++;
 			}
 
 			delete connectionsUEtoServ[nodeId].statReport.lastVoIP;
@@ -1122,12 +856,6 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 			connectionsUEtoServ[nodeId].statReport.recPacketsData++;
 
 			//Reliability
-			if (NOW - pk->getCreationTime() > dataDelayBudget) {
-				//out of Budget
-				connectionsUEtoServ[nodeId].statReport.recPacketsDataOutBudget++;
-				recPacketsDataOutBudget++;
-			}
-			//
 			if (NOW - pk->getCreationTime() > delayBudget10ms) {
 				//out of Budget
 				connectionsUEtoServ[nodeId].statReport.recPacketsDataOutBudget10ms++;
@@ -1333,7 +1061,6 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 			payload->setSequenceNumber(connectionsUEtoServ[nodeId].statReport.lastV2X->getSequenceNumber() + 1);
 			delete connectionsUEtoServ[nodeId].statReport.lastV2X;
 			connectionsUEtoServ[nodeId].statReport.lastV2X = payload->dup();
-			connectionsUEtoServ[nodeId].statReport.sentPacketsV2X++;
 
 		} else {
 			//new connection
@@ -1354,7 +1081,6 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 			tmp.dataSize = dataSize;
 			tmp.dataBytesLeft = 0;
 
-			tmp.statReport.sentPacketsV2X++;
 			tmp.statReport.lastV2X = payload->dup();
 
 			tmp.messages = messages;
@@ -1431,7 +1157,7 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 			payload->setSequenceNumber(connectionsUEtoServ[nodeId].statReport.lastVideo->getSequenceNumber() + 1);
 			delete connectionsUEtoServ[nodeId].statReport.lastVideo;
 			connectionsUEtoServ[nodeId].statReport.lastVideo = payload->dup();
-			connectionsUEtoServ[nodeId].statReport.sentPacketsVideo++;
+
 
 		} else {
 			//new connection
@@ -1452,7 +1178,6 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 			tmp.dataSize = dataSize;
 			tmp.dataBytesLeft = 0;
 
-			tmp.statReport.sentPacketsVideo++;
 			tmp.statReport.lastVideo = payload->dup();
 
 			tmp.messages = messages;
@@ -1481,7 +1206,6 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 			payload->setSequenceNumber(connectionsUEtoServ[nodeId].statReport.lastVoIP->getSequenceNumber() + 1);
 			delete connectionsUEtoServ[nodeId].statReport.lastVoIP;
 			connectionsUEtoServ[nodeId].statReport.lastVoIP = payload->dup();
-			connectionsUEtoServ[nodeId].statReport.sentPacketsVoip++;
 
 		} else {
 			//new connection
@@ -1502,7 +1226,6 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 			tmp.dataSize = dataSize;
 			tmp.dataBytesLeft = 0;
 
-			tmp.statReport.sentPacketsVoip++;
 			tmp.statReport.lastVoIP = payload->dup();
 
 			tmp.messages = messages;
@@ -1538,7 +1261,6 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 			payload->setSequenceNumber(connectionsUEtoServ[nodeId].statReport.lastData->getSequenceNumber() + 1);
 			delete connectionsUEtoServ[nodeId].statReport.lastData;
 			connectionsUEtoServ[nodeId].statReport.lastData = payload->dup();
-			connectionsUEtoServ[nodeId].statReport.sentPacketsData++;
 
 		} else {
 			//new connection
@@ -1559,7 +1281,6 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 			tmp.dataSize = dataSize;
 			tmp.dataBytesLeft = dataSize - messageLength;
 
-			tmp.statReport.sentPacketsData++;
 			tmp.statReport.lastData = payload->dup();
 
 			tmp.messages = messages;
@@ -1732,12 +1453,6 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 			connectionsServToUE[nodeId].statReport.recPacketsV2X++;
 
 			//Reliability
-			if (NOW - pk->getCreationTime() > v2xDelayBudget) {
-				//out of Budget
-				connectionsServToUE[nodeId].statReport.recPacketsV2XOutBudget++;
-				recPacketsV2XOutBudget++;
-			}
-			//
 			if (NOW - pk->getCreationTime() > delayBudget10ms) {
 				//out of Budget
 				connectionsServToUE[nodeId].statReport.recPacketsV2XOutBudget10ms++;
@@ -1782,18 +1497,10 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 				calcPVV2XDL(nodeId, temp, false);
 
 				//save number of lost packets for direction and each car
-				// check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
 				recordVehiclePositionAndLostPackets(nodeId, DL, lostPackets);
 
 			}
 			//
-			if (NOW - pk->getCreationTime() > v2xDelayBudget) {
-				//out of Budget
-				connectionsServToUE[nodeId].statReport.recPacketsV2XOutBudget++;
-				recPacketsV2XOutBudget++;
-			} else {
-				connectionsServToUE[nodeId].statReport.recPacketsV2X++;
-			}
 
 			delete connectionsServToUE[nodeId].statReport.lastV2X;
 			connectionsServToUE[nodeId].statReport.lastV2X = temp->dup();
@@ -1909,12 +1616,6 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 			connectionsServToUE[nodeId].statReport.recPacketsVideo++;
 
 			//Reliability
-			if (NOW - pk->getCreationTime() > videoDelayBudget) {
-				//out of Budget
-				connectionsServToUE[nodeId].statReport.recPacketsVideoOutBudget++;
-				recPacketsVideoOutBudget++;
-			}
-			//
 			if (NOW - pk->getCreationTime() > delayBudget10ms) {
 				//out of Budget
 				connectionsServToUE[nodeId].statReport.recPacketsVideoOutBudget10ms++;
@@ -1962,14 +1663,6 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 				// check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
 				recordVehiclePositionAndLostPackets(nodeId, DL, lostPackets);
 
-			}
-
-			if (NOW - pk->getCreationTime() > videoDelayBudget) {
-				//out of Budget
-				connectionsServToUE[nodeId].statReport.recPacketsVideoOutBudget++;
-				recPacketsVideoOutBudget++;
-			} else {
-				connectionsServToUE[nodeId].statReport.recPacketsVideo++;
 			}
 
 			delete connectionsServToUE[nodeId].statReport.lastVideo;
@@ -2022,12 +1715,6 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 			connectionsServToUE[nodeId].statReport.recPacketsVoip++;
 
 			//Reliability
-			if (NOW - pk->getCreationTime() > voipDelayBudget) {
-				//out of Budget
-				connectionsServToUE[nodeId].statReport.recPacketsVoipOutBudget++;
-				recPacketsVoipOutBudget++;
-			}
-			//
 			if (NOW - pk->getCreationTime() > delayBudget10ms) {
 				//out of Budget
 				connectionsServToUE[nodeId].statReport.recPacketsVoipOutBudget10ms++;
@@ -2074,14 +1761,6 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 				//save number of lost packets for direction and each car
 				// check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
 				recordVehiclePositionAndLostPackets(nodeId, DL, lostPackets);
-			}
-
-			if (NOW - pk->getCreationTime() > voipDelayBudget) {
-				//out of Budget
-				connectionsServToUE[nodeId].statReport.recPacketsVoipOutBudget++;
-				recPacketsVoipOutBudget++;
-			} else {
-				connectionsServToUE[nodeId].statReport.recPacketsVoip++;
 			}
 
 			delete connectionsServToUE[nodeId].statReport.lastVoIP;
@@ -2133,12 +1812,6 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 			connectionsServToUE[nodeId].statReport.recPacketsData++;
 
 			//Reliability
-			if (NOW - pk->getCreationTime() > dataDelayBudget) {
-				//out of Budget
-				connectionsServToUE[nodeId].statReport.recPacketsDataOutBudget++;
-				recPacketsDataOutBudget++;
-			}
-			//
 			if (NOW - pk->getCreationTime() > delayBudget10ms) {
 				//out of Budget
 				connectionsServToUE[nodeId].statReport.recPacketsDataOutBudget10ms++;
@@ -2407,7 +2080,6 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 					payload->setSequenceNumber(connectionsServToUE[nodeId].statReport.lastV2X->getSequenceNumber() + 1);
 					delete connectionsServToUE[nodeId].statReport.lastV2X;
 					connectionsServToUE[nodeId].statReport.lastV2X = payload->dup();
-					connectionsServToUE[nodeId].statReport.sentPacketsV2X++;
 
 				} else {
 					//new connection
@@ -2423,7 +2095,6 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 
 					tmp.messages = messages;
 
-					tmp.statReport.sentPacketsV2X++;
 					tmp.statReport.lastV2X = payload->dup();
 
 					connectionsServToUE[nodeId] = tmp;
@@ -2474,7 +2145,6 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 					payload->setSequenceNumber(connectionsServToUE[nodeId].statReport.lastVideo->getSequenceNumber() + 1);
 					delete connectionsServToUE[nodeId].statReport.lastVideo;
 					connectionsServToUE[nodeId].statReport.lastVideo = payload->dup();
-					connectionsServToUE[nodeId].statReport.sentPacketsVideo++;
 
 					connectionsServToUE[nodeId].videoBytesLeft = connectionsServToUE[nodeId].videoBytesLeft - messageLength;
 
@@ -2490,7 +2160,6 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 					tmp.dataSize = dataSize;
 					tmp.dataBytesLeft = 0;
 
-					tmp.statReport.sentPacketsVideo++;
 					tmp.statReport.lastVideo = payload->dup();
 
 					tmp.messages = messages;
@@ -2516,7 +2185,6 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 					payload->setSequenceNumber(connectionsServToUE[nodeId].statReport.lastVoIP->getSequenceNumber() + 1);
 					delete connectionsServToUE[nodeId].statReport.lastVoIP;
 					connectionsServToUE[nodeId].statReport.lastVoIP = payload->dup();
-					connectionsServToUE[nodeId].statReport.sentPacketsVoip++;
 
 				} else {
 					//new connection
@@ -2530,7 +2198,6 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 					tmp.dataSize = dataSize;
 					tmp.dataBytesLeft = 0;
 
-					tmp.statReport.sentPacketsVoip++;
 					tmp.statReport.lastVoIP = payload->dup();
 
 					tmp.messages = messages;
@@ -2577,7 +2244,6 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 					payload->setSequenceNumber(connectionsServToUE[nodeId].statReport.lastData->getSequenceNumber() + 1);
 					delete connectionsServToUE[nodeId].statReport.lastData;
 					connectionsServToUE[nodeId].statReport.lastData = payload->dup();
-					connectionsServToUE[nodeId].statReport.sentPacketsData++;
 
 				} else {
 					//new connection
@@ -2592,7 +2258,6 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 					tmp.dataSize = dataSize;
 					tmp.dataBytesLeft = 0;
 
-					tmp.statReport.sentPacketsData++;
 					tmp.statReport.lastData = payload->dup();
 
 					tmp.messages = messages;
@@ -2607,8 +2272,6 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 
 		++itr;
 	}
-
-
 
 	selfMsg->setKind(START);
 	for (auto &var : names) {

@@ -67,9 +67,9 @@ network NRFourBSHighwaySimple extends GeneralParameters
             @display("p=6853.6997,3353.4175");
             config = xmldoc("demo.xml");
         }
-                
+
         roadsCanvasVisualizer: RoadsCanvasVisualizer {
-            @display("p=3933.144,2852.28");
+            @display("p=6854.64,1571.7001");
         }
 
         //# Veins manager module

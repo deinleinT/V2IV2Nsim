@@ -387,43 +387,43 @@ dev.off()
 
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVideo10msDL")'))
+                         add('scalar', 'name("reliabilityVideo10msDL*")'))
 relVideo4APPDL10MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVideo20msDL")'))
+                         add('scalar', 'name("reliabilityVideo20msDL*")'))
 relVideo4APPDL20MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVideo50msDL")'))
+                         add('scalar', 'name("reliabilityVideo50msDL*")'))
 relVideo4APPDL50MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVideo100msDL")'))
+                         add('scalar', 'name("reliabilityVideo100msDL*")'))
 relVideo4APPDL100MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVideo200msDL")'))
+                         add('scalar', 'name("reliabilityVideo200msDL*")'))
 relVideo4APPDL200MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVideo500msDL")'))
+                         add('scalar', 'name("reliabilityVideo500msDL*")'))
 relVideo4APPDL500MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVideo1sDL")'))
+                         add('scalar', 'name("reliabilityVideo1sDL*")'))
 relVideo4APPDL1MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
@@ -435,43 +435,43 @@ datasetDL <- NULL
 #delay Video
 ###
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVideo10msUL")'))
+                         add('scalar', 'name("reliabilityVideo10msUL*")'))
 relVideo4APPUL10MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVideo20msUL")'))
+                         add('scalar', 'name("reliabilityVideo20msUL*")'))
 relVideo4APPUL20MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVideo50msUL")'))
+                         add('scalar', 'name("reliabilityVideo50msUL*")'))
 relVideo4APPUL50MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVideo100msUL")'))
+                         add('scalar', 'name("reliabilityVideo100msUL*")'))
 relVideo4APPUL100MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVideo200msUL")'))
+                         add('scalar', 'name("reliabilityVideo200msUL*")'))
 relVideo4APPUL200MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVideo500msUL")'))
+                         add('scalar', 'name("reliabilityVideo500msUL*")'))
 relVideo4APPUL500MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVideo1sUL")'))
+                         add('scalar', 'name("reliabilityVideo1sUL*")'))
 relVideo4APPUL1MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
@@ -481,43 +481,43 @@ datasetUL <- NULL
 #voip
 ###
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVoip10msDL")'))
+                         add('scalar', 'name("reliabilityVoip10msDL*")'))
 relVoip4APPDL10MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVoip20msDL")'))
+                         add('scalar', 'name("reliabilityVoip20msDL*")'))
 relVoip4APPDL20MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVoip50msDL")'))
+                         add('scalar', 'name("reliabilityVoip50msDL*")'))
 relVoip4APPDL50MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVoip100msDL")'))
+                         add('scalar', 'name("reliabilityVoip100msDL*")'))
 relVoip4APPDL100MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVoip200msDL")'))
+                         add('scalar', 'name("reliabilityVoip200msDL*")'))
 relVoip4APPDL200MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVoip500msDL")'))
+                         add('scalar', 'name("reliabilityVoip500msDL*")'))
 relVoip4APPDL500MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVoip1sDL")'))
+                         add('scalar', 'name("reliabilityVoip1sDL*")'))
 relVoip4APPDL1MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
@@ -528,43 +528,43 @@ datasetDL <- NULL
 
 ###
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVoip10msUL")'))
+                         add('scalar', 'name("reliabilityVoip10msUL*")'))
 relVoip4APPUL10MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVoip20msUL")'))
+                         add('scalar', 'name("reliabilityVoip20msUL*")'))
 relVoip4APPUL20MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVoip50msUL")'))
+                         add('scalar', 'name("reliabilityVoip50msUL*")'))
 relVoip4APPUL50MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVoip100msUL")'))
+                         add('scalar', 'name("reliabilityVoip100msUL*")'))
 relVoip4APPUL100MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVoip200msUL")'))
+                         add('scalar', 'name("reliabilityVoip200msUL*")'))
 relVoip4APPUL200MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVoip500msUL")'))
+                         add('scalar', 'name("reliabilityVoip500msUL*")'))
 relVoip4APPUL500MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityVoip1sUL")'))
+                         add('scalar', 'name("reliabilityVoip1sUL*")'))
 relVoip4APPUL1MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
@@ -574,43 +574,43 @@ datasetUL <- NULL
 #data
 ###
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityData10msDL")'))
+                         add('scalar', 'name("reliabilityData10msDL*")'))
 relData4APPDL10MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityData20msDL")'))
+                         add('scalar', 'name("reliabilityData20msDL*")'))
 relData4APPDL20MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityData50msDL")'))
+                         add('scalar', 'name("reliabilityData50msDL*")'))
 relData4APPDL50MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityData100msDL")'))
+                         add('scalar', 'name("reliabilityData100msDL*")'))
 relData4APPDL100MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityData200msDL")'))
+                         add('scalar', 'name("reliabilityData200msDL*")'))
 relData4APPDL200MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityData500msDL")'))
+                         add('scalar', 'name("reliabilityData500msDL*")'))
 relData4APPDL500MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityData1sDL")'))
+                         add('scalar', 'name("reliabilityData1sDL*")'))
 relData4APPDL1MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
@@ -619,43 +619,43 @@ datasetDL <- NULL
 ####################################################################################################
 ##UL
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityData10msUL")'))
+                         add('scalar', 'name("reliabilityData10msUL*")'))
 relData4APPUL10MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityData20msUL")'))
+                         add('scalar', 'name("reliabilityData20msUL*")'))
 relData4APPUL20MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityData50msUL")'))
+                         add('scalar', 'name("reliabilityData50msUL*")'))
 relData4APPUL50MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityData100msUL")'))
+                         add('scalar', 'name("reliabilityData100msUL*")'))
 relData4APPUL100MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityData200msUL")'))
+                         add('scalar', 'name("reliabilityData200msUL*")'))
 relData4APPUL200MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityData500msUL")'))
+                         add('scalar', 'name("reliabilityData500msUL*")'))
 relData4APPUL500MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityData1sUL")'))
+                         add('scalar', 'name("reliabilityData1sUL*")'))
 relData4APPUL1MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
@@ -665,43 +665,43 @@ datasetUL <- NULL
 #V2X
 ###
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityV2X10msDL")'))
+                         add('scalar', 'name("reliabilityV2X10msDL*")'))
 relV2X4APPDL10MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityV2X20msDL")'))
+                         add('scalar', 'name("reliabilityV2X20msDL*")'))
 relV2X4APPDL20MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityV2X50msDL")'))
+                         add('scalar', 'name("reliabilityV2X50msDL*")'))
 relV2X4APPDL50MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityV2X100msDL")'))
+                         add('scalar', 'name("reliabilityV2X100msDL*")'))
 relV2X4APPDL100MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityV2X200msDL")'))
+                         add('scalar', 'name("reliabilityV2X200msDL*")'))
 relV2X4APPDL200MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityV2X500msDL")'))
+                         add('scalar', 'name("reliabilityV2X500msDL*")'))
 relV2X4APPDL500MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
 
 datasetDL <- loadDataset(c('TODO-INSERT-PATH-TO-DOWNLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityV2X1sDL")'))
+                         add('scalar', 'name("reliabilityV2X1sDL*")'))
 relV2X4APPDL1MW <- datasetDL$scalars$value
 
 datasetDL <- NULL
@@ -713,43 +713,43 @@ datasetDL <- NULL
 
 ###
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityV2X10msUL")'))
+                         add('scalar', 'name("reliabilityV2X10msUL*")'))
 relV2X4APPUL10MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityV2X20msUL")'))
+                         add('scalar', 'name("reliabilityV2X20msUL*")'))
 relV2X4APPUL20MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityV2X50msUL")'))
+                         add('scalar', 'name("reliabilityV2X50msUL*")'))
 relV2X4APPUL50MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityV2X100msUL")'))
+                         add('scalar', 'name("reliabilityV2X100msUL*")'))
 relV2X4APPUL100MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityV2X200msUL")'))
+                         add('scalar', 'name("reliabilityV2X200msUL*")'))
 relV2X4APPUL200MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityV2X500msUL")'))
+                         add('scalar', 'name("reliabilityV2X500msUL*")'))
 relV2X4APPUL500MW <- datasetUL$scalars$value
 
 datasetUL <- NULL
 
 datasetUL <- loadDataset(c('TODO-INSERT-PATH-TO-UPLINK-FOLDER/scalar-*.sca'),
-                         add('scalar', 'name("reliabilityV2X1sUL")'))
+                         add('scalar', 'name("reliabilityV2X1sUL*")'))
 relV2X4APPUL1MW <- datasetUL$scalars$value
 
 datasetUL <- NULL

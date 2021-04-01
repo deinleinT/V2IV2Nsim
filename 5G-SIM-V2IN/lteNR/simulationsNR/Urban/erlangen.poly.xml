@@ -802,4 +802,13 @@
     <poi id="485664178" type="unknown" color="0.20,0.50,1.00" layer="-1" x="646721.33" y="5493266.23"/>
     <poi id="917373051" type="unknown" color="0.20,0.50,1.00" layer="-1" x="645568.57" y="5494112.14"/>
     <poi id="917373069" type="unknown" color="0.20,0.50,1.00" layer="-1" x="645588.43" y="5494109.19"/>
+    <poi id="gNodeB1" type="basestation" color="255,0,0" layer="5" x="646744.28" y="5493265.97"/>
+    <poi id="gNodeB2" type="basestation" color="255,0,0" layer="5" x="645811.15" y="5493247.63"/>
+    <poi id="gNodeB3" type="basestation" color="255,0,0" layer="5" x="645933.97" y="5493729.07"/>
+    <poi id="gNodeB4" type="basestation" color="255,0,0" layer="5" x="645376.755" y="5493978.241"/>
+    <poi id="gNodeB5" type="basestation" color="255,0,0" layer="5" x="644892.97" y="5493299.20"/>
+    <poi id="gNodeB6" type="basestation" color="255,0,0" layer="5" x="644817.948" y="5492054.25"/>
+    <poi id="gNodeB7" type="basestation" color="255,0,0" layer="5" x="644740.759" y="5494383.109"/>
+    <poi id="gNodeB8" type="basestation" color="255,0,0" layer="5" x="646085.46" y="5494657.06"/>
+    
 </shapes>

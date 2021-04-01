@@ -69,12 +69,6 @@ struct StatReport {
 	int recPacketsVoip = -1;
 	int recPacketsData = -1;
 
-	//total sent Packets
-	unsigned int sentPacketsVideo = 0;
-	unsigned int sentPacketsV2X = 0;
-	unsigned int sentPacketsVoip = 0;
-	unsigned int sentPacketsData = 0;
-
 	//packets that arrived NOT in the delayBudget
 	unsigned int recPacketsVideoOutBudget = 0;
 	unsigned int recPacketsV2XOutBudget = 0;
@@ -186,12 +180,6 @@ protected:
 	int numberSentPackets = 0;
 	int numberReceivedPackets = 0;
 
-	//Budgets for reliability, set in ned-file
-	simtime_t v2xDelayBudget;
-	simtime_t voipDelayBudget;
-	simtime_t videoDelayBudget;
-	simtime_t dataDelayBudget; //DONE
-
 	//PacketDelay
 	simsignal_t delayVoip;
 	simsignal_t delayV2X;
@@ -233,12 +221,6 @@ protected:
 	unsigned int sentPacketsVoip;
 	unsigned int sentPacketsData;
 
-	//packets that arrived NOT in the delayBudget
-	double recPacketsVideoOutBudget;
-	double recPacketsV2XOutBudget;
-	double recPacketsVoipOutBudget;
-	double recPacketsDataOutBudget;
-
 	//
 	cOutVector delayDataTransferFinished;
 
@@ -252,78 +234,6 @@ protected:
 	simtime_t delayBudget200ms;
 	simtime_t delayBudget500ms;
 	simtime_t delayBudget1s;
-
-	//Data
-	cOutVector reliabilityData10msVecUL;
-	cOutVector reliabilityData20msVecUL;
-	cOutVector reliabilityData50msVecUL;
-	cOutVector reliabilityData100msVecUL;
-	cOutVector reliabilityData200msVecUL;
-	cOutVector reliabilityData500msVecUL;
-	cOutVector reliabilityData1sVecUL;
-
-	cOutVector reliabilityData10msVecDL;
-	cOutVector reliabilityData20msVecDL;
-	cOutVector reliabilityData50msVecDL;
-	cOutVector reliabilityData100msVecDL;
-	cOutVector reliabilityData200msVecDL;
-	cOutVector reliabilityData500msVecDL;
-	cOutVector reliabilityData1sVecDL;
-	//
-
-	//V2X
-	cOutVector reliabilityV2X10msVecDL;
-	cOutVector reliabilityV2X20msVecDL;
-	cOutVector reliabilityV2X50msVecDL;
-	cOutVector reliabilityV2X100msVecDL;
-	cOutVector reliabilityV2X200msVecDL;
-	cOutVector reliabilityV2X500msVecDL;
-	cOutVector reliabilityV2X1sVecDL;
-
-	cOutVector reliabilityV2X10msVecUL;
-	cOutVector reliabilityV2X20msVecUL;
-	cOutVector reliabilityV2X50msVecUL;
-	cOutVector reliabilityV2X100msVecUL;
-	cOutVector reliabilityV2X200msVecUL;
-	cOutVector reliabilityV2X500msVecUL;
-	cOutVector reliabilityV2X1sVecUL;
-	//
-
-	//Voip
-	cOutVector reliabilityVoip10msVecDL;
-	cOutVector reliabilityVoip20msVecDL;
-	cOutVector reliabilityVoip50msVecDL;
-	cOutVector reliabilityVoip100msVecDL;
-	cOutVector reliabilityVoip200msVecDL;
-	cOutVector reliabilityVoip500msVecDL;
-	cOutVector reliabilityVoip1sVecDL;
-
-	cOutVector reliabilityVoip10msVecUL;
-	cOutVector reliabilityVoip20msVecUL;
-	cOutVector reliabilityVoip50msVecUL;
-	cOutVector reliabilityVoip100msVecUL;
-	cOutVector reliabilityVoip200msVecUL;
-	cOutVector reliabilityVoip500msVecUL;
-	cOutVector reliabilityVoip1sVecUL;
-	//
-
-	//Video
-	cOutVector reliabilityVideo10msVecDL;
-	cOutVector reliabilityVideo20msVecDL;
-	cOutVector reliabilityVideo50msVecDL;
-	cOutVector reliabilityVideo100msVecDL;
-	cOutVector reliabilityVideo200msVecDL;
-	cOutVector reliabilityVideo500msVecDL;
-	cOutVector reliabilityVideo1sVecDL;
-
-	cOutVector reliabilityVideo10msVecUL;
-	cOutVector reliabilityVideo20msVecUL;
-	cOutVector reliabilityVideo50msVecUL;
-	cOutVector reliabilityVideo100msVecUL;
-	cOutVector reliabilityVideo200msVecUL;
-	cOutVector reliabilityVideo500msVecUL;
-	cOutVector reliabilityVideo1sVecUL;
-	//
 
 	bool considerDatasizeAndMessages;
 
@@ -375,6 +285,8 @@ protected:
 	virtual bool handleNodeStart(IDoneCallback *doneCallback) override;
 	virtual bool handleNodeShutdown(IDoneCallback *doneCallback) override;
 	virtual void handleNodeCrash() override;
+
+	virtual void recordReliability();
 
 	/*
 	 * records the position of the vehicle when a packet loss was detected at application layer

@@ -49,7 +49,7 @@ network GeneralParameters{
         int harqFBEvaluationIntervalNR = default(1);// time of ms in NR, until ACK/NACK is evaluated
         int raRespWinStartNR = default(1); //time for scheduling grant
         bool fairRacScheduleInUL = default(false); //used in NRSchedulerGnbUl::racschedule (by default set to false)
-        bool newTxbeforeRtx = default(true); //used in NRSchedulerGnbUl and NRMacUe (if true, a new transmission is scheduled before a retransmission, by default set to true)
+        bool newTxbeforeRtx = default(false); //used in NRSchedulerGnbUl and NRMacUe (if true, a new transmission is scheduled before a retransmission, by default set to false)
         
         //2, 4, 6 or 8 codeblockgroups are allowed
         bool useCodeBlockGroups = default(true);
@@ -58,7 +58,7 @@ network GeneralParameters{
         //
         bool useSINRThreshold = default(true); //checks if the SINR of a UE is lower than SINRThreshold in UL
         string thresholdDirection = default("DL");
-        int SINRThreshold = default(5); // if useSINRThreshold true, the SINR in UL is used to check, whether a UE is in coverage or not (during Handover), if the SINR to all Base stations is lower than this value, the UE is not connected to any base station
+        int SINRThreshold = default(0); // if useSINRThreshold true, the SINR is used to check, whether a UE is in coverage or not, if the SINR to all Base stations is lower than this value, the UE is not connected to any base station
         double checkConnectionInterval @unit(s) = default(0.1s);
         **.dasRssiThreshold = SINRThreshold; 
         

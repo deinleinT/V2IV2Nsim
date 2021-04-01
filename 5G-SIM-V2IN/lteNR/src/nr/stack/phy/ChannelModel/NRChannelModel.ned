@@ -87,7 +87,8 @@ simple NRRealisticChannelModel extends LteRealisticChannelModel
     lambdaRatioTh = default(20);
     correlation_distance = default(50);
 	
-	bool dynamicNlos = default(true);
+	//by default the probabilistic approach
+	bool dynamicNlos = default(false);
 	bool NlosEvaluationIn3D = default(false);
 	bool veinsObstacleShadowing = default(false);
 	bool isNodeB;
