@@ -144,11 +144,14 @@ void TrafficGenerator::initialize(int stage) {
 void TrafficGenerator::recordReliability() {
 
 	ConnectionsMap tmpMap;
+	std::string direction = "";
 
 	if (nodeType == "car") {
 		tmpMap = connectionsServToUE;
+		direction = "DL";
 	} else {
 		tmpMap = connectionsUEtoServ;
+		direction = "UL";
 	}
 
 	for (auto &var : tmpMap) {
@@ -169,57 +172,57 @@ void TrafficGenerator::recordReliability() {
 			MacNodeId carNodeId = var.first;
 
 			double reliabilityData10ms = 1.0 - double(recPacketsDataOutBudget10ms / recPacketsData);
-			std::string nameString = "reliabilityData10msUL" + std::to_string(carNodeId);
+			std::string nameString = "reliabilityData10ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityData10ms);
-			nameString = "TotalReliabilityData10msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityData10ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityData10ms = 1.0 - double((recPacketsDataOutBudget10ms + lostPacketsData) / (lostPacketsData + recPacketsData));
 			recordScalar(nameString.c_str(), TotalReliabilityData10ms);
 
 			double reliabilityData20ms = 1.0 - double(recPacketsDataOutBudget20ms / recPacketsData);
-			nameString = "reliabilityData20msUL" + std::to_string(carNodeId);
+			nameString = "reliabilityData20ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityData20ms);
-			nameString = "TotalReliabilityData20msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityData20ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityData20ms = 1.0 - double((recPacketsDataOutBudget20ms + lostPacketsData) / (lostPacketsData + recPacketsData));
 			recordScalar(nameString.c_str(), TotalReliabilityData20ms);
 
 			double reliabilityData50ms = 1.0 - double(recPacketsDataOutBudget50ms / recPacketsData);
-			nameString = "reliabilityData50msUL" + std::to_string(carNodeId);
+			nameString = "reliabilityData50ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityData50ms);
-			nameString = "TotalReliabilityData50msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityData50ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityData50ms = 1.0 - double((recPacketsDataOutBudget50ms + lostPacketsData) / (lostPacketsData + recPacketsData));
 			recordScalar(nameString.c_str(), TotalReliabilityData50ms);
 
 			double reliabilityData100ms = 1.0 - double(recPacketsDataOutBudget100ms / recPacketsData);
-			nameString = "reliabilityData100msUL" + std::to_string(carNodeId);
+			nameString = "reliabilityData100ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityData100ms);
-			nameString = "TotalReliabilityData100msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityData100ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityData100ms = 1.0 - double((recPacketsDataOutBudget100ms + lostPacketsData) / (lostPacketsData + recPacketsData));
 			recordScalar(nameString.c_str(), TotalReliabilityData100ms);
 
 			double reliabilityData200ms = 1.0 - double(recPacketsDataOutBudget200ms / recPacketsData);
-			nameString = "reliabilityData200msUL" + std::to_string(carNodeId);
+			nameString = "reliabilityData200ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityData200ms);
-			nameString = "TotalReliabilityData200msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityData200ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityData200ms = 1.0 - double((recPacketsDataOutBudget200ms + lostPacketsData) / (lostPacketsData + recPacketsData));
 			recordScalar(nameString.c_str(), TotalReliabilityData200ms);
 
 			double reliabilityData500ms = 1.0 - double(recPacketsDataOutBudget500ms / recPacketsData);
-			nameString = "reliabilityData500msUL" + std::to_string(carNodeId);
+			nameString = "reliabilityData500ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityData500ms);
-			nameString = "TotalReliabilityData500msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityData500ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityData500ms = 1.0 - double((recPacketsDataOutBudget500ms + lostPacketsData) / (lostPacketsData + recPacketsData));
 			recordScalar(nameString.c_str(), TotalReliabilityData500ms);
 
 			double reliabilityData1s = 1.0 - double(recPacketsDataOutBudget1s / recPacketsData);
-			nameString = "reliabilityData1sUL" + std::to_string(carNodeId);
+			nameString = "reliabilityData1s" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityData1s);
-			nameString = "TotalReliabilityData1sUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityData1s" + direction + std::to_string(carNodeId);
 			double TotalReliabilityData1s = 1.0 - double((recPacketsDataOutBudget1s + lostPacketsData) / (lostPacketsData + recPacketsData));
 			recordScalar(nameString.c_str(), TotalReliabilityData1s);
 
-			nameString = "lostPacketsData" + std::to_string(carNodeId);
+			nameString = "lostPacketsData" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), lostPacketsData);
-			nameString = "recPacketsData" + std::to_string(carNodeId);
+			nameString = "recPacketsData" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), recPacketsData);
 			recordScalar("numberCarsData", carsData.size());
 		}
@@ -240,57 +243,57 @@ void TrafficGenerator::recordReliability() {
 			MacNodeId carNodeId = var.first;
 
 			double reliabilityV2X10ms = 1.0 - double(recPacketsV2XOutBudget10ms / recPacketsV2X);
-			std::string nameString = "reliabilityV2X10msUL" + std::to_string(carNodeId);
+			std::string nameString = "reliabilityV2X10ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityV2X10ms);
-			nameString = "TotalReliabilityV2X10msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityV2X10ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityV2X10ms = 1.0 - double((recPacketsV2XOutBudget10ms + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
 			recordScalar(nameString.c_str(), TotalReliabilityV2X10ms);
 
 			double reliabilityV2X20ms = 1.0 - double(recPacketsV2XOutBudget20ms / recPacketsV2X);
-			nameString = "reliabilityV2X20msUL" + std::to_string(carNodeId);
+			nameString = "reliabilityV2X20ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityV2X20ms);
-			nameString = "TotalReliabilityV2X20msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityV2X20ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityV2X20ms = 1.0 - double((recPacketsV2XOutBudget20ms + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
 			recordScalar(nameString.c_str(), TotalReliabilityV2X20ms);
 
 			double reliabilityV2X50ms = 1.0 - double(recPacketsV2XOutBudget50ms / recPacketsV2X);
-			nameString = "reliabilityV2X50msUL" + std::to_string(carNodeId);
+			nameString = "reliabilityV2X50ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityV2X50ms);
-			nameString = "TotalReliabilityV2X50msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityV2X50ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityV2X50ms = 1.0 - double((recPacketsV2XOutBudget50ms + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
 			recordScalar(nameString.c_str(), TotalReliabilityV2X50ms);
 
 			double reliabilityV2X100ms = 1.0 - double(recPacketsV2XOutBudget100ms / recPacketsV2X);
-			nameString = "reliabilityV2X100msUL" + std::to_string(carNodeId);
+			nameString = "reliabilityV2X100ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityV2X100ms);
-			nameString = "TotalReliabilityV2X100msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityV2X100ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityV2X100ms = 1.0 - double((recPacketsV2XOutBudget100ms + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
 			recordScalar(nameString.c_str(), TotalReliabilityV2X100ms);
 
 			double reliabilityV2X200ms = 1.0 - double(recPacketsV2XOutBudget200ms / recPacketsV2X);
-			nameString = "reliabilityV2X200msUL" + std::to_string(carNodeId);
+			nameString = "reliabilityV2X200ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityV2X200ms);
-			nameString = "TotalReliabilityV2X200msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityV2X200ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityV2X200ms = 1.0 - double((recPacketsV2XOutBudget200ms + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
 			recordScalar(nameString.c_str(), TotalReliabilityV2X200ms);
 
 			double reliabilityV2X500ms = 1.0 - double(recPacketsV2XOutBudget500ms / recPacketsV2X);
-			nameString = "reliabilityV2X500msUL" + std::to_string(carNodeId);
+			nameString = "reliabilityV2X500ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityV2X500ms);
-			nameString = "TotalReliabilityV2X500msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityV2X500ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityV2X500ms = 1.0 - double((recPacketsV2XOutBudget500ms + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
 			recordScalar(nameString.c_str(), TotalReliabilityV2X500ms);
 
 			double reliabilityV2X1s = 1.0 - double(recPacketsV2XOutBudget1s / recPacketsV2X);
-			nameString = "reliabilityV2X1sUL" + std::to_string(carNodeId);
+			nameString = "reliabilityV2X1s" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityV2X1s);
-			nameString = "TotalReliabilityV2X1sUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityV2X1s" + direction + std::to_string(carNodeId);
 			double TotalReliabilityV2X1s = 1.0 - double((recPacketsV2XOutBudget1s + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
 			recordScalar(nameString.c_str(), TotalReliabilityV2X1s);
 
-			nameString = "lostPacketsV2X" + std::to_string(carNodeId);
+			nameString = "lostPacketsV2X" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), lostPacketsV2X);
-			nameString = "recPacketsV2X" + std::to_string(carNodeId);
+			nameString = "recPacketsV2X" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), recPacketsV2X);
 			recordScalar("numberCarsV2X", carsData.size());
 		}
@@ -311,57 +314,57 @@ void TrafficGenerator::recordReliability() {
 			MacNodeId carNodeId = var.first;
 
 			double reliabilityVoip10ms = 1.0 - double(recPacketsVoipOutBudget10ms / recPacketsVoip);
-			std::string nameString = "reliabilityVoip10msUL" + std::to_string(carNodeId);
+			std::string nameString = "reliabilityVoip10ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityVoip10ms);
-			nameString = "TotalReliabilityVoip10msUL" + std::to_string(carNodeId);
-			double TotalReliabilityVoip10ms = 1.0 - double((recPacketsVoipOutBudget10ms  + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
+			nameString = "TotalReliabilityVoip10ms" + direction + std::to_string(carNodeId);
+			double TotalReliabilityVoip10ms = 1.0 - double((recPacketsVoipOutBudget10ms + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
 			recordScalar(nameString.c_str(), TotalReliabilityVoip10ms);
 
 			double reliabilityVoip20ms = 1.0 - double(recPacketsVoipOutBudget20ms / recPacketsVoip);
-			nameString = "reliabilityVoip20msUL" + std::to_string(carNodeId);
+			nameString = "reliabilityVoip20ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityVoip20ms);
-			nameString = "TotalReliabilityVoip20msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityVoip20ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVoip20ms = 1.0 - double((recPacketsVoipOutBudget20ms + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
 			recordScalar(nameString.c_str(), TotalReliabilityVoip20ms);
 
 			double reliabilityVoip50ms = 1.0 - double(recPacketsVoipOutBudget50ms / recPacketsVoip);
-			nameString = "reliabilityVoip50msUL" + std::to_string(carNodeId);
+			nameString = "reliabilityVoip50ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityVoip50ms);
-			nameString = "TotalReliabilityVoip50msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityVoip50ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVoip50ms = 1.0 - double((recPacketsVoipOutBudget50ms + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
 			recordScalar(nameString.c_str(), TotalReliabilityVoip50ms);
 
 			double reliabilityVoip100ms = 1.0 - double(recPacketsVoipOutBudget100ms / recPacketsVoip);
-			nameString = "reliabilityVoip100msUL" + std::to_string(carNodeId);
+			nameString = "reliabilityVoip100ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityVoip100ms);
-			nameString = "TotalReliabilityVoip100msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityVoip100ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVoip100ms = 1.0 - double((recPacketsVoipOutBudget100ms + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
 			recordScalar(nameString.c_str(), TotalReliabilityVoip100ms);
 
 			double reliabilityVoip200ms = 1.0 - double(recPacketsVoipOutBudget200ms / recPacketsVoip);
-			nameString = "reliabilityVoip200msUL" + std::to_string(carNodeId);
+			nameString = "reliabilityVoip200ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityVoip200ms);
-			nameString = "TotalReliabilityVoip200msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityVoip200ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVoip200ms = 1.0 - double((recPacketsVoipOutBudget200ms + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
 			recordScalar(nameString.c_str(), TotalReliabilityVoip200ms);
 
 			double reliabilityVoip500ms = 1.0 - double(recPacketsVoipOutBudget500ms / recPacketsVoip);
-			nameString = "reliabilityVoip500msUL" + std::to_string(carNodeId);
+			nameString = "reliabilityVoip500ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityVoip500ms);
-			nameString = "TotalReliabilityVoip500msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityVoip500ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVoip500ms = 1.0 - double((recPacketsVoipOutBudget500ms + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
 			recordScalar(nameString.c_str(), TotalReliabilityVoip500ms);
 
 			double reliabilityVoip1s = 1.0 - double(recPacketsVoipOutBudget1s / recPacketsVoip);
-			nameString = "reliabilityVoip1sUL" + std::to_string(carNodeId);
+			nameString = "reliabilityVoip1s" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityVoip1s);
-			nameString = "TotalReliabilityVoip1sUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityVoip1s" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVoip1s = 1.0 - double((recPacketsVoipOutBudget1s + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
 			recordScalar(nameString.c_str(), TotalReliabilityVoip1s);
 
-			nameString = "lostPacketsVoip" + std::to_string(carNodeId);
+			nameString = "lostPacketsVoip" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), lostPacketsVoip);
-			nameString = "recPacketsVoip" + std::to_string(carNodeId);
+			nameString = "recPacketsVoip" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), recPacketsVoip);
 
 		}
@@ -383,60 +386,60 @@ void TrafficGenerator::recordReliability() {
 			MacNodeId carNodeId = var.first;
 
 			double reliabilityVideo10ms = 1.0 - double(recPacketsVideoOutBudget10ms / recPacketsVideo);
-			std::string nameString = "reliabilityVideo10msUL" + std::to_string(carNodeId);
+			std::string nameString = "reliabilityVideo10ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityVideo10ms);
-			nameString = "TotalReliabilityVideo10msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityVideo10ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVideo10ms = 1.0 - double((recPacketsVideoOutBudget10ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
 			recordScalar(nameString.c_str(), TotalReliabilityVideo10ms);
 
 			double reliabilityVideo20ms = 1.0 - double(recPacketsVideoOutBudget20ms / recPacketsVideo);
-			nameString = "reliabilityVideo20msUL" + std::to_string(carNodeId);
+			nameString = "reliabilityVideo20ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityVideo20ms);
-			nameString = "TotalReliabilityVideo20msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityVideo20ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVideo20ms = 1.0 - double((recPacketsVideoOutBudget20ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
 			recordScalar(nameString.c_str(), TotalReliabilityVideo20ms);
 
 			double reliabilityVideo50ms = 1.0 - double(recPacketsVideoOutBudget50ms / recPacketsVideo);
-			nameString = "reliabilityVideo50msUL" + std::to_string(carNodeId);
+			nameString = "reliabilityVideo50ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityVideo50ms);
-			nameString = "TotalReliabilityVideo50msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityVideo50ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVideo50ms = 1.0 - double((recPacketsVideoOutBudget50ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
 			recordScalar(nameString.c_str(), TotalReliabilityVideo50ms);
 
 			double reliabilityVideo100ms = 1.0 - double(recPacketsVideoOutBudget100ms / recPacketsVideo);
-			nameString = "reliabilityVideo100msUL" + std::to_string(carNodeId);
+			nameString = "reliabilityVideo100ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityVideo100ms);
-			nameString = "TotalReliabilityVideo100msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityVideo100ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVideo100ms = 1.0 - double((recPacketsVideoOutBudget100ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
 			recordScalar(nameString.c_str(), TotalReliabilityVideo100ms);
 
 			double reliabilityVideo200ms = 1.0 - double(recPacketsVideoOutBudget200ms / recPacketsVideo);
-			nameString = "reliabilityVideo200msUL" + std::to_string(carNodeId);
+			nameString = "reliabilityVideo200ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityVideo200ms);
-			nameString = "TotalReliabilityVideo200msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityVideo200ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVideo200ms = 1.0 - double((recPacketsVideoOutBudget200ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
 			recordScalar(nameString.c_str(), TotalReliabilityVideo200ms);
 
 			double reliabilityVideo500ms = 1.0 - double(recPacketsVideoOutBudget500ms / recPacketsVideo);
-			nameString = "reliabilityVideo500msUL" + std::to_string(carNodeId);
+			nameString = "reliabilityVideo500ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityVideo500ms);
-			nameString = "TotalReliabilityVideo500msUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityVideo500ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVideo500ms = 1.0 - double((recPacketsVideoOutBudget500ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
 			recordScalar(nameString.c_str(), TotalReliabilityVideo500ms);
 
 			double reliabilityVideo1s = 1.0 - double(recPacketsVideoOutBudget1s / recPacketsVideo);
-			nameString = "reliabilityVideo1sUL" + std::to_string(carNodeId);
+			nameString = "reliabilityVideo1s" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityVideo1s);
-			nameString = "TotalReliabilityVideo1sUL" + std::to_string(carNodeId);
+			nameString = "TotalReliabilityVideo1s" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVideo1s = 1.0 - double((recPacketsVideoOutBudget1s + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
 			recordScalar(nameString.c_str(), TotalReliabilityVideo1s);
 
-			nameString = "lostPacketsVideo" + std::to_string(carNodeId);
+			nameString = "lostPacketsVideo" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), lostPacketsVideo);
-			nameString = "recPacketsVideo" + std::to_string(carNodeId);
+			nameString = "recPacketsVideo" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), recPacketsVideo);
 		}
-
+		//
 	}
 }
 
