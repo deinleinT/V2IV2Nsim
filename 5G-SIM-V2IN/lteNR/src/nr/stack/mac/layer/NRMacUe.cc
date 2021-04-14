@@ -789,8 +789,6 @@ bool NRMacUe::bufferizePacket(cPacket *pkt) {
 			else
 				cid = lteInfo->getCid();
 		} catch (...) {
-			delete pkt;
-			pkt = nullptr;
 			return false;
 		}
 	}
@@ -863,11 +861,6 @@ bool NRMacUe::bufferizePacket(cPacket *pkt) {
 			} else {
 				emit(macBufferOverflowUl_, sample);
 			}
-
-			//EV << "NRMacUe : Dropped packet: queue" << cid << " is full\n";
-			delete pkt;
-			pkt = nullptr;
-			return false;
 		}
 
 		//EV << "NRMacUe : Using old buffer on node: " << MacCidToNodeId(cid) << " for Lcid: " << MacCidToLcid(cid) << "(cid: " << cid << "), Space left in the Queue: " << queue->getQueueSize() - queue->getByteLength() << "\n";
