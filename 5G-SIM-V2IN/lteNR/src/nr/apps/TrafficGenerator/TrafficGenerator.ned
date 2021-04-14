@@ -90,11 +90,7 @@ simple TrafficGenerator extends UDPBasicApp
         @signal[delayDataVariationReal];
         @statistic[delayDataVariationReal](title="delayDataVariationReal"; unit=""; source="delayDataVariationReal"; record=vector);
         
-        @signal[v2vExchangeDelay];
-        @statistic[v2vExchangeDelay](title="v2vExchangeDelay"; unit=""; source="v2vExchangeDelay"; record=vector);
-        
-        @signal[v2vExchangeDelayReal];
-        @statistic[v2vExchangeDelayReal](title="v2vExchangeDelayReal"; unit=""; source="v2vExchangeDelayReal"; record=vector);
+
 }
 
 

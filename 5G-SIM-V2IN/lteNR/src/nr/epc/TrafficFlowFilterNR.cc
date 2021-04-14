@@ -119,46 +119,34 @@ void TrafficFlowFilterNR::handleMessage(cMessage *msg) {
 		send(datagram, "fromToN9Interface$o", gateIndex);
 		connectedUPF_ = "";
 	} else {
-		//should never called in gnodeb in DL
 		// add control info to the normal ip datagram. This info will be read by the GTP-U application
 		TftControlInfo *tftInfo = new TftControlInfo();
 		tftInfo->setTft(tftId);
-		if (strcmp(name.c_str(), "V2X") == 0) {
+
+		std::string applName = std::string(name);
+		if (strcmp(name.c_str(), "V2X") == 0
+				|| (applName.find("V2X") != string::npos)
+				|| (applName.find("v2x") != string::npos)) {
 			tftInfo->setMsgCategory(V2X);
 			tftInfo->setQfi(qosHandler->getQfi(V2X));
 			tftInfo->setRadioBearerId(qosHandler->getRadioBearerId(tftInfo->getQfi()));
-		} else if (strcmp(name.c_str(), "VoIP") == 0) {
-			tftInfo->setMsgCategory(VOIP);
+		} else if (strcmp(name.c_str(), "VoIP") == 0
+				|| (applName.find("VoIP") != string::npos)
+				|| (applName.find("voip") != string::npos)
+				|| (applName.find("Voip") != string::npos)) {
 			tftInfo->setQfi(qosHandler->getQfi(VOIP));
+			tftInfo->setMsgCategory(VOIP);
 			tftInfo->setRadioBearerId(qosHandler->getRadioBearerId(tftInfo->getQfi()));
-		} else if (strcmp(name.c_str(), "Video") == 0) {
-			tftInfo->setMsgCategory(VOD);
+		} else if (strcmp(name.c_str(), "Video") == 0
+				|| (applName.find("Video") != string::npos)
+				|| (applName.find("video") != string::npos)) {
 			tftInfo->setQfi(qosHandler->getQfi(VOD));
+			tftInfo->setMsgCategory(VOD);
 			tftInfo->setRadioBearerId(qosHandler->getRadioBearerId(tftInfo->getQfi()));
-		} else /*if (strcmp(name.c_str(), "Data") == 0 || strcmp(name.c_str(), "Data-frag") == 0) */{
-			tftInfo->setMsgCategory(DATA_FLOW);
+		} else /*if (strcmp(pkt->getName(), "Data") == 0 || strcmp(pkt->getName(), "Data-frag") == 0) */{
 			tftInfo->setQfi(qosHandler->getQfi(DATA_FLOW));
+			tftInfo->setMsgCategory(DATA_FLOW);
 			tftInfo->setRadioBearerId(qosHandler->getRadioBearerId(tftInfo->getQfi()));
-		}
-
-		if (getSystemModule()->par("v2vCooperativeLaneMerge").boolValue()) {
-			if (strcmp(name.c_str(), "status-update") == 0) {
-				tftInfo->setMsgCategory(V2X_STATUS);
-				tftInfo->setQfi(qosHandler->getQfi(V2X));
-				tftInfo->setRadioBearerId(qosHandler->getRadioBearerId(tftInfo->getQfi()));
-			} else if (strcmp(name.c_str(), "request-to-merge") == 0) {
-				tftInfo->setMsgCategory(V2X_REQUEST);
-				tftInfo->setQfi(qosHandler->getQfi(V2X));
-				tftInfo->setRadioBearerId(qosHandler->getRadioBearerId(tftInfo->getQfi()));
-			} else if (strcmp(name.c_str(), "request-ack") == 0) {
-				tftInfo->setMsgCategory(V2X_ACK);
-				tftInfo->setQfi(qosHandler->getQfi(V2X));
-				tftInfo->setRadioBearerId(qosHandler->getRadioBearerId(tftInfo->getQfi()));
-			} else if (strcmp(name.c_str(), "safe-to-merge|denial") == 0) {
-				tftInfo->setMsgCategory(V2X_SAFE_TO_MERGE);
-				tftInfo->setQfi(qosHandler->getQfi(V2X));
-				tftInfo->setRadioBearerId(qosHandler->getRadioBearerId(tftInfo->getQfi()));
-			}
 		}
 
 		datagram->removeControlInfo();

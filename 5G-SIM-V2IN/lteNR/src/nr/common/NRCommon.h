@@ -128,7 +128,7 @@ class QosCharacteristic {
 public:
 	QosCharacteristic() {
 	}
-	QosCharacteristic(ResourceType resType, uint16_t priorityLevel, double PDB, double PER, uint16_t DMDBV, uint16_t defAveragingWindow) :
+	QosCharacteristic(ResourceType resType, unsigned short priorityLevel, double PDB, double PER, uint16_t DMDBV, uint16_t defAveragingWindow) :
 			resType(resType), priorityLevel(priorityLevel), PDB(PDB), PER(PER), DMDBV(DMDBV), defAveragingWindow(defAveragingWindow) {
 		ASSERT(priorityLevel >= 0 && priorityLevel <= 127);
 		ASSERT(DMDBV >= 0 && DMDBV <= 4095);
@@ -136,11 +136,23 @@ public:
 	}
 
 	ResourceType resType; //GBR,nonGBR,DC-GBR
-	uint16_t priorityLevel; // TS 38.413, 9.3.1.84, 1...127
+	unsigned short priorityLevel; // TS 38.413, 9.3.1.84, 1...127
 	double PDB; //Packet Delay Budget, in milliseconds,
 	double PER; //Packet Error Rate
 	uint16_t DMDBV; //Default Maximum Data Burst Volume, in Bytes, 0...4095, 38.413, 9.3.1.83
 	uint16_t defAveragingWindow; // in milliseconds, 38.413, 9.3.1.82, 0...4095
+
+	unsigned short getPriorityLevel(){
+		return priorityLevel;
+	}
+
+	double getPdb(){
+		return PDB;
+	}
+
+	double getPer(){
+		return PER;
+	}
 };
 
 // see in TS 23.501 ->  Chapter 5.7, Table 5.7.4-1
@@ -159,7 +171,7 @@ public:
 	std::map<QI, QosCharacteristic>& getValues() {
 		return values;
 	}
-	QosCharacteristic& getQosCharacteristic(QI value5qi) {
+	QosCharacteristic& getQosCharacteristic(unsigned short value5qi) {
 		return values[value5qi];
 	}
 private:

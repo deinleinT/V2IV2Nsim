@@ -629,8 +629,6 @@ LteScheduler* LteSchedulerEnb::getScheduler(SchedDiscipline discipline)
         return new LteMaxCiComp();
     case ALLOCATOR_BESTFIT:
         return new LteAllocatorBestFit();
-    case QOS_MODEL:
-        return new LtePf(mac_->par("pfAlpha").doubleValue());//TODO
 
     default:
         throw cRuntimeError("LteScheduler not recognized");

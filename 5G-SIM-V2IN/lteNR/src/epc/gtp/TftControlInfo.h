@@ -7,6 +7,10 @@
 // and cannot be removed from it.
 //
 
+/*
+ * This file has been modified for 5G-SIM-V2I/N
+ */
+
 #ifndef _LTE_TFTCONTROLINFO_H_
 #define _LTE_TFTCONTROLINFO_H_
 

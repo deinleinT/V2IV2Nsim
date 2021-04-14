@@ -137,7 +137,7 @@ class LteSchedulerEnb
      * @param dir link direction
      * @param mac pointer to MAC module
      */
-    void initialize(Direction dir, LteMacEnb* mac);
+    virtual void initialize(Direction dir, LteMacEnb* mac);
 
     /**
      * Schedule data.

@@ -156,7 +156,7 @@ void NRPdcpRrcGnb::fromDataPort(cPacket *pkt) {
     LtePdcpPdu* pdcpPkt = new LtePdcpPdu("LtePdcpPdu");
     pdcpPkt->setByteLength(
             lteInfo->getRlcType() == UM ? PDCP_HEADER_UM : PDCP_HEADER_AM);
-//    pdcpPkt->setByteLength(PDCP_HEADER_UM);
+    //pdcpPkt->setByteLength(PDCP_HEADER_UM);
     pdcpPkt->setKind(lteInfo->getApplication());
     pdcpPkt->encapsulate(pkt);
 

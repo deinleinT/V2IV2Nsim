@@ -135,15 +135,23 @@ void NRsdap::fromLowerToUpper(cMessage *msg) {
 void NRsdap::setTrafficInformation(cPacket* pkt, FlowControlInfo* lteInfo) {
     //std::cout << "NRsdap::setTrafficInformation start at " << simTime().dbl() << std::endl;
 
-    if (strcmp(pkt->getName(), "V2X") == 0) {
+	std::string applName = std::string(pkt->getName());
+    if (strcmp(pkt->getName(), "V2X") == 0
+    		|| (applName.find("V2X") != string::npos)
+			|| (applName.find("v2x") != string::npos)) {
         lteInfo->setApplication(V2X);
         lteInfo->setQfi(qosHandler->getQfi(V2X));
         lteInfo->setRadioBearerId(qosHandler->getRadioBearerId(lteInfo->getQfi()));
-    } else if (strcmp(pkt->getName(), "VoIP") == 0) {
+    } else if (strcmp(pkt->getName(), "VoIP") == 0
+    		|| (applName.find("VoIP") != string::npos)
+			|| (applName.find("voip") != string::npos)
+			|| (applName.find("Voip") != string::npos)) {
         lteInfo->setQfi(qosHandler->getQfi(VOIP));
         lteInfo->setApplication(VOIP);
         lteInfo->setRadioBearerId(qosHandler->getRadioBearerId(lteInfo->getQfi()));
-    } else if (strcmp(pkt->getName(), "Video") == 0) {
+    } else if (strcmp(pkt->getName(), "Video") == 0
+    		|| (applName.find("Video") != string::npos)
+			|| (applName.find("video") != string::npos)) {
         lteInfo->setQfi(qosHandler->getQfi(VOD));
         lteInfo->setApplication(VOD);
         lteInfo->setRadioBearerId(qosHandler->getRadioBearerId(lteInfo->getQfi()));
@@ -152,26 +160,6 @@ void NRsdap::setTrafficInformation(cPacket* pkt, FlowControlInfo* lteInfo) {
         lteInfo->setApplication(DATA_FLOW);
         lteInfo->setRadioBearerId(qosHandler->getRadioBearerId(lteInfo->getQfi()));
     }
-
-    if (getSystemModule()->par("v2vCooperativeLaneMerge").boolValue()) {
-		if (strcmp(pkt->getName(), "status-update") == 0) {
-			lteInfo->setApplication(V2X_STATUS);
-			lteInfo->setQfi(qosHandler->getQfi(V2X));
-			lteInfo->setRadioBearerId(qosHandler->getRadioBearerId(lteInfo->getQfi()));
-		}else if (strcmp(pkt->getName(), "request-to-merge") == 0) {
-			lteInfo->setApplication(V2X_REQUEST);
-			lteInfo->setQfi(qosHandler->getQfi(V2X));
-			lteInfo->setRadioBearerId(qosHandler->getRadioBearerId(lteInfo->getQfi()));
-		}else if (strcmp(pkt->getName(), "request-ack") == 0) {
-			lteInfo->setApplication(V2X_ACK);
-			lteInfo->setQfi(qosHandler->getQfi(V2X));
-			lteInfo->setRadioBearerId(qosHandler->getRadioBearerId(lteInfo->getQfi()));
-		}else if (strcmp(pkt->getName(), "safe-to-merge|denial") == 0) {
-			lteInfo->setApplication(V2X_SAFE_TO_MERGE);
-			lteInfo->setQfi(qosHandler->getQfi(V2X));
-			lteInfo->setRadioBearerId(qosHandler->getRadioBearerId(lteInfo->getQfi()));
-		}
-	}
 
     if (nodeType == UE) {
         lteInfo->setDirection(UL);

@@ -35,10 +35,7 @@ void IP2NR::toIpEnb(cMessage * msg)
 
     //EV << "IP2lte::toIpEnb - message from stack: send to IP layer" << endl;
 	FlowControlInfo * lteInfo = check_and_cast<FlowControlInfo*>(msg->getControlInfo());
-    if(((ApplicationType)lteInfo->getApplication() == V2X
-    		|| (ApplicationType)lteInfo->getApplication() == V2X_STATUS
-			|| (ApplicationType)lteInfo->getApplication() == V2X_REQUEST)
-    		&& getSystemModule()->par("v2vMulticastFlag").boolValue()){
+    if((ApplicationType)lteInfo->getApplication() == V2X && getSystemModule()->par("v2vMulticastFlag").boolValue()){
     	IPv4Datagram * packet = check_and_cast<IPv4Datagram*>(msg);
     	if(packet->getDestAddress().getInt() != lteInfo->getDstAddr()){
     		IPv4Address newAddress(lteInfo->getDstAddr());

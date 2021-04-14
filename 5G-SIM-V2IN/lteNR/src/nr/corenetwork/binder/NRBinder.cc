@@ -66,18 +66,6 @@ MacNodeId NRBinder::getConnectedGnb(MacNodeId ueid) {
 	return 0;
 }
 
-void NRBinder::testPrintQosValues() {
-	for (const auto &var : qosChar->getValues()) {
-		//std::cout << "5QI: " << var.first << endl;
-		//std::cout << "ResourceType: " << var.second.resType << endl;
-		//std::cout << "PriorityLevel: " << var.second.priorityLevel << endl;
-		//std::cout << "PDB: " << var.second.PDB << endl;
-		//std::cout << "PER: " << var.second.PER << endl;
-		//std::cout << "MaxDataBurst: " << var.second.DMDBV << endl;
-		//std::cout << "AvWindow: " << var.second.defAveragingWindow << endl << endl;
-	}
-}
-
 void NRBinder::initialize(int stages) {
 	LteBinder::initialize(stages);
 
@@ -130,9 +118,17 @@ void NRBinder::initialize(int stages) {
 		short sizeDefAveragingWindow = qiValue.size();
 		ASSERT(sizeMaxDataBurstVolume == sizeDefAveragingWindow);
 
+		//load the values into the values map
 		for (short i = 0; i < sizeDefAveragingWindow; i++) {
-			qosChar->getValues()[qiValue[i]] = QosCharacteristic(convertStringToResourceType(resourceType[i]), priorityLevel[i], packetDelayBudgetNR[i], packetErrorRate[i], maxDataBurstVolume[i],
-					defAveragingWindow[i]);
+			qosChar->getValues()[qiValue[i]] =
+					QosCharacteristic(
+							convertStringToResourceType(
+									resourceType[i]),
+									priorityLevel[i],
+									packetDelayBudgetNR[i],
+									packetErrorRate[i],
+									maxDataBurstVolume[i],
+									defAveragingWindow[i]);
 		}
 
 		losDetected = 0;

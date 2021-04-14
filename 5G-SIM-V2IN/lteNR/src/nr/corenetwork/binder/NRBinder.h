@@ -47,11 +47,11 @@ public:
 	virtual void fillUpfGnbMap(MacNodeId gnbId, std::string upfName) {
 		upfGnbMap[gnbId] = upfName;
 	}
+
 	virtual std::string getConnectedUpf(MacNodeId gnbId) {
 		return upfGnbMap[gnbId];
 	}
 
-	void testPrintQosValues();
 	virtual bool checkIsNLOS(const inet::Coord &sender, const inet::Coord &receiver, const double hBuilding, bool NlosEvaluationIn3D) {
 		veins::ObstacleControl *tmp = check_and_cast<veins::ObstacleControl*>(getSimulation()->getModuleByPath("obstacles"));
 		veins::Coord send(sender.x, sender.y, sender.z);
@@ -65,6 +65,7 @@ public:
 		veins::Coord rec(receiverPos.x, receiverPos.y, receiverPos.z);
 		return tmp->calculateAttenuation(send, rec);
 	}
+
 	virtual void setExchangeBuffersHandoverFlag(bool flag) {
 		this->exchangeBuffersOnHandover = flag;
 	}
@@ -80,6 +81,8 @@ public:
 	virtual void incrementNlosDetected() {
 		++nlosDetected;
 	}
+
+
 
 protected:
 	virtual void finish();

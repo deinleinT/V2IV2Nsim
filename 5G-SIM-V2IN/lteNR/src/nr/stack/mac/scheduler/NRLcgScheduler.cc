@@ -33,10 +33,10 @@ NRLcgScheduler::~NRLcgScheduler() {
 ScheduleListSizes& NRLcgScheduler::schedule(unsigned int availableBytes, Direction grantDir) {
 	//std::cout << "NRLcgScheduler::schedule start at " << simTime().dbl() << std::endl;
 
+
 	/* clean up old schedule decisions
 	 for each cid, this map will store the the amount of sent data (in SDUs)
 	 */
-//    scheduleList_.clear();
 	scheduleListSizes_.clear();
 
 	/* clean up old schedule decisions

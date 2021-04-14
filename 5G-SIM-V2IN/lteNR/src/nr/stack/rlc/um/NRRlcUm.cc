@@ -250,8 +250,9 @@ void NRRlcUm::sendDefragmented(cPacket *pkt) {
 	std::string nodeType = getParentModule()->getParentModule()->par("nodeType").stdstringValue();
 	FlowControlInfo *lteInfo = check_and_cast<FlowControlInfo*>(pkt->getControlInfo());
 
-	if (((ApplicationType) lteInfo->getApplication() == V2X_STATUS || (ApplicationType) lteInfo->getApplication() == V2X_REQUEST || (ApplicationType) lteInfo->getApplication() == V2X)
-			&& getSystemModule()->par("v2vMulticastFlag").boolValue() && ((nodeType.compare("ENODEB") == 0 || nodeType.compare("GNODEB") == 0))) {
+	if ((ApplicationType) lteInfo->getApplication() == V2X
+			&& getSystemModule()->par("v2vMulticastFlag").boolValue()
+			&& ((nodeType.compare("ENODEB") == 0 || nodeType.compare("GNODEB") == 0))) {
 		//find out the connected cars
 		//the new FlowControlinfo
 		MacNodeId ueId = lteInfo->getSourceId();

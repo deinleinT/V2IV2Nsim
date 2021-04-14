@@ -1647,7 +1647,6 @@ double NRRealisticChannelModel::computeInFSL(double &d3ddistance, double &d2ddis
 //TODO
 double NRRealisticChannelModel::getAttenuation_D2D(MacNodeId nodeId, Direction dir, inet::Coord coord, MacNodeId node2_Id, inet::Coord coord_2) {
 	return LteRealisticChannelModel::getAttenuation_D2D(nodeId, dir, coord, node2_Id, coord_2);
-
 }
 
 //TODO

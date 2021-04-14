@@ -95,8 +95,6 @@ class LteScheduler
      */
     std::map<LteTrafficClass, int> grantSizeMap_;
 
-
-
     //
     bool variationFlag;//used for LtePf module
 
@@ -123,6 +121,7 @@ class LteScheduler
      * @param eNbScheduler eNb scheduler
      */
     virtual void setEnbScheduler(LteSchedulerEnb* eNbScheduler);
+    virtual LteSchedulerEnb* getEnbScheduler(){return eNbScheduler_;}
 
     // Scheduling functions ********************************************************************
 

@@ -161,8 +161,9 @@ void NRsdapUE::fromLowerToUpper(cMessage *msg) {
     FlowControlInfo* lteInfo = check_and_cast<FlowControlInfo*>(
             sdapPkt->removeControlInfo());
     cPacket* upPkt = sdapPkt->decapsulate();
+
     delete sdapPkt;
-//    delete lteInfo;
+
     upPkt->setControlInfo(lteInfo);
 
     send(upPkt, upperLayer);

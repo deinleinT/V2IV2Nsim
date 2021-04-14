@@ -751,7 +751,7 @@ void NRMacUe::handleUpperMessage(cPacket *pkt) {
 // bufferize packet
 	bufferizePacket(pkt);
 
-	if (strcmp(pkt->getName(), "lteRlcFragment") == 0) {
+	if (pkt != nullptr && strcmp(pkt->getName(), "lteRlcFragment") == 0) {
 		// new MAC SDU has been received
 		if (pkt->getByteLength() == 0) {
 			delete pkt;
@@ -789,6 +789,8 @@ bool NRMacUe::bufferizePacket(cPacket *pkt) {
 			else
 				cid = lteInfo->getCid();
 		} catch (...) {
+			delete pkt;
+			pkt = nullptr;
 			return false;
 		}
 	}
@@ -853,6 +855,7 @@ bool NRMacUe::bufferizePacket(cPacket *pkt) {
 	} else {
 		LteMacQueue *queue = it->second;
 		if (!queue->pushBack(pkt)) {
+			// packet queue full or we have discarded fragments for this main packet
 			totalOverflowedBytes_ += pkt->getByteLength();
 			double sample = (double) totalOverflowedBytes_ / (NOW - getSimulation()->getWarmupPeriod());
 			if (lteInfo->getDirection() == DL) {
@@ -863,6 +866,7 @@ bool NRMacUe::bufferizePacket(cPacket *pkt) {
 
 			//EV << "NRMacUe : Dropped packet: queue" << cid << " is full\n";
 			delete pkt;
+			pkt = nullptr;
 			return false;
 		}
 

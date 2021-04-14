@@ -31,10 +31,18 @@ moduleinterface IQosHandler
 simple QosHandler like IQosHandler
 {
     parameters:
-        int v2xQfi = default(4);
-        int voipQfi = default(3);
-        int videoQfi = default(2);
-        int dataQfi = default(1);
+        int v2xQfi = default(1);
+        int v2x5Qi = default(3);//GBR
+        
+        int voipQfi = default(2);
+        int voip5Qi = default(7);//NGBR
+        
+        int videoQfi = default(3);
+        int video5Qi = default(6);//NGBR
+        
+        int dataQfi = default(4);
+        int data5Qi = default(79);//NGBR
+        
         int v2xQfiToRadioBearer = default(1);
         int videoQfiToRadioBearer = default(1);
         int voipQfiToRadioBearer = default(1);

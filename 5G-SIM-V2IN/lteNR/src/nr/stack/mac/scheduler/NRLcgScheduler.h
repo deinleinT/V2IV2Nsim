@@ -31,10 +31,12 @@
 
 //see inherit class for method description
 class NRLcgScheduler : public LcgScheduler {
+
 public:
     NRLcgScheduler(LteMacUe * mac):LcgScheduler(mac){};
     virtual ~NRLcgScheduler();
     virtual ScheduleListSizes& schedule(unsigned int availableBytes, Direction grantDir = UL);
+
 };
 
 

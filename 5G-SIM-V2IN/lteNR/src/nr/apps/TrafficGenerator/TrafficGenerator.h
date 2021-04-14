@@ -112,11 +112,6 @@ struct StatReport {
 	double recPacketsVideoOutBudget500ms = 0;
 	double recPacketsVideoOutBudget1s = 0;
 
-	double v2vExchangeDelay = 0;
-	double v2vExchangeDelayReal = 0;
-	simtime_t v2vExchangeDelayFirstMessageCreationTime = 0;
-	simtime_t v2vStartExchangeDelayMeasuring = 0;
-
 };
 
 /**
@@ -199,9 +194,6 @@ protected:
 	simsignal_t delayV2XVariationReal;
 	simsignal_t delayVideoVariationReal;
 	simsignal_t delayDataVariationReal;
-
-//    simsignal_t v2vExchangeDelay;
-	simsignal_t v2vExchangeDelayReal;
 
 	//total lost Packets
 	unsigned int lostPacketsVideo;

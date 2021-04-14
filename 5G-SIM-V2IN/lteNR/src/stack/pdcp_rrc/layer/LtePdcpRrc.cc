@@ -65,7 +65,10 @@ void LtePdcpRrcBase::setTrafficInformation(cPacket* pkt,
         FlowControlInfo* lteInfo) {
     //std::cout << "LtePdcpRrcBase::setTrafficInformation start at " << simTime().dbl() << std::endl;
 
-    if ((strcmp(pkt->getName(), "VoIP")) == 0) {
+	std::string applName = std::string(pkt->getName());
+    if ((strcmp(pkt->getName(), "VoIP") == 0)
+    		|| (applName.find("VoIP") != std::string::npos)
+			|| (applName.find("voip") != std::string::npos))   {
         lteInfo->setApplication(VOIP);
         lteInfo->setTraffic(CONVERSATIONAL);
         lteInfo->setRlcType((int) par("conversationalRlc"));
@@ -75,15 +78,22 @@ void LtePdcpRrcBase::setTrafficInformation(cPacket* pkt,
         lteInfo->setRlcType((int) par("interactiveRlc"));
     } else if ((strcmp(pkt->getName(), "VoDPacket") == 0)
             || (strcmp(pkt->getName(), "VoDFinishPacket") == 0)
-            || (strcmp(pkt->getName(), "Video") == 0)) {
+            || (strcmp(pkt->getName(), "Video") == 0)
+			|| (applName.find("Video") != std::string::npos)
+			|| (applName.find("video") != std::string::npos)) {
         lteInfo->setApplication(VOD);
         lteInfo->setTraffic(STREAMING);
         lteInfo->setRlcType((int) par("streamingRlc"));
-    } else if (strcmp(pkt->getName(), "V2X") == 0) {
+    } else if (strcmp(pkt->getName(), "V2X") == 0
+    		|| (applName.find("V2X") != std::string::npos)
+			|| (applName.find("v2x") != std::string::npos)) {
         lteInfo->setApplication(V2X);
         lteInfo->setTraffic(V2X_TRAFFIC);
         lteInfo->setRlcType((int) par("conversationalRlc"));
-    } else if (strcmp(pkt->getName(), "Data") == 0 || strcmp(pkt->getName(), "Data-frag") == 0) {
+    } else if (strcmp(pkt->getName(), "Data") == 0
+    		|| strcmp(pkt->getName(), "Data-frag") == 0
+			|| (applName.find("Data") != std::string::npos)
+			|| (applName.find("data") != std::string::npos)) {
         lteInfo->setApplication(DATA_FLOW);
         lteInfo->setTraffic(BACKGROUND);
         lteInfo->setRlcType((int) par("backgroundRlc"));
@@ -92,26 +102,6 @@ void LtePdcpRrcBase::setTrafficInformation(cPacket* pkt,
         lteInfo->setTraffic(BACKGROUND);
         lteInfo->setRlcType((int) par("backgroundRlc"));
     }
-
-	if (getSystemModule()->par("v2vCooperativeLaneMerge").boolValue()) {
-		if (strcmp(pkt->getName(), "status-update") == 0) {
-			lteInfo->setApplication(V2X_STATUS);
-			lteInfo->setTraffic(V2X_TRAFFIC);
-			lteInfo->setRlcType((int) par("conversationalRlc"));
-		} else if (strcmp(pkt->getName(), "request-to-merge") == 0) {
-			lteInfo->setApplication(V2X_REQUEST);
-			lteInfo->setTraffic(V2X_TRAFFIC);
-			lteInfo->setRlcType((int) par("conversationalRlc"));
-		} else if (strcmp(pkt->getName(), "request-ack") == 0) {
-			lteInfo->setApplication(V2X_ACK);
-			lteInfo->setTraffic(V2X_TRAFFIC);
-			lteInfo->setRlcType((int) par("conversationalRlc"));
-		} else if (strcmp(pkt->getName(), "safe-to-merge|denial") == 0) {
-			lteInfo->setApplication(V2X_SAFE_TO_MERGE);
-			lteInfo->setTraffic(V2X_TRAFFIC);
-			lteInfo->setRlcType((int) par("conversationalRlc"));
-		}
-	}
 
     lteInfo->setDirection(getDirection());
 

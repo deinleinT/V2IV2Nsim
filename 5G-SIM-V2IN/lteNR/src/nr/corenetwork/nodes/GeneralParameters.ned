@@ -30,8 +30,7 @@ network GeneralParameters{
     parameters:
         bool v2vMulticastFlag = default(false);
         double v2vMulticastDistance = default(300.0);
-        
-        bool v2vCooperativeLaneMerge = default(false);
+
 		//TRANSMIT_DIVERSITY        OL_SPATIAL_MULTIPLEXING,MULTI_USER,SINGLE_ANTENNA_PORT0
         string initialTxMode = default("SINGLE_ANTENNA_PORT0"); 
         bool remoteDrivingUL = default(false); //use case remote driving in UL activated
@@ -66,7 +65,7 @@ network GeneralParameters{
         //if true, the VideoStream Confic in the ini file is modified --> every 10th vehicle sends or receives a videostream with 5Mbps (packet size 15625 byte, packet intervall 25ms)
         //one half of all other vehicles send or receive a voip stream with 80kbps (packet size 100byte), packet interval 10ms
         //the other half send or receive random streams (packet size uniform(50byte,1500byte), packet interval uniform(10ms, 500ms)
-        bool realisticApproach = default(true); 
+        bool realisticApproach = default(false); 
         
         //Records the vehicle position in downlink and uplink when a packet loss at application layer was detected
         bool recordPositionAndPacketLoss = default(false);

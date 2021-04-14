@@ -34,12 +34,6 @@ Define_Module(TrafficGeneratorCarUL);
 Define_Module(TrafficGeneratorServerDL);
 Define_Module(TrafficGeneratorCarDL);
 
-//used for use case cooperative lane merge
-extern const std::string STATUS_UPDATE = "status-update";
-extern const std::string REQUEST_TO_MERGE = "request-to-merge";
-extern const std::string REQUEST_ACK = "request-ack";
-extern const std::string SAFE_TO_MERGE_DENIAL = "safe-to-merge|denial";
-//
 
 TrafficGenerator::~TrafficGenerator() {
 
@@ -78,8 +72,6 @@ void TrafficGenerator::initialize(int stage) {
 		delayVideoVariationReal = registerSignal("delayVideoVariationReal");
 		delayV2XVariationReal = registerSignal("delayV2XVariationReal");
 		delayDataVariationReal = registerSignal("delayDataVariationReal");
-
-		v2vExchangeDelayReal = registerSignal("v2vExchangeDelayReal");
 
 		lostPacketsV2X = 0;
 		lostPacketsVideo = 0;
@@ -1091,27 +1083,7 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 			connectionsUEtoServ[nodeId] = tmp;
 		}
 
-		//exchange delay
-		if (getSystemModule()->par("v2vCooperativeLaneMerge")) {
-			payload->setName(STATUS_UPDATE.c_str());
-			payload->setStartMeasuringExchangeDelay(simTime());
-			payload->setSchedulingPriority(0);
-			lastSentStatusUpdateSN = payload->getSequenceNumber();
-		}
-
 		socket.sendTo(payload, destAddress_, destPort);
-
-		//send the request at the same time
-		if (getSystemModule()->par("v2vCooperativeLaneMerge")) {
-			V2XMessage *payloadReq = new V2XMessage("request-to-merge");
-			payloadReq->setByteLength(messageLength);
-			payloadReq->setSenderNodeId(nodeId);
-			payloadReq->setSenderName(getParentModule()->getFullName());
-			payloadReq->setTimestamp(simTime());
-			payloadReq->setStartMeasuringExchangeDelay(simTime());
-			payloadReq->setSchedulingPriority(1);
-			socket.sendTo(payloadReq, destAddress_, destPort);
-		}
 
 	} else if (strcmp(packetName, "Video") == 0) {
 
@@ -1400,14 +1372,6 @@ void TrafficGeneratorCarDL::initialize(int stage) {
 		}
 		emit(carNameSignal, carName);
 
-		if (getSystemModule()->par("v2vCooperativeLaneMerge").boolValue()) {
-			localAddress_ = L3AddressResolver().resolve(getParentModule()->getFullName());
-
-			socket.setOutputGate(gate("udpOut"));
-
-			socket.bind(localAddress_, localPort);
-			setSocketOptions();
-		}
 	}
 }
 
@@ -1533,71 +1497,6 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 
 			connectionsServToUE[nodeId] = tmp;
 		}
-
-		//for exchangeDelay
-		if (getSystemModule()->par("v2vCooperativeLaneMerge").boolValue()) {
-			if (strcmp(temp->getName(), STATUS_UPDATE.c_str()) == 0) { //get a status update, Receiver
-				//
-				connectionsServToUE[nodeId].lastReceivedStatusUpdateTime = temp->getStartMeasuringExchangeDelay();
-				connectionsServToUE[nodeId].lastReceivedStatusUpdateSN = temp->getSequenceNumber();
-				connectionsServToUE[nodeId].ackReceived = false;
-				//
-
-			} else if (strcmp(temp->getName(), REQUEST_TO_MERGE.c_str()) == 0) { // get a Reqeuest and send two Messages back, Receiver
-//				if(connectionsServToUE[nodeId].lastReceivedStatusUpdateSN == temp->getSequenceNumber()){
-
-				if (connectionsServToUE[nodeId].lastReceivedStatusUpdateTime != 0 && connectionsServToUE[nodeId].lastReceivedStatusUpdateTime != -1) {
-
-					//send ack
-					unsigned short localNodeId = getNRBinder()->getMacNodeId(L3AddressResolver().resolve(myName).toIPv4());
-					V2XMessage *payload = new V2XMessage(REQUEST_ACK.c_str());
-					payload->setByteLength(temp->getByteLength());
-					payload->setSenderNodeId(localNodeId);
-					payload->setSenderName(myName);
-					payload->setStartMeasuringExchangeDelay(temp->getStartMeasuringExchangeDelay());
-					payload->setSequenceNumber(temp->getSequenceNumber());
-					payload->setSchedulingPriority(0);
-					socket.sendTo(payload, L3AddressResolver().resolve(name), localPort);
-
-					V2XMessage *payloadSafe = new V2XMessage(SAFE_TO_MERGE_DENIAL.c_str());
-					payloadSafe->setByteLength(temp->getByteLength());
-					payloadSafe->setSenderNodeId(localNodeId);
-					payloadSafe->setSenderName(myName);
-					payloadSafe->setStartMeasuringExchangeDelay(temp->getStartMeasuringExchangeDelay());
-					payloadSafe->setSequenceNumber(temp->getSequenceNumber());
-					payloadSafe->setSchedulingPriority(1);
-					socket.sendTo(payloadSafe, L3AddressResolver().resolve(name), localPort);
-
-					//RESET
-					connectionsServToUE[nodeId].lastReceivedStatusUpdateTime = -1;
-					connectionsServToUE[nodeId].ackReceived = false;
-
-				} else {
-					//lost a status update --> delete temp, reset
-					connectionsServToUE[nodeId].lastReceivedStatusUpdateTime = -1;
-					connectionsServToUE[nodeId].ackReceived = false;
-					delete temp;
-					return;
-				}
-
-			} else if (strcmp(temp->getName(), REQUEST_ACK.c_str()) == 0) { //the Sender gehts an ACK,
-
-				connectionsServToUE[nodeId].ackReceived = true;
-
-			} else if (strcmp(temp->getName(), SAFE_TO_MERGE_DENIAL.c_str()) == 0) {
-				//calc the delay
-				if (connectionsServToUE[nodeId].ackReceived) {
-					//calc delay
-					simtime_t delay = NOW - temp->getStartMeasuringExchangeDelay();
-					emit(v2vExchangeDelayReal, delay);
-				}
-
-				connectionsServToUE[nodeId].ackReceived = false;
-				delete temp;
-				return;
-			}
-		}
-		//end exchange delay
 
 		delete temp;
 

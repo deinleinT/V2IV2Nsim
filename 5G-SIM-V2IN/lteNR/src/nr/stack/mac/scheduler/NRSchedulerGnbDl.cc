@@ -24,7 +24,7 @@
  *
  */
 
-#include "NRSchedulerGnbDl.h"
+#include "nr/stack/mac/scheduler/NRSchedulerGnbDl.h"
 
 NRSchedulerGnbDl::NRSchedulerGnbDl() {
 	// TODO Auto-generated constructor stub
@@ -572,7 +572,6 @@ unsigned int NRSchedulerGnbDl::scheduleGrant(MacCid cid, unsigned int bytes, boo
 
 			if (allocatedCws_.find(nodeId) != allocatedCws_.end()) {
 				allocatedCws = allocatedCws_.at(nodeId);
-				//allocatedCws = allocatedCwsNodeCid_.at(cid);
 			}
 			unsigned int bandAvailableBytes = 0;
 			unsigned int bandAvailableBlocks = 0;

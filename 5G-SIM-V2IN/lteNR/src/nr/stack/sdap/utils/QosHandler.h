@@ -32,36 +32,39 @@
 using namespace omnetpp;
 
 struct QosInfo {
-    QosInfo() {
-    }
-    MacNodeId destNodeId;
-    MacNodeId senderNodeId;
-    IPv4Address senderAddress;
-    IPv4Address destAddress;
-    ApplicationType appType;
-    LteTrafficClass trafficClass;
-    unsigned short rlcType;
-    unsigned short lcid = 0;
-    unsigned short qfi = 0;
-    unsigned short radioBearerId = 0;
-    unsigned int cid = 0;
-    bool containsSeveralCids = false;
+	QosInfo() {
+	}
+	MacNodeId destNodeId;
+	MacNodeId senderNodeId;
+	IPv4Address senderAddress;
+	IPv4Address destAddress;
+	ApplicationType appType;
+	LteTrafficClass trafficClass;
+	unsigned short rlcType;
+	unsigned short lcid = 0;
+	unsigned short qfi = 0;
+	unsigned short _5Qi = 0;
+	unsigned short radioBearerId = 0;
+	unsigned int cid = 0;
+	bool containsSeveralCids = false;
 };
 
 //used for Qos-relevant procedures,
 class QosHandler: public cSimpleModule {
 public:
-    QosHandler() {
-    }
-    virtual ~QosHandler() {
-    }
-    virtual LteNodeType getNodeType() {
-        return nodeType;
-    }
+	QosHandler() {
+	}
 
-    virtual std::unordered_map<unsigned int, QosInfo> & getQosInfo() {
-        return QosInfos;
-    }
+	virtual ~QosHandler() {
+	}
+
+	virtual LteNodeType getNodeType() {
+		return nodeType;
+	}
+
+	virtual std::unordered_map<unsigned int, QosInfo>& getQosInfo() {
+		return QosInfos;
+	}
 
     virtual unsigned short getLcid(unsigned int nodeId, unsigned short msgCat) {
         for (auto const & var : QosInfos) {
@@ -103,6 +106,7 @@ public:
         return 2;
     }
 
+    //sorts the qosInfos by its qfi value (from smallest to highest)
     virtual std::vector<std::pair<unsigned int, QosInfo>> getSortedQosInfos() {
         std::vector<std::pair<unsigned int, QosInfo>> tmp;
         for(auto & var : QosInfos){
@@ -116,6 +120,18 @@ public:
     virtual void clearQosInfos(){
         QosInfos.clear();
     }
+
+    //sorts the qosInfos by its qfi value (from smallest to highest)
+	virtual std::vector<std::pair<unsigned int, QosInfo>> getPrioritySortedQosInfos() {
+		std::vector<std::pair<unsigned int, QosInfo>> tmp;
+		for (auto &var : QosInfos) {
+			tmp.push_back(var);
+		}
+		std::sort(tmp.begin(), tmp.end(), [&](std::pair<unsigned int, QosInfo> &a, std::pair<unsigned int, QosInfo> &b) {
+			return (getPriority(a.second._5Qi) > getPriority(b.second._5Qi));
+		});
+		return tmp;
+	}
 
     virtual void modifyControlInfo(LteControlInfo * info){
         info->setApplication(0);
@@ -152,6 +168,16 @@ public:
         return 0;
     }
 
+    virtual unsigned short get5Qi(MacCid cid) {
+		for (auto &var : QosInfos) {
+			if (var.first == cid)
+				return var.second._5Qi;
+		}
+		return 0;
+	}
+
+    //type is the application type V2X, VOD, VOIP, DATA_FLOW
+    //returns the QFI which is pre-configured in QosHandler.ned file
     virtual unsigned short getQfi(ApplicationType type){
         switch(type){
         case V2X:
@@ -163,9 +189,23 @@ public:
         case DATA_FLOW:
             return dataQfi;
         default:
-            throw cRuntimeError("Error in QosHandler - unknown application Type, conversion to QFI not possible");
+        	return dataQfi;
         }
     }
+
+	virtual unsigned short get5Qi(unsigned short qfi) {
+		if (qfi == v2xQfi) {
+			return v2x5Qi;
+		} else if (qfi == videoQfi) {
+			return video5Qi;
+		} else if (qfi == voipQfi) {
+			return voip5Qi;
+		} else if (qfi == dataQfi) {
+			return data5Qi;
+		} else {
+			return data5Qi;
+		}
+	}
 
     virtual unsigned short getRadioBearerId(unsigned short qfi){
         if (qfi == v2xQfi)
@@ -177,7 +217,7 @@ public:
         else if (qfi == dataQfi)
             return dataQfiToRadioBearer;
         else
-            throw cRuntimeError("Error in QosHandler - unknown application Type, conversion to QFI not possible");
+        	return dataQfiToRadioBearer;
     }
 
     virtual void initQfiParams(){
@@ -185,12 +225,43 @@ public:
         videoQfi = par("videoQfi").intValue();
         voipQfi = par("voipQfi").intValue();
         dataQfi = par("dataQfi").intValue();
+
+	v2x5Qi = par("v2x5Qi").intValue();
+	video5Qi = par("video5Qi").intValue();
+	voip5Qi = par("voip5Qi").intValue();
+	data5Qi = par("data5Qi").intValue();
+
         v2xQfiToRadioBearer = par("v2xQfiToRadioBearer").intValue();
         videoQfiToRadioBearer = par("videoQfiToRadioBearer").intValue();
         voipQfiToRadioBearer = par("voipQfiToRadioBearer").intValue();
         dataQfiToRadioBearer = par("dataQfiToRadioBearer").intValue();
     }
 
+    virtual double getCharacteristic(std::string characteristic, unsigned short _5Qi) {
+		QosCharacteristic qosCharacteristics = NRQosCharacteristics::getNRQosCharacteristics()->getQosCharacteristic(_5Qi);
+
+		if (characteristic == "PDB") {
+			return qosCharacteristics.getPdb();
+		} else if (characteristic == "PER") {
+			return qosCharacteristics.getPer();
+		} else if (characteristic == "PRIO") {
+			return qosCharacteristics.getPriorityLevel();
+		} else {
+			throw cRuntimeError("Unknown QoS characteristic");
+		}
+	}
+
+    virtual unsigned short getPriority(unsigned short _5Qi){
+    	return getCharacteristic("PRIO", _5Qi);
+    }
+
+    virtual double getPdb(unsigned short _5Qi){
+    	return getCharacteristic("PDB", _5Qi);
+    }
+
+    virtual double getPer(unsigned short _5Qi){
+    	return getCharacteristic("PER", _5Qi);
+    }
 
 protected:
     LteNodeType nodeType;
@@ -199,6 +270,12 @@ protected:
     unsigned short videoQfi;
     unsigned short voipQfi;
     unsigned short dataQfi;
+
+    unsigned short v2x5Qi;
+    unsigned short video5Qi;
+    unsigned short voip5Qi;
+    unsigned short data5Qi;
+
     unsigned short v2xQfiToRadioBearer;
     unsigned short videoQfiToRadioBearer;
     unsigned short voipQfiToRadioBearer;

@@ -72,6 +72,7 @@ ScheduleListSizes& LcgScheduler::schedule(unsigned int availableBytes, Direction
 
     bool firstSdu = true;
 
+    //gives an overview over all traffic classes which have packets on rlc layer
     LcgMap& lcgMap = mac_->getLcgMap();
     QosHandler * qosHandler = mac_->getQosHandler();
 

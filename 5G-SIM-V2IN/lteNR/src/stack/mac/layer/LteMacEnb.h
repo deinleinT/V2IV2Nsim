@@ -70,7 +70,6 @@ public:
 	void resetScheduleList() {
 		scheduleListDl_->clear();
 	}
-	;
 
 	void deleteFromRtxMap(MacNodeId ueid) {
 		rtxMap.erase(ueid);
