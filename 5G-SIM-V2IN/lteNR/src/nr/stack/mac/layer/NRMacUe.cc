@@ -684,7 +684,9 @@ void NRMacUe::macPduMake(MacCid cid) {
 		// consider virtual buffers to compute BSR size
 		if (macBuffers_.find(destCid) == macBuffers_.end()) {
 			for (auto &var : macBuffers_) {
-				size = size + var.second->getQueueOccupancy();
+				if (var.first == destCid) {
+					size = size + var.second->getQueueOccupancy();
+				}
 			}
 		} else {
 			size = size + macBuffers_[destCid]->getQueueOccupancy();
