@@ -682,8 +682,13 @@ void NRMacUe::macPduMake(MacCid cid) {
 		}
 
 		// consider virtual buffers to compute BSR size
-		size = size + macBuffers_[destCid]->getQueueOccupancy();
-
+		if (macBuffers_.find(destCid) == macBuffers_.end()) {
+			for (auto &var : macBuffers_) {
+				size = size + var.second->getQueueOccupancy();
+			}
+		} else {
+			size = size + macBuffers_[destCid]->getQueueOccupancy();
+		}
 	}
 
 //  Put MAC pdus in H-ARQ buffers
@@ -863,6 +868,7 @@ bool NRMacUe::bufferizePacket(cPacket *pkt) {
 			} else {
 				emit(macBufferOverflowUl_, sample);
 			}
+			pkt->setBitError(true);
 		}
 
 		//EV << "NRMacUe : Using old buffer on node: " << MacCidToNodeId(cid) << " for Lcid: " << MacCidToLcid(cid) << "(cid: " << cid << "), Space left in the Queue: " << queue->getQueueSize() - queue->getByteLength() << "\n";
