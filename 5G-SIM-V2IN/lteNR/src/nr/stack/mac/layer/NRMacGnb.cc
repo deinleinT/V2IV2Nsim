@@ -42,10 +42,12 @@ void NRMacGnb::initialize(int stage) {
 	if (stage == 0) {
 
 		/* Create and initialize MAC Downlink scheduler */
+		delete enbSchedulerDl_;
 		enbSchedulerDl_ = check_and_cast<LteSchedulerEnbDl*>(new NRSchedulerGnbDl());
 		enbSchedulerDl_->initialize(DL, this);
 
 		/* Create and initialize MAC Uplink scheduler */
+		delete enbSchedulerUl_;
 		enbSchedulerUl_ = check_and_cast<LteSchedulerEnbUl*>(new NRSchedulerGnbUl());
 		enbSchedulerUl_->initialize(UL, this);
 		harqProcesses_ = getSystemModule()->par("numberHarqProcesses").intValue();
@@ -848,7 +850,7 @@ bool NRMacGnb::bufferizePacket(cPacket *pkt) {
 			}
 
 			//EV << "LteMacBuffers : Dropped packet: queue" << cid << " is full\n";
-			delete pkt;
+			pkt->setBitError(true);
 			return false;
 		}
 
@@ -865,6 +867,12 @@ void NRMacGnb::handleUpperMessage(cPacket *pkt) {
 
 	FlowControlInfo *lteInfo = check_and_cast<FlowControlInfo*>(pkt->getControlInfo());
 	MacCid cid = idToMacCid(lteInfo->getDestId(), lteInfo->getLcid());
+
+	//true, if in bufferizePacket a macBufferOverflow was detected
+	if(pkt->hasBitError()){
+		delete pkt;
+		return;
+	}
 
 	if (bufferizePacket(pkt)) {
 		enbSchedulerDl_->backlog(cid);

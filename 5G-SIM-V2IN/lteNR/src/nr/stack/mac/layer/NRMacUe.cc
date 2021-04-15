@@ -617,7 +617,7 @@ void NRMacUe::macPduMake(MacCid cid) {
 		LteMacPdu *macPkt;
 		cPacket *pkt;
 
-		//maybe the packet from rlc has not arrived mac layer yet
+		//maybe the packet from rlc has not arrived at mac layer yet
 		if (mbuf_.find(it->first.first) == mbuf_.end()) {
 			continue;
 		}
@@ -682,13 +682,8 @@ void NRMacUe::macPduMake(MacCid cid) {
 		}
 
 		// consider virtual buffers to compute BSR size
-		if (macBuffers_.find(destCid) == macBuffers_.end()) {
-			for (auto &var : macBuffers_) {
-				size = size + var.second->getQueueOccupancy();
-			}
-		} else {
-			size = size + macBuffers_[destCid]->getQueueOccupancy();
-		}
+		size = size + macBuffers_[destCid]->getQueueOccupancy();
+
 	}
 
 //  Put MAC pdus in H-ARQ buffers
@@ -748,10 +743,16 @@ void NRMacUe::macPduMake(MacCid cid) {
 void NRMacUe::handleUpperMessage(cPacket *pkt) {
 //std::cout << "NRMacUe handleUpperMessage start at " << simTime().dbl() << std::endl;
 
-// bufferize packet
+    //bufferize packet
 	bufferizePacket(pkt);
 
-	if (pkt != nullptr && strcmp(pkt->getName(), "lteRlcFragment") == 0) {
+	//true, if in bufferizePacket a macBufferOverflow was detected
+	if(pkt->hasBitError()){
+		delete pkt;
+		return;
+	}
+
+	if (strcmp(pkt->getName(), "lteRlcFragment") == 0) {
 		// new MAC SDU has been received
 		if (pkt->getByteLength() == 0) {
 			delete pkt;
@@ -789,6 +790,7 @@ bool NRMacUe::bufferizePacket(cPacket *pkt) {
 			else
 				cid = lteInfo->getCid();
 		} catch (...) {
+			pkt->setBitError(true);
 			return false;
 		}
 	}
