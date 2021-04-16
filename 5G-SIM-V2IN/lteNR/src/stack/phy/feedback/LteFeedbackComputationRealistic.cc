@@ -15,7 +15,7 @@
 
 #include <math.h>
 #include "stack/phy/feedback/LteFeedbackComputationRealistic.h"
-#include "corenetwork/binder/PhyPisaData.h"
+#include "corenetwork/blerCurves/PhyPisaData.h"
 #include "corenetwork/binder/LteBinder.h"
 
 LteFeedbackComputationRealistic::LteFeedbackComputationRealistic(double targetBler, std::map<MacNodeId, Lambda>* lambda,
@@ -28,6 +28,8 @@ LteFeedbackComputationRealistic::LteFeedbackComputationRealistic(double targetBl
     lambdaMaxTh_ = lambdaMaxTh;
     lambdaRatioTh_ = lambdaRatioTh;
     phyPisaData_ = &(getBinder()->phyPisaData);
+    blerNR = &(getBinder()->blerNR);
+
 
     baseMin_.resize(phyPisaData_->nMcs(), 1);
 }
@@ -156,10 +158,19 @@ Cqi LteFeedbackComputationRealistic::getCqi(TxMode txmode, double snr)
 
 	} else {
 		int newsnr = floor(snr + 0.5);
-		if (newsnr < 0)
-			return 0 + 1;
-		if (newsnr > phyPisaData_->maxSnr())
-			return 15;
+
+		if (getSimulation()->getSystemModule()->par("blerCurvesNR").boolValue()) {
+			if (newsnr < blerNR->minSnr())
+				return 0 + 1;
+			if (newsnr > blerNR->maxSnr())
+				return 15;
+		} else {
+			if (newsnr < 0)
+				return 0 + 1;
+			if (newsnr > phyPisaData_->maxSnr())
+				return 15;
+		}
+
 		unsigned int txm = txModeToIndex[txmode];
 		std::vector<double> min;
 		int found = 0;
@@ -167,7 +178,13 @@ Cqi LteFeedbackComputationRealistic::getCqi(TxMode txmode, double snr)
 
 		min = baseMin_;
 		for (int i = 0; i < phyPisaData_->nMcs(); i++) {
-			double tmp = phyPisaData_->getBler(txm, i, newsnr);
+			double tmp;
+			if (getSimulation()->getSystemModule()->par("blerCurvesNR").boolValue()) {
+				tmp = blerNR->getBler(txm, i, newsnr);
+			} else {
+				tmp = phyPisaData_->getBler(txm, i, newsnr);
+			}
+
 			double diff = targetBler_ - tmp;
 			min[i] = (diff > 0) ? diff : (diff * -1);
 			if (low >= min[i]) {

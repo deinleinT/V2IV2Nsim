@@ -146,7 +146,12 @@ void NRsdapUE::fromUpperToLower(cMessage *msg) {
 
     sdapPkt->setControlInfo(lteInfo);
 
-    send(sdapPkt, lowerLayer);
+	if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
+		//add processing delay
+		sendDelayed(sdapPkt, uniform(0, pkt->getByteLength() / 10e6), lowerLayer);
+	} else {
+		send(sdapPkt, lowerLayer);
+	}
 
     //std::cout << "NRsdap::fromUpperToLower end at " << simTime().dbl() << std::endl;
 }
@@ -166,7 +171,12 @@ void NRsdapUE::fromLowerToUpper(cMessage *msg) {
 
     upPkt->setControlInfo(lteInfo);
 
-    send(upPkt, upperLayer);
+	if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
+		//add processing delay
+		sendDelayed(upPkt, uniform(0, upPkt->getByteLength() / 10e6), upperLayer);
+	} else {
+		send(upPkt, upperLayer);
+	}
 
     //std::cout << "NRsdap::fromLowerToUpper end at " << simTime().dbl() << std::endl;
 }

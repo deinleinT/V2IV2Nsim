@@ -1770,12 +1770,22 @@ bool NRRealisticChannelModel::isCorrupted(LteAirFrame *frame, UserControlInfo *l
 			usedRBs++;
 
 			int snr = snrV[jt->first];        //XXX because jt->first is a Band (=unsigned short)
-			if (snr < 0)
-				return false;
-			else if (snr > binder_->phyPisaData.maxSnr())
-				bler = 0;
-			else
-				bler = binder_->phyPisaData.getBler(itxmode, cqi - 1, snr);
+
+			if (getSimulation()->getSystemModule()->par("blerCurvesNR").boolValue()) {
+				if (snr < binder_->blerNR.minSnr())
+					return false;
+				else if (snr > binder_->blerNR.maxSnr())
+					bler = 0;
+				else
+					bler = binder_->blerNR.getBler(itxmode, cqi - 1, snr);
+			} else {
+				if (snr < 0)
+					return false;
+				else if (snr > binder_->phyPisaData.maxSnr())
+					bler = 0;
+				else
+					bler = binder_->phyPisaData.getBler(itxmode, cqi - 1, snr);
+			}
 
 			//EV << "\t bler computation: [itxMode=" << itxmode << "] - [cqi-1=" << cqi-1                   << "] - [snr=" << snr << "]" << endl;
 
@@ -1831,7 +1841,6 @@ bool NRRealisticChannelModel::isCorrupted(LteAirFrame *frame, UserControlInfo *l
 	//std::cout << "NRRealisticChannelModel::error end at " << simTime().dbl() << std::endl;
 
 	return tmp;
-//	return true;
 }
 
 void NRRealisticChannelModel::considerCodeBlockGroups(LteControlInfo *& info, unsigned char & nTx, double & totalPer, LteAirFrame *& frame){

@@ -8,7 +8,7 @@ We tested the framework with Linux Mint 18.3, 19.3 and Ubuntu 18.04 (we use gcc/
 * Allows simulating different parallel running applications in each vehicle (see default example).
 * Comes by default with a motorway and an urban traffic scenario.
 * Channel Models from ITU-Guidelines (ITU-R M.2412-0) / 3gpp Specification (38.901, RMa, UMa, UMi, InF) are included (see the folder channelConfigs under lteNR/simulationsNR/)
-* Based on the well-known Frameworks SimuLTE, INET and Veins.
+* Based on the well-known Frameworks SimuLTE/Simu5G, INET and Veins.
 
 ### Prerequisites
 * You need *OMNeT++* (version 5.6.2, https://omnetpp.org/download/) for using this framework and the traffic simulator *SUMO* in version 1.8.0 (https://sumo.dlr.de/docs/index.html).
@@ -32,28 +32,7 @@ We tested the framework with Linux Mint 18.3, 19.3 and Ubuntu 18.04 (we use gcc/
 * You need the OMNeT++-R-Package for using the script with R Studio.
 * See the OMNeT++-github-site (https://github.com/omnetpp/omnetpp-resultfiles) for further information how to install the package within R Studio.
 
-### Change log v0.2:
-* Version v0.2 adds further default use cases to the default scenarios: video streaming, remote driving (only in UL), cooperative perception
-* The 5G HARQ mechanism can be turned on/off by setting the flag *nrHarq* in the omnetpp.ini. If that flag is true, in DL and UL 16 parallel HARQ processes are used. The time that is assumed for decoding a HARQ ACK/NACK is reduced to 1ms. In UL the time for receiving a scheduling grant is reduced to 1ms. If the flag is false, the LTE HARQ procedure with 8 parallel processes (asynchronous in DL, synchronous in UL) is used (time for decoding a HARQ ACK/NACK is set to 3ms and also the time for receiving a scheduling grant) is used.
-* If the flag *rtxSignalisedFlag* is set to true, just one HARQ process is active and no other transmissions or retransmissions are considered (until either an ACK is received or the maximum number of retransmission is exceeded for that one active HARQ process).
-
-### Change log v0.3:
-* Enhances the LoS/NLoS-evaluation. Among three approaches for the Los/-NLoS Evaluation can be chosen:
-1. Using the probability formulas from ITU-R M.2412-0. Buildings (if included in your simulated scenario) are not considered dynamically for the LoS/NLoS-evaluation. The building height is used for the path loss calculation. Appropriate for the motorway scenario and all other scenarios without information about buildings. Usage: Set *dynamicNlos = false* in omnetpp.ini.
-2. 2D-Evaluation: The Veins obstacle control is used to detect buildings (see the poly.xml file in the Urban-Scneario-Folder) and determines the LoS with the 2D coordinates of sender and receiver. If one edge of a building intersects with the line of sight between sender and receiver, the NLos case will be considered. Appropriate for motorway and urban scenario. Usage: Set *dynamicNlos = true* in omnetpp.ini.
-3. 3D-Evaluation: In the first place, the 2D evaluation is used to detect buildings in 2D (see 2.). Each coordinate where a 2D intersection with a building edge between sender and receiver is detected, will be checked in the 3D case. The channel model needs the building height to calculate the path loss. Sender and receiver have 3D-coordinates, because the heigth of antennas is also considered for the path loss calculation. If the determined z-coordinate of the intersection is lower than the building height, the sender and the receiver are in the NLos case, vice-versa otherwise. Usage: Set *dynamicNlos = true and NlosEvaluationIn3D = true* in omnetpp.ini.
-
-### Change log v0.3.1:
-* Upgraded Veins to version 5.1 and integrated the roadCanvasVisualizer into the default scenarios.
-
-### Change log v0.3.2:
-* Upgraded INET to version 3.7.0.
-* Added codeblock groups (simplified approach). The function *isCorrupted* in the ChannelModel calls the function *considerCodeBlockGroups* if the corresponding flag (*useCodeBlockGroups = true*)  in the ini-file is set to true (by default set to true). The number of codeblock groups can be configured by the parameter *numberOfCodeBlockGroups* in the ini-file and is set to 8 by default. The size of the whole transport block (the received message) is divided through the number of configured codeblock groups. After that, the calculated *totalPer* is used to calculate how many bytes of the transport block were transmitted correctly and how many are corrupted. Afterwards, it is determined how many codeblock groups cover the corrupted bytes. Example: The message has a size of 800 bytes, the number of configured codeblock groups is 8. One codeblockgroup consists of 100 bytes, the totalPer is assumed to be 0.2, the corrupted bytes are 160 bytes, two codeblock groups (size of 200 bytes) are needed to cover the number of corrupted bytes, the HARQ mechanism retransmits only the two codeblock groups with a size of 200 bytes afterwards.
-* In the *NRPhyUe.cc* the *checkConnection* function checks every 100ms the signal strength of the current connection. If the signal strength (SINR, measured in DL by default) lowers the configured threshold (by default 5db in Downlink) in the ini-file, the Ue is not in coverage of its master base station and the communication stops. If the signal strength exceeds the threshold in a next call of this function a "re-attach" is conducted. Important: Within the *checkConnection* function no handover is conducted (the handover procedure was not changed for this functionality).
-
-### Change log v0.3.3:
-* Added the indoor factory channel models (InF) from 3gpp 38.901 (can be used by setting the ini-parameter * **.scenarioNR = "INDOOR_FACTORY"* and * **.channelModelType = "InFSL"*, channelModelTypes are: InFSL, InFDL, InFSH, InFDH, InFHH. See Table 7.2.4 from 3gpp 38.901 for more information).
-* The channel models RMa, UMa and UMi from 38.901 use the same formulas as the channel models from the already implemented models from the ITU-Guidelines (RMa_B meets RMa, UMa_B meets UMa, UMi_B meets UMi-street canyon; the used model can be configured in the ini-file by changing the parameter * **.channelModelType = "RMa_B"*).
+**See changeLog.txt for information about the latest changes. The current version is v0.3.4**
 
 **MORE INFORMATION IS COMING SOON**
 

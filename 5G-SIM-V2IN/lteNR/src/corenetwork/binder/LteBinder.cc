@@ -129,6 +129,7 @@ void LteBinder::initialize(int stage)
     {
         numBands_ = par("numBands");
         numerology = par("numerology").intValue();
+        blerNR.setBlerShift(par("blerShift"));
     }
 }
 

@@ -111,12 +111,22 @@ void TrafficFlowFilterNR::handleMessage(cMessage *msg) {
 			std::string destinationName = gate("fromToN9Interface$o", i)->getNextGate()->getNextGate()->getOwnerModule()->getName();
 			gateIndex = i;
 			if (connectedUPF_ == destinationName) {
-				send(datagram, "fromToN9Interface$o", i);
+				if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
+					//add processing delay
+					sendDelayed(datagram, uniform(0,datagram->getTotalLengthField()/10e6), "fromToN9Interface$o", i);
+				} else {
+					send(datagram, "fromToN9Interface$o", i);
+				}
 				connectedUPF_ = "";
 				return;
 			}
 		}
-		send(datagram, "fromToN9Interface$o", gateIndex);
+		if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
+			//add processing delay
+			sendDelayed(datagram, uniform(0,datagram->getTotalLengthField()/10e6), "fromToN9Interface$o", gateIndex);
+		} else {
+			send(datagram, "fromToN9Interface$o", gateIndex);
+		}
 		connectedUPF_ = "";
 	} else {
 		// add control info to the normal ip datagram. This info will be read by the GTP-U application
@@ -154,8 +164,13 @@ void TrafficFlowFilterNR::handleMessage(cMessage *msg) {
 
 		//EV << "TrafficFlowFilterNR::handleMessage - setting tft=" << tftId << endl;
 
-		// send the datagram to the GTP-U module
-		send(datagram, "gtpUserGateOut");
+		if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
+			//add processing delay
+			sendDelayed(datagram, uniform(0,datagram->getTotalLengthField()/10e6),"gtpUserGateOut");
+		} else {
+			// send the datagram to the GTP-U module
+			send(datagram, "gtpUserGateOut");
+		}
 	}
 
 	//std::cout << "TrafficFlowFilterNR::handleMessage end at " << simTime().dbl() << std::endl;

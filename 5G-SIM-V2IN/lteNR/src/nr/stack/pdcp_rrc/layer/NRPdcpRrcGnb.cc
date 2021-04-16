@@ -75,8 +75,12 @@ void NRPdcpRrcGnb::toDataPort(cPacket *pkt) {
 
     upPkt->setControlInfo(lteInfo);
 
-    // Send message
-    send(upPkt, dataPort_[OUT]);
+	if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
+		sendDelayed(upPkt, uniform(0, upPkt->getByteLength() / 10e5), dataPort_[OUT]);
+	} else {
+		// Send message
+		send(upPkt, dataPort_[OUT]);
+	}
 
     emit(sentPacketToUpperLayer, upPkt);
 
@@ -167,9 +171,12 @@ void NRPdcpRrcGnb::fromDataPort(cPacket *pkt) {
 
     //EV << "NRPdcpRrcGnb : Sending packet " << pdcpPkt->getName() << " on port " << (lteInfo->getRlcType() == UM ? "UM_Sap$o\n" : "AM_Sap$o\n");
 
-    // Send message
-    send(pdcpPkt, (lteInfo->getRlcType() == UM ? umSap_[OUT] : amSap_[OUT]));
-//    send(pdcpPkt, umSap_[OUT]);
+	if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
+		sendDelayed(pdcpPkt, uniform(0, pdcpPkt->getByteLength() / 10e5), (lteInfo->getRlcType() == UM ? umSap_[OUT] : amSap_[OUT]));
+	} else {
+		// Send message
+		send(pdcpPkt, (lteInfo->getRlcType() == UM ? umSap_[OUT] : amSap_[OUT]));
+	}
 
     emit(sentPacketToLowerLayer, pdcpPkt);
 

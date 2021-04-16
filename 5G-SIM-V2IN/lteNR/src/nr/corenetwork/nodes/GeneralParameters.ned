@@ -31,7 +31,7 @@ network GeneralParameters{
         bool v2vMulticastFlag = default(false);
         double v2vMulticastDistance = default(300.0);
 
-		//TRANSMIT_DIVERSITY        OL_SPATIAL_MULTIPLEXING,MULTI_USER,SINGLE_ANTENNA_PORT0
+		//TRANSMIT_DIVERSITY, OL_SPATIAL_MULTIPLEXING,MULTI_USER,SINGLE_ANTENNA_PORT0
         string initialTxMode = default("SINGLE_ANTENNA_PORT0"); 
         bool remoteDrivingUL = default(false); //use case remote driving in UL activated
         bool remoteDrivingDL = default(false); //use case remote driving in UL activated
@@ -57,7 +57,7 @@ network GeneralParameters{
         //
         bool useSINRThreshold = default(true); //checks if the SINR of a UE is lower than SINRThreshold in UL
         string thresholdDirection = default("DL");
-        int SINRThreshold = default(0); // if useSINRThreshold true, the SINR is used to check, whether a UE is in coverage or not, if the SINR to all Base stations is lower than this value, the UE is not connected to any base station
+        int SINRThreshold = default(-15); // if useSINRThreshold true, the SINR is used to check, whether a UE is in coverage or not, if the SINR to all Base stations is lower than this value, the UE is not connected to any base station
         double checkConnectionInterval @unit(s) = default(0.1s);
         **.dasRssiThreshold = SINRThreshold; 
         
@@ -70,4 +70,14 @@ network GeneralParameters{
         //Records the vehicle position in downlink and uplink when a packet loss at application layer was detected
         bool recordPositionAndPacketLoss = default(false);
         
+        //if true, a uniform random processing delay is considered in downlink and uplink
+        //in the modules NRsdapUE, NRsdapGNB, NRPdcpRrcUe, NRPdcpRrcGnb, TrafficFlowFilterNR, GtpUserNR
+        //the delay is calculated by this formula: uniform(0, totalPacketSizeInBytes / 10e5)
+        bool considerProcessingDelay = default(false);
+        
+        //if true, blerCurves from simu5G are used by default
+        bool blerCurvesNR = default(true);
+        //TU --> range from SINR -14.5 - 38
+        //AWGN --> rangr from SINR -14.5 - 22.5
+        string blerVersion = default("AWGN");
 }

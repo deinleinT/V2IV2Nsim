@@ -12,6 +12,7 @@
 
 #include "stack/phy/feedback/LteFeedbackComputation.h"
 
+class BlerNR;
 class PhyPisaData;
 class LteFeedbackComputationRealistic : public LteFeedbackComputation
 {
@@ -27,6 +28,7 @@ class LteFeedbackComputationRealistic : public LteFeedbackComputation
     double lambdaRatioTh_;
     //pointer to pisadata
     PhyPisaData* phyPisaData_;
+    BlerNR * blerNR;
 
     std::vector<double> baseMin_;
 

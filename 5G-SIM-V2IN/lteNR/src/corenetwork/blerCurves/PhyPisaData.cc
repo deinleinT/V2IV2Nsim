@@ -9,7 +9,7 @@
 
 
 #include <omnetpp.h>
-#include "corenetwork/binder/PhyPisaData.h"
+#include "corenetwork/blerCurves/PhyPisaData.h"
 
 double blerCurvesNew[3][15][49]={
         {

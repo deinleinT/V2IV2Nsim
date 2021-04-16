@@ -22,7 +22,8 @@
 #include "common/LteCommon.h"
 #include "inet/networklayer/contract/ipv4/IPv4Address.h"
 #include "inet/networklayer/common/L3Address.h"
-#include "corenetwork/binder/PhyPisaData.h"
+#include "corenetwork/blerCurves/PhyPisaData.h"
+#include "nr/corenetwork/blerCurves/BlerNR.h"
 #include "corenetwork/nodes/ExtCell.h"
 #include "stack/mac/layer/LteMacBase.h"
 
@@ -380,6 +381,7 @@ public:
 	 */
 	ConnectedUesMap getDeployedUes(MacNodeId localId);
 	PhyPisaData phyPisaData;
+	BlerNR blerNR;
 
 	int getNodeCount() {
 		Enter_Method_Silent

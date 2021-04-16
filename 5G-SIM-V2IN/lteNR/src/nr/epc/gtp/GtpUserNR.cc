@@ -145,7 +145,13 @@ void GtpUserNR::handleFromUdp(GtpUserMsg * gtpMsg) {
 		} else {
 			// destination is outside the network
 			//EV << "GtpUserSimplified::handleFromUdp - Deliver datagram to the internet " << endl;
-			send(datagram, "pppGate");
+
+			if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
+				//add processing delay
+				sendDelayed(datagram, uniform(0,datagram->getTotalLengthField()/10e6), "pppGate");
+			} else {
+				send(datagram, "pppGate");
+			}
 		}
 	} else if (ownerType_ == ENB || ownerType_ == GNB) {
 		IPv4Address& destAddr = datagram->getDestAddress();

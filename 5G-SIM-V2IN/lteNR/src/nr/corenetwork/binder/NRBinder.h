@@ -93,6 +93,5 @@ protected:
 	virtual void initialize(int stages);
 	unsigned int losDetected;
 	unsigned int nlosDetected;
-
 };
 
