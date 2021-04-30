@@ -1773,14 +1773,14 @@ bool NRRealisticChannelModel::isCorrupted(LteAirFrame *frame, UserControlInfo *l
 
 			if (getSimulation()->getSystemModule()->par("blerCurvesNR").boolValue()) {
 				if (snr < binder_->blerNR.minSnr())
-					return false;
+				    bler = 1;
 				else if (snr > binder_->blerNR.maxSnr())
 					bler = 0;
 				else
 					bler = binder_->blerNR.getBler(itxmode, cqi - 1, snr);
 			} else {
 				if (snr < 0)
-					return false;
+					bler = 1;
 				else if (snr > binder_->phyPisaData.maxSnr())
 					bler = 0;
 				else
