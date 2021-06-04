@@ -40,5 +40,4 @@ simple NRBinder extends LteBinder
         string maxDataBurstVolume = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 255 1354 1354 255";
         string defAveragingWindow = "2 2 2 2 2 2 2 0 2 2 2 2 2 0 0 0 0 0 0 0 0 0 2 2 2 2";//@unit(s)
         bool exchangeBuffersOnHandover = default(false);
-        
 }

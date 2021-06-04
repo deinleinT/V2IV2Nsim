@@ -564,7 +564,13 @@ std::vector<double> NRRealisticChannelModel::getSINR(LteAirFrame *frame, UserCon
 		d2d = sqrt(pow(ueCoord.x - enbCoord.x, 2) + pow(ueCoord.y - enbCoord.y, 2));
 
 		//cqiDl = true;
-		speed = computeSpeed(ueId, ueCoord, movement);
+		//speed = computeSpeed(ueId, ueCoord, movement);
+		if (ueId >= UE_MIN_ID && ueId <= UE_MAX_ID) {
+			//meter per seconds
+			speed = getNRBinder()->getVehicleSpeed(ueId);
+		} else {
+			speed = computeSpeed(ueId, ueCoord, movement);
+		}
 
 	}
 	/*
@@ -597,7 +603,13 @@ std::vector<double> NRRealisticChannelModel::getSINR(LteAirFrame *frame, UserCon
 		d3d = ueCoord.distance(enbCoord);
 		d2d = sqrt(pow(ueCoord.x - enbCoord.x, 2) + pow(ueCoord.y - enbCoord.y, 2));
 
-		speed = computeSpeed(ueId, ueCoord, movement);
+		//speed = computeSpeed(ueId, ueCoord, movement);
+		if (ueId >= UE_MIN_ID && ueId <= UE_MAX_ID) {
+			//meter per seconds
+			speed = getNRBinder()->getVehicleSpeed(ueId);
+		} else {
+			speed = computeSpeed(ueId, ueCoord, movement);
+		}
 //			cqiDl = true;
 	}
 	/*
@@ -647,8 +659,13 @@ std::vector<double> NRRealisticChannelModel::getSINR(LteAirFrame *frame, UserCon
 
 		d3d = enbCoord.distance(ueCoord);
 		d2d = sqrt(pow(coord.x - enbCoord.x, 2) + pow(coord.y - enbCoord.y, 2));
-		speed = computeSpeed(ueId, ueCoord, movement);
-
+		//speed = computeSpeed(ueId, ueCoord, movement);
+		if (ueId >= UE_MIN_ID && ueId <= UE_MAX_ID) {
+			//meter per seconds
+			speed = getNRBinder()->getVehicleSpeed(ueId);
+		} else {
+			speed = computeSpeed(ueId, ueCoord, movement);
+		}
 	}
 	//LteCellInfo *eNbCell = getCellInfo(eNbId);
 	//const char *eNbTypeString = eNbCell ? (eNbCell->getEnbType() == MACRO_ENB ? "MACRO" : "MICRO") : "NULL";
@@ -716,7 +733,7 @@ std::vector<double> NRRealisticChannelModel::getSINR(LteAirFrame *frame, UserCon
 		double finalRecvPower = recvPower + fadingAttenuation; // (dBm+dB)=dBm
 
 		//if txmode is multi user the tx power is dived by the number of paired user
-		// in db divede by 2 means -3db
+		// in db divide by 2 means -3db
 		if (lteInfo->getTxMode() == MULTI_USER) {
 			finalRecvPower -= 3;
 		}
@@ -913,17 +930,24 @@ void NRRealisticChannelModel::computeLosProbabilityNR(const double &d2d, const M
 double NRRealisticChannelModel::getAttenuationNR(const MacNodeId &nodeId, const Direction &dir, const Coord &uecoord, const Coord &enodebcoord, bool recordStats) {
 	//std::cout << "NRRealisticChannelModel::getAttenuationNR start at " << simTime().dbl() << std::endl;
 
-	double movement = .0;
+	double correlationDist = .0;
 	double speed = .0;
 
 	double d3ddistance = enodebcoord.distance(uecoord);
 	double d2ddistance = sqrt(pow(enodebcoord.x - uecoord.x, 2) + pow(enodebcoord.y - uecoord.y, 2));
 
-	speed = computeSpeed(nodeId, uecoord, movement);
+	if (nodeId >= UE_MIN_ID && nodeId <= UE_MAX_ID) {
+		//meter per seconds
+		speed = getNRBinder()->getVehicleSpeed(nodeId);
+		ASSERT(speed >= 0 && speed <= 60);
+		correlationDist = computeCorrelationDistance(nodeId, uecoord);
+	} else {
+		speed = computeSpeed(nodeId, uecoord, correlationDist);
+	}
 
 	//If traveled distance is greater than correlation distance UE could have changed its state and
 	// its visibility from eNodeb, hence it is correct to recompute the los probability
-	if (dynamicNlos_ && (movement >= correlationDistance_ || losMap_.find(nodeId) == losMap_.end())) {
+	if (dynamicNlos_ && (correlationDist >= correlationDistance_ || losMap_.find(nodeId) == losMap_.end())) {
 		bool nlos;
 
 		if (dir == DL) {
@@ -939,7 +963,7 @@ double NRRealisticChannelModel::getAttenuationNR(const MacNodeId &nodeId, const 
 			else
 				getNRBinder()->incrementLosDetected();
 		}
-	} else if (movement >= correlationDistance_ || losMap_.find(nodeId) == losMap_.end()) { // use NLOS Probability of the ITU-ChannelModels
+	} else if (correlationDist >= correlationDistance_ || losMap_.find(nodeId) == losMap_.end()) { // use NLOS Probability of the ITU-ChannelModels
 		computeLosProbabilityNR(d2ddistance, nodeId, recordStats);
 	}
 

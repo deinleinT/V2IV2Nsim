@@ -287,6 +287,30 @@ double LteRealisticChannelModel::getAttenuation_D2D(MacNodeId nodeId, Direction 
    return attenuation;
 }
 
+void LteRealisticChannelModel::updateCorrelationDistance(const MacNodeId nodeId, const inet::Coord coord){
+
+    if (lastCorrelationPoint_.find(nodeId) == lastCorrelationPoint_.end()){
+        // no lastCorrelationPoint set current point.
+        lastCorrelationPoint_[nodeId] = Position(NOW, coord);
+    } else if ((lastCorrelationPoint_[nodeId].first != NOW) &&
+                lastCorrelationPoint_[nodeId].second.distance(coord) > correlationDistance_) {
+        // check simtime_t first
+        lastCorrelationPoint_[nodeId] = Position(NOW, coord);
+    }
+}
+
+double LteRealisticChannelModel::computeCorrelationDistance(const MacNodeId nodeId, const inet::Coord coord){
+    double dist = 0.0;
+
+    if (lastCorrelationPoint_.find(nodeId) == lastCorrelationPoint_.end()){
+        // no lastCorrelationPoint found. Add current position and return dist = 0.0
+        lastCorrelationPoint_[nodeId] = Position(NOW, coord);
+    } else {
+        dist = lastCorrelationPoint_[nodeId].second.distance(coord);
+    }
+    return dist;
+}
+
 void LteRealisticChannelModel::updatePositionHistory(const MacNodeId nodeId,
        const Coord coord)
 {

@@ -66,6 +66,14 @@ public:
 		return tmp->calculateAttenuation(send, rec);
 	}
 
+	virtual double getVehicleSpeed(MacNodeId ueId){
+		LteMacBase *mac = getMacFromMacNodeId(ueId);
+		cModule * car = mac->getParentModule()->getParentModule();
+		cModule * mobil = car->getSubmodule("mobility");
+		veins::VeinsInetMobility *mobility = check_and_cast<veins::VeinsInetMobility*>(mobil);
+		return mobility->getVehicleCommandInterface()->getSpeed();
+	}
+
 	virtual void setExchangeBuffersHandoverFlag(bool flag) {
 		this->exchangeBuffersOnHandover = flag;
 	}

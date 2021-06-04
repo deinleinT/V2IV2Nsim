@@ -129,7 +129,7 @@ McsTableNROne::McsTableNROne() {
     table[28] = MCSelemNR(_64QAM, 948.0);
 }
 
-//Tables from 38.214, 6.1.
+//Table from 38.214, 6.1.
 McsTableNRTwo::McsTableNRTwo() {
     table[0] = MCSelemNR(_QPSK, 120.0 );
     table[1] = MCSelemNR(_QPSK, 157.0);

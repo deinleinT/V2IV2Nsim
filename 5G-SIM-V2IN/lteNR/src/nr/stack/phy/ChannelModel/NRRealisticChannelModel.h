@@ -54,6 +54,7 @@ public:
 		positionHistory_.erase(nodeId);
 		losMap_.erase(nodeId);
 		lastComputedSF_.erase(nodeId);
+		lastCorrelationPoint_.erase(nodeId);
 		jakesFadingMap_.erase(nodeId);
 	}
 	inet::Coord& getMyPosition() {

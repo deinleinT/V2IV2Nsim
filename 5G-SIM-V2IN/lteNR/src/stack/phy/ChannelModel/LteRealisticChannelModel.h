@@ -66,6 +66,10 @@ class LteRealisticChannelModel : public LteChannelModel
   // last position of current user
   std::map<MacNodeId, std::queue<Position> > positionHistory_;
 
+  // last position of current user at which probability of LOS
+  // was computed.
+  std::map<MacNodeId, Position> lastCorrelationPoint_;
+
   // scenario
   DeploymentScenario scenario_;
 
@@ -332,6 +336,18 @@ protected:
    * @param nodeid mac node id of UE
    */
   void updatePositionHistory(const MacNodeId nodeId, const inet::Coord coord);
+
+	/*
+	 * compute the euclidean distance between the current position and the
+	 * last position used to calculate the LOS probability
+	 */
+	double computeCorrelationDistance(const MacNodeId nodeId, const inet::Coord coord);
+
+	/*
+	 * update base point if distance to previous value is greater than the
+	 * correlationDistance_
+	 */
+	void updateCorrelationDistance(const MacNodeId nodeId, const inet::Coord coord);
 
   /*
    * compute total interference due to eNB coexistence for the DL direction
