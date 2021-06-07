@@ -24,3 +24,4 @@
 ### Change log v0.3.4:
 * Added BLER Curves from Simu5G. By default, the AWGN variation is used (see 5G-SIM-V2IN/lteNR/src/nr/corenetwork/blerCurves/BlerNR.h, SINR-range from -14.5 to 22.5). The variation "TU" can be set via ini-file: **.blerVersion = "TU" (SINR-range from -14.5 to 38).
 * A uniform random processing delay can be added by setting the **.considerProcessingDelay = true. In DL and UL the following modules are considered: NRsdapUE, NRsdapGNB, NRPdcpRrcUe, NRPdcpRrcGnb, TrafficFlowFilterNR, GtpUserNR. The processing delay is calculated by this formula: uniform(0, totalPacketSizeInBytes / 10e5).
+* The speed value (meter / second) for a vehicle is retrieved from sumo (only once for the same sim time).
