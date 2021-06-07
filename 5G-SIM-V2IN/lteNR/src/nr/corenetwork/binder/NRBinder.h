@@ -67,11 +67,27 @@ public:
 	}
 
 	virtual double getVehicleSpeed(MacNodeId ueId){
-		LteMacBase *mac = getMacFromMacNodeId(ueId);
-		cModule * car = mac->getParentModule()->getParentModule();
-		cModule * mobil = car->getSubmodule("mobility");
-		veins::VeinsInetMobility *mobility = check_and_cast<veins::VeinsInetMobility*>(mobil);
-		return mobility->getVehicleCommandInterface()->getSpeed();
+		const std::pair<MacNodeId,simtime_t> key = std::make_pair(ueId, NOW);
+		std::map<std::pair<MacNodeId,simtime_t>, double>::const_iterator vehiclesSpeedMapIt = vehiclesSpeedMap.begin();
+		if(vehiclesSpeedMap.find(key) != vehiclesSpeedMap.end()){
+			//found the value
+			return vehiclesSpeedMap[key];
+		}else{
+			//not found --> remove old values
+			for (; vehiclesSpeedMapIt != vehiclesSpeedMap.end();) {
+				if (vehiclesSpeedMapIt->first.first == ueId) {
+					vehiclesSpeedMapIt = vehiclesSpeedMap.erase(vehiclesSpeedMapIt);
+				}else{
+					++vehiclesSpeedMapIt;
+				}
+			}
+			LteMacBase *mac = getMacFromMacNodeId(ueId);
+			cModule * car = mac->getParentModule()->getParentModule();
+			veins::VeinsInetMobility *mobility = check_and_cast<veins::VeinsInetMobility*>(car->getSubmodule("mobility"));
+			double speed = mobility->getVehicleCommandInterface()->getSpeed();
+			vehiclesSpeedMap[key] = speed;
+			return speed;
+		}
 	}
 
 	virtual void setExchangeBuffersHandoverFlag(bool flag) {
@@ -93,6 +109,8 @@ public:
 
 
 protected:
+	std::map<std::pair<MacNodeId,simtime_t>, double> vehiclesSpeedMap;
+
 	virtual void finish();
 	//Gnb Id, the connected UPFs
 	std::map<MacNodeId, std::string> upfGnbMap;
