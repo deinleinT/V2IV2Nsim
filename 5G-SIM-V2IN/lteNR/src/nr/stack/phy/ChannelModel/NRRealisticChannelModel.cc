@@ -799,6 +799,7 @@ std::vector<double> NRRealisticChannelModel::getSINR(LteAirFrame *frame, UserCon
 
 	if (ueId >= UE_MIN_ID && ueId <= UE_MAX_ID) {
 		updatePositionHistory(ueId, ueCoord);
+		updateCorrelationDistance(ueId, ueCoord);
 	}
 
 	if (lastStatisticRecord != NOW) {
@@ -1054,6 +1055,7 @@ double NRRealisticChannelModel::getAttenuationNR(const MacNodeId &nodeId, const 
 
 	if (nodeId >= UE_MIN_ID && nodeId <= UE_MAX_ID) {
 		updatePositionHistory(nodeId, uecoord);
+		updateCorrelationDistance(nodeId, uecoord);
 	}
 
 	//EV << "NRRealisticChannelModel::getAttenuation - computed attenuation at distance(2d) " << d2ddistance << " (3d) " << d3ddistance << " for eNb is " << attenuation << endl;
@@ -1164,6 +1166,7 @@ double NRRealisticChannelModel::calcDistanceBreakPoint(const double &d2d) {
 		g = (5 / 4) * pow(d2d / 100, 3) * exp(-d2d / 150);
 
 //calc C(d2d,hUT)
+	//in most cases ue_height is < 13m
 	if (hUe_ < 13)
 		c = 0.0;
 	else if (13 <= hUe_ && hUe_ <= 23) {
@@ -1174,13 +1177,21 @@ double NRRealisticChannelModel::calcDistanceBreakPoint(const double &d2d) {
 	double random = omnetpp::uniform(getEnvir()->getRNG(0), 0.0, 1.0);
 	if (random <= probability)
 		he = 1.0;
-	else
-		he = omnetpp::uniform(getEnvir()->getRNG(0), 10.5, hUe_ - 1.5);
+	else {
+		double value = hUe_ - 1.5;
+		std::vector<double> vec;
+		vec.push_back(value);
+		for (double i = 12; i < value; i = i + 3) {
+			vec.push_back(i);
+		}
+		int position = intuniform(0, vec.size() - 1);
+		he = vec.at(position);
+	}
 
 	hBS = hNodeB_ - he;
 	hUT = hUe_ - he;
 
-	dbp = 4 * hBS * hUT * (carrierFrequency_ * 1000000000 / SPEED_OF_LIGHT);
+	dbp = 4.0 * hBS * hUT * (carrierFrequency_ * 1000000000 / SPEED_OF_LIGHT);
 
 	//std::cout << "NRRealisticChannelModel::calcDistanceBreakPoint end at " << simTime().dbl() << std::endl;
 
@@ -1563,8 +1574,8 @@ double NRRealisticChannelModel::computeUMaA(double &d3d, double &d2d, const MacN
 			if (!(10 <= d2d && d2d <= 5000 && wStreet_ == 20 /*&& hBuilding_ == 20*/))
 				throw cRuntimeError("Error LOS UMaA path loss model --> d2d, wStreet or hBuidling not valid");
 			plumaLos = computePLumaLos(d3d, d2d);
-			plumaNlos = 161.04 - 7.1 * log10(wStreet_) + 7.5 * log10(hBuilding_) - (24.37 - 3.7 * pow(hBuilding_ / hNodeB_, 2)) * log10(hNodeB_) + (43.42 - 3.1 * log10(hNodeB_)) * (log10(d3d) - 3)
-					+ 20 * log10(carrierFrequency_) - (3.2 * pow(log10(17.625), 2) - 4.97) - 0.6 * (hUe_ - 1.5);
+			plumaNlos = 161.04 - 7.1 * log10(wStreet_) + 7.5 * log10(hBuilding_) - (24.37 - 3.7 * pow(hBuilding_ / hNodeB_, 2.0)) * log10(hNodeB_) + (43.42 - 3.1 * log10(hNodeB_)) * (log10(d3d) - 3.0)
+					+ 20.0 * log10(carrierFrequency_) - (pow(3.2 * log10(17.625), 2.0) - 4.97) - 0.6 * (hUe_ - 1.5);
 
 		} else if (6 < carrierFrequency_ && carrierFrequency_ <= 100) {
 			plumaLos = computePLumaLos(d3d, d2d);
