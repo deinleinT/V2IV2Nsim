@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Mo 07 Jun 2021 15:57:18 CEST by Eclipse SUMO netedit Version 1.8.0
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
+
+    <input>
+        <sumo-net-file value="/home/tom/simulationen/omnetpp-5.6.2/wsFraunhoferInet370/lteNR/simulationsNR/Validation/test.net.xml"/>
+    </input>
+
+    <output>
+        <output-file value="/home/tom/simulationen/omnetpp-5.6.2/wsFraunhoferInet370/lteNR/simulationsNR/Validation/test2.net.xml"/>
+    </output>
+
+    <processing>
+        <geometry.min-radius.fix.railways value="false"/>
+        <geometry.max-grade.fix value="false"/>
+        <offset.disable-normalization value="true"/>
+        <lefthand value="false"/>
+    </processing>
+
+    <junctions>
+        <no-turnarounds value="true"/>
+        <junctions.corner-detail value="0"/>
+        <junctions.limit-turn-speed value="-1"/>
+        <rectangular-lane-cut value="false"/>
+    </junctions>
+
+    <pedestrian>
+        <walkingareas value="false"/>
+    </pedestrian>
+
+    <report>
+        <aggregate-warnings value="5"/>
+    </report>
+
+</configuration>
+-->
+
+<net version="1.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+
+    <location netOffset="0.00,0.00" convBoundary="0.00,3000.00,5000.00,3000.00" origBoundary="0.00,0.00,5000.00,5000.00" projParameter="!"/>
+
+    <edge id=":1/1_0" function="internal">
+        <lane id=":1/1_0_0" index="0" speed="50.00" length="0.10" shape="2000.00,1998.40 2000.00,1998.40"/>
+    </edge>
+
+    <edge id="0/1to1/1" from="0/1" to="1/1" priority="-1">
+        <lane id="0/1to1/1_0" index="0" speed="50.00" length="2000.00" shape="0.00,1998.40 2000.00,1998.40"/>
+    </edge>
+    <edge id="1/1to2/1" from="1/1" to="2/1" priority="-1">
+        <lane id="1/1to2/1_0" index="0" speed="50.00" length="2000.00" shape="2000.00,1998.40 4000.00,1998.40"/>
+    </edge>
+
+    <junction id="0/1" type="dead_end" x="0.00" y="2000.00" incLanes="" intLanes="" shape="0.00,2000.00 0.00,1996.80"/>
+    <junction id="1/1" type="traffic_light_unregulated" x="2000.00" y="2000.00" incLanes="0/1to1/1_0" intLanes=":1/1_0_0" shape="2000.00,2000.00 2000.00,1996.80 2000.00,2000.00"/>
+    <junction id="2/1" type="dead_end" x="4000.00" y="2000.00" incLanes="1/1to2/1_0" intLanes="" shape="4000.00,1996.80 4000.00,2000.00"/>
+
+    <connection from="0/1to1/1" to="1/1to2/1" fromLane="0" toLane="0" via=":1/1_0_0" dir="s" state="M"/>
+
+    <connection from=":1/1_0" to="1/1to2/1" fromLane="0" toLane="0" dir="s" state="M"/>
+
+</net>
