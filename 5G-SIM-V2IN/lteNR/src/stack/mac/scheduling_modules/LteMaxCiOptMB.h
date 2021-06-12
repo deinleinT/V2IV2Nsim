@@ -1,9 +1,13 @@
-/*
- * LteMaxCiOptMB.h
- *
- *  Created on: Apr 22, 2014
- *      Author: antonio
- */
+//
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
+//
+// This file is part of a software released under the license included in file
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
+// and cannot be removed from it.
+//
 
 #ifndef LTEMAXCIOPTMB_H_
 #define LTEMAXCIOPTMB_H_
@@ -12,20 +16,18 @@
 #include <string>
 #include "stack/mac/amc/AmcPilot.h"
 
-using namespace std;
-
 typedef std::map< MacNodeId,std::vector<BandLimit> > SchedulingDecision;
-typedef map<MacNodeId,UsableBands> UsableBandList;
+typedef std::map<MacNodeId,UsableBands> UsableBandList;
 
 class LteMaxCiOptMB : public virtual LteScheduler
 {
 
-    string problemFile_;
-    string solutionFile_;
+    std::string problemFile_;
+    std::string solutionFile_;
 
 
-    vector<MacNodeId> ueList_;
-    vector<MacCid> cidList_;
+    std::vector<MacNodeId> ueList_;
+    std::vector<MacCid> cidList_;
     SchedulingDecision schedulingDecision_;
 
     UsableBandList usableBands_;
@@ -48,17 +50,6 @@ public:
     virtual void prepareSchedule();
 
     virtual void commitSchedule();
-
-
-
-    // *****************************************************************************************
-
-
-    void notifyActiveConnection(MacCid cid);
-
-    void removeActiveConnection(MacCid cid);
-
-    void updateSchedulingInfo();
 
 };
 

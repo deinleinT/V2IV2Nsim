@@ -25,16 +25,21 @@ import inet.physicallayer.base.packetlevel.DimensionalTransmitterBase;
 // their analog representation. The bit domain, symbol domain, and sample
 // domains of the transmissions are not represented.
 //
-// See also ~Ieee80211DimensionalReceiver, ~Ieee80211DimensionalRadio, and
+// @see ~Ieee80211DimensionalReceiver, ~Ieee80211DimensionalRadio,
 // ~Ieee80211DimensionalRadioMedium.
+//
+// Some example values for the frequencyGains parameter:
+// - default (flat signal): "left s 0dB either e 0dB right"
+// - 802.11a/g/n/ac OFDM spectral mask (for 20/40/80/160MHz bandwidth): "left c-b*1.5 -40dB linear c-b -28dB linear c-b*0.5-1MHz -20dB linear c-b*0.5+1MHz 0dB linear c+b*0.5-1MHz 0dB linear c+b*0.5+1MHz -20dB linear c+b -28dB linear c+b*1.5 -40dB right"
 //
 module Ieee80211DimensionalTransmitter extends DimensionalTransmitterBase
 {
     parameters:
         // TODO: remove parameters when base module is changed
-        string opMode @enum("a", "b", "g(erp)", "g(mixed)", "n", "p");
-        string bandName @enum("2.4 GHz", "5 GHz");
+        string opMode @enum("a", "b", "g(erp)", "g(mixed)", "n(mixed-2.4Ghz)", "p", "ac");
+        string bandName @enum("2.4 GHz", "5 GHz", "5 GHz (20 MHz)", "5 GHz (40 MHz)", "5 GHz (80 MHz)", "5 GHz (160 MHz)", "5.9 GHz");
         int channelNumber;
         modulation = default("BPSK"); // TODO: this is simply wrong
         @class(Ieee80211DimensionalTransmitter);
 }
+

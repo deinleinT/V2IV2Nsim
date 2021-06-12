@@ -16,11 +16,10 @@
 //
 //
 
-#include "GaugeFigure.h"
 #include "inet/common/INETUtils.h"
+#include "inet/common/figures/GaugeFigure.h"
 
-//TODO namespace inet { -- for the moment commented out, as OMNeT++ 5.0 cannot instantiate a figure from a namespace
-using namespace inet;
+namespace inet {
 
 Register_Figure("gauge", GaugeFigure);
 
@@ -64,11 +63,11 @@ GaugeFigure::~GaugeFigure()
 {
     // delete figures which is not in canvas
     for (size_t i = curvesOnCanvas; i < curveFigures.size(); ++i)
-        dropAndDelete(curveFigures[i]);
+        delete curveFigures[i];
 
     for (size_t i = numTicks; i < tickFigures.size(); ++i) {
-        dropAndDelete(tickFigures[i]);
-        dropAndDelete(numberFigures[i]);
+        delete tickFigures[i];
+        delete numberFigures[i];
     }
 }
 
@@ -113,7 +112,7 @@ void GaugeFigure::setLabel(const char *text)
     labelFigure->setText(text);
 }
 
-const int GaugeFigure::getLabelOffset() const
+int GaugeFigure::getLabelOffset() const
 {
     return labelOffset;
 }
@@ -398,12 +397,10 @@ void GaugeFigure::redrawTicks()
     numTicks = std::max(0.0, std::abs(max - min - shifting) / tickSize + 1);
 
     // Allocate ticks and numbers if needed
-    if (numTicks > tickFigures.size())
-        while (numTicks > tickFigures.size()) {
+    if ((size_t)numTicks > tickFigures.size())
+        while ((size_t)numTicks > tickFigures.size()) {
             cLineFigure *tick = new cLineFigure();
             cTextFigure *number = new cTextFigure();
-            take(tick);
-            take(number);
 
             number->setAnchor(cFigure::ANCHOR_CENTER);
 
@@ -415,12 +412,8 @@ void GaugeFigure::redrawTicks()
     for (int i = numTicks; i < prevNumTicks; ++i) {
         removeFigure(tickFigures[i]);
         removeFigure(numberFigures[i]);
-        take(tickFigures[i]);
-        take(numberFigures[i]);
     }
     for (int i = prevNumTicks; i < numTicks; ++i) {
-        drop(tickFigures[i]);
-        drop(numberFigures[i]);
         addFigure(tickFigures[i]);
         numberFigures[i]->insertBelow(needle);
     }
@@ -448,7 +441,7 @@ void GaugeFigure::redrawCurves()
     double lastStop = 0.0;
     double newStop = 0.0;
     Color color;
-    int index = 0;
+    size_t index = 0;
     const double deg270InRad = 6 * M_PI / 4;
     while (signalTokenizer.hasMoreTokens()) {
         const char *token = signalTokenizer.nextToken();
@@ -456,7 +449,6 @@ void GaugeFigure::redrawCurves()
         if (newStop > lastStop) {
             if (index == curveFigures.size()) {
                 cArcFigure *arc = new cArcFigure("colorStrip");
-                take(arc);
                 arc->setZoomLineWidth(true);
                 curveFigures.push_back(arc);
             }
@@ -472,7 +464,6 @@ void GaugeFigure::redrawCurves()
     if (lastStop < 1.0) {
         if (index == curveFigures.size()) {
             cArcFigure *arc = new cArcFigure("colorStrip");
-            take(arc);
             arc->setZoomLineWidth(true);
             curveFigures.push_back(arc);
         }
@@ -485,13 +476,10 @@ void GaugeFigure::redrawCurves()
 
     // Add or remove figures from canvas according to previous number of curves
     for (int i = prevCurvesOnCanvas; i < curvesOnCanvas; ++i) {
-        drop(curveFigures[i]);
         curveFigures[i]->insertBelow(needle);
     }
-    for (int i = curvesOnCanvas; i < prevCurvesOnCanvas; ++i) {
+    for (int i = curvesOnCanvas; i < prevCurvesOnCanvas; ++i)
         removeFigure(curveFigures[index]);
-        take(curveFigures[index]);
-    }
 }
 
 void GaugeFigure::layout()
@@ -528,5 +516,5 @@ void GaugeFigure::refresh()
     }
 }
 
-// } // namespace inet
+} // namespace inet
 

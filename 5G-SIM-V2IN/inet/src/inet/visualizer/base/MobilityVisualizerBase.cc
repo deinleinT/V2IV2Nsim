@@ -29,7 +29,7 @@ MobilityVisualizerBase::MobilityVisualization::MobilityVisualization(IMobility *
 
 MobilityVisualizerBase::~MobilityVisualizerBase()
 {
-    if (displayMovements)
+    if (displayMobility)
         unsubscribe();
 }
 
@@ -38,15 +38,24 @@ void MobilityVisualizerBase::initialize(int stage)
     VisualizerBase::initialize(stage);
     if (!hasGUI()) return;
     if (stage == INITSTAGE_LOCAL) {
-        displayMovements = par("displayMovements");
+        displayMobility = par("displayMobility");
         animationSpeed = par("animationSpeed");
         moduleFilter.setPattern(par("moduleFilter"));
+        // position
+        displayPositions = par("displayPositions");
+        positionCircleRadius = par("positionCircleRadius");
+        positionCircleLineWidth = par("positionCircleLineWidth");
+        positionCircleLineColorSet.parseColors(par("positionCircleLineColor"));
+        positionCircleFillColorSet.parseColors(par("positionCircleFillColor"));
         // orientation
         displayOrientations = par("displayOrientations");
-        orientationArcSize = par("orientationArcSize");
+        orientationPieRadius = par("orientationPieRadius");
+        orientationPieSize = par("orientationPieSize");
+        orientationPieOpacity = par("orientationPieOpacity");
         orientationLineColor = cFigure::parseColor(par("orientationLineColor"));
         orientationLineStyle = cFigure::parseLineStyle(par("orientationLineStyle"));
         orientationLineWidth = par("orientationLineWidth");
+        orientationFillColor = cFigure::parseColor(par("orientationFillColor"));
         // velocity
         displayVelocities = par("displayVelocities");
         velocityArrowScale = par("velocityArrowScale");
@@ -59,13 +68,14 @@ void MobilityVisualizerBase::initialize(int stage)
         movementTrailLineStyle = cFigure::parseLineStyle(par("movementTrailLineStyle"));
         movementTrailLineWidth = par("movementTrailLineWidth");
         trailLength = par("trailLength");
-        if (displayMovements)
+        if (displayMobility)
             subscribe();
     }
 }
 
 void MobilityVisualizerBase::handleParameterChange(const char *name)
 {
+    if (!hasGUI()) return;
     if (name != nullptr) {
         if (!strcmp(name, "moduleFilter"))
             moduleFilter.setPattern(par("moduleFilter"));
@@ -75,16 +85,18 @@ void MobilityVisualizerBase::handleParameterChange(const char *name)
 
 void MobilityVisualizerBase::subscribe()
 {
-    auto subscriptionModule = getModuleFromPar<cModule>(par("subscriptionModule"), this);
-    subscriptionModule->subscribe(IMobility::mobilityStateChangedSignal, this);
+    visualizationSubjectModule->subscribe(IMobility::mobilityStateChangedSignal, this);
+    visualizationSubjectModule->subscribe(PRE_MODEL_CHANGE, this);
 }
 
 void MobilityVisualizerBase::unsubscribe()
 {
     // NOTE: lookup the module again because it may have been deleted first
-    auto subscriptionModule = getModuleFromPar<cModule>(par("subscriptionModule"), this, false);
-    if (subscriptionModule != nullptr)
-        subscriptionModule->unsubscribe(IMobility::mobilityStateChangedSignal, this);
+    auto visualizationSubjectModule = getModuleFromPar<cModule>(par("visualizationSubjectModule"), this, false);
+    if (visualizationSubjectModule != nullptr) {
+        visualizationSubjectModule->unsubscribe(IMobility::mobilityStateChangedSignal, this);
+        visualizationSubjectModule->unsubscribe(PRE_MODEL_CHANGE, this);
+    }
 }
 
 } // namespace visualizer

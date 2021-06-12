@@ -20,10 +20,9 @@
 
 #include "inet/common/INETDefs.h"
 #include "inet/common/INETMath.h"
-#include "IIndicatorFigure.h"
+#include "inet/common/figures/IIndicatorFigure.h"
 
-//TODO namespace inet { -- for the moment commented out, as OMNeT++ 5.0 cannot instantiate a figure from a namespace
-using namespace inet;
+namespace inet {
 
 class INET_API IndexedImageFigure : public cGroupFigure, public inet::IIndicatorFigure
 {
@@ -73,7 +72,7 @@ class INET_API IndexedImageFigure : public cGroupFigure, public inet::IIndicator
     const Point getLabelOffset() const;
     void setLabelOffset(const Point& offset);
 
-    const Point getSize() const;
+    virtual const Point getSize() const override;
     void setSize(const Point& bounds);
 
     const Point& getPos() const;
@@ -84,7 +83,7 @@ class INET_API IndexedImageFigure : public cGroupFigure, public inet::IIndicator
 
 };
 
-// } // namespace inet
+} // namespace inet
 
 #endif
 

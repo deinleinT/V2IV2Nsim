@@ -1,16 +1,24 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
+
+/*
+ *  TODO: scrivere i commenti in inglese!
+ */
 
 #ifndef _LTE_USERTXPARAMS_H_
 #define _LTE_USERTXPARAMS_H_
 
 //#include "common/LteCommon.h"
+#include <omnetpp.h>
+
 #include "stack/mac/amc/LteMcs.h"
 
 /**
@@ -80,14 +88,10 @@ class UserTxParams
     //! Reset to default values.
     void restoreDefaultValues()
     {
-        //std::cout << "UserTxParams::restoreDefaultValues start at " << simTime().dbl() << std::endl;
-
         cqiVector_.clear();
         allowedBands_.clear();
 
-        //txMode_ = SINGLE_ANTENNA_PORT0;
-        //txMode_ = TRANSMIT_DIVERSITY;
-        txMode_ = aToTxMode(getSimulation()->getSystemModule()->par("initialTxMode").stringValue());
+        txMode_ = SINGLE_ANTENNA_PORT0;
         ri_ = NORANK;
         pmi_ = NOPMI;
         cqiVector_.push_back(NOSIGNALCQI);
@@ -96,8 +100,6 @@ class UserTxParams
         antennaSet_.clear();
         // by default the system works with the MACRO antenna configured on all terminals
         antennaSet_.insert(MACRO);
-
-        //std::cout << "UserTxParams::restoreDefaultValues end at " << simTime().dbl() << std::endl;
     }
     //! Get/Set the status of the user transmission parameters.
     bool& isSet()
@@ -172,9 +174,7 @@ class UserTxParams
      */
     LteMod getCwModulation(Codeword cw) const
     {
-        //CHANGED, Author: Thomas Deinlein
         return cqiTable[cqiVector_.at(cw)].mod_;
-        //return cqiTableNR[cqiVector_.at(cw)].mod_;
     }
 
     /** Get the nominal code rate given the codeword. This function does not check if codeword is set.
@@ -183,9 +183,7 @@ class UserTxParams
      */
     double getCwRate(Codeword cw) const
     {
-        //CHANGED, Author: Thomas Deinlein
         return cqiTable[cqiVector_.at(cw)].rate_;
-        //return cqiTableNR[cqiVector_.at(cw)].rate_;
     }
 
     /** Gives the number of layers for each codeword.
@@ -199,54 +197,7 @@ class UserTxParams
     /** Print debug information - FOR DEBUG ONLY
      *  @param s The name of the invoking function.
      */
-    void print(const char* s) const
-        {
-        try
-        {
-            //EV << NOW << " " << s << " --------------------------\n";
-            //EV << NOW << " " << s << "           UserTxParams\n";
-            //EV << NOW << " " << s << " --------------------------\n";
-            //EV << NOW << " " << s << " TxMode: " << txModeToA(txMode_) << "\n";
-            //EV << NOW << " " << s << " RI: " << ri_ << "\n";
-
-            //*** CQIs *********************************************
-            unsigned int codewords = cqiVector_.size();
-            //EV << NOW << " " << s << " CQI = {";
-            if(codewords > 0)
-            {
-                //EV << cqiVector_.at(0);
-                for(Codeword cw = 1; cw < codewords; ++cw){
-                    //EV << ", " << cqiVector_.at(cw);
-                }
-            }
-            //EV << "}\n";
-            //******************************************************
-
-            //EV << NOW << " " << s << " PMI: " << pmi_ << "\n";
-
-            //*** Bands ********************************************
-            std::set<Band>::const_iterator it = allowedBands_.begin();
-            std::set<Band>::const_iterator et = allowedBands_.end();
-
-            //EV << NOW << " " << s << " Bands = {";
-            if(it != et)
-            {
-                //EV << *it;
-                ++it;
-                for(; it != et; ++it){
-                    //EV << ", " << *it;
-                }
-            }
-            //EV << "}\n";
-            //******************************************************
-
-            //EV << NOW << " " << s << " --------------------------\n";
-        }
-        catch(std::exception& e)
-        {
-            throw cRuntimeError("Exception in UserTxParams::print(): %s", e.what());
-        }
-    }
+    void print(const char* s) const;
 };
 
 #endif

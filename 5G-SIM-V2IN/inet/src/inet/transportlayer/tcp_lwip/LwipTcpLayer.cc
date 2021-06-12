@@ -19,7 +19,6 @@
 #include <string.h>
 
 #include "lwip/lwip_tcp.h"
-
 #include "lwip/memp.h"
 
 #include "inet/networklayer/common/L3Address.h"
@@ -86,7 +85,14 @@ err_t LwipTcpLayer::ip_output(LwipTcpLayer::tcp_pcb *pcb, struct pbuf *p,
     assert(p);
     assert(p->len <= p->tot_len);
 
-    stackIf.ip_output(pcb, src->addr, dest->addr, p->payload, p->tot_len);
+    u16_t len = 0;
+    char *buffer = new char[p->tot_len]();
+    for (auto c = p; c; c = c->next) {
+        memcpy(buffer + len, c->payload, c->len);
+        len += p->len;
+    }
+    stackIf.ip_output(pcb, src->addr, dest->addr, buffer, p->tot_len);
+    delete [] buffer;
     return 0;
 }
 

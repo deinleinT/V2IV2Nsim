@@ -56,6 +56,8 @@ class INET_API DielectricObstacleLoss : public TracingObstacleLossBase
   protected:
     /** @name Parameters */
     //@{
+    bool enableDielectricLoss = false;
+    bool enableReflectionLoss = false;
     /**
      * The radio medium where the radio signal propagation takes place.
      */
@@ -63,7 +65,7 @@ class INET_API DielectricObstacleLoss : public TracingObstacleLossBase
     /**
      * The physical environment that provides to obstacles.
      */
-    IPhysicalEnvironment *physicalEnvironment;
+    physicalenvironment::IPhysicalEnvironment *physicalEnvironment;
     //@}
 
     /** @name Statistics */
@@ -83,9 +85,9 @@ class INET_API DielectricObstacleLoss : public TracingObstacleLossBase
     virtual void initialize(int stage) override;
     virtual void finish() override;
 
-    virtual double computeDielectricLoss(const IMaterial *material, Hz frequency, m distance) const;
-    virtual double computeReflectionLoss(const IMaterial *incidentMaterial, const IMaterial *refractiveMaterial, double angle) const;
-    virtual double computeObjectLoss(const IPhysicalObject *object, Hz frequency, const Coord& transmissionPosition, const Coord& receptionPosition) const;
+    virtual double computeDielectricLoss(const physicalenvironment::IMaterial *material, Hz frequency, m distance) const;
+    virtual double computeReflectionLoss(const physicalenvironment::IMaterial *incidentMaterial, const physicalenvironment::IMaterial *refractiveMaterial, double angle) const;
+    virtual double computeObjectLoss(const physicalenvironment::IPhysicalObject *object, Hz frequency, const Coord& transmissionPosition, const Coord& receptionPosition) const;
 
   public:
     DielectricObstacleLoss();

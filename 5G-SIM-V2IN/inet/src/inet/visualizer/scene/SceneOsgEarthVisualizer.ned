@@ -21,10 +21,10 @@ import inet.visualizer.base.SceneOsgVisualizerBase;
 import inet.visualizer.contract.ISceneVisualizer;
 
 //
-// This module visualizes the scene using osg earth. It displays a 3D osg map of
+// This module visualizes the scene using osgEarth. It displays a 3D osg map of
 // some part of the earth as an integrated part of the 3D visualization of the
 // simulation. The map is loaded from an external resource specified by the
-// mapFile parameter. The playground is placed on the map according to the
+// mapFile parameter. The scene is placed on the map according to the
 // coordinate system module.
 //
 // @see ~SceneCanvasVisualizer, ~SceneVisualizer, ~SceneVisualizerBase, ~ISceneVisualizer
@@ -37,3 +37,4 @@ simple SceneOsgEarthVisualizer extends SceneOsgVisualizerBase like ISceneVisuali
         string coordinateSystemModule = default("coordinateSystem"); // the geographic coordinate system, refers to a top level module by default
         string mapFile; // map file, e.g. some part of the earth, mandatory parameter
 }
+

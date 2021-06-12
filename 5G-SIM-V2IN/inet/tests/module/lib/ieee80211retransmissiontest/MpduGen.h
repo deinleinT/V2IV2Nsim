@@ -21,21 +21,19 @@
 #define __INET_MPDUGEN_H
 
 #include "inet/common/INETDefs.h"
+#include "inet/common/packet/Packet.h"
 #include "inet/applications/base/ApplicationBase.h"
-#include "inet/transportlayer/contract/udp/UDPSocket.h"
+#include "inet/transportlayer/contract/udp/UdpSocket.h"
 
 namespace inet {
 /*
  * A very simple MPDU generator class.
  */
-class MpduGen : public ApplicationBase
+class MpduGen : public ApplicationBase, UdpSocket::ICallback
 {
 protected:
     int localPort = -1, destPort = -1;
-    UDPSocket socket;
-
-    static simsignal_t sentPkSignal;
-    static simsignal_t rcvdPkSignal;
+    UdpSocket socket;
 
     cMessage *selfMsg = nullptr;
     int numSent = 0;
@@ -45,8 +43,14 @@ protected:
     virtual int numInitStages() const override { return NUM_INIT_STAGES; }
     virtual void initialize(int stage) override;
     virtual void sendPackets();
-    void processPacket(cPacket *pk);
-    virtual void handleMessageWhenUp(cMessage* msg);
+    virtual void handleMessageWhenUp(cMessage* msg) override;
+    virtual void socketDataArrived(UdpSocket *socket, Packet *pk) override;
+    virtual void socketErrorArrived(UdpSocket *socket, Indication *indication) override;
+    virtual void socketClosed(UdpSocket *socket) override;
+
+    virtual void handleStartOperation(LifecycleOperation *operation) override;
+    virtual void handleStopOperation(LifecycleOperation *operation) override;
+    virtual void handleCrashOperation(LifecycleOperation *operation) override;
 
   public:
     MpduGen() {}

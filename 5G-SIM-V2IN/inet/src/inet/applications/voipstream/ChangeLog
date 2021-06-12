@@ -1,29 +1,143 @@
-====== inet-3.x ======
+====== inet-4.x ======
 
-2021-01-04  Zoltan Bojthe
+2021-01-07  ------ inet-4.2.2 released ------
 
-	VoipStreamServer: bugfix: swapped inBytesPerSample, outBytesPerSample.
-	Change backported from inet4.
+2020-10-27  ------ inet-4.2.1 released ------
 
-2021-01-04  Zoltan Bojthe
+2020-10-21  Zoltan Bojthe
+
+	VoipStreamServer: bugfix: swapped inBytesPerSample, outBytesPerSample
+
+2020-09-11  Levente Mészáros
 
 	VoipStreamSender: updated for avcodec-7:4.2.4
 
 	Fixed sample format, old hack didn't work under Ubuntu 20.04. BUT: This
-	change alters the fingerprints of VoIP simulations. Change backported
-	from inet4.
+	change alters the fingerprints of VoIP simulations.
 
-2020-10-20  ------ inet-3.6.8 released ------
+2020-01-08  ------ inet-4.2.0 released ------
 
-2019-11-04  ------ inet-3.6.7 released ------
+2019-11-28  Zoltan Bojthe
 
-2019-08-16  ------ inet-3.6.6 released ------
+	Added timeToLive, dscp, tos NED parameters.
 
-2019-04-12  ------ inet-3.6.5 released ------
+2019-11-08  Zoltan Bojthe
 
-2018-01-12  Levente Meszaros
+	Added missing return value checks.
 
-	Voip: Removed include statement for obsolete header file.
+2019-11-08  Levente Mészáros
+
+	Fixed memory leaks detected by static analysis.
+	Suppressed annoying deprecated warnings until they get fixed.
+
+2019-10-14  Andras Varga
+
+	Fix crash in VoipStreamSender if module is deleted without initialize() being called.
+
+2019-08-07  Zoltan Bojthe
+
+	Changed fingerprint calculation: for silence packets, add sample count
+	instead of data buffer content.
+
+2019-07-31  Marcell Juhász
+
+	Removed payload from SILENCE packets.
+
+2019-03-26  Zoltan Bojthe
+
+	Fixed serializer header length.
+
+2019-01-28  ------ inet-4.1.0 released ------
+
+2018-11-13  Zoltan Bojthe
+
+	Added waiting for udp socketClosed indication in stopOperation.
+
+2018-10-25  Zoltan Bojthe
+
+	Fixed NodeStatus module detection.
+
+2018-10-04  Zoltan Bojthe
+
+	Added LifecycleUnsupported base class instead of copy-pasting the same code.
+
+2018-08-17  Zoltan Bojthe
+
+	Added namespace qualifier to @signal type parameters.
+
+2018-07-17  Levente Mészáros
+
+	Added VoipStreamPacketSerializer.
+
+2018-06-27  ------ inet-4.0.0 released ------
+
+2018-04-27  Zoltan Bojthe
+
+	Refactored to use the new UdpSocket interface.
+
+2018-04-13  ------ inet-3.99.3 released ------
+
+2018-01-19  Zoltan Bojthe
+
+	Removed customization from ByteArray.
+
+2018-01-18  Levente Mészáros
+
+	Replaced packet tags API calls to use the new API.
+
+2018-01-02  Levente Mészáros
+
+	Replaced cPacket with Packet.
+
+2017-12-22  ------ inet-3.99.2 released ------
+
+2017-12-20  Zoltan Bojthe
+
+	Renaming:
+	    RTP -> Rtp
+	    UDPControlInfo -> UdpControlInfo
+	    UDPSocket -> UdpSocket
+	    VoIPStreamPacket -> VoipStreamPacket
+	    VoIPStreamPacketType -> VoipStreamPacketType
+	    VoIPStreamReceiver -> VoipStreamReceiver
+	    VoIPStreamSender -> VoipStreamSender
+
+2017-12-15  Zoltan Bojthe
+
+	Remove unnecessary cPar::stringValue() calls.
+
+2017-12-14  Levente Mészáros
+
+	Removed unnecessary markImmutable() calls.
+
+2017-12-11  Zoltan Bojthe
+
+	Updated for new msgc function names: getFooForUpdate, insertFoo, eraseFoo, etc.
+
+2017-11-16  Levente Mészáros
+
+	Replaced all remaining dropPk* signals with packetDrop signal.
+
+2017-11-16  Levente Mészáros
+
+	Moved rcvdPkSignal and sentPkSignal into Simsignals.
+
+2017-11-14  Zoltan Bojthe
+
+	Replaced "int foo @enum(FooEnum)" to FooEnum foo.
+
+2017-11-17  Zoltan Bojthe
+
+	Added required import statements to MSG files according to new syntax.
+
+2017-11-16  ------ inet-3.99.1 released ------
+
+2016-06-02  Levente Mészáros
+
+	Changed applications to implement the new IApp interface.
+	Renamed gates to socketIn/socketOut.
+
+====== inet-3.x ======
 
 2018-03-21  ------ inet-3.6.4 released ------
 

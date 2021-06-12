@@ -18,15 +18,14 @@
 #ifndef __INET_LAYEREDRECEPTION_H
 #define __INET_LAYEREDRECEPTION_H
 
-#include "inet/physicallayer/contract/bitlevel/ISignalPacketModel.h"
-#include "inet/physicallayer/contract/bitlevel/ISignalBitModel.h"
-#include "inet/physicallayer/contract/bitlevel/ISignalSymbolModel.h"
-#include "inet/physicallayer/contract/bitlevel/ISignalSampleModel.h"
-#include "inet/physicallayer/contract/bitlevel/ISignalAnalogModel.h"
 #include "inet/physicallayer/base/packetlevel/ReceptionBase.h"
+#include "inet/physicallayer/contract/bitlevel/ISignalAnalogModel.h"
+#include "inet/physicallayer/contract/bitlevel/ISignalBitModel.h"
+#include "inet/physicallayer/contract/bitlevel/ISignalPacketModel.h"
+#include "inet/physicallayer/contract/bitlevel/ISignalSampleModel.h"
+#include "inet/physicallayer/contract/bitlevel/ISignalSymbolModel.h"
 
 namespace inet {
-
 namespace physicallayer {
 
 class INET_API LayeredReception : public ReceptionBase
@@ -40,7 +39,7 @@ class INET_API LayeredReception : public ReceptionBase
     const IReceptionAnalogModel *analogModel;
 
   public:
-    LayeredReception(const IReceptionAnalogModel *analogModel, const IRadio *radio, const ITransmission *transmission, const simtime_t startTime, const simtime_t endTime, const Coord startPosition, const Coord endPosition, const EulerAngles startOrientation, const EulerAngles endOrientation);
+    LayeredReception(const IReceptionAnalogModel *analogModel, const IRadio *radio, const ITransmission *transmission, const simtime_t startTime, const simtime_t endTime, const Coord startPosition, const Coord endPosition, const Quaternion startOrientation, const Quaternion endOrientation);
     virtual ~LayeredReception();
 
     virtual std::ostream& printToStream(std::ostream& stream, int level) const override;
@@ -49,7 +48,6 @@ class INET_API LayeredReception : public ReceptionBase
 };
 
 } // namespace physicallayer
-
 } // namespace inet
 
 #endif // ifndef __INET_LAYEREDRECEPTION_H

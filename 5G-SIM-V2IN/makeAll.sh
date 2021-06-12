@@ -10,7 +10,7 @@ make makefiles
 make -j $(nproc) MODE=release
 make -j $(nproc) MODE=debug
 cd ..
-cd veins_inet3
+cd veins_inet
 make makefiles
 make -j $(nproc) MODE=release
 make -j $(nproc) MODE=debug

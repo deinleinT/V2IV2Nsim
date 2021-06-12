@@ -18,10 +18,9 @@
 #include "inet/physicallayer/common/bitlevel/LayeredReception.h"
 
 namespace inet {
-
 namespace physicallayer {
 
-LayeredReception::LayeredReception(const IReceptionAnalogModel *analogModel, const IRadio *radio, const ITransmission *transmission, const simtime_t startTime, const simtime_t endTime, const Coord startPosition, const Coord endPosition, const EulerAngles startOrientation, const EulerAngles endOrientation) :
+LayeredReception::LayeredReception(const IReceptionAnalogModel *analogModel, const IRadio *radio, const ITransmission *transmission, const simtime_t startTime, const simtime_t endTime, const Coord startPosition, const Coord endPosition, const Quaternion startOrientation, const Quaternion endOrientation) :
     ReceptionBase(radio, transmission, startTime, endTime, startPosition, endPosition, startOrientation, endOrientation),
     analogModel(analogModel)
 {
@@ -42,6 +41,5 @@ std::ostream& LayeredReception::printToStream(std::ostream& stream, int level) c
 }
 
 } // namespace physicallayer
-
 } // namespace inet
 

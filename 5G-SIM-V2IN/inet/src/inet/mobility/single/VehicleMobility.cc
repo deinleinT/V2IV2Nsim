@@ -15,12 +15,16 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "inet/common/geometry/common/CoordinateSystem.h"
-#include "inet/mobility/single/VehicleMobility.h"
 #include <fstream>
 #include <iostream>
 
+#include "inet/common/geometry/common/GeographicCoordinateSystem.h"
+#include "inet/common/geometry/common/Quaternion.h"
+#include "inet/mobility/single/VehicleMobility.h"
+
 namespace inet {
+
+using namespace physicalenvironment;
 
 Define_Module(VehicleMobility);
 
@@ -34,17 +38,22 @@ void VehicleMobility::initialize(int stage)
         targetPointIndex = 0;
         heading = 0;
         angularSpeed = 0;
-    }
-    else if (stage == INITSTAGE_PHYSICAL_ENVIRONMENT)
         readWaypointsFromFile(par("waypointFile"));
+        ground = findModuleFromPar<IGround>(par("groundModule"), this);
+    }
 }
 
 void VehicleMobility::setInitialPosition()
 {
     lastPosition.x = waypoints[targetPointIndex].x;
     lastPosition.y = waypoints[targetPointIndex].y;
-    lastSpeed.x = speed * cos(M_PI * heading / 180);
-    lastSpeed.y = speed * sin(M_PI * heading / 180);
+    lastVelocity.x = speed * cos(M_PI * heading / 180);
+    lastVelocity.y = speed * sin(M_PI * heading / 180);
+
+    if (ground) {
+        lastPosition = ground->computeGroundProjection(lastPosition);
+        lastVelocity = ground->computeGroundProjection(lastPosition + lastVelocity) - lastPosition;
+    }
 }
 
 void VehicleMobility::readWaypointsFromFile(const char *fileName)
@@ -56,7 +65,6 @@ void VehicleMobility::readWaypointsFromFile(const char *fileName)
         inputFile.getline(line, 256);
         if (!inputFile.fail()) {
             cStringTokenizer tokenizer(line, ",");
-            Coord playgroundCoordinate;
             double value1 = atof(tokenizer.nextToken());
             double value2 = atof(tokenizer.nextToken());
             double value3 = atof(tokenizer.nextToken());
@@ -69,10 +77,10 @@ void VehicleMobility::readWaypointsFromFile(const char *fileName)
                 z = value3;
             }
             else {
-                Coord playgroundCoordinate = coordinateSystem->computePlaygroundCoordinate(GeoCoord(value1, value2, value3));
-                x = playgroundCoordinate.x;
-                y = playgroundCoordinate.y;
-                z = playgroundCoordinate.z;
+                Coord sceneCoordinate = coordinateSystem->computeSceneCoordinate(GeoCoord(deg(value1), deg(value2), m(value3)));
+                x = sceneCoordinate.x;
+                y = sceneCoordinate.y;
+                z = sceneCoordinate.z;
             }
             waypoints.push_back(Waypoint(x, y, z));
         }
@@ -97,11 +105,50 @@ void VehicleMobility::move()
     angularSpeed = diff * 5;
     double timeStep = (simTime() - lastUpdate).dbl();
     heading += angularSpeed * timeStep;
-    double distance = speed * timeStep;
-    lastPosition.x += distance * cos(M_PI * heading / 180);
-    lastPosition.y += distance * sin(M_PI * heading / 180);
-    lastSpeed.x = speed * cos(M_PI * heading / 180);
-    lastSpeed.y = speed * sin(M_PI * heading / 180);
+
+    Coord tempSpeed = Coord(cos(M_PI * heading / 180), sin(M_PI * heading / 180)) * speed;
+    Coord tempPosition = lastPosition + tempSpeed * timeStep;
+
+    if (ground)
+        tempPosition = ground->computeGroundProjection(tempPosition);
+
+    lastVelocity = tempPosition - lastPosition;
+    lastPosition = tempPosition;
+}
+
+void VehicleMobility::orient()
+{
+    if (ground) {
+        Coord groundNormal = ground->computeGroundNormal(lastPosition);
+
+        // this will make the wheels follow the ground
+        Quaternion quat = Quaternion::rotationFromTo(Coord(0, 0, 1), groundNormal);
+
+        Coord groundTangent = groundNormal % lastVelocity;
+        groundTangent.normalize();
+        Coord direction = groundTangent % groundNormal;
+        direction.normalize(); // this is lastSpeed, normalized and adjusted to be perpendicular to groundNormal
+
+        // our model looks in this direction if we only rotate the Z axis to match the ground normal
+        Coord groundX = quat.rotate(Coord(1, 0, 0));
+
+        double dp = groundX * direction;
+
+        double angle;
+
+        if (((groundX % direction) * groundNormal) > 0)
+            angle = std::acos(dp);
+        else
+            // correcting for the case where the angle should be over 90 degrees (or under -90):
+            angle = 2*M_PI - std::acos(dp);
+
+        // and finally rotating around the now-ground-orthogonal local Z
+        quat *= Quaternion(Coord(0, 0, 1), angle);
+
+        lastOrientation = quat;
+    }
+    else
+        MovingMobilityBase::orient();
 }
 
 } // namespace inet

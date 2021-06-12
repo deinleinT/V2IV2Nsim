@@ -1,10 +1,18 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
+//
+
+//
+// This file has been modified/enhanced for 5G-SIM-V2I/N.
+// Date: 2021
+// Author: Thomas Deinlein
 //
 
 #ifndef _LTE_LTEHARQPROCESSTX_H_
@@ -24,13 +32,9 @@ typedef std::vector<std::vector<UnitStatus> > BufferStatus;
  * An H-ARQ process is atomic for transmission, while H-ARQ units are atomic for
  * H-ARQ feedback.
  */
-//TODO Aggiungere output di debug ripreso da old commenti
+
 class LteHarqProcessTx
 {
-public:
-    void setMacOwner(LteMacBase * macOwner){
-        this->macOwner_= macOwner;
-    }
   protected:
 
     /// reference to mac module, used to handle errors
@@ -77,16 +81,25 @@ public:
         LteMacBase *dstMac);
 
     /**
+     * Copy constructor and operator=
+     */
+    LteHarqProcessTx(const LteHarqProcessTx& other)
+    {
+        operator=(other);
+    }
+    LteHarqProcessTx& operator=(const LteHarqProcessTx& other);
+
+    /**
      * Insert a pdu into an H-ARQ unit contained in this process.
      *
      * @param pdu pdu to be inserted
      * @param unitId id of destination unit
      */
-    void insertPdu(LteMacPdu *pdu, Codeword cw);
+    void insertPdu(inet::Packet *pdu, Codeword cw);
 
     void markSelected(Codeword cw);
 
-    virtual LteMacPdu *extractPdu(Codeword cw);
+    virtual inet::Packet *extractPdu(Codeword cw);
 
     bool pduFeedback(HarqAcknowledgment fb, Codeword cw);
 
@@ -113,7 +126,7 @@ public:
      *
      * @return tx time of the oldest unit in this process
      */
-    simtime_t getOldestUnitTxTime();
+    omnetpp::simtime_t getOldestUnitTxTime();
 
     /**
      * Returns a list of ids of ready for retransmission units of
@@ -144,7 +157,7 @@ public:
      */
     bool isEmpty();
 
-    LteMacPdu *getPdu(Codeword cw);
+    inet::Packet *getPdu(Codeword cw);
 
     /**
      * This is necessary because when a pdu is in CORRECT state at the
@@ -169,13 +182,12 @@ public:
 
     TxHarqPduStatus getUnitStatus(Codeword cw);
 
-    // 1:1 getters
     void dropPdu(Codeword cw);
     bool isUnitEmpty(Codeword cw);
     bool isUnitReady(Codeword cw);
     unsigned char getTransmissions(Codeword cw);
     inet::int64 getPduLength(Codeword cw);
-    simtime_t getTxTime(Codeword cw);
+    omnetpp::simtime_t getTxTime(Codeword cw);
     bool isUnitMarked(Codeword cw);
     bool isDropped();
     virtual ~LteHarqProcessTx();

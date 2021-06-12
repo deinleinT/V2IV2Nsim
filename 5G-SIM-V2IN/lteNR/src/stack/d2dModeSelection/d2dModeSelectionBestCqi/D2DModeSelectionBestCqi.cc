@@ -1,15 +1,20 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
 #include "stack/d2dModeSelection/d2dModeSelectionBestCqi/D2DModeSelectionBestCqi.h"
 
 Define_Module(D2DModeSelectionBestCqi);
+
+using namespace omnetpp;
+using namespace inet;
 
 void D2DModeSelectionBestCqi::initialize(int stage)
 {
@@ -18,7 +23,10 @@ void D2DModeSelectionBestCqi::initialize(int stage)
 
 void D2DModeSelectionBestCqi::doModeSelection()
 {
-    //EV << NOW << " D2DModeSelectionBestCqi::doModeSelection - Running Mode Selection algorithm..." << endl;
+    EV << NOW << " D2DModeSelectionBestCqi::doModeSelection - Running Mode Selection algorithm..." << endl;
+
+    // TODO check if correct
+    double primaryCarrierFrequency = mac_->getCellInfo()->getCarriers()->front();
 
     switchList_.clear();
     std::map<MacNodeId, std::map<MacNodeId, LteD2DMode> >::iterator it = peeringModeMap_->begin();
@@ -49,10 +57,10 @@ void D2DModeSelectionBestCqi::doModeSelection()
             // Compute the achievable bits on a single RB for UL direction
             // Note that this operation takes into account the CQI returned by the AMC Pilot (by default, it
             // is the minimum CQI over all RBs)
-            unsigned int bitsUl = mac_->getAmc()->computeBitsOnNRbs(srcId, 0, 0, 1, UL);
-            unsigned int bitsD2D = mac_->getAmc()->computeBitsOnNRbs(srcId, 0, 0, 1, D2D);
+            unsigned int bitsUl = mac_->getAmc()->computeBitsOnNRbs(srcId, 0, 0, 1, UL, primaryCarrierFrequency);
+            unsigned int bitsD2D = mac_->getAmc()->computeBitsOnNRbs(srcId, 0, 0, 1, D2D, primaryCarrierFrequency);
 
-            //EV << NOW << " D2DModeSelectionBestCqi::doModeSelection - bitsUl[" << bitsUl << "] bitsD2D[" << bitsD2D << "]" << endl;
+            EV << NOW << " D2DModeSelectionBestCqi::doModeSelection - bitsUl[" << bitsUl << "] bitsD2D[" << bitsD2D << "]" << endl;
 
             // compare the bits in the two modes and select the best one
             LteD2DMode newMode = (bitsUl > bitsD2D) ? IM : DM;
@@ -70,7 +78,7 @@ void D2DModeSelectionBestCqi::doModeSelection()
                 // update peering map
                 jt->second = newMode;
 
-                //EV << NOW << " D2DModeSelectionBestCqi::doModeSelection - Flow: " << srcId << " --> " << dstId << " [" << d2dModeToA(newMode) << "]" << endl;
+                EV << NOW << " D2DModeSelectionBestCqi::doModeSelection - Flow: " << srcId << " --> " << dstId << " [" << d2dModeToA(newMode) << "]" << endl;
             }
         }
     }

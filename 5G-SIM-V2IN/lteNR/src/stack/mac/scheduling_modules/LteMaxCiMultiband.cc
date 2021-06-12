@@ -1,9 +1,13 @@
-/*
- * LteMaxCiMultiband.cpp
- *
- *  Created on: Apr 16, 2014
- *      Author: antonio
- */
+//
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
+//
+// This file is part of a software released under the license included in file
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
+// and cannot be removed from it.
+//
 
 #include <vector>
 
@@ -11,14 +15,15 @@
 #include "stack/mac/scheduler/LteSchedulerEnb.h"
 
 using namespace std;
+using namespace omnetpp;
 
 bool debug = false;
 
 void LteMaxCiMultiband::prepareSchedule()
 {
-    if (binder_ == NULL)
+    if (binder_ == nullptr)
         binder_ = getBinder();
-    activeConnectionTempSet_ = activeConnectionSet_;
+    activeConnectionTempSet_ = *activeConnectionSet_;
     MacCid cid;
     unsigned int byPs = 0;
     ScoreList score;
@@ -35,7 +40,7 @@ void LteMaxCiMultiband::prepareSchedule()
     // UsableBands * usableBands;
     if(debug)
         cout << NOW << " LteMaxCiMultiband::prepareSchedule - Tot Active Connections:"<< activeConnectionTempSet_.size() << endl;
-    for ( ActiveSet::iterator it1 = activeConnectionTempSet_.begin ();it1 != activeConnectionTempSet_.end (); ++it1 )
+    for ( ActiveSet::iterator it1 = carrierActiveConnectionSet_.begin ();it1 != carrierActiveConnectionSet_.end (); ++it1 )
     {
         // Current connection.
         cid = *it1;
@@ -45,12 +50,13 @@ void LteMaxCiMultiband::prepareSchedule()
         if(nodeId == 0 || id == 0)
         {
             // node has left the simulation - erase corresponding CIDs
-            activeConnectionSet_.erase(cid);
+            activeConnectionSet_->erase(cid);
             activeConnectionTempSet_.erase(cid);
+            carrierActiveConnectionSet_.erase(cid);
             continue;
         }
         // obtain a vector of CQI, one for each band
-        std::vector<Cqi> vect = eNbScheduler_->mac_->getAmc()->readMultiBandCqi(nodeId,direction_);
+        std::vector<Cqi> vect = eNbScheduler_->mac_->getAmc()->readMultiBandCqi(nodeId,direction_,carrierFrequency_);
         int band = 0;
         if(debug)
             cout << NOW << " LteMaxCiMultiband::prepareSchedule - per band cqi for UE[" << nodeId << "]" << endl;
@@ -63,8 +69,8 @@ void LteMaxCiMultiband::prepareSchedule()
         for( ; band < vect.size() ; ++band )
         {
             availableBlocks = eNbScheduler_->readAvailableRbs(nodeId,MACRO,band);
-            availableBytes_MB = eNbScheduler_->mac_->getAmc()->computeBytesOnNRbs_MB(nodeId,band, availableBlocks, direction_);
-            availableBytes = eNbScheduler_->mac_->getAmc()->computeBytesOnNRbs(nodeId,band, availableBlocks, direction_);
+            availableBytes_MB = eNbScheduler_->mac_->getAmc()->computeBytesOnNRbs_MB(nodeId,band, availableBlocks, direction_,carrierFrequency_);
+            availableBytes = eNbScheduler_->mac_->getAmc()->computeBytesOnNRbs(nodeId,band, availableBlocks, direction_,carrierFrequency_);
 
             totAvailableBlocks   += availableBlocks;
             totAvailableBytes    += availableBytes; // DEBUG
@@ -92,7 +98,7 @@ void LteMaxCiMultiband::prepareSchedule()
         // Pop the top connection from the list.
         ScoreDesc current = score.top ();
 
-        //EV << NOW << " LteMaxCiMultiband::schedule scheduling connection " << current.x_ << " with score of " << current.score_ << endl;
+        EV << NOW << " LteMaxCiMultiband::schedule scheduling connection " << current.x_ << " with score of " << current.score_ << endl;
 
         // Grant data to that connection.
         bool terminate = false;
@@ -100,7 +106,7 @@ void LteMaxCiMultiband::prepareSchedule()
         bool eligible = true;
         unsigned int granted = requestGrant (current.x_, 4294967295U, terminate, active, eligible);
 
-        //EV << NOW << "LteMaxCiMultiband::schedule granted " << granted << " bytes to connection " << current.x_ << endl;
+        EV << NOW << "LteMaxCiMultiband::schedule granted " << granted << " bytes to connection " << current.x_ << endl;
 
         // Exit immediately if the terminate flag is set.
         if ( terminate ) break;
@@ -109,14 +115,14 @@ void LteMaxCiMultiband::prepareSchedule()
         if ( ! active || ! eligible )
         {
             score.pop ();
-            //EV << NOW << "LteMaxCiMultiband::schedule  connection " << current.x_ << " was found ineligible" << endl;
+            EV << NOW << "LteMaxCiMultiband::schedule  connection " << current.x_ << " was found ineligible" << endl;
         }
 
         // Set the connection as inactive if indicated by the grant ().
         if ( ! active )
         {
-            //EV << NOW << "LteMaxCiMultiband::schedule scheduling connection " << current.x_ << " set to inactive " << endl;
-
+            EV << NOW << "LteMaxCiMultiband::schedule scheduling connection " << current.x_ << " set to inactive " << endl;
+            carrierActiveConnectionSet_.erase(current.x_);
             activeConnectionTempSet_.erase (current.x_);
         }
     }
@@ -124,22 +130,6 @@ void LteMaxCiMultiband::prepareSchedule()
 
 void LteMaxCiMultiband::commitSchedule()
 {
-    activeConnectionSet_ = activeConnectionTempSet_;
+    *activeConnectionSet_ = activeConnectionTempSet_;
 }
 
-void LteMaxCiMultiband::updateSchedulingInfo()
-{
-
-}
-
-void LteMaxCiMultiband::notifyActiveConnection(MacCid cid)
-{
-    //EV << NOW << "LteMaxCiMultiband::notify CID notified " << cid<< "/"<<MacCidToNodeId(cid) << endl;
-    activeConnectionSet_.insert(cid);
-}
-
-void LteMaxCiMultiband::removeActiveConnection(MacCid cid)
-{
-    //EV << NOW << "LteMaxCiMultiband::remove CID removed " << cid<< "/"<<MacCidToNodeId(cid) << endl;
-    activeConnectionSet_.erase(cid);
-}

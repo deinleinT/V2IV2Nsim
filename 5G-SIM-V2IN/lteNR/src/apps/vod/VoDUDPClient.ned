@@ -1,20 +1,22 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
-package lte.apps.vod;
-import inet.applications.contract.IUDPApp;
+package lteNR.apps.vod;
+import inet.applications.contract.IApp;
 
 
 //
 // Video-on-demand (VoD) client application.
 //
-simple VoDUDPClient like IUDPApp
+simple VoDUDPClient like IApp
 {
     parameters:
         int localPort;
@@ -25,11 +27,13 @@ simple VoDUDPClient like IUDPApp
         string origVideoYuv = default("");
         string origVideoSvc = default("");
         string decPath = default("");
-        string traceType = default("NS2");
+        string traceType = default("SVC");
         int playbackSize @unit("s") = default(2s);
         string avipluginPath = default("");
         int numFrame = default(0);
         int numPktPerFrame = default(0);
+        int tos = default(-1); // if not -1, set the Type Of Service (IPv4) / Traffic Class (IPv6) field of sent packets to this value
+        
         @display("i=block/app");
         @class(VoDUDPClient);
         @signal[VoDTptLayer0];
@@ -52,7 +56,7 @@ simple VoDUDPClient like IUDPApp
 
 
     gates:
-        input udpIn @labels(UDPControlInfo/up);
-        output udpOut @labels(UDPControlInfo/down);
+        input socketIn @labels(UdpControlInfo/up);
+        output socketOut @labels(UdpControlInfo/down);
 }
 

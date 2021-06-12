@@ -18,6 +18,7 @@
 
 package inet.examples.adhoc.hostautoconf;
 
+import inet.node.inet.AdhocHost;
 import inet.physicallayer.ieee80211.packetlevel.Ieee80211ScalarRadioMedium;
 import inet.visualizer.contract.IIntegratedVisualizer;
 
@@ -25,14 +26,17 @@ network Scenario
 {
     parameters:
         int hosts;
+        @display("bgb=650,450");
     submodules:
         visualizer: <default("IntegratedCanvasVisualizer")> like IIntegratedVisualizer if hasVisualizer() {
             parameters:
-                @display("p=100,50");
+                @display("p=100,200;is=s");
         }
         radioMedium: Ieee80211ScalarRadioMedium {
             parameters:
-                @display("p=100,150");
+                @display("p=100,100;is=s");
         }
-        host[hosts]: Host;
+        host[hosts]: AdhocHost {
+            @display("p=300,150");
+        }
 }

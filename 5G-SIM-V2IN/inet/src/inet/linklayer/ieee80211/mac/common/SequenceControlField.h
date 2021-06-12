@@ -36,12 +36,14 @@ class INET_API SequenceControlField
 
     public:
         SequenceControlField(SequenceNumber sequenceNumber, FragmentNumber fragmentNumber);
-        SequenceControlField(Ieee80211DataOrMgmtFrame* frame);
+        SequenceControlField(const Ptr<const Ieee80211DataOrMgmtHeader>& header);
 
         SequenceNumber getSequenceNumber() const { return sequenceNumber; }
         FragmentNumber getFragmentNumber() const { return fragmentNumber; }
         bool operator <(const SequenceControlField& other) const;
 };
+
+inline std::ostream& operator<<(std::ostream& os, const SequenceControlField& field) { return os << field.getSequenceNumber() << ":" << (int)field.getFragmentNumber(); }
 
 } /* namespace ieee80211 */
 } /* namespace inet */

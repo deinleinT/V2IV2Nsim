@@ -18,12 +18,12 @@
 #ifndef __INET_NEIGHBORLISTNEIGHBORCACHE_H
 #define __INET_NEIGHBORLISTNEIGHBORCACHE_H
 
-#include "inet/physicallayer/common/packetlevel/RadioMedium.h"
 #include <set>
 #include <vector>
 
-namespace inet {
+#include "inet/physicallayer/common/packetlevel/RadioMedium.h"
 
+namespace inet {
 namespace physicallayer {
 
 class INET_API NeighborListNeighborCache : public cSimpleModule, public INeighborCache
@@ -67,11 +67,10 @@ class INET_API NeighborListNeighborCache : public cSimpleModule, public INeighbo
     virtual std::ostream& printToStream(std::ostream& stream, int level) const override;
     virtual void addRadio(const IRadio *radio) override;
     virtual void removeRadio(const IRadio *radio) override;
-    virtual void sendToNeighbors(IRadio *transmitter, const IRadioFrame *frame, double range) const override;
+    virtual void sendToNeighbors(IRadio *transmitter, const ISignal *signal, double range) const override;
 };
 
 } // namespace physicallayer
-
 } // namespace inet
 
 #endif // ifndef __INET_NEIGHBORLISTNEIGHBORCACHE_H

@@ -86,24 +86,6 @@ std::string vstringf(const char *fmt, va_list& args)
 
 #undef BUFLEN
 
-std::string join(const std::vector<std::string>& strings, const char *separator, char quoteChar)
-{
-    bool first = true;
-    std::stringstream os;
-    for (auto item : strings) {
-        if (item.empty())
-            continue;
-        if (!first)
-            os << separator;
-        if (quoteChar)
-            os << quoteChar << item << quoteChar;
-        else
-            os << item;
-        first = false;
-    }
-    return os.str();
-}
-
 cObject *createOneIfClassIsKnown(const char *className, const char *defaultNamespace)
 {
     std::string ns = defaultNamespace;
@@ -128,6 +110,66 @@ cObject *createOne(const char *className, const char *defaultNamespace)
                             "or the class wasn't registered with Register_Class(), or in the case of "
                             "modules and channels, with Define_Module()/Define_Channel()", className);
     return ret;
+}
+
+bool fileExists(const char *pathname)
+{
+    // Note: stat("foo/") ==> error, even when "foo" exists and is a directory!
+    struct stat statbuf;
+    return stat(pathname, &statbuf) == 0;
+}
+
+void splitFileName(const char *pathname, std::string& dir, std::string& fnameonly)
+{
+    if (!pathname || !*pathname) {
+        dir = ".";
+        fnameonly = "";
+        return;
+    }
+
+    // find last "/" or "\"
+    const char *s = pathname + strlen(pathname) - 1;
+    s--;  // ignore potential trailing "/"
+    while (s > pathname && *s != '\\' && *s != '/')
+        s--;
+    const char *sep = s <= pathname ? nullptr : s;
+
+    // split along that
+    if (!sep) {
+        // no slash or colon
+        if (strchr(pathname, ':') || strcmp(pathname, ".") == 0 || strcmp(pathname, "..") == 0) {
+            fnameonly = "";
+            dir = pathname;
+        }
+        else {
+            fnameonly = pathname;
+            dir = ".";
+        }
+    }
+    else {
+        fnameonly = s+1;
+        dir = std::string(pathname, s-pathname+1);
+    }
+}
+
+void makePath(const char *pathname)
+{
+    if (!fileExists(pathname)) {
+        std::string pathprefix, dummy;
+        splitFileName(pathname, pathprefix, dummy);
+        makePath(pathprefix.c_str());
+        // note: anomaly with slash-terminated dirnames: stat("foo/") says
+        // it does not exist, and mkdir("foo/") says cannot create (EEXIST):
+        if (opp_mkdir(pathname, 0755) != 0 && errno != EEXIST)
+            throw cRuntimeError("Cannot create directory '%s': %s", pathname, strerror(errno));
+    }
+}
+
+void makePathForFile(const char *filename)
+{
+    std::string pathprefix, dummy;
+    splitFileName(filename, pathprefix, dummy);
+    makePath(pathprefix.c_str());
 }
 
 } // namespace utils

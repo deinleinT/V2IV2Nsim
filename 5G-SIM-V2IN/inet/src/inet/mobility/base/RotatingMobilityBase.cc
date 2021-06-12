@@ -56,7 +56,6 @@ void RotatingMobilityBase::rotateAndUpdate()
         rotate();
         lastUpdate = simTime();
         emitMobilityStateChangedSignal();
-        updateVisualRepresentation();
     }
 }
 
@@ -84,16 +83,16 @@ void RotatingMobilityBase::scheduleUpdate()
         scheduleAt(nextChange, rotateTimer);
 }
 
-EulerAngles RotatingMobilityBase::getCurrentAngularPosition()
+Quaternion RotatingMobilityBase::getCurrentAngularPosition()
 {
     rotateAndUpdate();
     return lastOrientation;
 }
 
-EulerAngles RotatingMobilityBase::getCurrentAngularSpeed()
+Quaternion RotatingMobilityBase::getCurrentAngularVelocity()
 {
     rotateAndUpdate();
-    return lastAngularSpeed;
+    return lastAngularVelocity;
 }
 
 } // namespace inet

@@ -1,16 +1,12 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
-//
-
-//
-// This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
-// Author: Thomas Deinlein
 //
 
 #ifndef _LTE_AMCPILOTAUTO_H_
@@ -42,7 +38,7 @@ class AmcPilotAuto : public AmcPilot
     AmcPilotAuto(LteAmc *amc) :
         AmcPilot(amc)
     {
-        mode_ = MIN_CQI;
+        mode_ = AVG_CQI;//MAX_CQI;//MIN_CQI;
         name_ = "Auto";
     }
     /**
@@ -51,7 +47,7 @@ class AmcPilotAuto : public AmcPilot
      * @param dir The link direction.
      * @return The user transmission parameters computed.
      */
-    const UserTxParams& computeTxParams(MacNodeId id, const Direction dir);
+    const UserTxParams& computeTxParams(MacNodeId id, const Direction dir, double carrierFrequency);
     //Used with TMS pilot
     void updateActiveUsers(ActiveSet aUser, Direction dir)
     {
@@ -76,7 +72,7 @@ class AmcPilotAuto : public AmcPilot
     bool getUsableBands(MacNodeId id, UsableBands*& uBands);
 
     // returns a vector with one CQI for each band ( for the given user )
-    std::vector<Cqi>  getMultiBandCqi(MacNodeId id, const Direction dir);
+    std::vector<Cqi>  getMultiBandCqi(MacNodeId id, const Direction dir, double carrierFrequency);
 };
 
 #endif

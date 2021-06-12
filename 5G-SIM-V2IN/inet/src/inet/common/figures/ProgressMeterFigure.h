@@ -18,12 +18,11 @@
 #ifndef __INET_PROGRESSMETERFIGURE_H
 #define __INET_PROGRESSMETERFIGURE_H
 
-#include "IIndicatorFigure.h"
 #include "inet/common/INETDefs.h"
 #include "inet/common/INETMath.h"
+#include "inet/common/figures/IIndicatorFigure.h"
 
-// for the moment commented out as omnet cannot instatiate it from a namespace
-//namespace inet {
+namespace inet {
 
 class INET_API ProgressMeterFigure : public cGroupFigure, public inet::IIndicatorFigure
 {
@@ -50,6 +49,7 @@ class INET_API ProgressMeterFigure : public cGroupFigure, public inet::IIndicato
     ProgressMeterFigure(const char *name = nullptr);
     virtual ~ProgressMeterFigure() {};
 
+    virtual const Point getSize() const override { return getBounds().getSize(); }
     virtual void setValue(int series, simtime_t timestamp, double value) override;
 
     // getters and setters
@@ -77,7 +77,7 @@ class INET_API ProgressMeterFigure : public cGroupFigure, public inet::IIndicato
     const char *getLabel() const;
     void setLabel(const char *text);
 
-    const int getLabelOffset() const;
+    int getLabelOffset() const;
     void setLabelOffset(int);
 
     const Font& getLabelFont() const;
@@ -97,7 +97,7 @@ class INET_API ProgressMeterFigure : public cGroupFigure, public inet::IIndicato
 
 };
 
-// } // namespace inet
+} // namespace inet
 
 #endif
 

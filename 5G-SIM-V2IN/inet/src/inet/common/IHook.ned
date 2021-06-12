@@ -20,8 +20,9 @@ package inet.common;
 //
 moduleinterface IHook
 {
-    @display("i=block/socket;is=vs");
+    @display("i=block/socket");
     gates:
         input in;
         output out;
 }
+

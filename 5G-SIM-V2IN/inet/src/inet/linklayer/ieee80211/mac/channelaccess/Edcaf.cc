@@ -16,33 +16,65 @@
 //
 //
 
-#include "Edcaf.h"
 #include "inet/common/ModuleAccess.h"
-#include "inet/common/NotifierConsts.h"
+#include "inet/common/Simsignals.h"
+#include "inet/linklayer/ieee80211/mac/channelaccess/Edcaf.h"
 
 namespace inet {
 namespace ieee80211 {
+
+using namespace inet::physicallayer;
 
 Define_Module(Edcaf);
 
 inline double fallback(double a, double b) {return a!=-1 ? a : b;}
 inline simtime_t fallback(simtime_t a, simtime_t b) {return a!=-1 ? a : b;}
 
+Edcaf::~Edcaf()
+{
+    delete stationRetryCounters;
+}
+
 void Edcaf::initialize(int stage)
 {
     if (stage == INITSTAGE_LOCAL) {
-        getContainingNicModule(this)->subscribe(NF_MODESET_CHANGED, this);
+        getContainingNicModule(this)->subscribe(modesetChangedSignal, this);
         ac = getAccessCategory(par("accessCategory"));
         contention = check_and_cast<IContention *>(getSubmodule("contention"));
         collisionController = check_and_cast<IEdcaCollisionController *>(getModuleByPath(par("collisionControllerModule")));
+        pendingQueue = check_and_cast<queueing::IPacketQueue *>(getSubmodule("pendingQueue"));
+        recoveryProcedure = check_and_cast<QosRecoveryProcedure *>(getSubmodule("recoveryProcedure"));
+        ackHandler = check_and_cast<QosAckHandler *>(getSubmodule("ackHandler"));
+        inProgressFrames = check_and_cast<InProgressFrames *>(getSubmodule("inProgressFrames"));
+        txopProcedure = check_and_cast<TxopProcedure *>(getSubmodule("txopProcedure"));
+        stationRetryCounters = new StationRetryCounters();
+        WATCH(owning);
+        WATCH(slotTime);
+        WATCH(sifs);
+        WATCH(ifs);
+        WATCH(eifs);
+        WATCH(ac);
+        WATCH(cw);
+        WATCH(cwMin);
+        WATCH(cwMax);
     }
-    else if (stage == INITSTAGE_LINK_LAYER_2) {
+    else if (stage == INITSTAGE_LINK_LAYER) {
         auto rx = check_and_cast<IRx *>(getModuleByPath(par("rxModule")));
         rx->registerContention(contention);
         calculateTimingParameters();
-        if (hasGUI())
-            updateDisplayString();
     }
+}
+
+void Edcaf::refreshDisplay() const
+{
+    std::string text(printAccessCategory(ac));
+    if (owning)
+        text += "\nOwning";
+    else if (contention->isContentionInProgress())
+        text += "\nContending";
+    else
+        text += "\nIdle";
+    getDisplayString().setTagArg("t", 0, text.c_str());
 }
 
 void Edcaf::calculateTimingParameters()
@@ -53,6 +85,7 @@ void Edcaf::calculateTimingParameters()
     simtime_t aifs = sifs + fallback(aifsn, getAifsNumber(ac)) * slotTime;
     ifs = aifs;
     eifs = sifs + aifs + modeSet->getSlowestMandatoryMode()->getDuration(LENGTH_ACK);
+    //EV_DEBUG << "Timing parameters are initialized: slotTime = " << slotTime << ", sifs = " << sifs << ", ifs = " << ifs << ", eifs = " << eifs << std::endl;
     ASSERT(ifs > sifs);
     cwMin = par("cwMin");
     cwMax = par("cwMax");
@@ -61,21 +94,26 @@ void Edcaf::calculateTimingParameters()
     if (cwMax == -1)
         cwMax = getCwMax(ac, modeSet->getCwMax(), modeSet->getCwMin());
     cw = cwMin;
+    //EV_DEBUG << "Contention window parameters are initialized: cw = " << cw << ", cwMin = " << cwMin << ", cwMax = " << cwMax << std::endl;
 }
 
 
 void Edcaf::incrementCw()
 {
+    Enter_Method_Silent("incrementCw");
     int newCw = 2 * cw + 1;
     if (newCw > cwMax)
         cw = cwMax;
     else
         cw = newCw;
+    //EV_DEBUG << "Contention window is incremented: cw = " << cw << std::endl;
 }
 
 void Edcaf::resetCw()
 {
+    Enter_Method_Silent("resetCw");
     cw = cwMin;
+    //EV_DEBUG << "Contention window is reset: cw = " << cw << std::endl;
 }
 
 int Edcaf::getAifsNumber(AccessCategory ac)
@@ -105,38 +143,38 @@ AccessCategory Edcaf::getAccessCategory(const char *ac)
 
 void Edcaf::channelAccessGranted()
 {
+    Enter_Method_Silent("channelAccessGranted");
     ASSERT(callback != nullptr);
     if (!collisionController->isInternalCollision(this)) {
         owning = true;
+        emit(channelOwnershipChangedSignal, owning);
         callback->channelGranted(this);
     }
-    if (hasGUI())
-        updateDisplayString();
+    else{
+        //EV_WARN << "Ignoring channel access granted due to internal collision.\n";
+    }
 }
 
 void Edcaf::releaseChannel(IChannelAccess::ICallback* callback)
 {
+    Enter_Method_Silent("releaseChannel");
     ASSERT(owning);
     owning = false;
+    emit(channelOwnershipChangedSignal, owning);
     this->callback = nullptr;
-    if (hasGUI())
-        updateDisplayString();
+    //EV_INFO << "Channel released.\n";
 }
 
 void Edcaf::requestChannel(IChannelAccess::ICallback* callback)
 {
+    Enter_Method_Silent("requestChannel");
     this->callback = callback;
     ASSERT(!owning);
     if (contention->isContentionInProgress()){
-        //EV_DETAIL << "Contention has already been started" << std::endl;
+        //EV_DEBUG << "Contention has been already started.\n";
     }
-    else {
-//        EV_DETAIL << "Starting contention with cw = " << cw << ", ifs = " << ifs << ", eifs = "
-//                  << eifs << ", slotTime = " << slotTime << std::endl;
+    else
         contention->startContention(cw, ifs, eifs, slotTime, this);
-    }
-    if (hasGUI())
-        updateDisplayString();
 }
 
 void Edcaf::expectedChannelAccess(simtime_t time)
@@ -175,21 +213,11 @@ int Edcaf::getCwMin(AccessCategory ac, int aCwMin)
 
 void Edcaf::receiveSignal(cComponent* source, simsignal_t signalID, cObject* obj, cObject* details)
 {
-    Enter_Method("receiveModeSetChangeNotification");
-    if (signalID == NF_MODESET_CHANGED) {
+    Enter_Method_Silent("receiveSignal");
+    if (signalID == modesetChangedSignal) {
         modeSet = check_and_cast<Ieee80211ModeSet*>(obj);
         calculateTimingParameters();
     }
-}
-
-void Edcaf::updateDisplayString()
-{
-    std::string displayString(printAccessCategory(ac));
-    if (owning)
-        displayString += "\n(Channel owner)";
-    else if (contention->isContentionInProgress())
-        displayString += "\n(Contention in progress)";
-    getDisplayString().setTagArg("t", 0, displayString.c_str());
 }
 
 } // namespace ieee80211

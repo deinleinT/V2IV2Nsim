@@ -27,20 +27,23 @@
 #pragma once
 
 #include <omnetpp.h>
-#include "stack/pdcp_rrc/layer/LtePdcpRrc.h"
+#include "stack/pdcp_rrc/layer/NRPdcpRrcEnb.h"
 #include "inet/networklayer/common/L3AddressResolver.h"
 #include "nr/stack/sdap/utils/QosHandler.h"
 
 // see inherit class for method description
-class NRPdcpRrcGnb : public LtePdcpRrcEnb {
+class NRPdcpRrcGnb : public NRPdcpRrcEnb {
 public:
     virtual void resetConnectionTable(MacNodeId masterId, MacNodeId nodeId);
-    virtual void exchangeConnection(MacNodeId nodeId, MacNodeId oldMasterId, MacNodeId newMasterId,NRPdcpRrcGnb *oldMasterPdcp, NRPdcpRrcGnb *newMasterPdcp);
 
 protected:
     QosHandler * qosHandler;
-    void initialize(int stage);
+    virtual void initialize(int stage);
     virtual void handleMessage(cMessage *msg);
     virtual void fromDataPort(cPacket *pkt);
     virtual void toDataPort(cPacket * pkt);
+    virtual void setTrafficInformation(omnetpp::cPacket* pkt, FlowControlInfo* lteInfo);
+    virtual void sendToLowerLayer(inet::Packet *pkt);
+    virtual bool isDualConnectivityEnabled() { return true; }
+
 };

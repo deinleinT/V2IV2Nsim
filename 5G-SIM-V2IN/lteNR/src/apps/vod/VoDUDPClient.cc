@@ -1,16 +1,20 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 //
 
 #include "apps/vod/VoDUDPClient.h"
+#include <fcntl.h>
 
 using namespace std;
+using namespace inet;
 
 Define_Module(VoDUDPClient);
 
@@ -19,16 +23,21 @@ void VoDUDPClient::initialize(int stage)
     if (stage != inet::INITSTAGE_APPLICATION_LAYER)
         return;
     /* Get parameters from INI file */
-    //EV << "VoD Client initialize: stage " << stage << endl;
+    EV << "VoD Client initialize: stage " << stage << endl;
 
     stringstream ss;
     ss << getId();
-    string dir = "mkdir ./Framework/clients/client" + ss.str() + "/";
-    string trace = "mkdir ./Framework/clients/client" + ss.str() + "/trace/";
+    string dir = "./Framework/clients/client" + ss.str() + "/";
+    string trace = "./Framework/clients/client" + ss.str() + "/trace/";
 
-    chdir("../../../VoDProject");
-    system(dir.c_str());
-    system(trace.c_str());
+#if defined(_WIN32)
+    _mkdir(dir.c_str());
+    _mkdir(trace.c_str());
+#else
+    mode_t dir_permissions = S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IWGRP|S_IXGRP|S_IROTH|S_IXOTH;
+    mkdir(dir.c_str(), dir_permissions);
+    mkdir(trace.c_str(), dir_permissions);
+#endif
 
     string nsOutput = "./Framework/clients/client" + ss.str() + "/nsout.txt";
     outfile.open(nsOutput.c_str(), ios::out);
@@ -39,8 +48,8 @@ void VoDUDPClient::initialize(int stage)
     totalRcvdBytes_ = 0;
 
     cMessage* timer = new cMessage("Timer");
-    chdir("../workspace/lte/simulations/dynamicnetwork");
     scheduleAt(simTime(), timer);
+
     tptLayer0_ = registerSignal("VoDTptLayer0");
     tptLayer1_ = registerSignal("VoDTptLayer1");
     tptLayer2_ = registerSignal("VoDTptLayer2");
@@ -54,7 +63,6 @@ void VoDUDPClient::initialize(int stage)
 
 void VoDUDPClient::finish()
 {
-    chdir("../../../VoDProject");
     outfile.close();
     string startMetrics = par("startMetrics").stringValue();
 
@@ -110,11 +118,16 @@ void VoDUDPClient::finish()
             double startStreamTime = par("startStreamTime");
             int npkt = (int) startStreamTime;
             np << npkt;
-            string par = "./Framework/createns2output.py " + inputFileName + " " + pb.str() + " " + ss.str() + " " + np.str();
-            system(par.c_str());
+
+            string args = inputFileName + " " + pb.str() + " " + ss.str() + " " + np.str();
+            FILE* fp = popen("./Framework/createns2output.py","w");
+            if (fp != NULL)
+            {
+                fprintf(fp, "%s", args.c_str());
+                fclose(fp);
+            }
         }
     }
-    chdir("../workspace/lte/simulations/dynamicnetwork");
 }
 
 void VoDUDPClient::handleMessage(cMessage* msg)
@@ -122,25 +135,28 @@ void VoDUDPClient::handleMessage(cMessage* msg)
     if (msg->isSelfMessage())
     {
         int localPort = par("localPort");
-        socket.setOutputGate(gate("udpOut"));
+        socket.setOutputGate(gate("socketOut"));
         socket.bind(localPort);
+        int tos = par("tos");
+        if (tos != -1)
+            socket.setTos(tos);
         delete msg;
     }
     else if (!strcmp(msg->getName(), "VoDPacket"))
-        receiveStream((VoDPacket*) (msg));
+        receiveStream((VoDPacket*) (msg));   //FIXME: must decapsulate - see https://inet.omnetpp.org/docs/developers-guide/ch-packets.html
     else
         delete msg;
 }
 
 void VoDUDPClient::receiveStream(VoDPacket *msg)
 {
-    int seqNum = msg->getFrameSeqNum();
-    simtime_t sendingTime = msg->getTimestamp();
-    int frameLength = msg->getFrameLength();
+    // int seqNum = msg->getFrameSeqNum();
+    simtime_t sendingTime = msg->getPayloadTimestamp();
+    // int frameLength = msg->getFrameLength();
     simtime_t delay = simTime() - sendingTime;
     int layer = msg->getQid();
 
-    totalRcvdBytes_ += msg->getByteLength();
+    totalRcvdBytes_ += msg->getFrameLength();
     double tputSample = (double)totalRcvdBytes_ / (simTime() - getSimulation()->getWarmupPeriod());
     if (layer == 0)
     {

@@ -1,15 +1,17 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
 //
 // This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
+// Date: 2021
 // Author: Thomas Deinlein
 //
 
@@ -30,8 +32,6 @@
 #include "stack/mac/amc/LteAmc.h"
 #include "stack/phy/ChannelModel/LteChannelModel.h"
 #include "stack/phy/feedback/LteFeedbackComputationRealistic.h"
-//#include "stack/phy/ChannelModel/LteRealisticChannelModel.h"
-//#include "stack/phy/ChannelModel/LteDummyChannelModel.h"
 
 /**
  * @class LtePhy
@@ -72,7 +72,8 @@ class LtePhyBase : public ChannelAccess
      */
     static short airFramePriority_;
     /** channel models to use.*/
-    LteChannelModel* channelModel_;
+    std::map<double, LteChannelModel*> channelModel_;
+    LteChannelModel* primaryChannelModel_;
 
     /** The id of the in-data gate from the Stack */
     int upperGateIn_;
@@ -91,14 +92,13 @@ class LtePhyBase : public ChannelAccess
     MacNodeId nodeId_;
 
     /** Node type */
-    // TODO maybe will become not useful
-    LteNodeType nodeType_;
+    RanNodeType nodeType_;
 
-    /// Reference to LteBinder
-    LteBinder *binder_;
+    /// Reference to Binder
+    Binder *binder_;
 
-    /// Reference to LteCellInfo
-    LteCellInfo* cellInfo_;
+    /// Reference to CellInfo
+    CellInfo* cellInfo_;
 
     // used in multicast D2D to prevent a send direct towards out-of-range UEs. Range is expressed via multicastD2DRange_
     bool enableMulticastD2DRangeCheck_;
@@ -115,8 +115,6 @@ class LtePhyBase : public ChannelAccess
     double ueTxPower_;
     // eNodeB Tx Power
     double eNodeBtxPower_;
-    //Relay Tx Power
-    double relayTxPower_;
     //Micro eNb Tx Power
     double microTxPower_;
     // Tx Power
@@ -130,18 +128,24 @@ class LtePhyBase : public ChannelAccess
     //Used only for PisaPhy
     LteFeedbackComputation* lteFeedbackComputation_;
 
-    //double carrierFrequency_;
+    double carrierFrequency_;
+
+    /*
+     * NR Support
+     */
+    bool isNr_;           // this flag is true if this module is part of the NR stack
+
     //Statistics
-    simsignal_t averageCqiDl_;
-    simsignal_t averageCqiUl_;
-    simsignal_t averageCqiD2D_;
+    omnetpp::simsignal_t averageCqiDl_;
+    omnetpp::simsignal_t averageCqiUl_;
+    omnetpp::simsignal_t averageCqiD2D_;
 
     // User that are trasmitting (uplink)
     //receiveng(downlink) current packet
     MacNodeId connectedNodeId_;
 
     // last time that the node has transmitted (currently, used only by UEs)
-    simtime_t lastActive_;
+    omnetpp::simtime_t lastActive_;
 
     public:
 
@@ -155,50 +159,45 @@ class LtePhyBase : public ChannelAccess
      */
     ~LtePhyBase();
 
-    virtual void checkConnection(){
-    	//overwritten in NRPhyUe;
-    };
-
-    LteChannelModel* getChannelModel()
+    const std::map<double, LteChannelModel*>* getChannelModels()
     {
-        Enter_Method_Silent("getChannelModel");
+        return &channelModel_;
+    }
 
-        return channelModel_;
+    LteChannelModel* getChannelModel(double carrierFreq = 0.0)
+    {
+        if (carrierFreq == 0.0) // when not specified, returns the first channel model (primary cell) TODO check this
+        {
+            std::map<double, LteChannelModel*>::iterator it = channelModel_.begin();
+            if (it != channelModel_.end())
+                return channelModel_.begin()->second;
+        }
+
+        if (channelModel_.find(carrierFreq) == channelModel_.end())
+            return NULL;
+
+        return channelModel_[carrierFreq];
     }
 
     double getMicroTxPwr()
     {
-        Enter_Method_Silent("getMicroTxPwr");
-
         return microTxPower_;
     }
     double getMacroTxPwr()
     {
-        Enter_Method_Silent("getMacroTxPwr");
-
         return eNodeBtxPower_;
     }
     virtual double getTxPwr(Direction dir = UNKNOWN_DIRECTION)
     {
-        Enter_Method_Silent("getTxPwr");
-
         return txPower_;
     }
     TxDirectionType getTxDirection()
     {
-        Enter_Method_Silent("getTxDirection");
-
         return txDirection_;
     }
     double getTxAngle()
     {
-        Enter_Method_Silent("getTxAngle");
-
         return txAngle_;
-    }
-
-    inet::Coord getPosition(){
-    	return getRadioPosition();
     }
 
   protected:
@@ -215,10 +214,10 @@ class LtePhyBase : public ChannelAccess
      *
      * @param stage initialization stage
      */
-    virtual void initialize(int stage);
+    virtual void initialize(int stage) override;
 
-    virtual int numInitStages() const {
-        return std::max(INITSTAGE_LAST+1, ChannelAccess::numInitStages());
+    virtual int numInitStages() const override {
+        return std::max(inet::INITSTAGE_LAST+1, ChannelAccess::numInitStages());
     }
 
     /**
@@ -226,7 +225,7 @@ class LtePhyBase : public ChannelAccess
      *
      * @param msg message received from stack or from air channel
      */
-    virtual void handleMessage(cMessage *msg);
+    virtual void handleMessage(omnetpp::cMessage *msg) override;
 
     /**
      * Sends a frame to all NICs in range.
@@ -264,7 +263,7 @@ class LtePhyBase : public ChannelAccess
      *
      * @param msg packet received from LteStack
      */
-    virtual void handleUpperMessage(cMessage* msg);
+    virtual void handleUpperMessage(omnetpp::cMessage* msg);
 
     /**
      * Processes messages received from the wireless channel.
@@ -279,7 +278,7 @@ class LtePhyBase : public ChannelAccess
      * - If airframe is a broadcast/feedback packet and host is
      *   an UE attached to eNB or eNB calls the appropriate
      *   function of the DAS filter
-     * - If airframe is received by a Relay or an UE attached to a Relay
+     * - If airframe is received by a UE attached to a Relay
      *   it leaves the received signal unchanged
      * - If airframe is received by eNodeB it performs a loop over
      *   the remoteset written inside the control info and for each
@@ -299,35 +298,35 @@ class LtePhyBase : public ChannelAccess
      *
      * @param msg LteAirFrame received from the air channel
      */
-    virtual void handleAirFrame(cMessage* msg) = 0;
+    virtual void handleAirFrame(omnetpp::cMessage* msg) = 0;
 
-    virtual void handleSelfMessage(cMessage *msg) = 0;
+    virtual void handleSelfMessage(omnetpp::cMessage *msg) = 0;
 
     virtual void handleControlMsg(LteAirFrame *frame, UserControlInfo *userInfo);
 
-    void initializeChannelModel();
+    virtual void initializeChannelModel();
 
 
     /**
      * Utility.
      * Shows current statistics above the icon.
      */
-    virtual void updateDisplayString();
+    void updateDisplayString();
 
     /**
      * Simple utility function to create a broadcast message for handover.
      */
-    virtual LteAirFrame *createHandoverMessage();
+    LteAirFrame *createHandoverMessage();
 
     /**
-     * Returns the pointer to the AMC module, given a master ID (ENODEB or RELAY)
+     * Returns the pointer to the AMC module, given a master ID (ENODEB)
      */
-    virtual LteAmc *getAmcModule(MacNodeId id);
+    LteAmc *getAmcModule(MacNodeId id);
 
     /**
      * Determine radio gate index of receiving node
      */
-    virtual int getReceiverGateIndex(const omnetpp::cModule*) const;
+    int getReceiverGateIndex(const omnetpp::cModule*, bool isNr) const;
 
   public:
     /*
@@ -337,7 +336,11 @@ class LtePhyBase : public ChannelAccess
     /*
      * Returns the time of the last transmission performed
      */
-    simtime_t getLastActive() { return lastActive_; }
+    omnetpp::simtime_t getLastActive() { return lastActive_; }
+    /*
+     * Returns the MAC Node Id
+     */
+    MacNodeId getMacNodeId() { return nodeId_; }
 };
 
 #endif  /* _LTE_AIRPHYBASE_H_ */

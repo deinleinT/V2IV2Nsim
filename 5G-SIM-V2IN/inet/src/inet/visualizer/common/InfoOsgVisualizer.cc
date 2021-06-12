@@ -33,6 +33,12 @@ InfoOsgVisualizer::InfoOsgVisualization::InfoOsgVisualization(NetworkNodeOsgVisu
 {
 }
 
+InfoOsgVisualizer::~InfoOsgVisualizer()
+{
+    if (displayInfos)
+        removeAllInfoVisualizations();
+}
+
 void InfoOsgVisualizer::initialize(int stage)
 {
     InfoVisualizerBase::initialize(stage);
@@ -62,8 +68,11 @@ InfoVisualizerBase::InfoVisualization *InfoOsgVisualizer::createInfoVisualizatio
     auto geode = new osg::Geode();
     geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
     geode->addDrawable(text);
-    auto visualization = networkNodeVisualizer->getNetworkNodeVisualization(getContainingNode(module));
-    return new InfoOsgVisualization(visualization, geode, module->getId());
+    auto networkNode = getContainingNode(module);
+    auto networkNodeVisualization = networkNodeVisualizer->getNetworkNodeVisualization(networkNode);
+    if (networkNodeVisualization == nullptr)
+        throw cRuntimeError("Cannot create info visualization for '%s', because network node visualization is not found for '%s'", module->getFullPath().c_str(), networkNode->getFullPath().c_str());
+    return new InfoOsgVisualization(networkNodeVisualization, geode, module->getId());
 }
 
 void InfoOsgVisualizer::refreshInfoVisualization(const InfoVisualization *infoVisualization, const char *info) const

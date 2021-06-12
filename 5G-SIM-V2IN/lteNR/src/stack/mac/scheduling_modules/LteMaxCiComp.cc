@@ -1,24 +1,25 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
 #include "stack/mac/scheduling_modules/LteMaxCiComp.h"
 #include "stack/mac/scheduler/LteSchedulerEnb.h"
 
+using namespace omnetpp;
+
 bool LteMaxCiComp::getBandLimit(std::vector<BandLimit>* bandLimit, MacNodeId ueId)
 {
-
-    //std::cout << "LteMaxCiComp::getBandLimit start at " << simTime().dbl() << std::endl;
-
     bandLimit->clear();
 
     // get usable bands for this user
-    UsableBands* usableBands = NULL;
+    UsableBands* usableBands = nullptr;
     bool ret = eNbScheduler_->mac_->getAmc()->getPilotUsableBands(ueId, usableBands);
     if (!ret)
     {
@@ -57,20 +58,16 @@ bool LteMaxCiComp::getBandLimit(std::vector<BandLimit>* bandLimit, MacNodeId ueI
     }
 
     return true;
-
-    //std::cout << "LteMaxCiComp::getBandLimit end at " << simTime().dbl() << std::endl;
 }
 
 void LteMaxCiComp::prepareSchedule()
 {
-    //std::cout << "LteMaxCiComp::prepareSchedule start at " << simTime().dbl() << std::endl;
+    EV << NOW << " LteMaxCiComp::schedule " << eNbScheduler_->mac_->getMacNodeId() << endl;
 
-    //EV << NOW << " LteMaxCiComp::schedule " << eNbScheduler_->mac_->getMacNodeId() << endl;
-
-    if (binder_ == NULL)
+    if (binder_ == nullptr)
         binder_ = getBinder();
 
-    activeConnectionTempSet_ = activeConnectionSet_;
+    activeConnectionTempSet_ = *activeConnectionSet_;
 
     // Build the score list by cycling through the active connections.
     ScoreList score;
@@ -78,7 +75,7 @@ void LteMaxCiComp::prepareSchedule()
     unsigned int blocks =0;
     unsigned int byPs = 0;
 
-    for ( ActiveSet::iterator it1 = activeConnectionTempSet_.begin ();it1 != activeConnectionTempSet_.end (); ++it1 )
+    for ( ActiveSet::iterator it1 = carrierActiveConnectionSet_.begin ();it1 != carrierActiveConnectionSet_.end (); ++it1 )
     {
         // Current connection.
         cid = *it1;
@@ -88,13 +85,13 @@ void LteMaxCiComp::prepareSchedule()
         if(nodeId == 0 || id == 0)
         {
             // node has left the simulation - erase corresponding CIDs
-            activeConnectionSet_.erase(cid);
+            activeConnectionSet_->erase(cid);
             activeConnectionTempSet_.erase(cid);
             continue;
         }
 
         // compute available blocks for the current user
-        const UserTxParams& info = eNbScheduler_->mac_->getAmc()->computeTxParams(nodeId,direction_);
+        const UserTxParams& info = eNbScheduler_->mac_->getAmc()->computeTxParams(nodeId,direction_,carrierFrequency_);
         const std::set<Band>& bands = info.readBands();
         std::set<Band>::const_iterator it = bands.begin(),et=bands.end();
         unsigned int codeword=info.getLayers().size();
@@ -122,7 +119,7 @@ void LteMaxCiComp::prepareSchedule()
             for (;it!=et;++it)
             {
                 availableBlocks += eNbScheduler_->readAvailableRbs(nodeId,*antennaIt,*it);
-                availableBytes += eNbScheduler_->mac_->getAmc()->computeBytesOnNRbs(nodeId,*it, availableBlocks, direction_);
+                availableBytes += eNbScheduler_->mac_->getAmc()->computeBytesOnNRbs(nodeId,*it, availableBlocks, direction_,carrierFrequency_);
             }
         }
 
@@ -135,7 +132,7 @@ void LteMaxCiComp::prepareSchedule()
         // insert the cid score
         score.push (desc);
 
-        //EV << NOW << " LteMaxCiComp::schedule computed for cid " << cid << " score of " << desc.score_ << endl;
+        EV << NOW << " LteMaxCiComp::schedule computed for cid " << cid << " score of " << desc.score_ << endl;
     }
 
     std::vector<BandLimit> usableBands;
@@ -150,11 +147,11 @@ void LteMaxCiComp::prepareSchedule()
         std::vector<BandLimit>* bandLim;
         bool ret = getBandLimit(&usableBands, MacCidToNodeId(current.x_));
         if (!ret)
-            bandLim = NULL;
+            bandLim = nullptr;
         else
             bandLim = &usableBands;
 
-        //EV << NOW << " LteMaxCiComp::schedule scheduling connection " << current.x_ << " with score of " << current.score_ << endl;
+        EV << NOW << " LteMaxCiComp::schedule scheduling connection " << current.x_ << " with score of " << current.score_ << endl;
 
         // Grant data to that connection.
         bool terminate = false;
@@ -162,7 +159,7 @@ void LteMaxCiComp::prepareSchedule()
         bool eligible = true;
         unsigned int granted = requestGrant (current.x_, 4294967295U, terminate, active, eligible, bandLim);
 
-        //EV << NOW << "LteMaxCiComp::schedule granted " << granted << " bytes to connection " << current.x_ << endl;
+        EV << NOW << "LteMaxCiComp::schedule granted " << granted << " bytes to connection " << current.x_ << endl;
 
         // Exit immediately if the terminate flag is set.
         if ( terminate ) break;
@@ -171,43 +168,20 @@ void LteMaxCiComp::prepareSchedule()
         if ( ! active || ! eligible )
         {
             score.pop ();
-            //EV << NOW << "LteMaxCiComp::schedule  connection " << current.x_ << " was found ineligible" << endl;
+            EV << NOW << "LteMaxCiComp::schedule  connection " << current.x_ << " was found ineligible" << endl;
         }
 
         // Set the connection as inactive if indicated by the grant ().
         if ( ! active )
         {
-            //EV << NOW << "LteMaxCiComp::schedule scheduling connection " << current.x_ << " set to inactive " << endl;
-
+            EV << NOW << "LteMaxCiComp::schedule scheduling connection " << current.x_ << " set to inactive " << endl;
+            carrierActiveConnectionSet_.erase(current.x_);
             activeConnectionTempSet_.erase (current.x_);
         }
     }
-    //std::cout << "LteMaxCiComp::prepareSchedule end at " << simTime().dbl() << std::endl;
 }
 
 void LteMaxCiComp::commitSchedule()
 {
-    //std::cout << "LteMaxCiComp::commitSchedule at " << simTime().dbl() << std::endl;
-
-    activeConnectionSet_ = activeConnectionTempSet_;
-}
-
-void LteMaxCiComp::updateSchedulingInfo()
-{
-}
-
-void LteMaxCiComp::notifyActiveConnection(MacCid cid)
-{
-    //std::cout << "LteMaxCiComp::notifyActiveConnection at " << simTime().dbl() << std::endl;
-
-    //EV << NOW << "LteMaxCiComp::notify CID notified " << cid << endl;
-    activeConnectionSet_.insert(cid);
-}
-
-void LteMaxCiComp::removeActiveConnection(MacCid cid)
-{
-    //std::cout << "LteMaxCiComp::removeActiveConnection at " << simTime().dbl() << std::endl;
-
-    //EV << NOW << "LteMaxCiComp::remove CID removed " << cid << endl;
-    activeConnectionSet_.erase(cid);
+    *activeConnectionSet_ = activeConnectionTempSet_;
 }

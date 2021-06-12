@@ -1,9 +1,11 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
@@ -40,10 +42,10 @@ protected:
     virtual void doCoordination();       // run the coordination algorithm (coordinator side)
 
     virtual X2CompProportionalRequestIE* buildClientRequest();
-    virtual void handleClientRequest(X2CompMsg* compMsg);
+    virtual void handleClientRequest(inet::Ptr<X2CompMsg> compMsg);
 
     virtual X2CompProportionalReplyIE* buildCoordinatorReply(X2NodeId clientId);
-    virtual void handleCoordinatorReply(X2CompMsg* compMsg);
+    virtual void handleCoordinatorReply(inet::Ptr<X2CompMsg> compMsg);
 
     UsableBands parseAllowedBlocksMap(std::vector<CompRbStatus>& allowedBlocksMap);
 

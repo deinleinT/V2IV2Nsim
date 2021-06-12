@@ -26,5 +26,6 @@ package inet.visualizer.contract;
 moduleinterface IRadioVisualizer
 {
     parameters:
-        @display("i=block/app_s");
+        @display("i=block/app");
 }
+

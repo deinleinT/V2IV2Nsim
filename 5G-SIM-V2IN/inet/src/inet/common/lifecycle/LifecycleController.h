@@ -60,21 +60,21 @@ namespace inet {
  *
  * @see ILifecycle, LifecycleOperation
  */
-class INET_API LifecycleController : public cSimpleModule, public IScriptable
+class INET_API LifecycleController
 {
   protected:
     class INET_API Callback : public IDoneCallback
     {
       public:
-        LifecycleController *controller;
-        LifecycleOperation *operation;
-        cModule *module;
+        LifecycleController *controller = nullptr;
+        LifecycleOperation *operation = nullptr;
+        cModule *module = nullptr;
 
         void init(LifecycleController *controller, LifecycleOperation *operation, cModule *module);
         virtual void invoke() override;
     };
 
-    Callback *spareCallback;
+    Callback *spareCallback = nullptr;
 
   protected:
     virtual bool resumeOperation(LifecycleOperation *operation);
@@ -83,10 +83,7 @@ class INET_API LifecycleController : public cSimpleModule, public IScriptable
 
   public:
     LifecycleController() : spareCallback(nullptr) {}
-    ~LifecycleController() { delete spareCallback; }
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage *msg) override;
-    virtual void processCommand(const cXMLElement& node) override;    // IScriptable
+    virtual ~LifecycleController() { delete spareCallback; }
 
     /**
      * Initiate an operation. See the class documentation and ILifecycle for

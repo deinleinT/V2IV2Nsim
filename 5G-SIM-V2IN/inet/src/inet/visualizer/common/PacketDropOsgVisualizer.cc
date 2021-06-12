@@ -16,8 +16,8 @@
 //
 
 #include "inet/common/ModuleAccess.h"
-#include "inet/common/OSGScene.h"
-#include "inet/common/OSGUtils.h"
+#include "inet/common/OsgScene.h"
+#include "inet/common/OsgUtils.h"
 #include "inet/visualizer/common/PacketDropOsgVisualizer.h"
 
 namespace inet {
@@ -28,8 +28,8 @@ Define_Module(PacketDropOsgVisualizer);
 
 #ifdef WITH_OSG
 
-PacketDropOsgVisualizer::PacketDropOsgVisualization::PacketDropOsgVisualization(osg::Node *node, int moduleId, const cPacket *packet, const Coord& position) :
-    PacketDropVisualization(moduleId, packet, position),
+PacketDropOsgVisualizer::PacketDropOsgVisualization::PacketDropOsgVisualization(osg::Node* node, const PacketDrop* packetDrop) :
+    PacketDropVisualization(packetDrop),
     node(node)
 {
 }
@@ -39,17 +39,22 @@ PacketDropOsgVisualizer::PacketDropOsgVisualization::~PacketDropOsgVisualization
     // TODO: delete node;
 }
 
+PacketDropOsgVisualizer::~PacketDropOsgVisualizer()
+{
+    if (displayPacketDrops)
+        removeAllPacketDropVisualizations();
+}
+
 void PacketDropOsgVisualizer::refreshDisplay() const
 {
     PacketDropVisualizerBase::refreshDisplay();
     // TODO: switch to osg canvas when API is extended
-    visualizerTargetModule->getCanvas()->setAnimationSpeed(packetDropVisualizations.empty() ? 0 : fadeOutAnimationSpeed, this);
+    visualizationTargetModule->getCanvas()->setAnimationSpeed(packetDropVisualizations.empty() ? 0 : fadeOutAnimationSpeed, this);
 }
 
-const PacketDropVisualizerBase::PacketDropVisualization *PacketDropOsgVisualizer::createPacketDropVisualization(cModule *module, cPacket *packet) const
+const PacketDropVisualizerBase::PacketDropVisualization *PacketDropOsgVisualizer::createPacketDropVisualization(PacketDrop *packetDrop) const
 {
-    auto path = resolveResourcePath("msg/packet_s.png");
-    auto image = inet::osg::createImage(path.c_str());
+    auto image = inet::osg::createImageFromResource("msg/packet_s");
     auto texture = new osg::Texture2D();
     texture->setImage(image);
     auto geometry = osg::createTexturedQuadGeometry(osg::Vec3(-image->s() / 2, 0.0, 0.0), osg::Vec3(image->s(), 0.0, 0.0), osg::Vec3(0.0, image->t(), 0.0), 0.0, 0.0, 1.0, 1.0);
@@ -61,22 +66,22 @@ const PacketDropVisualizerBase::PacketDropVisualization *PacketDropOsgVisualizer
     stateSet->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
     auto autoTransform = inet::osg::createAutoTransform(geometry, osg::AutoTransform::ROTATE_TO_SCREEN, true);
     auto material = new osg::Material();
+    auto iconTintColor = iconTintColorSet.getColor(packetDrop->getReason() % iconTintColorSet.getSize());
     osg::Vec4 colorVec((double)iconTintColor.red / 255.0, (double)iconTintColor.green / 255.0, (double)iconTintColor.blue / 255.0, 1.0);
     material->setAmbient(osg::Material::FRONT_AND_BACK, colorVec);
     material->setDiffuse(osg::Material::FRONT_AND_BACK, colorVec);
     material->setAlpha(osg::Material::FRONT_AND_BACK, 1.0);
     autoTransform->getChild(0)->getOrCreateStateSet()->setAttribute(material);
-    auto position = getPosition(getContainingNode(module));
-    auto positionAttitudeTransform = inet::osg::createPositionAttitudeTransform(position, EulerAngles::ZERO);
+    auto positionAttitudeTransform = inet::osg::createPositionAttitudeTransform(packetDrop->getPosition(), Quaternion::IDENTITY);
     positionAttitudeTransform->addChild(autoTransform);
-    return new PacketDropOsgVisualization(positionAttitudeTransform, module->getId(), packet, position);
+    return new PacketDropOsgVisualization(positionAttitudeTransform, packetDrop);
 }
 
 void PacketDropOsgVisualizer::addPacketDropVisualization(const PacketDropVisualization *packetDropVisualization)
 {
     PacketDropVisualizerBase::addPacketDropVisualization(packetDropVisualization);
     auto packetDropOsgVisualization = static_cast<const PacketDropOsgVisualization *>(packetDropVisualization);
-    auto scene = inet::osg::TopLevelScene::getSimulationScene(visualizerTargetModule);
+    auto scene = inet::osg::TopLevelScene::getSimulationScene(visualizationTargetModule);
     scene->addChild(packetDropOsgVisualization->node);
 }
 
@@ -99,7 +104,8 @@ void PacketDropOsgVisualizer::setAlpha(const PacketDropVisualization *packetDrop
     double dx = 10 / alpha;
     double dy = 10 / alpha;
     double dz = 58 - pow((dx / 4 - 9), 2);
-    positionAttitudeTransform->setPosition(osg::Vec3d(packetDropVisualization->position.x + dx, packetDropVisualization->position.y + dy, packetDropVisualization->position.z + dz));
+    auto& position = packetDropVisualization->packetDrop->getPosition();
+    positionAttitudeTransform->setPosition(osg::Vec3d(position.x + dx, position.y + dy, position.z + dz));
 }
 
 #endif // ifdef WITH_OSG

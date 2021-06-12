@@ -1,21 +1,16 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
-
-cplusplus {{
-#include "stack/rlc/packet/LteRlcPdu.h"
-#include "stack/rlc/LteRlcDefs.h"
-}}
-
-packet LteRlcPdu;
-enum LteAmType;
-
+import  stack.rlc.LteRlcDefs;
+import  stack.rlc.packet.LteRlcPdu;
 
 // Rlc Am Control fields for AM control PDUs
 //class LteRlcAmControlInfo
@@ -26,12 +21,12 @@ enum LteAmType;
 //     abstract bool bitmap[];
 //}
 
-packet LteRlcAmPdu extends LteRlcPdu
+class LteRlcAmPdu extends LteRlcPdu
 {
     @customize(true);
     unsigned short amType enum(LteAmType);
     unsigned short txNumber;
     int firstSn;
-     int lastSn;
-     abstract bool bitmap[];
+    int lastSn;
+    abstract bool bitmap[];
 }

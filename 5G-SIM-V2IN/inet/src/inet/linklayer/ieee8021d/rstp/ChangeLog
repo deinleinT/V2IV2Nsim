@@ -1,12 +1,73 @@
+====== inet-4.x ======
+
+2021-01-07  ------ inet-4.2.2 released ------
+
+2020-10-27  ------ inet-4.2.1 released ------
+
+2020-01-08  ------ inet-4.2.0 released ------
+
+2019-10-31  Zoltan Bojthe
+
+	Redesigned BPDU packets.
+	Fixed padding (do not change the BPDU length, add a padding chunk).
+
+2019-01-28  ------ inet-4.1.0 released ------
+
+2018-10-17  Zoltan Bojthe
+
+	Changed base class of Stp, Rstp to OperationalBase.
+
+2018-09-28  Levente Mészáros
+
+	Extracted INITSTAGE_LINK_LAYER from INITSTAGE_NETWORK_INTERFACE_CONFIGURATION where applicable.
+
+2018-09-27  Levente Mészáros
+
+	Renamed INITSTAGE_LINK_LAYER to INITSTAGE_NETWORK_INTERFACE_CONFIGURATION.	Renamed INITSTAGE_LINK_LAYER_2 to INITSTAGE_LINK_LAYER.
+
+2018-09-14  Marcel Marek
+
+	Added missing PacketProtocolTag and DispatchProtocolTag to Rstp.
+
+2018-06-27  ------ inet-4.0.0 released ------
+
+2018-06-01  Zoltan Bojthe
+
+	Added B/b units to length constants and length fields of chunks.
+
+2018-04-13  ------ inet-3.99.3 released ------
+
+2018-01-18  Levente Mészáros
+
+	Replaced packet tags API calls to use the new API.
+
+2018-01-05  Zoltan Bojthe
+
+	Renamed NF_* signals to use camel case.
+	Renamed signal variables to *Signal.
+
+2017-12-22  ------ inet-3.99.2 released ------
+
+2017-12-20  Zoltan Bojthe
+
+	Renaming:
+	    BPDU -> Bpdu
+	    MACAddress -> MacAddress
+	    MACAddressTable -> MacAddressTable
+	    RSTP -> Rstp
+	    STPBase -> StpBase
+
+2017-12-14  Levente Mészáros
+
+	Removed unnecessary markImmutable() calls.
+
+2017-11-16  ------ inet-3.99.1 released ------
+
+2017-07-11  Zoltan Bojthe
+
+	Fixed memory leak.
+
 ====== inet-3.x ======
-
-2020-10-20  ------ inet-3.6.8 released ------
-
-2019-11-04  ------ inet-3.6.7 released ------
-
-2019-08-16  ------ inet-3.6.6 released ------
-
-2019-04-12  ------ inet-3.6.5 released ------
 
 2018-03-21  ------ inet-3.6.4 released ------
 

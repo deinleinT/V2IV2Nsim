@@ -16,14 +16,18 @@
 //
 
 #include "inet/common/ModuleAccess.h"
-#include "inet/linklayer/ieee80211/mac/contract/IContention.h"
-#include "inet/linklayer/ieee80211/mac/contract/IStatistics.h"
-#include "inet/linklayer/ieee80211/mac/contract/ITx.h"
+#include "inet/common/checksum/EthernetCRC.h"
 #include "inet/linklayer/ieee80211/mac/Ieee80211Mac.h"
 #include "inet/linklayer/ieee80211/mac/Rx.h"
+#include "inet/linklayer/ieee80211/mac/contract/IContention.h"
+#include "inet/linklayer/ieee80211/mac/contract/ITx.h"
 
 namespace inet {
 namespace ieee80211 {
+
+using namespace inet::physicallayer;
+
+simsignal_t Rx::navChangedSignal = cComponent::registerSignal("navChanged");
 
 Define_Module(Rx);
 
@@ -43,10 +47,11 @@ void Rx::initialize(int stage)
         WATCH(address);
         WATCH(receptionState);
         WATCH(transmissionState);
+        WATCH(receivedPart);
         WATCH(mediumFree);
     }
-    else if (stage == INITSTAGE_LINK_LAYER) {
-        // statistics = check_and_cast<IStatistics *>(getModuleByPath(par("statisticsModule")));
+    // TODO: INITSTAGE
+    else if (stage == INITSTAGE_NETWORK_INTERFACE_CONFIGURATION) {
         address = check_and_cast<Ieee80211Mac*>(getContainingNicModule(this)->getSubmodule("mac"))->getAddress();
         recomputeMediumFree();
     }
@@ -56,31 +61,34 @@ void Rx::handleMessage(cMessage *msg)
 {
     if (msg == endNavTimer) {
         //EV_INFO << "The radio channel has become free according to the NAV" << std::endl;
+        emit(navChangedSignal, SimTime::ZERO);
         recomputeMediumFree();
     }
     else
         throw cRuntimeError("Unexpected self message");
 }
 
-bool Rx::lowerFrameReceived(Ieee80211Frame *frame)
+bool Rx::lowerFrameReceived(Packet *packet)
 {
-    Enter_Method("lowerFrameReceived(\"%s\")", frame->getName());
-    take(frame);
+    Enter_Method_Silent("lowerFrameReceived(\"%s\")", packet->getName());
+    take(packet);
 
-    bool isFrameOk = isFcsOk(frame);
+    bool isFrameOk = isFcsOk(packet);
     if (isFrameOk) {
-        //EV_INFO << "Received frame from PHY: " << frame << endl;
-        if (frame->getReceiverAddress() != address)
-            setOrExtendNav(frame->getDuration());
-//        statistics->frameReceived(frame);
+        //EV_INFO << "Received frame from PHY: " << packet << endl;
+        const auto& header = packet->peekAtFront<Ieee80211MacHeader>();
+        if (header->getReceiverAddress() != address)
+            setOrExtendNav(header->getDurationField());
         return true;
     }
     else {
         //EV_INFO << "Received an erroneous frame from PHY, dropping it." << std::endl;
-        delete frame;
+        PacketDropDetails details;
+        details.setReason(INCORRECTLY_RECEIVED);
+        emit(packetDroppedSignal, packet, &details);
+        delete packet;
         for (auto contention : contentions)
             contention->corruptedFrameReceived();
-//        statistics->erroneousFrameReceived();
         return false;
     }
 }
@@ -99,9 +107,30 @@ bool Rx::isReceptionInProgress() const
            (receivedPart == IRadioSignal::SIGNAL_PART_WHOLE || receivedPart == IRadioSignal::SIGNAL_PART_DATA);
 }
 
-bool Rx::isFcsOk(Ieee80211Frame *frame) const
+bool Rx::isFcsOk(Packet *packet) const
 {
-    return !frame->hasBitError();
+    if (packet->hasBitError() || !packet->peekData()->isCorrect())
+        return false;
+    else {
+        const auto& trailer = packet->peekAtBack<Ieee80211MacTrailer>(B(4));
+        switch (trailer->getFcsMode()) {
+            case FCS_DECLARED_INCORRECT:
+                return false;
+            case FCS_DECLARED_CORRECT:
+                return true;
+            case FCS_COMPUTED: {
+                const auto& fcsBytes = packet->peekDataAt<BytesChunk>(B(0), packet->getDataLength() - trailer->getChunkLength());
+                auto bufferLength = B(fcsBytes->getChunkLength()).get();
+                auto buffer = new uint8_t[bufferLength];
+                fcsBytes->copyToBuffer(buffer, bufferLength);
+                auto computedFcs = ethernetCRC(buffer, bufferLength);
+                delete [] buffer;
+                return computedFcs == trailer->getFcs();
+            }
+            default:
+                throw cRuntimeError("Unknown FCS mode");
+        }
+    }
 }
 
 void Rx::recomputeMediumFree()
@@ -145,10 +174,14 @@ void Rx::setOrExtendNav(simtime_t navInterval)
             simtime_t oldEndNav = endNavTimer->getArrivalTime();
             if (endNav < oldEndNav)
                 return;    // never decrease NAV
+            emit(navChangedSignal, endNavTimer->getArrivalTime() - simTime());
             cancelEvent(endNavTimer);
         }
+        else
+            emit(navChangedSignal, SimTime::ZERO);
         //EV_INFO << "Setting NAV to " << navInterval << std::endl;
         scheduleAt(endNav, endNavTimer);
+        emit(navChangedSignal, endNav - simTime());
         recomputeMediumFree();
     }
 }

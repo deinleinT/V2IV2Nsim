@@ -16,7 +16,7 @@
 //
 
 #include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckAgreement.h"
-#include "RecipientBlockAckProcedure.h"
+#include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckProcedure.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -26,22 +26,25 @@ namespace ieee80211 {
 // STA shall transmit a BlockAck frame after a SIFS period, without regard to the busy/idle state of the medium.
 // The rules that specify the contents of this BlockAck frame are defined in 9.21.
 //
-void RecipientBlockAckProcedure::processReceivedBlockAckReq(Ieee80211BlockAckReq* blockAckReq, IRecipientQoSAckPolicy *ackPolicy, IRecipientBlockAckAgreementHandler* blockAckAgreementHandler, IProcedureCallback *callback)
+void RecipientBlockAckProcedure::processReceivedBlockAckReq(Packet *blockAckPacketReq, const Ptr<const Ieee80211BlockAckReq>& blockAckReq, IRecipientQosAckPolicy *ackPolicy, IRecipientBlockAckAgreementHandler* blockAckAgreementHandler, IProcedureCallback *callback)
 {
     numReceivedBlockAckReq++;
-    if (auto basicBlockAckReq = dynamic_cast<Ieee80211BasicBlockAckReq*>(blockAckReq)) {
+    if (auto basicBlockAckReq = dynamicPtrCast<const Ieee80211BasicBlockAckReq>(blockAckReq)) {
         auto agreement = blockAckAgreementHandler->getAgreement(basicBlockAckReq->getTidInfo(), basicBlockAckReq->getTransmitterAddress());
         if (ackPolicy->isBlockAckNeeded(basicBlockAckReq, agreement)) {
             auto blockAck = buildBlockAck(basicBlockAckReq, agreement);
-            blockAck->setDuration(ackPolicy->computeBasicBlockAckDurationField(basicBlockAckReq));
-            callback->transmitControlResponseFrame(blockAck, basicBlockAckReq);
+            auto duration = ackPolicy->computeBasicBlockAckDurationField(blockAckPacketReq, basicBlockAckReq);
+            blockAck->setDurationField(duration);
+            auto blockAckPacket = new Packet("BasicBlockAck", blockAck);
+            //EV_DEBUG << "Duration for " << blockAckPacket->getName() << " is set to " << duration << " s.\n";
+            callback->transmitControlResponseFrame(blockAckPacket, blockAck, blockAckPacketReq, basicBlockAckReq);
         }
     }
     else
         throw cRuntimeError("Unsupported BlockAckReq");
 }
 
-void RecipientBlockAckProcedure::processTransmittedBlockAck(Ieee80211BlockAck* blockAck)
+void RecipientBlockAckProcedure::processTransmittedBlockAck(const Ptr<const Ieee80211BlockAck>& blockAck)
 {
     numSentBlockAck++;
 }
@@ -52,16 +55,16 @@ void RecipientBlockAckProcedure::processTransmittedBlockAck(Ieee80211BlockAck* b
 // until the MPDU with the highest sequence number that has been received, and the STA shall set bits in the
 // Block Ack bitmap corresponding to all other MPDUs to 0.
 //
-Ieee80211BlockAck* RecipientBlockAckProcedure::buildBlockAck(Ieee80211BlockAckReq* blockAckReq, RecipientBlockAckAgreement *agreement)
+const Ptr<Ieee80211BlockAck> RecipientBlockAckProcedure::buildBlockAck(const Ptr<const Ieee80211BlockAckReq>& blockAckReq, RecipientBlockAckAgreement *agreement)
 {
-    if (auto basicBlockAckReq = dynamic_cast<Ieee80211BasicBlockAckReq*>(blockAckReq)) {
+    if (auto basicBlockAckReq = dynamicPtrCast<const Ieee80211BasicBlockAckReq>(blockAckReq)) {
         ASSERT(agreement != nullptr);
-        Ieee80211BasicBlockAck *blockAck = new Ieee80211BasicBlockAck("BasicBlockAck");
-        int startingSequenceNumber = basicBlockAckReq->getStartingSequenceNumber();
-        for (SequenceNumber seqNum = startingSequenceNumber; seqNum < startingSequenceNumber + 64; seqNum++) {
-            BitVector &bitmap = blockAck->getBlockAckBitmap(seqNum - startingSequenceNumber);
+        auto blockAck = makeShared<Ieee80211BasicBlockAck>();
+        auto startingSequenceNumber = basicBlockAckReq->getStartingSequenceNumber();
+        for (int i = 0; i < 64; i++) {
+            BitVector &bitmap = blockAck->getBlockAckBitmapForUpdate(i);
             for (FragmentNumber fragNum = 0; fragNum < 16; fragNum++) {
-                bool ackState = agreement->getBlockAckRecord()->getAckState(seqNum, fragNum);
+                bool ackState = agreement->getBlockAckRecord()->getAckState(startingSequenceNumber + i, fragNum);
                 bitmap.setBit(fragNum, ackState);
             }
         }

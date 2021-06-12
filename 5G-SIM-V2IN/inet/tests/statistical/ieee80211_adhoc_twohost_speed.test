@@ -1,25 +1,26 @@
 %description:
 Testing TCP communication speed
     TCP
-    TCP_NSC
+    TcpNsc
 %#--------------------------------------------------------------------------------------------------------------
 %testprog: opp_run
 %#--------------------------------------------------------------------------------------------------------------
 %file: test.ned
 
-import inet.applications.ethernet.EtherAppCli;
-import inet.common.queue.Sink;
-import inet.linklayer.ieee80211.Ieee80211Nic;
+import inet.applications.ethernet.EtherAppClient;
+import inet.queueing.Sink;
+import inet.linklayer.ieee80211.Ieee80211Interface;
 import inet.mobility.single.CircleMobility;
 import inet.mobility.static.StationaryMobility;
 import inet.node.wireless.AccessPoint;
 import inet.physicallayer.ieee80211.packetlevel.Ieee80211ScalarRadioMedium;
 
 
-module Ieee80211NicAdhoc extends Ieee80211Nic
+module Ieee80211NicAdhoc extends Ieee80211Interface
 {
     parameters:
-        mgmtType = "Ieee80211MgmtAdhoc";
+        mgmt.typename = "Ieee80211MgmtAdhoc";
+        agent.typename = "";
 }
 
 module ThroughputClient
@@ -35,9 +36,8 @@ module ThroughputClient
         input radioIn @directIn;
 
     submodules:
-        cli: EtherAppCli {
+        cli: EtherAppClient {
             parameters:
-                registerSAP = false;
                 destAddress = "20:00:00:00:00:0"+string(idx % maxSrv);
                 @display("b=40,24;p=180,60,col");
         }
@@ -120,7 +120,6 @@ network Throughput
 network = Throughput
 #cmdenv-output-file = omnetpp.log
 #debug-on-errors = true
-
 sim-time-limit = 50s
 **.vector-recording = false
 
@@ -144,7 +143,7 @@ sim-time-limit = 50s
 **.mobility.updateInterval = 100ms
 
 # channel physical parameters
-*.radioMedium.mediumLimitCache.carrierFrequency = 2.4GHz
+*.radioMedium.mediumLimitCache.centerFrequency = 2.4GHz
 *.radioMedium.mediumLimitCache.maxTransmissionPower = 20mW
 
 # access point
@@ -155,11 +154,8 @@ sim-time-limit = 50s
 **.wlan*.*.multicastBitrate = 11Mbps
 **.wlan*.*.controlBitrate = 11Mbps
 **.mac.address = "auto"
-**.mac.maxQueueSize = 14
+**.mac.queue.packetCapacity = 14
 **.mac.rtsThresholdBytes = 3000B
-**.wlan*.mac.retryLimit = 7
-**.wlan*.mac.cwMinData = 31
-**.wlan*.mac.cwMinBroadcast = 31
 
 **.radio.bitrate = 11Mbps
 **.radio.transmitterPower = 20.0mW
@@ -205,8 +201,8 @@ cat("\nOMNETPP TEST RESULT:\n")
 
 sink <- dataset$scalars[grep("\\.srvHost\\[\\d\\]\\.sink", dataset$scalars$module),]
 #print(sink)
-secs <- (sink$value[sink$name == "rcvdPk:count"] / sink$value[sink$name == "packetPerSec"])
-sinkRcvd <- sink[sink$name == "rcvdPk:sum(packetBytes)",]
+secs <- (sink$value[sink$name == "packetReceived:count"] / sink$value[sink$name == "packetPerSec"])
+sinkRcvd <- sink[sink$name == "packetReceived:sum(packetBytes)",]
 
 #print(sinkRcvd)
 cnt <- length(sinkRcvd$value)

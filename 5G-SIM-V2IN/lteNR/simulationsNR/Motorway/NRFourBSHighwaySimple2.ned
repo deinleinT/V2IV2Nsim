@@ -17,17 +17,17 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-package nr.simulationsNR.Motorway;
+package lteNR.simulationsNR.Motorway;
 
-import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
+import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 import inet.networklayer.ipv4.RoutingTableRecorder;
 import inet.node.inet.AdhocHost;
 import inet.node.inet.Router;
 import inet.node.inet.StandardHost;
 import inet.node.ethernet.Eth10G;
 
-import nr.world.radio.NRChannelControl;
-import nr.corenetwork.binder.NRBinder;
+import lteNR.nr.world.radio.NRChannelControl;
+import lteNR.nr.common.binder.NRBinder;
 
 import org.car2x.veins.subprojects.veins_inet.VeinsInetManager;
 import org.car2x.veins.modules.obstacle.ObstacleControl;
@@ -35,9 +35,9 @@ import org.car2x.veins.modules.world.annotations.AnnotationManager;
 import org.car2x.veins.base.modules.BaseWorldUtility;
 import org.car2x.veins.visualizer.roads.RoadsCanvasVisualizer;
 
-import nr.corenetwork.nodes.UPF;
-import nr.corenetwork.nodes.gNodeB;
-import nr.corenetwork.nodes.GeneralParameters;
+import lteNR.nr.common.nodes.UPF;
+import lteNR.nr.common.nodes.gnodeB;
+import lteNR.nr.common.nodes.GeneralParameters;
 
 
 network NRFourBSHighwaySimple2 extends GeneralParameters
@@ -63,7 +63,7 @@ network NRFourBSHighwaySimple2 extends GeneralParameters
             @display("p=6853.6997,2019.3937;is=s");
         }
         //INET
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=6853.6997,3353.4175");
             config = xmldoc("demo.xml");
         }
@@ -116,19 +116,19 @@ network NRFourBSHighwaySimple2 extends GeneralParameters
             @display("p=1014,3346.2002;is=l");
         }
 
-        gNodeB1: gNodeB {
+        gNodeB1: gnodeB {
             @display("p=5911.62,182.52;is=vl");//hochhaus
         }
 
-        gNodeB2: gNodeB {
+        gNodeB2: gnodeB {
             @display("p=4279.08,182.52;is=vl");
         }
 
-        gNodeB3: gNodeB {
+        gNodeB3: gnodeB {
             @display("p=2555.28,182.52;is=vl");
         }
 
-        gNodeB4: gNodeB {
+        gNodeB4: gnodeB {
             @display("p=902.46,577.98004;is=vl");
         }
 
@@ -156,7 +156,5 @@ network NRFourBSHighwaySimple2 extends GeneralParameters
         //        upf2.n9Interface++ <--> Eth10G <--> upf3.n9Interface++;
         upf2.n9Interface++ <--> Eth10G <--> upf1.n9Interface++;
         upf3.n9Interface++ <--> Eth10G <--> upf2.n9Interface++;
-
-
 
 }

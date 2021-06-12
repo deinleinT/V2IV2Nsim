@@ -28,9 +28,10 @@ MovingMobilityBase::MovingMobilityBase() :
     moveTimer(nullptr),
     updateInterval(0),
     stationary(false),
-    lastSpeed(Coord::ZERO),
+    lastVelocity(Coord::ZERO),
     lastUpdate(0),
-    nextChange(-1)
+    nextChange(-1),
+    faceForward(false)
 {
 }
 
@@ -46,6 +47,7 @@ void MovingMobilityBase::initialize(int stage)
     if (stage == INITSTAGE_LOCAL) {
         moveTimer = new cMessage("move");
         updateInterval = par("updateInterval");
+        faceForward = par("faceForward");
     }
 }
 
@@ -61,15 +63,24 @@ void MovingMobilityBase::moveAndUpdate()
     simtime_t now = simTime();
     if (nextChange == now || lastUpdate != now) {
         move();
-        // determine orientation based on direction
-        Coord direction = lastSpeed;
-        direction.normalize();
-        lastOrientation.alpha = atan2(-direction.y, direction.x);
-        lastOrientation.beta = asin(direction.z);
-        lastOrientation.gamma = 0.0;
+        orient();
         lastUpdate = simTime();
         emitMobilityStateChangedSignal();
-        updateVisualRepresentation();
+    }
+}
+
+void MovingMobilityBase::orient()
+{
+    if (faceForward) {
+        // determine orientation based on direction
+        if (lastVelocity != Coord::ZERO) {
+            Coord direction = lastVelocity;
+            direction.normalize();
+            auto alpha = rad(atan2(direction.y, direction.x));
+            auto beta = rad(-asin(direction.z));
+            auto gamma = rad(0.0);
+            lastOrientation = Quaternion(EulerAngles(alpha, beta, gamma));
+        }
     }
 }
 
@@ -103,16 +114,22 @@ Coord MovingMobilityBase::getCurrentPosition()
     return lastPosition;
 }
 
-Coord MovingMobilityBase::getCurrentSpeed()
+Coord MovingMobilityBase::getCurrentVelocity()
 {
     moveAndUpdate();
-    return lastSpeed;
+    return lastVelocity;
 }
 
-EulerAngles MovingMobilityBase::getCurrentAngularPosition()
+Quaternion MovingMobilityBase::getCurrentAngularPosition()
 {
     moveAndUpdate();
     return lastOrientation;
+}
+
+Quaternion MovingMobilityBase::getCurrentAngularVelocity()
+{
+    moveAndUpdate();
+    return lastAngularVelocity;
 }
 
 } // namespace inet

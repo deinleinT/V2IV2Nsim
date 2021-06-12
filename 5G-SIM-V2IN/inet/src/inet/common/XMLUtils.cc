@@ -1,3 +1,4 @@
+
 #include "inet/common/XMLUtils.h"
 #include "inet/networklayer/common/L3AddressResolver.h"
 
@@ -9,7 +10,7 @@ const cXMLElement *getUniqueChild(const cXMLElement *node, const char *name)
 {
     const cXMLElement *child = getUniqueChildIfExists(node, name);
     if (!child)
-        throw cRuntimeError("Missing <%s> element in <%s> at %s", name, node->getTagName(), node->getSourceLocation());
+        throw cRuntimeError("XML error: exactly one %s element expected", name);
 
     return child;
 }
@@ -18,7 +19,7 @@ const cXMLElement *getUniqueChildIfExists(const cXMLElement *node, const char *n
 {
     cXMLElementList list = node->getChildrenByTagName(name);
     if (list.size() > 1)
-        throw cRuntimeError("More than one <%s> element in <%s> at %s", name, node->getTagName(), node->getSourceLocation());
+        throw cRuntimeError("XML error: at most one %s element expected", name);
     else if (list.size() == 1)
         return *list.begin();
     else
@@ -53,22 +54,22 @@ bool parseBool(const char *text)
 
 void checkTags(const cXMLElement *node, const char *allowed)
 {
-    std::vector<const char *> allowedTags;
+    std::vector<const char *> tags;
 
     cStringTokenizer st(allowed, " ");
     const char *nt;
     while ((nt = st.nextToken()) != nullptr)
-        allowedTags.push_back(nt);
+        tags.push_back(nt);
 
     for (cXMLElement *child = node->getFirstChild(); child; child = child->getNextSibling()) {
         unsigned int i;
-        for (i = 0; i < allowedTags.size(); i++)
-            if (!strcmp(child->getTagName(), allowedTags[i]))
+        for (i = 0; i < tags.size(); i++)
+            if (!strcmp(child->getTagName(), tags[i]))
                 break;
 
-        if (i == allowedTags.size())
-            throw cRuntimeError(node, "Child element <%s> is unexpected in <%s> at %s",
-                    child->getTagName(), node->getTagName(), child->getSourceLocation());
+        if (i == tags.size())
+            throw cRuntimeError("Subtag <%s> not expected in <%s>",
+                    child->getTagName(), node->getTagName());
     }
 }
 
@@ -117,19 +118,19 @@ int getParameterIntValue(const cXMLElement *ptr, const char *name)
     return atoi(xvalue->getNodeValue());
 }
 
-IPv4Address getParameterIPAddressValue(const cXMLElement *ptr, const char *name, IPv4Address def)
+Ipv4Address getParameterIPAddressValue(const cXMLElement *ptr, const char *name, Ipv4Address def)
 {
     const cXMLElement *xvalue = getUniqueChildIfExists(ptr, name);
     if (xvalue)
-        return L3AddressResolver().resolve(xvalue->getNodeValue()).toIPv4();
+        return L3AddressResolver().resolve(xvalue->getNodeValue()).toIpv4();
     else
         return def;
 }
 
-IPv4Address getParameterIPAddressValue(const cXMLElement *ptr, const char *name)
+Ipv4Address getParameterIPAddressValue(const cXMLElement *ptr, const char *name)
 {
     const cXMLElement *xvalue = getUniqueChild(ptr, name);
-    return L3AddressResolver().resolve(xvalue->getNodeValue()).toIPv4();
+    return L3AddressResolver().resolve(xvalue->getNodeValue()).toIpv4();
 }
 
 double getParameterDoubleValue(const cXMLElement *ptr, const char *name, double def)
@@ -147,11 +148,20 @@ double getParameterDoubleValue(const cXMLElement *ptr, const char *name)
     return strtod(xvalue->getNodeValue(), nullptr);
 }
 
-const char *getRequiredAttribute(const cXMLElement& node, const char *attr)
+const char *getMandatoryAttribute(const cXMLElement& node, const char *attr)
 {
     const char *s = node.getAttribute(attr);
-    if (!(s && *s))
-        throw cRuntimeError(&node, "required attribute %s of <%s> missing at %s",
+    if (s == nullptr)
+        throw cRuntimeError("required attribute %s of <%s> missing at %s",
+                attr, node.getTagName(), node.getSourceLocation());
+    return s;
+}
+
+const char *getMandatoryFilledAttribute(const cXMLElement& node, const char *attr)
+{
+    const char *s = getMandatoryAttribute(node, attr);
+    if (*s == '\0')
+        throw cRuntimeError("required attribute %s of <%s> is empty at %s",
                 attr, node.getTagName(), node.getSourceLocation());
     return s;
 }
@@ -166,7 +176,7 @@ bool getAttributeBoolValue(const cXMLElement *node, const char *attrName, bool d
 
 bool getAttributeBoolValue(const cXMLElement *node, const char *attrName)
 {
-    const char *attrStr = getRequiredAttribute(*node, attrName);
+    const char *attrStr = getMandatoryFilledAttribute(*node, attrName);
     return parseBool(attrStr);
 }
 

@@ -20,6 +20,8 @@
 
 namespace inet {
 
+using namespace power;
+
 namespace visualizer {
 
 Define_Module(EnergyStorageOsgVisualizer);
@@ -31,6 +33,12 @@ EnergyStorageOsgVisualizer::EnergyStorageOsgVisualization::EnergyStorageOsgVisua
     networkNodeVisualization(networkNodeVisualization),
     node(node)
 {
+}
+
+EnergyStorageOsgVisualizer::~EnergyStorageOsgVisualizer()
+{
+    if (displayEnergyStorages)
+        removeAllEnergyStorageVisualizations();
 }
 
 void EnergyStorageOsgVisualizer::initialize(int stage)
@@ -54,14 +62,18 @@ EnergyStorageVisualizerBase::EnergyStorageVisualization *EnergyStorageOsgVisuali
     auto module = check_and_cast<const cModule *>(energyStorage);
     auto geode = new osg::Geode();
     geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
-    auto visualization = networkNodeVisualizer->getNetworkNodeVisualization(getContainingNode(module));
-    return new EnergyStorageOsgVisualization(visualization, geode, energyStorage);
+    auto networkNode = getContainingNode(module);
+    auto networkNodeVisualization = networkNodeVisualizer->getNetworkNodeVisualization(networkNode);
+    if (networkNodeVisualization == nullptr)
+        throw cRuntimeError("Cannot create energy storage visualization for '%s', because network node visualization is not found for '%s'", module->getFullPath().c_str(), networkNode->getFullPath().c_str());
+    return new EnergyStorageOsgVisualization(networkNodeVisualization, geode, energyStorage);
 }
 
 void EnergyStorageOsgVisualizer::refreshEnergyStorageVisualization(const EnergyStorageVisualization *energyStorageVisualization) const
 {
-    auto infoOsgVisualization = static_cast<const EnergyStorageOsgVisualization *>(energyStorageVisualization);
-    auto node = infoOsgVisualization->node;
+    // TODO:
+    // auto infoOsgVisualization = static_cast<const EnergyStorageOsgVisualization *>(energyStorageVisualization);
+    // auto node = infoOsgVisualization->node;
 }
 
 #endif // ifdef WITH_OSG

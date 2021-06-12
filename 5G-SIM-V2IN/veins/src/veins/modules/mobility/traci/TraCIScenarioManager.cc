@@ -936,7 +936,7 @@ void TraCIScenarioManager::processVehicleSubscription(std::string objectId, TraC
             uint32_t count;
             buf >> count;
             EV_DEBUG << "TraCI reports " << count << " active vehicles." << endl;
-            ASSERT(count == activeVehicleCount);
+            //ASSERT(count == activeVehicleCount);
             std::set<std::string> drivingVehicles;
             for (uint32_t i = 0; i < count; ++i) {
                 std::string idstring;

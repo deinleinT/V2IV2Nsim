@@ -20,16 +20,18 @@
 
 #include "inet/common/INETDefs.h"
 
-#include "inet/linklayer/common/MACAddress.h"
-#include "inet/common/lifecycle/NodeStatus.h"
-#include "inet/common/lifecycle/ILifecycle.h"
+#include "inet/applications/base/ApplicationBase.h"
+#include "inet/common/packet/Packet.h"
+#include "inet/linklayer/common/MacAddress.h"
+#include "inet/linklayer/ieee8022/Ieee8022LlcSocket.h"
+#include "inet/linklayer/ieee8022/Ieee8022LlcSocketCommand_m.h"
 
 namespace inet {
 
 /**
  * Simple traffic generator for the Ethernet model.
  */
-class INET_API EtherTrafGen : public cSimpleModule, public ILifecycle
+class INET_API EtherTrafGen : public ApplicationBase
 {
   protected:
     enum Kinds { START = 100, NEXT };
@@ -40,10 +42,11 @@ class INET_API EtherTrafGen : public cSimpleModule, public ILifecycle
     cPar *sendInterval = nullptr;
     cPar *numPacketsPerBurst = nullptr;
     cPar *packetLength = nullptr;
-    int etherType = 0;
-    MACAddress destMACAddress;
-    NodeStatus *nodeStatus = nullptr;
+    int ssap = -1;
+    int dsap = -1;
+    MacAddress destMacAddress;
 
+    Ieee8022LlcSocket llcSocket;
     // self messages
     cMessage *timerMsg = nullptr;
     simtime_t startTime;
@@ -52,25 +55,25 @@ class INET_API EtherTrafGen : public cSimpleModule, public ILifecycle
     // receive statistics
     long packetsSent = 0;
     long packetsReceived = 0;
-    static simsignal_t sentPkSignal;
-    static simsignal_t rcvdPkSignal;
 
   protected:
     virtual void initialize(int stage) override;
     virtual int numInitStages() const override { return NUM_INIT_STAGES; }
-    virtual void handleMessage(cMessage *msg) override;
+    virtual void handleMessageWhenUp(cMessage *msg) override;
     virtual void finish() override;
 
-    virtual bool isNodeUp();
     virtual bool isGenerator();
     virtual void scheduleNextPacket(simtime_t previous);
     virtual void cancelNextPacket();
 
-    virtual MACAddress resolveDestMACAddress();
+    virtual MacAddress resolveDestMacAddress();
 
     virtual void sendBurstPackets();
-    virtual void receivePacket(cPacket *msg);
-    virtual bool handleOperationStage(LifecycleOperation *operation, int stage, IDoneCallback *doneCallback) override;
+    virtual void receivePacket(Packet *msg);
+
+    virtual void handleStartOperation(LifecycleOperation *operation) override;
+    virtual void handleStopOperation(LifecycleOperation *operation) override;
+    virtual void handleCrashOperation(LifecycleOperation *operation) override;
 
   public:
     EtherTrafGen();

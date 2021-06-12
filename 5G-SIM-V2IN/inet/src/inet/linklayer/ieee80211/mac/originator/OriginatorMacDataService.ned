@@ -19,16 +19,19 @@ package inet.linklayer.ieee80211.mac.originator;
 
 import inet.linklayer.ieee80211.mac.contract.IFragmentationPolicy;
 
-
 module OriginatorMacDataService
 {
     parameters:
-        string fragmentationPolicyModuleType = "BasicFragmentationPolicy";
         @class("OriginatorMacDataService");
         @display("i=block/fork");
+        @signal[packetFragmented](type=inet::Packet);
+        @signal[packetAggregated](type=inet::Packet);
+        @statistic[packetFragmented](title="packets fragmented"; record=count);
+        @statistic[packetAggregated](title="packets aggregated"; record=count);
     submodules:
-        fragmentationPolicy: <fragmentationPolicyModuleType> like IFragmentationPolicy if fragmentationPolicyModuleType != "" {
+        fragmentationPolicy: <"BasicFragmentationPolicy"> like IFragmentationPolicy if typename != "" {
             parameters:
                 @display("p=100,100");
         }
 }
+

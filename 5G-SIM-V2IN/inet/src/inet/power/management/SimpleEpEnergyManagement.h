@@ -18,7 +18,6 @@
 #ifndef __INET_SIMPLEEPENERGYMANAGEMENT_H
 #define __INET_SIMPLEEPENERGYMANAGEMENT_H
 
-#include "inet/common/lifecycle/LifecycleController.h"
 #include "inet/common/lifecycle/NodeStatus.h"
 #include "inet/power/contract/IEpEnergyManagement.h"
 #include "inet/power/contract/IEpEnergyStorage.h"
@@ -36,14 +35,17 @@ class INET_API SimpleEpEnergyManagement : public cSimpleModule, public virtual I
     IEpEnergyStorage *energyStorage = nullptr;
 
     // state
-    LifecycleController *lifecycleController = nullptr;
     cModule *networkNode = nullptr;
     NodeStatus *nodeStatus = nullptr;
     cMessage *lifecycleOperationTimer = nullptr;
+    J targetCapacity = J(NaN);
+
+    LifecycleController lifecycleController;
 
   protected:
     virtual void initialize(int stage) override;
     virtual void handleMessage(cMessage *message) override;
+    virtual void refreshDisplay() const override;
 
     virtual void executeNodeOperation(J estimatedEnergyCapacity);
     virtual void scheduleLifecycleOperationTimer();

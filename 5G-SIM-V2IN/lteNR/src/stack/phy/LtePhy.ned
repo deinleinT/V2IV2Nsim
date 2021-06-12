@@ -1,14 +1,16 @@
 // 
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 // 
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself, 
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself, 
 // and cannot be removed from it.
 // 
 
 
-package lte.stack.phy;
+package lteNR.stack.phy;
 
 // 
 // Interface for the LtePhy module of PHY Layer
@@ -31,7 +33,6 @@ simple LtePhyBase like LtePhy {
         @display("i=block/wrxtx");
         double ueTxPower =default(26);
         double eNodeBTxPower =default(46);
-        double relayTxPower =default(20);
         double microTxPower =default(30);
         string txDirection = default("OMNI");
         double txAngle = default(0);       
@@ -59,9 +60,15 @@ simple LtePhyUe extends LtePhyBase {
      parameters:
          @class("LtePhyUe");
          
+         // if true, get minRssi from PhyPisaData
+         bool minRssiDefault = default(true);
+         
+         // configurable minimum threshold RSSI for attaching to an eNB (meaningful only if minRssiDefault==false)
+         double minRssi @unit("dB")= default(-99.0dB);
+         
          @signal[servingCell];
          @statistic[servingCell](title="ID of the serving eNodeB for the UE"; unit=""; source="servingCell"; record=vector);
-        
+         
          //# CQI statistics
          @signal[averageCqiDl];
          @statistic[averageCqiDl](title="Average Cqi reported in DL"; unit="cqi"; source="averageCqiDl"; record=mean,vector);
@@ -90,11 +97,10 @@ simple LtePhyUeD2D extends LtePhyUe {
 simple LtePhyEnb extends LtePhyBase {
     @class("LtePhyEnb");
     
-    double targetBler = default(0.1);
+    double targetBler = default(0.001);
     double lambdaMinTh = default(0.02);
     double lambdaMaxTh = default(0.2);
     double lambdaRatioTh = default(20);
-    bool cqiFlag = default(false);
 }
 
 // 
@@ -105,12 +111,3 @@ simple LtePhyEnbD2D extends LtePhyEnb {
         @class("LtePhyEnbD2D");
         bool enableD2DCqiReporting = default(true);
 }
-
-// 
-// Relay LtePhy module of PHY Layer
-//
-simple LtePhyRelay extends LtePhyBase {
-    @class("LtePhyRelay");
-}
-
-

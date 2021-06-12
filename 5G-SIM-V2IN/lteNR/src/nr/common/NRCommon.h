@@ -32,10 +32,10 @@
 #include <memory>
 #include <omnetpp.h>
 
-#include "nr/corenetwork/cellInfo/NRCellInfo.h"
+#include "nr/common/cellInfo/NRCellInfo.h"
 #include "common/LteCommon.h"
 
-#include "nr/corenetwork/binder/NRBinder.h"
+#include "nr/common/binder/NRBinder.h"
 
 class NRBinder;
 class NRCellInfo;
@@ -45,11 +45,11 @@ NRBinder* getNRBinder();
 struct RtxMapInfo {
 	Codeword cw;
 	unsigned char processId;
-	simtime_t rtxTime;
+	omnetpp::simtime_t rtxTime;
 	unsigned short order;
 
 	RtxMapInfo() : cw(0), processId(0), rtxTime(NOW), order(17) {};
-	RtxMapInfo(Codeword cw, unsigned char processId, simtime_t rtxTime, unsigned short order){
+	RtxMapInfo(Codeword cw, unsigned char processId, omnetpp::simtime_t rtxTime, unsigned short order){
 		this->cw = cw;
 		this->processId = processId;
 		this->rtxTime = rtxTime;
@@ -96,12 +96,12 @@ const std::string DeploymentScenarioNRToA(DeploymentScenarioNR type);
 DeploymentScenarioNR aToDeploymentScenarioNR(std::string s);
 
 //
-enum NRChannelModel {
+enum NRChannelModels {
 	InH_A, InH_B, UMa_A, UMa_B, UMi_A, UMi_B, RMa_A, RMa_B, InFSL, InFDL, InFSH, InFDH, InFHH, UNKNOWN
 };
 
 struct NRChannelModelMapping {
-	NRChannelModel channelModel;
+	NRChannelModels channelModel;
 	std::string channelModelName;
 };
 
@@ -120,8 +120,8 @@ const NRChannelModelMapping NRChannelModelTable[] = {
 		ELEM(InFDH),
 };
 
-const std::string NRChannelModelToA(NRChannelModel type);
-NRChannelModel aToNRChannelModel(std::string s);
+const std::string NRChannelModelToA(NRChannelModels type);
+NRChannelModels aToNRChannelModel(std::string s);
 
 // QosCharacteristics to which a 5QI refers to
 class QosCharacteristic {

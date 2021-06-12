@@ -19,7 +19,7 @@
 #define __INET_IARRIVAL_H
 
 #include "inet/common/geometry/common/Coord.h"
-#include "inet/common/geometry/common/EulerAngles.h"
+#include "inet/common/geometry/common/Quaternion.h"
 #include "inet/physicallayer/contract/packetlevel/IPrintableObject.h"
 #include "inet/physicallayer/contract/packetlevel/IRadioSignal.h"
 
@@ -52,11 +52,11 @@ class INET_API IArrival : public IPrintableObject
     virtual const simtime_t getDataStartTime() const = 0;
     virtual const simtime_t getDataEndTime() const = 0;
 
-    virtual const Coord getStartPosition() const = 0;
-    virtual const Coord getEndPosition() const = 0;
+    virtual const Coord& getStartPosition() const = 0;
+    virtual const Coord& getEndPosition() const = 0;
 
-    virtual const EulerAngles getStartOrientation() const = 0;
-    virtual const EulerAngles getEndOrientation() const = 0;
+    virtual const Quaternion& getStartOrientation() const = 0;
+    virtual const Quaternion& getEndOrientation() const = 0;
 };
 
 } // namespace physicallayer

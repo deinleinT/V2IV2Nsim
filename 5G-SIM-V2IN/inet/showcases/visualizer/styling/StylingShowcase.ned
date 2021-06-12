@@ -16,7 +16,7 @@
 package inet.showcases.visualizer.styling;
 import inet.node.ethernet.Eth100M;
 import inet.node.inet.WirelessHost;
-import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
+import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 import inet.node.ethernet.Eth10M;
 import inet.node.inet.AdhocHost;
 import inet.node.inet.StandardHost;
@@ -26,9 +26,6 @@ import inet.physicallayer.ieee80211.packetlevel.Ieee80211ScalarRadioMedium;
 import inet.visualizer.integrated.IntegratedVisualizer;
 
 
-//
-// TODO documentation
-//
 network StylingShowcase
 {
     @display("bgb=600,250");
@@ -42,7 +39,7 @@ network StylingShowcase
         visualizer: IntegratedVisualizer {
             @display("p=50,50");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=50,100");
         }
         radioMedium: Ieee80211ScalarRadioMedium {
@@ -50,9 +47,6 @@ network StylingShowcase
         }
 }
 
-//
-// TODO documentation
-//
 network AnnotationShowcase
 {
     @display("bgb=600,250");
@@ -66,7 +60,7 @@ network AnnotationShowcase
         visualizer: IntegratedVisualizer {
             @display("p=50,50");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=50,100");
         }
         radioMedium: Ieee80211ScalarRadioMedium {
@@ -75,49 +69,5 @@ network AnnotationShowcase
         accessPoint: AccessPoint {
             @display("p=329,67");
         }
-}
-
-//
-// TODO documentation
-//
-network TestShowcase
-{
-    @display("bgb=600,250");
-    submodules:
-        host1: WirelessHost {
-            @display("p=200,143");
-        }
-        host2: WirelessHost {
-            @display("p=325,143");
-        }
-        visualizer: IntegratedVisualizer {
-            @display("p=50,50");
-        }
-        configurator: IPv4NetworkConfigurator {
-            @display("p=50,100");
-        }
-        radioMedium: Ieee80211ScalarRadioMedium {
-            @display("p=50,150");
-        }
-        accessPoint1: AccessPoint {
-            @display("p=200,49");
-        }
-        accessPoint2: AccessPoint {
-            @display("p=325,49");
-        }
-        accessPoint3: AccessPoint {
-            @display("p=458,49");
-        }
-        host3: WirelessHost {
-            @display("p=458,143");
-        }
-        standardHost: StandardHost {
-            @display("p=243,208");
-        }
-        standardHost1: StandardHost {
-            @display("p=530,208");
-        }
-    connections:
-        standardHost.ethg++ <--> Eth100M <--> standardHost1.ethg++;
 }
 

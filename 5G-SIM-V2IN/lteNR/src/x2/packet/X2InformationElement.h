@@ -1,9 +1,11 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
@@ -16,9 +18,11 @@
 // add here new IE types
 enum X2InformationElementType
 {
-    COMP_REQUEST_IE,    // CoMP slave -> master
-    COMP_REPLY_IE,      // CoMP master -> slave
-    X2_HANDOVER_CMD_IE  // HO command source eNB -> target eNB
+    COMP_REQUEST_IE,         // CoMP slave -> master
+    COMP_REPLY_IE,           // CoMP master -> slave
+    COMP_PROP_REQUEST_IE,    // CoMP slave -> master (for compManagerProportional, with RB value)
+    COMP_PROP_REPLY_IE,      // CoMP master -> slave (for compManagerProportional, with map)
+    X2_HANDOVER_CMD_IE       // HO command source eNB -> target eNB
 };
 
 //
@@ -34,7 +38,8 @@ class X2InformationElement : public X2InformationElement_Base
 
   public:
 
-    X2InformationElement(const char* name = NULL, int kind = 0) : X2InformationElement_Base(name, kind) {}
+    X2InformationElement() : X2InformationElement_Base() { }
+    X2InformationElement(X2InformationElementType type) : X2InformationElement_Base() { type_ = type; }
 
     virtual ~X2InformationElement() {}
 
@@ -60,6 +65,7 @@ class X2InformationElement : public X2InformationElement_Base
 
     // field getter/setter methods
     virtual X2InformationElementType getType() const { return type_; }
+    // return length (in B)
     virtual int64_t getLength() const { return length_; }
 };
 

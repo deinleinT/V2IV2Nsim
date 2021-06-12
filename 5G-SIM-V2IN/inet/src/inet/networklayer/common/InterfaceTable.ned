@@ -14,17 +14,16 @@
 // You should have received a copy of the GNU Lesser General Public
 // License along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-
 package inet.networklayer.common;
 
 //
 // Keeps the table of network interfaces.
 //
 // Interfaces are dynamically registered by the corresponding L2 modules, e.g.
-// ~PPPInterface. In addition to registered interfaces, a loopback interface
+// ~PppInterface. In addition to registered interfaces, a loopback interface
 // will also be created. This table only contains protocol-independent
 // properties of interfaces -- IPv4 or IPv6 specific per-interface data
-// (addresses etc) are kept in ~IPv4RoutingTable and ~IPv6RoutingTable.
+// (addresses etc) are kept in ~Ipv4RoutingTable and ~Ipv6RoutingTable.
 // Must be named as "interfaceTable".
 //
 // This module has no gates; all functionality can be accessed via member
@@ -38,19 +37,19 @@ simple InterfaceTable
     parameters:
         bool displayAddresses = default(false);  // whether to display IP addresses on links
         @display("i=block/table");
-        @signal[NF_INTERFACE_CREATED](type=inet::InterfaceEntry);
-        @signal[NF_INTERFACE_DELETED](type=inet::InterfaceEntry);
-        @signal[NF_INTERFACE_STATE_CHANGED](type=inet::InterfaceEntryChangeDetails);
-        @signal[NF_INTERFACE_CONFIG_CHANGED](type=inet::InterfaceEntryChangeDetails);
-        @signal[NF_INTERFACE_IPv4CONFIG_CHANGED](type=inet::InterfaceEntryChangeDetails);
-        @signal[NF_INTERFACE_IPv6CONFIG_CHANGED](type=inet::InterfaceEntryChangeDetails);
-        @signal[NF_INTERFACE_GENERICNETWORKPROTOCOLCONFIG_CHANGED](type=inet::InterfaceEntryChangeDetails);
-        @signal[NF_IPv4_MCAST_JOIN](type=inet::IPv4MulticastGroupInfo);
-        @signal[NF_IPv4_MCAST_LEAVE](type=inet::IPv4MulticastGroupInfo);
-        @signal[NF_IPv4_MCAST_CHANGE](type=inet::IPv4MulticastGroupSourceInfo);
-        @signal[NF_IPv4_MCAST_REGISTERED](type=inet::IPv4MulticastGroupInfo);
-        @signal[NF_IPv4_MCAST_UNREGISTERED](type=inet::IPv4MulticastGroupInfo);
-        @signal[NF_IPv6_MCAST_JOIN](type=inet::IPv6MulticastGroupInfo);
-        @signal[NF_IPv6_MCAST_LEAVE](type=inet::IPv6MulticastGroupInfo);
+        @signal[interfaceCreated](type=inet::InterfaceEntry);
+        @signal[interfaceDeleted](type=inet::InterfaceEntry);
+        @signal[interfaceStateChanged](type=inet::InterfaceEntryChangeDetails);
+        @signal[interfaceConfigChanged](type=inet::InterfaceEntryChangeDetails);
+        @signal[interfaceIpv4ConfigChanged](type=inet::InterfaceEntryChangeDetails);
+        @signal[interfaceIpv6ConfigChanged](type=inet::InterfaceEntryChangeDetails);
+        @signal[interfaceGnpConfigChanged](type=inet::InterfaceEntryChangeDetails);
+        @signal[ipv4MulticastGroupJoined](type=inet::Ipv4MulticastGroupInfo);
+        @signal[ipv4MulticastGroupLeft](type=inet::Ipv4MulticastGroupInfo);
+        @signal[ipv4McastChange](type=inet::Ipv4MulticastGroupSourceInfo);
+        @signal[ipv4MulticastGroupRegistered](type=inet::Ipv4MulticastGroupInfo);
+        @signal[ipv4MulticastGroupUnregistered](type=inet::Ipv4MulticastGroupInfo);
+        @signal[ipv6MulticastGroupJoined](type=inet::Ipv6MulticastGroupInfo);
+        @signal[ipv6MulticastGroupLeft](type=inet::Ipv6MulticastGroupInfo);
 }
 

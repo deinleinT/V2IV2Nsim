@@ -17,6 +17,12 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-packet SdapPdu {
+import inet.common.INETDefs;
+import inet.common.packet.chunk.Chunk;
 
+class SdapPdu extends inet::FieldsChunk{
+    simtime_t creationTime;
+    simtime_t arrivalTime;
+    string name;
+    simtime_t timestamp;
 }

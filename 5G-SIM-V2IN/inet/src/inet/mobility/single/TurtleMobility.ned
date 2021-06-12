@@ -50,7 +50,7 @@ import inet.mobility.base.MovingMobilityBase;
 //     </movement>
 // </nohtml></pre>
 //
-// Random Waypoint:
+// ~RandomWaypointMobility:
 //
 // <pre><nohtml>
 //     <movement>
@@ -109,9 +109,11 @@ import inet.mobility.base.MovingMobilityBase;
 //
 // @author Andras Varga
 //
+//TODO update documentation; <turn heading=".."> is strange
 simple TurtleMobility extends MovingMobilityBase
 {
     parameters:
         xml turtleScript; // describes the movement
         @class(TurtleMobility);
 }
+

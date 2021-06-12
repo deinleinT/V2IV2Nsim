@@ -8,12 +8,14 @@
 #ifndef __INET_PROBABILISTICBROADCAST_H
 #define __INET_PROBABILISTICBROADCAST_H
 
-#include <set>
 #include <map>
-#include "inet/networklayer/contract/INetworkProtocol.h"
+#include <set>
+
+#include "inet/common/packet/Packet.h"
 #include "inet/networklayer/base/NetworkProtocolBase.h"
-#include "inet/networklayer/probabilistic/ProbabilisticBroadcastDatagram.h"
 #include "inet/networklayer/common/L3Address.h"
+#include "inet/networklayer/contract/INetworkProtocol.h"
+#include "inet/networklayer/probabilistic/ProbabilisticBroadcastHeader_m.h"
 
 namespace inet {
 
@@ -65,6 +67,8 @@ class INET_API ProbabilisticBroadcast : public NetworkProtocolBase, public INetw
 
     virtual void finish() override;
 
+    const Protocol& getProtocol() const override { return Protocol::probabilistic; }
+
   protected:
     enum messagesTypes {
         UNKNOWN = 0,
@@ -78,7 +82,7 @@ class INET_API ProbabilisticBroadcast : public NetworkProtocolBase, public INetw
      **/
     typedef struct tMsgDesc
     {
-        ProbabilisticBroadcastDatagram *pkt;
+        Packet *pkt;
         int nbBcast;    // number of times the present node has passed the
                         // message through a broadcast attempt.
         bool initialSend;    // true if message to be sent for first
@@ -89,10 +93,10 @@ class INET_API ProbabilisticBroadcast : public NetworkProtocolBase, public INetw
     typedef std::multimap<simtime_t, tMsgDesc *> TimeMsgMap;
 
     /** @brief Handle messages from upper layer */
-    virtual void handleUpperPacket(cPacket *msg) override;
+    virtual void handleUpperPacket(Packet *packet) override;
 
     /** @brief Handle messages from lower layer */
-    virtual void handleLowerPacket(cPacket *msg) override;
+    virtual void handleLowerPacket(Packet *packet) override;
 
     /** @brief Handle self messages */
     virtual void handleSelfMessage(cMessage *msg) override;
@@ -121,12 +125,12 @@ class INET_API ProbabilisticBroadcast : public NetworkProtocolBase, public INetw
     /** @brief Returns a network layer packet which encapsulates the upper layer
      *         packet passed to the function.
      **/
-    virtual cPacket *encapsMsg(cPacket *msg);
+    virtual void encapsulate(Packet *packet);
 
     /** @brief extracts and returns the application layer packet which is encapsulated
-     *         in the network layer packet given in argument.
+     *         in the network layer packet given in argument, delete network layer packet.
      **/
-    virtual cPacket *decapsMsg(ProbabilisticBroadcastDatagram *msg);
+    virtual void decapsulate(Packet *packet);
 
     /** @brief Insert a new message in both known ID list and message queue.
      *         The message comes either from upper layer or from lower layer.
@@ -138,7 +142,7 @@ class INET_API ProbabilisticBroadcast : public NetworkProtocolBase, public INetw
      *  @param iAmInitialSender message comes from upper layer, I am its creator
      *                          and initial sender.
      **/
-    virtual void insertNewMessage(ProbabilisticBroadcastDatagram *pkt, bool iAmInitialSender = false);
+    virtual void insertNewMessage(Packet *packet, bool iAmInitialSender = false);
 
     /**
      * @brief Attaches a "control info" (NetwToMac) structure (object) to the message pMsg.
@@ -153,7 +157,12 @@ class INET_API ProbabilisticBroadcast : public NetworkProtocolBase, public INetw
      * @param pMsg      The message where the "control info" shall be attached.
      * @param pDestAddr The MAC address of the message receiver.
      */
-    virtual cObject *setDownControlInfo(cMessage *const pMsg, const MACAddress& pDestAddr);
+    virtual void setDownControlInfo(Packet *const pMsg, const MacAddress& pDestAddr);
+
+    // OperationalBase:
+    virtual void handleStartOperation(LifecycleOperation *operation) override {}    //TODO implementation
+    virtual void handleStopOperation(LifecycleOperation *operation) override {}    //TODO implementation
+    virtual void handleCrashOperation(LifecycleOperation *operation) override {}    //TODO implementation
 
     /**
      * @brief Period (in sim time) between two broadcast attempts.

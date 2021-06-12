@@ -1,13 +1,18 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
-packet LteHarqFeedback
+import inet.common.INETDefs;
+import inet.common.packet.chunk.Chunk;
+
+class LteHarqFeedback extends inet::FieldsChunk
 {
     // H-ARQ acid to which this fb is addressed
     unsigned char acid;
@@ -19,9 +24,10 @@ packet LteHarqFeedback
     long fbMacPduId;
     // if this flag is true, then the feedback refers to a D2D connection
     bool d2dFeedback = false;
+    chunkLength = inet::B(1); // TODO: size 0
 }
 
-packet LteHarqFeedbackMirror extends LteHarqFeedback
+class LteHarqFeedbackMirror extends LteHarqFeedback
 {
     d2dFeedback = true;
     

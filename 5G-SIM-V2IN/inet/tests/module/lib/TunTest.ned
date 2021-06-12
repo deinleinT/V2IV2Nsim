@@ -16,8 +16,9 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 
-import inet.node.inet.StandardHost;
+package inet.test.moduletest.lib;
 
+import inet.node.inet.StandardHost;
 
 network TunTest
 {
@@ -26,7 +27,7 @@ network TunTest
     submodules:
         testHost: StandardHost {
             parameters:
-                networkLayer.configurator.networkConfiguratorModule = "";
+                ipv4.configurator.networkConfiguratorModule = "";
                 @display("p=544,194;i=device/server_l");
         }
     connections:

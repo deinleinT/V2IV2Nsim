@@ -15,16 +15,15 @@
 //
 
 #include <algorithm>
+
+#include "inet/common/INETUtils.h"
 #include "inet/common/lifecycle/LifecycleController.h"
-#include "inet/networklayer/contract/IInterfaceTable.h"
+#include "inet/common/lifecycle/LifecycleOperation.h"
 #include "inet/networklayer/common/InterfaceEntry.h"
 #include "inet/networklayer/common/L3AddressResolver.h"
-#include "inet/common/lifecycle/LifecycleOperation.h"
-#include "inet/common/INETUtils.h"
+#include "inet/networklayer/contract/IInterfaceTable.h"
 
 namespace inet {
-
-Define_Module(LifecycleController);
 
 void LifecycleController::Callback::init(LifecycleController *controller, LifecycleOperation *operation, cModule *module)
 {
@@ -51,42 +50,8 @@ void vector_delete_element(std::vector<T *>& v, T *p)
     delete p;
 }
 
-void LifecycleController::initialize()
-{
-}
-
-void LifecycleController::handleMessage(cMessage *msg)
-{
-    throw cRuntimeError("This module does not process messages");
-}
-
-void LifecycleController::processCommand(const cXMLElement& node)
-{
-    // resolve target module
-    const char *target = node.getAttribute("target");
-    cModule *module = getModuleByPath(target);
-    if (!module)
-        throw cRuntimeError("Module '%s' not found", target);
-
-    // resolve operation
-    const char *operationName = node.getAttribute("operation");
-    LifecycleOperation *operation = check_and_cast<LifecycleOperation *>(inet::utils::createOne(operationName));
-    std::map<std::string, std::string> params = node.getAttributes();
-    params.erase("module");
-    params.erase("t");
-    params.erase("target");
-    params.erase("operation");
-    operation->initialize(module, params);
-    if (!params.empty())
-        throw cRuntimeError("Unknown parameter '%s' for operation %s at %s", params.begin()->first.c_str(), operationName, node.getSourceLocation());
-
-    // do the operation
-    initiateOperation(operation);
-}
-
 bool LifecycleController::initiateOperation(LifecycleOperation *operation, IDoneCallback *completionCallback)
 {
-    Enter_Method_Silent();
     operation->currentStage = 0;
     operation->operationCompletionCallback = completionCallback;
     operation->insideInitiateOperation = true;
@@ -117,7 +82,7 @@ void LifecycleController::doOneStage(LifecycleOperation *operation, cModule *sub
     ILifecycle *subject = dynamic_cast<ILifecycle *>(submodule);
     if (subject) {
         Callback *callback = spareCallback ? spareCallback : new Callback();
-        bool done = subject->handleOperationStage(operation, operation->currentStage, callback);
+        bool done = subject->handleOperationStage(operation, callback);
         if (!done) {
             callback->init(this, operation, submodule);
             operation->pendingList.push_back(callback);
@@ -135,8 +100,6 @@ void LifecycleController::doOneStage(LifecycleOperation *operation, cModule *sub
 
 void LifecycleController::moduleOperationStageCompleted(Callback *callback)
 {
-    Enter_Method_Silent();
-
     LifecycleOperation *operation = callback->operation;
     std::string moduleFullPath = callback->module->getFullPath();
     vector_delete_element(operation->pendingList, (IDoneCallback *)callback);

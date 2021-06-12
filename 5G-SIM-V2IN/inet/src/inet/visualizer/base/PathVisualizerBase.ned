@@ -26,7 +26,7 @@ package inet.visualizer.base;
 // in derived modules.
 //
 // This module subscribes for packetReceivedFromUpper, packetSentToUpper, and
-// packetReceivedFromLower on the module determined by the subscriptionModule
+// packetReceivedFromLower on the module determined by the visualizationSubjectModule
 // parameter. If the visualizer receives a packetReceivedFromUpper from a
 // protocol module, then it stores the corresponding packet id. If later on the
 // visualizer receives a packetSentToUpper from another corresponding protocol
@@ -35,24 +35,23 @@ package inet.visualizer.base;
 // visualizer receives a packetReceivedFromLower from a corresponding protocol
 // module, then it adds the node to the intermediate nodes of the route. After
 // a certain amount of time the route becomes inactive unless it is reinforced
-// by another packet. 
+// by another packet.
 //
 // The format string can contain the following directives:
 //  - %n packet name
 //  - %c packet class
 //
-// @see ~NetworkRouteCanvasVisualizer, ~NetworkRouteOsgVisualizer, ~INetworkRouteVisualizer
-// @see ~TransportRouteCanvasVisualizer, ~TransportRouteOsgVisualizer, ~ITransportRouteVisualizer
+// @see ~NetworkRouteCanvasVisualizer, ~NetworkRouteOsgVisualizer, ~INetworkRouteVisualizer, 
+// ~TransportRouteCanvasVisualizer, ~TransportRouteOsgVisualizer, ~ITransportRouteVisualizer
 //
 simple PathVisualizerBase extends VisualizerBase
 {
     parameters:
-        string subscriptionModule = default("<root>"); // module where the visualizer subscribes for network layer signals, root module by default
-
         bool displayRoutes = default(false); // display polyline arrow for active routes, disabled by default
 
         string nodeFilter = default("*"); // which nodes are considered, matches all nodes by default
         string packetFilter = default("*"); // which packets are considered, matches all packets by default
+        string packetDataFilter = default("*"); // which packets are considered based on the data they contain, matches all packets by default
 
         string lineColor @enum("light", "dark") = default("dark"); // route color is a list of colors, a set of dark colors by default
         string lineStyle = default("solid"); // route line style (solid, dashed, dotted)
@@ -75,3 +74,4 @@ simple PathVisualizerBase extends VisualizerBase
 
         @class(PathVisualizerBase);
 }
+

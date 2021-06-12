@@ -15,11 +15,10 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "inet/physicallayer/neighborcache/QuadTreeNeighborCache.h"
 #include "inet/common/ModuleAccess.h"
+#include "inet/physicallayer/neighborcache/QuadTreeNeighborCache.h"
 
 namespace inet {
-
 namespace physicallayer {
 
 Define_Module(QuadTreeNeighborCache);
@@ -44,7 +43,7 @@ void QuadTreeNeighborCache::initialize(int stage)
         refillPeriod = par("refillPeriod");
         maxNumOfPointsPerQuadrant = par("maxNumOfPointsPerQuadrant");
     }
-    else if (stage == INITSTAGE_LINK_LAYER_2) {
+    else if (stage == INITSTAGE_PHYSICAL_LAYER_NEIGHBOR_CACHE) {
         constraintAreaMin = radioMedium->getMediumLimitCache()->getMinConstraintArea();
         constraintAreaMax = radioMedium->getMediumLimitCache()->getMaxConstraintArea();
         quadTree = new QuadTree(constraintAreaMin, constraintAreaMax, maxNumOfPointsPerQuadrant, nullptr);
@@ -117,11 +116,11 @@ void QuadTreeNeighborCache::removeRadio(const IRadio *radio)
         throw cRuntimeError("You can't remove radio: %d because it is not in our radio container", radio->getId());
 }
 
-void QuadTreeNeighborCache::sendToNeighbors(IRadio *transmitter, const IRadioFrame *frame, double range) const
+void QuadTreeNeighborCache::sendToNeighbors(IRadio *transmitter, const ISignal *signal, double range) const
 {
     double radius = range + refillPeriod * maxSpeed;
     Coord transmitterPos = transmitter->getAntenna()->getMobility()->getCurrentPosition();
-    QuadTreeNeighborCacheVisitor visitor(radioMedium, transmitter, frame);
+    QuadTreeNeighborCacheVisitor visitor(radioMedium, transmitter, signal);
     quadTree->rangeQuery(transmitterPos, radius, &visitor);
 }
 
@@ -151,10 +150,9 @@ void QuadTreeNeighborCache::QuadTreeNeighborCacheVisitor::visit(const cObject *r
 {
     const IRadio *neighbor = check_and_cast<const IRadio *>(radio);
     if (neighbor->getId() != transmitter->getId())
-        radioMedium->sendToRadio(transmitter, neighbor, frame);
+        radioMedium->sendToRadio(transmitter, neighbor, signal);
 }
 
 } // namespace physicallayer
-
 } // namespace inet
 

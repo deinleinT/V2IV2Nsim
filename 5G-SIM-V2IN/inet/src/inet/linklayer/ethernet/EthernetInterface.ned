@@ -16,136 +16,85 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-
-
 package inet.linklayer.ethernet;
 
-import inet.common.IHook;
-import inet.linklayer.contract.IEtherMAC;
+import inet.queueing.contract.IPacketQueue;
+import inet.linklayer.contract.IEtherMac;
+import inet.linklayer.contract.IEthernetInterface;
 import inet.linklayer.contract.ITrafficConditioner;
-import inet.linklayer.contract.IWiredNic;
-
+import inet.linklayer.ieee8021q.IIeee8021qEncap;
+import inet.networklayer.common.InterfaceEntry;
 
 //
-// Ethernet network interface. Complements ~EtherMAC and ~EtherEncap
+// Ethernet network interface. Complements ~EtherMac and ~EtherEncap
 // with an output queue for QoS and RED support.
 //
-module EthernetInterface like IWiredNic
+module EthernetInterface extends InterfaceEntry like IEthernetInterface
 {
     parameters:
+        @class(InterfaceEntry);
+        @lifecycleSupport;
         string interfaceTableModule;
+        string address = default("auto");   // MAC address as hex string (12 hex digits), or
+                                            // "auto". "auto" values will be replaced by
+                                            // a generated MAC address in init stage 0.
         bool csmacdSupport = default(false);  // by default CSMA/CD is turned off, so only point-to-point duplex links are supported.
-        string macType = default(csmacdSupport ? "EtherMAC" : "EtherMACFullDuplex"); // ~EtherMAC or ~EtherMACFullDuplex
-        string queueType = default(""); // ~DropTailQueue, or a Diffserv queue; set to "" for use of an internal queue
-        string ingressTCType = default(""); // a module type implementing ~ITrafficConditioner for optional traffic conditioning of incoming traffic
-        string egressTCType = default(""); // a module type implementing ~ITrafficConditioner for optional traffic conditioning of outgoing traffic
-        string encapType = default("EtherEncap");   // module for encapsulation/decapsulation; use ~EtherEncapDummy for no encapsulation/decapsulation
-        int numOutputHooks = default(0);
-        int numInputHooks = default(0);
+        string fcsMode @enum("declared","computed") = default("declared");
         @display("i=block/ifcard;bgl=2");
         *.interfaceTableModule = default(absPath(interfaceTableModule));
+        *.fcsMode = fcsMode;
     gates:
         input upperLayerIn;
         output upperLayerOut;
         inout phys @labels(EtherFrame);
     submodules:
-        outputHook[numOutputHooks]: <default("Nop")> like IHook if numOutputHooks>0 {
-            @display("p=80,98");
+        ingressTC: <default("")> like ITrafficConditioner if typename != "" {
+            @display("p=400,100");
         }
-        inputHook[numInputHooks]: <default("Nop")> like IHook if numInputHooks>0 {
-            @display("p=265,83");
+        egressTC: <default("")> like ITrafficConditioner if typename != "" {
+            @display("p=100,100");
         }
-        ingressTC: <ingressTCType> like ITrafficConditioner if ingressTCType != "" {
-            @display("p=292,158");
-        }
-        egressTC: <egressTCType> like ITrafficConditioner if egressTCType != "" {
-            @display("p=53,158");
-        }
-        queue: EtherQoSQueue if queueType != "" {
+        mac: <default(csmacdSupport ? "EtherMac" : "EtherMacFullDuplex")> like IEtherMac {
             parameters:
-                dataQueueType = queueType;
-                @display("p=107,263;q=l2queue");
+                queue.packetCapacity = default(10000);
+                @display("p=250,400");
         }
-        mac: <macType> like IEtherMAC {
+        encap: <default("EtherEncap")> like IEtherEncap {
             parameters:
-                queueModule = (queueType == "" ? "" : "^.queue");
-                txQueueLimit = (queueType == "" ? 10000 : 1); // queue sends one packet at a time
-                @display("p=182,321");
+                @display("p=250,200");
         }
-        encap: <encapType> like IEtherEncap {
+        qEncap: <default("")> like IIeee8021qEncap if typename != "" {
             parameters:
-                @display("p=182,205");
+                @display("p=150,300");
         }
     connections:
-        mac.upperLayerOut --> encap.lowerLayerIn;
+        mac.upperLayerOut --> qEncap.lowerLayerIn if exists(qEncap);
+        mac.upperLayerOut --> encap.lowerLayerIn if !exists(qEncap);
+
+        mac.upperLayerIn <-- qEncap.lowerLayerOut if exists(qEncap);
+        mac.upperLayerIn <-- encap.lowerLayerOut if !exists(qEncap);
+
+        encap.lowerLayerOut --> qEncap.upperLayerIn if exists(qEncap);
+        encap.lowerLayerIn <-- qEncap.upperLayerOut if exists(qEncap);
+
         mac.phys <--> { @display("m=s"); } <--> phys;
 
-        if queueType != "" {
-            encap.lowerLayerOut --> queue.in;
-            queue.out --> mac.upperLayerIn;
-        }
+        // no ingressTC
+        encap.upperLayerOut --> { @display("m=n"); } --> upperLayerOut if !exists(ingressTC);
 
-        encap.lowerLayerOut --> mac.upperLayerIn if queueType == "";
-
-        // no input hooks, no ingressTC
-        encap.upperLayerOut --> { @display("m=n"); } --> upperLayerOut if numInputHooks == 0 && ingressTCType == "";
-
-        // no input hooks, there is ingressTC
-        if numInputHooks == 0 && ingressTCType != "" {
+        // there is ingressTC
+        if exists(ingressTC) {
             encap.upperLayerOut --> ingressTC.in;
             ingressTC.out --> { @display("m=n"); } --> upperLayerOut;
         }
 
-        // there are input hooks
-        if numInputHooks > 0 {
-            inputHook[numInputHooks-1].out --> { @display("m=n"); } --> upperLayerOut;
-        }
-        for i=0..numInputHooks-2 {
-            inputHook[i].out --> inputHook[i+1].in;
-        }
-
-        // there are input hooks, no ingressTC
-        if numInputHooks > 0 && ingressTCType == "" {
-            encap.upperLayerOut --> inputHook[0].in;
-        }
-
-        // there are input hooks, there is ingressTC
-        if numInputHooks > 0 && ingressTCType != "" {
-            encap.upperLayerOut --> ingressTC.in;
-            ingressTC.out --> inputHook[0].in;
-        }
-
-        // chain output hooks
-        for i=0..numOutputHooks-2 {
-            outputHook[i].out --> outputHook[i+1].in;
-        }
-
-        // no output hooks, no egressTC
-        upperLayerIn --> { @display("m=n"); } --> encap.upperLayerIn if numOutputHooks == 0 && egressTCType == "";
-
-        // there are output hooks
-        if numOutputHooks > 0 {
-            upperLayerIn --> { @display("m=n"); } --> outputHook[0].in;
-        }
-
-        // no output hooks, there is egressTC
-        if numOutputHooks == 0 && egressTCType != "" {
-            upperLayerIn --> { @display("m=n"); } --> egressTC.in;
-        }
+        // no egressTC
+        upperLayerIn --> { @display("m=n"); } --> encap.upperLayerIn if !exists(egressTC);
 
         // there is egressTC
-        if egressTCType != "" {
+        if exists(egressTC) {
+            upperLayerIn --> { @display("m=n"); } --> egressTC.in;
             egressTC.out --> encap.upperLayerIn;
-        }
-
-        // there are output hooks, no egressTC
-        if numOutputHooks > 0 && egressTCType == "" {
-            outputHook[numOutputHooks-1].out --> encap.upperLayerIn;
-        }
-
-        // there are output hooks, there is egressTC
-        if numOutputHooks > 0 && egressTCType != "" {
-            outputHook[numOutputHooks-1].out --> egressTC.in;
         }
 }
 

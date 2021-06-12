@@ -27,5 +27,6 @@ package inet.visualizer.contract;
 moduleinterface IStatisticVisualizer
 {
     parameters:
-        @display("i=block/app_s");
+        @display("i=block/app");
 }
+

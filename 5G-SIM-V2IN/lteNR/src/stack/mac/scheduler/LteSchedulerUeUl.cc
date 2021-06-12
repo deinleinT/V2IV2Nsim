@@ -1,16 +1,12 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
-//
-
-//
-// This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
-// Author: Thomas Deinlein
 //
 
 #include "stack/mac/scheduler/LteSchedulerUeUl.h"
@@ -20,49 +16,59 @@
 #include "stack/mac/packet/LteMacPdu.h"
 #include "stack/mac/scheduler/LcgScheduler.h"
 
-LteSchedulerUeUl::LteSchedulerUeUl(LteMacUe * mac)
+using namespace omnetpp;
+LteSchedulerUeUl::LteSchedulerUeUl(LteMacUe * mac, double carrierFrequency)
 {
-    //std::cout << "LteSchedulerUeUl LteSchedulerUeUl start at " << simTime().dbl() << std::endl;
-
     mac_ = mac;
     lcgScheduler_ = new LcgScheduler(mac);
-
-    //std::cout << "LteSchedulerUeUl LteSchedulerUeUl end at " << simTime().dbl() << std::endl;
+    carrierFrequency_ = carrierFrequency;
 }
+
+LteSchedulerUeUl& LteSchedulerUeUl::operator=(const LteSchedulerUeUl& other)
+{
+    if (&other == this)
+        return *this;
+
+    mac_ = other.mac_;
+    scheduleList_ = other.scheduleList_;
+    scheduledBytesList_ = other.scheduledBytesList_;
+    carrierFrequency_ = other.carrierFrequency_;
+
+    lcgScheduler_ = new LcgScheduler(*(other.lcgScheduler_));
+
+    return *this;
+}
+
 
 LteSchedulerUeUl::~LteSchedulerUeUl()
 {
     delete lcgScheduler_;
 }
 
-LteMacScheduleListWithSizes*
+LteMacScheduleList*
 LteSchedulerUeUl::schedule()
 {
-    //std::cout << "LteSchedulerUeUl schedule start at " << simTime().dbl() << std::endl;
     // 1) Environment Setup
 
     // clean up old scheduling decisions
-    scheduleListWithSizes_.clear();
-
+    scheduleList_.clear();
 
     // get the grant
-    const LteSchedulingGrant* grant = mac_->getSchedulingGrant();
+    const LteSchedulingGrant* grant = mac_->getSchedulingGrant(carrierFrequency_);
+    if (grant == NULL)
+        return &scheduleList_;
+
     Direction dir = grant->getDirection();
 
     // get the nodeId of the mac owner node
     MacNodeId nodeId = mac_->getMacNodeId();
 
-    //EV << NOW << " LteSchedulerUeUl::schedule - Scheduling node " << nodeId << endl;
+    EV << NOW << " LteSchedulerUeUl::schedule - Scheduling node " << nodeId << endl;
 
-    // retrieve Transmission parameters
-//        const UserTxParams* txPar = grant->getUserTxParams();
-
-//! MCW support in UL
+    //! MCW support in UL
     unsigned int codewords = grant->getCodewords();
 
     // TODO get the amount of granted data per codeword
-    //unsigned int availableBytes = grant->getGrantedBytes();
-
     unsigned int availableBlocks = grant->getTotalGrantedBlocks();
 
     // TODO check if HARQ ACK messages should be subtracted from available bytes
@@ -71,48 +77,37 @@ LteSchedulerUeUl::schedule()
     {
         unsigned int availableBytes = grant->getGrantedCwBytes(cw);
 
-        if(availableBytes <= 4)
-			continue;
+        EV << NOW << " LteSchedulerUeUl::schedule - Node " << mac_->getMacNodeId() << " available data from grant are "
+           << " blocks " << availableBlocks << " [" << availableBytes << " - Bytes]  on codeword " << cw << endl;
 
-		//EV << NOW << " LteSchedulerUeUl::schedule - Node " << mac_->getMacNodeId() << " available data from grant are " << " blocks " << availableBlocks << " [" << availableBytes << " - Bytes]  on codeword " << cw << endl;
+        // per codeword LCP scheduler invocation
 
-		// per codeword LCP scheduler invocation
+        // invoke the schedule() method of the attached LCP scheduler in order to schedule
+        // the connections provided
+        std::map<MacCid, unsigned int>& sdus = lcgScheduler_->schedule(availableBytes, dir);
 
-		// invoke the schedule() method of the attached LCP scheduler in order to schedule
-		// the connections provided
-		std::map<MacCid, std::pair<unsigned int, unsigned int>> & sdus = lcgScheduler_->schedule(availableBytes, dir);
-//        std::map<MacCid, unsigned int>& sdus = lcgScheduler_->schedule(availableBytes, dir);
-		std::map<MacCid, unsigned int>& bytes = lcgScheduler_->getScheduledBytesList();
+        // get the amount of bytes scheduled for each connection
+        std::map<MacCid, unsigned int>& bytes = lcgScheduler_->getScheduledBytesList();
 
-		// TODO check if this jump is ok
-		if (sdus.empty())
-			continue;
+        // TODO check if this jump is ok
+        if (sdus.empty())
+            continue;
 
-//        std::map<MacCid, unsigned int>::const_iterator it = sdus.begin(), et = sdus.end();
-		std::map<MacCid, std::pair<unsigned int, unsigned int>>::const_iterator it = sdus.begin(), et = sdus.end();
-		if (sdus.size() > 1) {
-			for (auto & var : sdus) {
-				if (var.second.second == 0)
-					sdus.erase(var.first);
-			}
-			for (auto & var : sdus) {
-				std::pair<MacCid, Codeword> schedulePair(var.first, cw);
-				scheduleListWithSizes_[schedulePair] = var.second;
-			}
+        std::map<MacCid, unsigned int>::const_iterator it = sdus.begin(), et = sdus.end();
+        for (; it != et; ++it)
+        {
+            // set schedule list entry
+            std::pair<MacCid, Codeword> schedulePair(it->first, cw);
+            scheduleList_[schedulePair] = it->second;
+        }
 
-		} else {
-			for (; it != et; ++it) {
-				// set schedule list entry
-				std::pair<MacCid, Codeword> schedulePair(it->first, cw);
-				scheduleListWithSizes_[schedulePair] = it->second;
-			}
-			std::map<MacCid, unsigned int>::const_iterator bit = bytes.begin(), bet = bytes.end();
-			for (; bit != bet; ++bit) {
-				// set schedule list entry
-				std::pair<MacCid, Codeword> schedulePair(bit->first, cw);
-				scheduledBytesList_[schedulePair] = bit->second;
-			}
-		}
+        std::map<MacCid, unsigned int>::const_iterator bit = bytes.begin(), bet = bytes.end();
+        for (; bit != bet; ++bit)
+        {
+            // set schedule list entry
+            std::pair<MacCid, Codeword> schedulePair(bit->first, cw);
+            scheduledBytesList_[schedulePair] = bit->second;
+        }
 
         MacCid highestBackloggedFlow = 0;
         MacCid highestBackloggedPriority = 0;
@@ -131,12 +126,10 @@ LteSchedulerUeUl::schedule()
 
         // TODO make use of above values
     }
-    //std::cout << "LteSchedulerUeUl schedule end at " << simTime().dbl() << std::endl;
-//    return &scheduleList_;
-    return &scheduleListWithSizes_;
+    return &scheduleList_;
 }
 
-LteMacScheduleList LteSchedulerUeUl::getScheduledBytesList()
+LteMacScheduleList* LteSchedulerUeUl::getScheduledBytesList()
 {
-    return scheduledBytesList_;
+    return &scheduledBytesList_;
 }

@@ -21,24 +21,17 @@
 // This file is part of 5G-Sim-V2I/N
 //
 
-package nr.apps.TrafficGenerator;
+package lteNR.nr.apps.TrafficGenerator;
 
-import inet.applications.udpapp.UDPBasicApp;
+import inet.applications.udpapp.UdpBasicApp;
 
-simple TrafficGenerator extends UDPBasicApp
+simple TrafficGenerator extends UdpBasicApp
 {
     parameters:
         string type = default("");
-        stopTime = default(10000s);
-        bool autoReply = default(false);  
+        stopTime = default(10000s);  
         int videoSize = default(intuniform(5000000,10000000)); // in bytes
-        
         int dataSize = default(2000000); // in bytes
-        
-//        volatile int messageLengthCar50 @unit(B) = default(1000B);
-//        int dataSizeCar50 = default(500000000);
-        bool considerDatasizeAndMessages = default(false);
-        int messages = default(10);
         
         //delay for following packets
         double resendingDelay @unit(s)= default(0.001s);

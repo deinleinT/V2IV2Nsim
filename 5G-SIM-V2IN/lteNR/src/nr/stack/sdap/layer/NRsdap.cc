@@ -32,8 +32,8 @@ void NRsdap::handleMessage(cMessage *msg) {
 
 	if (getSimulation()->getSystemModule()->par("useSINRThreshold").boolValue()) {
 		if (!msg->isSelfMessage()) {
-			cPacket *pkt = check_and_cast<cPacket*>(msg);
-			FlowControlInfo *lteInfo = check_and_cast<FlowControlInfo*>(pkt->getControlInfo());
+			inet::Packet *pkt = check_and_cast<inet::Packet*>(msg);
+			auto lteInfo = pkt->getTag<FlowControlInfo>();
 			MacNodeId ueId;
 			if (lteInfo->getDirection() == DL) {
 				ueId = lteInfo->getDestId();
@@ -51,9 +51,7 @@ void NRsdap::handleMessage(cMessage *msg) {
 	}
 
 
-    if (msg->isSelfMessage()) {
-        handleSelfMessage(msg);
-    } else if (strcmp(msg->getArrivalGate()->getBaseName(), "upperLayer")
+     if (strcmp(msg->getArrivalGate()->getBaseName(), "upperLayer")
             == 0) {
 
         fromUpperToLower(msg);
@@ -68,103 +66,37 @@ void NRsdap::handleMessage(cMessage *msg) {
     //std::cout << "NRsdap::handleMessage end at " << simTime().dbl() << std::endl;
 }
 
-void NRsdap::handleSelfMessage(cMessage *msg) {
-
-    //std::cout << "NRsdap::handleSelfMessage start at " << simTime().dbl() << std::endl;
-	//TODO
-    //std::cout << "NRsdap::handleSelfMessage end at " << simTime().dbl() << std::endl;
-
-}
-
-//incoming messages from IP2NR, to pdcp
-void NRsdap::fromUpperToLower(cMessage *msg) {
-
-    //std::cout << "NRsdap::fromUpperToLower start at " << simTime().dbl() << std::endl;
-
-    cPacket* pkt = check_and_cast<cPacket *>(msg);
-    FlowControlInfo * lteInfo = check_and_cast<FlowControlInfo*>(
-            pkt->removeControlInfo());
-    setTrafficInformation(pkt, lteInfo);
-    // dest id
-    MacNodeId destId = getNRBinder()->getMacNodeId(
-            IPv4Address(lteInfo->getDstAddr()));
-    // master of this ue (myself or a relay)
-    MacNodeId master = getNRBinder()->getNextHop(destId);
-    if (master != nodeId_) {
-        destId = master;
-    }
-
-    if (nodeType == UE) {
-        nodeId_ = getBinder()->getMacNodeId(IPv4Address(lteInfo->getSrcAddr()));
-        destId = getNRBinder()->getNextHop(nodeId_);
-    }
-
-    lteInfo->setDestId(destId);
-    lteInfo->setSourceId(nodeId_);
-    lteInfo->setHeaderSize(1);
-
-    SdapPdu * sdapPkt = new SdapPdu(pkt->getName());
-    sdapPkt->encapsulate(pkt);
-    sdapPkt->setControlInfo(lteInfo);
-
-    send(sdapPkt, lowerLayer);
-
-    //std::cout << "NRsdap::fromUpperToLower end at " << simTime().dbl() << std::endl;
-}
-
-//incoming messages from pdcp, to IP2NR
-void NRsdap::fromLowerToUpper(cMessage *msg) {
-
-    //std::cout << "NRsdap::fromLowerToUpper start at " << simTime().dbl() << std::endl;
-
-    cPacket* pkt = check_and_cast<cPacket *>(msg);
-    SdapPdu * sdapPkt = check_and_cast<SdapPdu*>(pkt);
-    FlowControlInfo* lteInfo = check_and_cast<FlowControlInfo*>(
-            sdapPkt->removeControlInfo());
-    cPacket* upPkt = sdapPkt->decapsulate();
-    delete sdapPkt;
-
-    upPkt->setControlInfo(lteInfo);
-
-    send(upPkt, upperLayer);
-
-    //std::cout << "NRsdap::fromLowerToUpper end at " << simTime().dbl() << std::endl;
-}
 
 //sets the qfi for each packet
-void NRsdap::setTrafficInformation(cPacket* pkt, FlowControlInfo* lteInfo) {
+void NRsdap::setTrafficInformation(std::string applName, inet::Packet* pkt) {
     //std::cout << "NRsdap::setTrafficInformation start at " << simTime().dbl() << std::endl;
 
-	std::string applName = std::string(pkt->getName());
-    if (strcmp(pkt->getName(), "V2X") == 0
-    		|| (applName.find("V2X") != string::npos)
+    if ((applName.find("V2X") != string::npos)
 			|| (applName.find("v2x") != string::npos)) {
-        lteInfo->setApplication(V2X);
-        lteInfo->setQfi(qosHandler->getQfi(V2X));
-        lteInfo->setRadioBearerId(qosHandler->getRadioBearerId(lteInfo->getQfi()));
-    } else if (strcmp(pkt->getName(), "VoIP") == 0
-    		|| (applName.find("VoIP") != string::npos)
+        pkt->addTagIfAbsent<FlowControlInfo>()->setApplication(V2X);
+        pkt->addTagIfAbsent<FlowControlInfo>()->setQfi(qosHandler->getQfi(V2X));
+        pkt->addTagIfAbsent<FlowControlInfo>()->setRadioBearerId(qosHandler->getRadioBearerId(pkt->getTag<FlowControlInfo>()->getQfi()));
+    } else if ((applName.find("VoIP") != string::npos)
 			|| (applName.find("voip") != string::npos)
 			|| (applName.find("Voip") != string::npos)) {
-        lteInfo->setQfi(qosHandler->getQfi(VOIP));
-        lteInfo->setApplication(VOIP);
-        lteInfo->setRadioBearerId(qosHandler->getRadioBearerId(lteInfo->getQfi()));
-    } else if (strcmp(pkt->getName(), "Video") == 0
-    		|| (applName.find("Video") != string::npos)
+        pkt->addTagIfAbsent<FlowControlInfo>()->setQfi(qosHandler->getQfi(VOIP));
+        pkt->addTagIfAbsent<FlowControlInfo>()->setApplication(VOIP);
+        pkt->addTagIfAbsent<FlowControlInfo>()->setRadioBearerId(qosHandler->getRadioBearerId(pkt->getTag<FlowControlInfo>()->getQfi()));
+    } else if ((applName.find("Video") != string::npos)
 			|| (applName.find("video") != string::npos)) {
-        lteInfo->setQfi(qosHandler->getQfi(VOD));
-        lteInfo->setApplication(VOD);
-        lteInfo->setRadioBearerId(qosHandler->getRadioBearerId(lteInfo->getQfi()));
+        pkt->addTagIfAbsent<FlowControlInfo>()->setQfi(qosHandler->getQfi(VOD));
+        pkt->addTagIfAbsent<FlowControlInfo>()->setApplication(VOD);
+        pkt->addTagIfAbsent<FlowControlInfo>()->setRadioBearerId(qosHandler->getRadioBearerId(pkt->getTag<FlowControlInfo>()->getQfi()));
     } else /*if (strcmp(pkt->getName(), "Data") == 0 || strcmp(pkt->getName(), "Data-frag") == 0) */{
-        lteInfo->setQfi(qosHandler->getQfi(DATA_FLOW));
-        lteInfo->setApplication(DATA_FLOW);
-        lteInfo->setRadioBearerId(qosHandler->getRadioBearerId(lteInfo->getQfi()));
+        pkt->addTagIfAbsent<FlowControlInfo>()->setQfi(qosHandler->getQfi(DATA_FLOW));
+        pkt->addTagIfAbsent<FlowControlInfo>()->setApplication(DATA_FLOW);
+        pkt->addTagIfAbsent<FlowControlInfo>()->setRadioBearerId(qosHandler->getRadioBearerId(pkt->getTag<FlowControlInfo>()->getQfi()));
     }
 
     if (nodeType == UE) {
-        lteInfo->setDirection(UL);
+        pkt->addTagIfAbsent<FlowControlInfo>()->setDirection(UL);
     } else if (nodeType == ENODEB || nodeType == GNODEB) {
-        lteInfo->setDirection(DL);
+        pkt->addTagIfAbsent<FlowControlInfo>()->setDirection(DL);
     } else
         throw cRuntimeError("Unknown nodeType");
 

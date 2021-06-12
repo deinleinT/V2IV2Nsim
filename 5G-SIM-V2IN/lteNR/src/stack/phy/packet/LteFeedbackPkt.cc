@@ -1,23 +1,25 @@
 // 
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 // 
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself, 
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself, 
 // and cannot be removed from it.
 // 
 
 #include "stack/phy/packet/LteFeedbackPkt.h"
 
-LteFeedbackDoubleVector LteFeedbackPkt::getLteFeedbackDoubleVectorDl()
+LteFeedbackDoubleVector LteFeedbackPkt::getLteFeedbackDoubleVectorDl() const
 {
     return lteFeedbackDoubleVectorDl_;
 }
-LteFeedbackDoubleVector LteFeedbackPkt::getLteFeedbackDoubleVectorUl()
+LteFeedbackDoubleVector LteFeedbackPkt::getLteFeedbackDoubleVectorUl() const
 {
     return lteFeedbackDoubleVectorUl_;
 }
-std::map<MacNodeId, LteFeedbackDoubleVector> LteFeedbackPkt::getLteFeedbackDoubleVectorD2D()
+std::map<MacNodeId, LteFeedbackDoubleVector> LteFeedbackPkt::getLteFeedbackDoubleVectorD2D() const
 {
     return lteFeedbackMapDoubleVectorD2D_;
 }
@@ -37,7 +39,7 @@ void LteFeedbackPkt::setSourceNodeId(MacNodeId id)
 {
     sourceNodeId_ = id;
 }
-MacNodeId LteFeedbackPkt::getSourceNodeId()
+MacNodeId LteFeedbackPkt::getSourceNodeId() const
 {
     return sourceNodeId_;
 }

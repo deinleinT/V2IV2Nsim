@@ -21,7 +21,6 @@
 #include <stack>
 
 #include "inet/common/INETDefs.h"
-
 #include "inet/mobility/base/LineSegmentsMobilityBase.h"
 
 namespace inet {
@@ -42,7 +41,8 @@ class INET_API TurtleMobility : public LineSegmentsMobilityBase
     // state
     cXMLElement *nextStatement;
     double speed;
-    double angle;
+    rad heading;
+    rad elevation;
     BorderPolicy borderPolicy;
     std::stack<long> loopVars;    // for <repeat>
     double maxSpeed;

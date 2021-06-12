@@ -1,15 +1,17 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
 //
 // This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
+// Date: 2021
 // Author: Thomas Deinlein
 //
 
@@ -24,7 +26,6 @@
 #include "stack/rlc/um/entity/UmRxEntity.h"
 #include "stack/rlc/packet/LteRlcDataPdu.h"
 #include "stack/mac/layer/LteMacBase.h"
-#include "nr/stack/sdap/utils/QosHandler.h"
 
 class UmTxEntity;
 class UmRxEntity;
@@ -50,32 +51,21 @@ class UmRxEntity;
  *   of this header is fixed to 2 bytes.
  *
  */
-class LteRlcUm : public cSimpleModule
+class LteRlcUm : public omnetpp::cSimpleModule
 {
   public:
-    LteRlcUm()
-    {
-    }
     virtual ~LteRlcUm()
     {
     }
 
-    virtual void recordTotalRlcThroughputUl(double length){
-    	this->totalRcvdBytesUl += length;
-    	double tp = totalRcvdBytesUl / (NOW - getSimulation()->getWarmupPeriod());
-    	totalRlcThroughputUl.record(tp);
-    }
-
-	virtual void recordTotalRlcThroughputDl(double length) {
-		this->totalRcvdBytesDl += length;
-		double tp = totalRcvdBytesDl / (NOW - getSimulation()->getWarmupPeriod());
-		totalRlcThroughputDl.record(tp);
-	}
-
-	virtual void recordConnectedCellUes(double number){
-		cellConnectedUes.record(number);
-	}
-
+    /**
+     * sendFragmented() is invoked by the TXBuffer as a direct method
+     * call and used to forward fragments to lower layers. This is needed
+     * since the TXBuffer himself has no output gates
+     *
+     * @param pkt packet to forward
+     */
+    void sendFragmented(omnetpp::cPacket *pkt);
 
     /**
      * sendDefragmented() is invoked by the RXBuffer as a direct method
@@ -84,7 +74,7 @@ class LteRlcUm : public cSimpleModule
      *
      * @param pkt packet to forward
      */
-    virtual void sendDefragmented(cPacket *pkt);
+    void sendDefragmented(omnetpp::cPacket *pkt);
 
     /**
      * deleteQueues() must be called on handover
@@ -101,19 +91,39 @@ class LteRlcUm : public cSimpleModule
      *
      * @param pkt packet to forward
      */
-    virtual void sendToLowerLayer(cPacket *pkt);
+    virtual void sendToLowerLayer(omnetpp::cPacket *pkt);
+
+    /**
+     * dropBufferOverflow() is invoked by the TXEntity as a direct method
+     * call and used to drop fragments if the queue is full.
+     *
+     * @param pkt packet to be dropped
+     */
+    virtual void dropBufferOverflow(omnetpp::cPacket *pkt);
 
     virtual void resumeDownstreamInPackets(MacNodeId peerId) {}
 
     virtual bool isEmptyingTxBuffer(MacNodeId peerId) { return false; }
 
+  protected:
+
+    omnetpp::cGate* up_[2];
+    omnetpp::cGate* down_[2];
+
+    // statistics
+    omnetpp::simsignal_t receivedPacketFromUpperLayer;
+    omnetpp::simsignal_t receivedPacketFromLowerLayer;
+    omnetpp::simsignal_t sentPacketToUpperLayer;
+    omnetpp::simsignal_t sentPacketToLowerLayer;
+    omnetpp::simsignal_t rlcPacketLossDl;
+    omnetpp::simsignal_t rlcPacketLossUl;
 
     /**
      * Initialize watches
      */
-    virtual void initialize();
+    virtual void initialize(int stage) override;
 
-    virtual void finish()
+    virtual void finish() override
     {
     }
 
@@ -121,19 +131,10 @@ class LteRlcUm : public cSimpleModule
      * Analyze gate of incoming packet
      * and call proper handler
      */
-    virtual void handleMessage(cMessage *msg);
+    virtual void handleMessage(omnetpp::cMessage *msg) override;
 
-  protected:
-    QosHandler * qosHandler;
-
-    cGate* up_[2];
-    cGate* down_[2];
-
-    // statistics
-    simsignal_t receivedPacketFromUpperLayer;
-    simsignal_t receivedPacketFromLowerLayer;
-    simsignal_t sentPacketToUpperLayer;
-    simsignal_t sentPacketToLowerLayer;
+    // parameters
+    bool mapAllLcidsToSingleBearer_;
 
     /**
      * getTxBuffer() is used by the sender to gather the TXBuffer
@@ -159,22 +160,6 @@ class LteRlcUm : public cSimpleModule
      */
     virtual UmRxEntity* getRxBuffer(FlowControlInfo* lteInfo);
 
-    //added for individual Throughput
-    cOutVector totalRlcThroughputUl;
-    double totalRcvdBytesUl;
-    double totalRcvdBytesDl;
-    cOutVector totalRlcThroughputDl;
-
-    cOutVector totalCellRlcThroughputUl;
-	static double totalCellRcvdBytesUl;
-	static double totalCellRcvdBytesDl;
-	cOutVector totalCellRlcThroughputDl;
-
-	double numberOfConnectedUes;
-	cOutVector cellConnectedUes;
-
-
-
     /**
      * handler for traffic coming
      * from the upper layer (PDCP)
@@ -190,7 +175,7 @@ class LteRlcUm : public cSimpleModule
      *
      * @param pkt packet to process
      */
-    virtual void handleUpperMessage(cPacket *pkt);
+    virtual void handleUpperMessage(omnetpp::cPacket *pkt);
 
     /**
      * UM Mode
@@ -207,7 +192,7 @@ class LteRlcUm : public cSimpleModule
      *
      * @param pkt packet to process
      */
-    virtual void handleLowerMessage(cPacket *pkt);
+    virtual void handleLowerMessage(omnetpp::cPacket *pkt);
 
     /*
      * Data structures
@@ -221,13 +206,6 @@ class LteRlcUm : public cSimpleModule
     typedef std::map<MacCid, UmRxEntity*> UmRxEntities;
     UmTxEntities txEntities_;
     UmRxEntities rxEntities_;
-
-  public:
-
-	virtual void exchangeEntities(MacNodeId nodeId, LteRlcUm * newMasterRlcUmRealistic, MacNodeId newMasterId, MacNodeId oldMasterId); //nodeB
-
-	virtual void modifyEntitiesUe(MacNodeId nodeId, LteRlcUm * newMasterRlcUmRealistic, MacNodeId newMasterId, MacNodeId oldMasterId); //UE
-
 };
 
 #endif

@@ -1,14 +1,16 @@
 // 
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 // 
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself, 
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself, 
 // and cannot be removed from it.
 // 
 
 
-package lte.stack.phy.feedback;
+package lteNR.stack.phy.feedback;
 
 // 
 // This is the Lte Downlink Feedback Generator.
@@ -26,7 +28,7 @@ simple LteDlFeedbackGenerator {
         string rbAllocationType = default("localized");    
         
         // period for Periodic feedback in TTI
-        int fbPeriod = default(3);         
+        int fbPeriod = default(6);         
         
         // time interval between sensing and transmission in TTI
         int fbDelay  = default(1);         
@@ -37,11 +39,11 @@ simple LteDlFeedbackGenerator {
         // initial txMode (see LteCommon.h)
         //     SINGLE_ANTENNA_PORT0,SINGLE_ANTENNA_PORT5,TRANSMIT_DIVERSITY,OL_SPATIAL_MULTIPLEXING,
         // CL_SPATIAL_MULTIPLEXING,MULTI_USER,
-        string initialTxMode = default("OL_SPATIAL_MULTIPLEXING");  
+        string initialTxMode = default("SINGLE_ANTENNA_PORT0");  
         
         //Feedback Computation (warning, this should be compatible with
         // analogue model and Decider
-        //xml feedbackComputation;
+//        xml feedbackComputation;
         
         //Type of generator: ideal, real, das_aware
         //ideal: feedback generator reports feedback for each txmode and for each rus

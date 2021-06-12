@@ -1,14 +1,19 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
 #include "stack/mac/conflict_graph/DistanceBasedConflictGraph.h"
 #include "stack/phy/layer/LtePhyBase.h"
+
+using namespace inet;
+using namespace omnetpp;
 
 /*!
  * \fn DistanceBasedConflictGraph()
@@ -38,19 +43,25 @@ void DistanceBasedConflictGraph::setThresholds(double d2dInterferenceRadius, dou
 
 double DistanceBasedConflictGraph::getDbmFromDistance(double distance)
 {
+    bool los = false;    // TODO make it configurable
+    double dbp = 0;
+    double pLoss = 0;
+
     // get the reference to the channel model of the eNB
     LteChannelModel* channelModel = phyEnb_->getChannelModel();
 
     // obtain path loss in dBm
-    bool los = false;    // TODO make it configurable
-    double dbp = 0;
-    double pLoss = channelModel->computePathLoss(distance, dbp, los);
+    if (channelModel == NULL)
+        throw cRuntimeError("DistanceBasedConflictGraph::getDbmFromDistance - channel model is a null pointer. Abort");
+    else
+        pLoss = channelModel->computePathLoss(distance, dbp, los);
+
     return pLoss;
 }
 
 void DistanceBasedConflictGraph::findVertices(std::vector<CGVertex>& vertices)
 {
-    LteBinder* binder = getBinder();
+    Binder* binder = getBinder();
 
     if (reuseD2D_)  // get point-to-point links
     {

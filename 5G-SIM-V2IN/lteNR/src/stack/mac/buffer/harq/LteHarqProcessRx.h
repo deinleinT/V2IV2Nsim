@@ -1,10 +1,18 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
+//
+
+//
+// This file has been modified/enhanced for 5G-SIM-V2I/N.
+// Date: 2021
+// Author: Thomas Deinlein
 //
 
 #ifndef _LTE_LTEHARQPROCESSRX_H_
@@ -20,6 +28,7 @@ typedef std::vector<std::vector<RxUnitStatus> > RxBufferStatus;
 class LteMacBase;
 class LteMacPdu;
 class LteHarqFeedback;
+class Binder;
 
 /**
  * H-ARQ RX processes contain pdus received from phy layer for which
@@ -36,13 +45,14 @@ class LteHarqProcessRx
 {
   protected:
     /// contained pdus
-    std::vector<LteMacPdu *> pdu_;
+    //std::vector<LteMacPdu *> pdu_;
+    std::vector<inet::Packet *> pdu_;
 
     /// current status for each codeword
     std::vector<RxHarqPduStatus> status_;
 
     /// reception time timestamp
-    std::vector<simtime_t> rxTime_;
+    std::vector<inet::simtime_t> rxTime_;
 
     // reception status of buffered pdus
     std::vector<bool> result_;
@@ -53,19 +63,19 @@ class LteHarqProcessRx
     /// mac module to manage errors (endSimulation)
     LteMacBase *macOwner_;
 
+    /// reference to the binder
+    Binder* binder_;
+
     /// Number of (re)transmissions for current pdu (N.B.: values are 1,2,3,4)
     unsigned char transmissions_;
 
     unsigned char maxHarqRtx_;
 
-  public:
-    virtual simtime_t getRxTimeForCodeWord(Codeword cw){
-    	return rxTime_[cw];
-    }
+    /// Number of slots for sending back HARQ Feedback
+    unsigned short harqFbEvaluationTimer_;
 
-    virtual void setMacOwner(LteMacBase * macOwner){
-        this->macOwner_ = macOwner;
-    }
+  public:
+
     /**
      * Constructor.
      *
@@ -79,7 +89,7 @@ class LteHarqProcessRx
      *
      * @param pdu pdu to be inserted
      */
-    virtual void insertPdu(Codeword cw, LteMacPdu *pdu);
+    virtual void insertPdu(Codeword cw, inet::Packet *);
 
     /**
      * Tells if contained pdus have been evaluated and feedback responses can be
@@ -96,7 +106,8 @@ class LteHarqProcessRx
      *
      * @return feedback message to be sent.
      */
-    virtual LteHarqFeedback *createFeedback(Codeword cw);
+    //virtual LteHarqFeedback *createFeedback(Codeword cw);
+    virtual inet::Packet *createFeedback(Codeword cw);
 
     /**
      * Tells if a pdu is in correct state (not corrupted, exctractable).
@@ -130,7 +141,7 @@ class LteHarqProcessRx
      *
      * @return pdu ready for upper layer
      */
-    virtual LteMacPdu *extractPdu(Codeword cw);
+    virtual inet::Packet *extractPdu(Codeword cw);
 
     /**
      * Purges a corrupted PDU that has been received on codeword <cw>
@@ -149,6 +160,20 @@ class LteHarqProcessRx
     {
         return MAX_CODEWORDS;
     }
+
+    /**
+     * Tells if the process is empty: all of its units are in EMPTY state.
+     *
+     * @return true if the process is empty, false if it isn't
+     */
+    bool isEmpty();
+
+    /**
+     * Returns a list of ids of empty units inside this process.
+     *
+     * @return empty units ids list.
+     */
+    CwList emptyUnitsIds();
 
     virtual ~LteHarqProcessRx();
 

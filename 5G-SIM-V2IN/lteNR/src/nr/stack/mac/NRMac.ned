@@ -22,29 +22,26 @@
 //
 
 
-package nr.stack.mac;
+package lteNR.nr.stack.mac;
 
-import lte.stack.mac.*;
-
-
-
+import lteNR.stack.mac.*;
 
 //
 // User Equipment MAC layer of LTE stack (Realistic)
 //
-simple NRMacUe extends LteMacUe like LteMac
+simple NRMacUE extends NRMacUe like LteMac
 {
-    @class("NRMacUe");
+    @class("NRMacUE");
+    usePreconfiguredTxParams = default(false);
 }
-
-
 
 //
 // eNodeB MAC layer of LTE stack (Realistic)
 //
-simple NRMacGnb extends LteMacEnb like LteMac
+simple NRMacGNB extends NRMacGnb like LteMac
 {
-    @class("NRMacGnb");
-    int gNodeBCount = default(0);
+    @class("NRMacGNB");
+    amcType = default("NRAmc");
+    usePreconfiguredTxParams = default(false);
 }
 

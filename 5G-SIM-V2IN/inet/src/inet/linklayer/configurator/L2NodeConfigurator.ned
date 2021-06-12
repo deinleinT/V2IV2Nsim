@@ -36,8 +36,8 @@ package inet.linklayer.configurator;
 simple L2NodeConfigurator
 {
     parameters:
-        @display("i=block/cogwheel_s");
+        @display("i=block/cogwheel");
         string interfaceTableModule;
-        string l2ConfiguratorModule = default("l2NetworkConfigurator"); // the absolute path to the L2NetworkConfigurator; use "" if there is no configurator
+        string l2ConfiguratorModule = default("l2NetworkConfigurator"); // the absolute path to the ~L2NetworkConfigurator; use "" if there is no configurator
 }
 

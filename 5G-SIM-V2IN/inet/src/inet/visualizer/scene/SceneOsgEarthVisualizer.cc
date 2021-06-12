@@ -16,19 +16,19 @@
 //
 
 #include "inet/common/ModuleAccess.h"
-#include "inet/common/OSGScene.h"
-#include "inet/common/OSGUtils.h"
+#include "inet/common/OsgScene.h"
+#include "inet/common/OsgUtils.h"
 #include "inet/environment/contract/IPhysicalEnvironment.h"
 #include "inet/mobility/contract/IMobility.h"
 #include "inet/visualizer/scene/NetworkNodeOsgVisualizer.h"
 #include "inet/visualizer/scene/SceneOsgEarthVisualizer.h"
 
-#ifdef WITH_OSG
+#ifdef WITH_OSGEARTH
 #include <osg/Group>
 #include <osgDB/ReadFile>
 #include <osgEarth/Capabilities>
 #include <osgEarth/Viewpoint>
-#endif // ifdef WITH_OSG
+#endif // ifdef WITH_OSGEARTH
 
 namespace inet {
 
@@ -36,7 +36,7 @@ namespace visualizer {
 
 Define_Module(SceneOsgEarthVisualizer);
 
-#ifdef WITH_OSG
+#ifdef WITH_OSGEARTH
 
 using namespace osgEarth;
 using namespace osgEarth::Annotation;
@@ -53,8 +53,8 @@ void SceneOsgEarthVisualizer::initialize(int stage)
     }
     else if (stage == INITSTAGE_LAST) {
         initializeLocator();
-        if (par("displayPlayground"))
-            initializePlayground();
+        if (par("displayScene"))
+            initializeSceneFloor();
         double axisLength = par("axisLength");
         if (!std::isnan(axisLength))
             initializeAxis(axisLength);
@@ -69,7 +69,7 @@ void SceneOsgEarthVisualizer::initializeScene()
     auto mapScene = osgDB::readNodeFile(mapFileString);
     if (mapScene == nullptr)
         throw cRuntimeError("Could not read earth map file '%s'", mapFileString);
-    auto osgCanvas = visualizerTargetModule->getOsgCanvas();
+    auto osgCanvas = visualizationTargetModule->getOsgCanvas();
     osgCanvas->setViewerStyle(cOsgCanvas::STYLE_EARTH);
     auto topLevelScene = check_and_cast<inet::osg::TopLevelScene *>(osgCanvas->getScene());
     topLevelScene->addChild(mapScene);
@@ -85,15 +85,12 @@ void SceneOsgEarthVisualizer::initializeScene()
 
 void SceneOsgEarthVisualizer::initializeLocator()
 {
-    auto playgroundPosition = coordinateSystem->getPlaygroundPosition();
+    auto scenePosition = coordinateSystem->getScenePosition();
     geoTransform->setPosition(osgEarth::GeoPoint(mapNode->getMapSRS()->getGeographicSRS(),
-            playgroundPosition.longitude, playgroundPosition.latitude, playgroundPosition.altitude));
+            deg(scenePosition.longitude).get(), deg(scenePosition.latitude).get(), m(scenePosition.altitude).get()));
 
-    auto playgroundOrientation = coordinateSystem->getPlaygroundOrientation();
-    localTransform->setAttitude(
-        osg::Quat(playgroundOrientation.gamma, osg::Vec3d(1.0, 0.0, 0.0)) *
-        osg::Quat(playgroundOrientation.beta, osg::Vec3d(0.0, 1.0, 0.0)) *
-        osg::Quat(playgroundOrientation.alpha, osg::Vec3d(0.0, 0.0, 1.0)));
+    auto sceneOrientation = coordinateSystem->getSceneOrientation();
+    localTransform->setAttitude(osg::Quat(osg::Vec4d(sceneOrientation.v.x, sceneOrientation.v.y, sceneOrientation.v.z, sceneOrientation.s)));
 }
 
 void SceneOsgEarthVisualizer::initializeViewpoint()
@@ -102,15 +99,15 @@ void SceneOsgEarthVisualizer::initializeViewpoint()
     auto radius = boundingSphere.radius();
     auto euclideanCenter = boundingSphere.center();
     auto geographicSrsEye = coordinateSystem->computeGeographicCoordinate(Coord(euclideanCenter.x(), euclideanCenter.y(), euclideanCenter.z()));
-    auto osgCanvas = visualizerTargetModule->getOsgCanvas();
+    auto osgCanvas = visualizationTargetModule->getOsgCanvas();
 #if OMNETPP_BUILDNUM >= 1012
-    osgCanvas->setEarthViewpoint(cOsgCanvas::EarthViewpoint(geographicSrsEye.longitude, geographicSrsEye.latitude, geographicSrsEye.altitude, -45, -45, cameraDistanceFactor * radius));
+    osgCanvas->setEarthViewpoint(cOsgCanvas::EarthViewpoint(deg(geographicSrsEye.longitude).get(), deg(geographicSrsEye.latitude).get(), m(geographicSrsEye.altitude).get(), -45, -45, cameraDistanceFactor * radius));
 #else
-    osgCanvas->setEarthViewpoint(osgEarth::Viewpoint("home", geographicSrsEye.longitude, geographicSrsEye.latitude, geographicSrsEye.altitude, -45, -45, cameraDistanceFactor * radius));
+    osgCanvas->setEarthViewpoint(osgEarth::Viewpoint("home", deg(geographicSrsEye.longitude).get(), deg(geographicSrsEye.latitude).get(), m(geographicSrsEye.altitude).get(), -45, -45, cameraDistanceFactor * radius));
 #endif
 }
 
-#endif // ifdef WITH_OSG
+#endif // ifdef WITH_OSGEARTH
 
 } // namespace visualizer
 

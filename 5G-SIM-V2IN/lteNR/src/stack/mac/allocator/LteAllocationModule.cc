@@ -1,20 +1,19 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
-//
-
-//
-// This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
-// Author: Thomas Deinlein
 //
 
 #include "stack/mac/allocator/LteAllocationModule.h"
 #include "stack/mac/layer/LteMacEnb.h"
+
+using namespace omnetpp;
+using namespace inet;
 
 LteAllocationModule::LteAllocationModule(LteMacEnb *mac, Direction direction)
 {
@@ -25,8 +24,6 @@ LteAllocationModule::LteAllocationModule(LteMacEnb *mac, Direction direction)
 
 void LteAllocationModule::initAndReset(const unsigned int resourceBlocks, const unsigned int bands)
 {
-    //std::cout << "LteAllocationModule::initAndReset start at " << simTime().dbl() << std::endl;
-
     // clear the OFDMA available blocks and set available planes to 1 (just the main OFDMA space)
     totalRbsMatrix_.clear();
     totalRbsMatrix_.resize(MAIN_PLANE + 1);
@@ -64,14 +61,10 @@ void LteAllocationModule::initAndReset(const unsigned int resourceBlocks, const 
 
     // clear UE,LB Map
     allocatedRbsUe_.clear();
-
-    //std::cout << "LteAllocationModule::initAndReset end at " << simTime().dbl() << std::endl;
 }
 
 void LteAllocationModule::configureOFDMplane(const Plane plane)
 {
-    //std::cout << "LteAllocationModule::configureOFDMplane start at " << simTime().dbl() << std::endl;
-
     // check if an OFDMA space exists with given plane ID
     if (totalRbsMatrix_.size() < (unsigned int) (plane + 1))
     {
@@ -92,14 +85,10 @@ void LteAllocationModule::configureOFDMplane(const Plane plane)
         // we set newly created OFDMA space equal to its peer space
         totalRbsMatrix_[plane][MACRO] = totalRbsMatrix_[MAIN_PLANE][MACRO];
     }
-
-    //std::cout << "LteAllocationModule::configureOFDMplane end at " << simTime().dbl() << std::endl;
 }
 
 void LteAllocationModule::setRemoteAntenna(const Plane plane, const Remote antenna)
 {
-    //std::cout << "LteAllocationModule::setRemoteAntenna start at " << simTime().dbl() << std::endl;
-
     /**
      * Check if antenna already exists in given OFDMA space,
      * otherwise creates all antennas between last one and given one.
@@ -115,13 +104,10 @@ void LteAllocationModule::setRemoteAntenna(const Plane plane, const Remote anten
         // initialize new antenna space with macro space
         totalRbsMatrix_[plane][i] = totalRbsMatrix_[plane][MACRO];
     }
-    //std::cout << "LteAllocationModule::setRemoteAntenna end at " << simTime().dbl() << std::endl;
 }
 
 bool LteAllocationModule::configureMuMimoPeering(const MacNodeId nodeId, const MacNodeId peer)
 {
-    //std::cout << "LteAllocationModule::configureMuMimoPeering start at " << simTime().dbl() << std::endl;
-
     //---------- Peering availability Check ----------
     // peer user already set for the specified nodeId
     if (allocatedRbsUe_[nodeId].muMimoEnabled_ == true)
@@ -156,32 +142,26 @@ bool LteAllocationModule::configureMuMimoPeering(const MacNodeId nodeId, const M
         setRemoteAntenna(MU_MIMO_PLANE, *it);
     }
 
-    //std::cout << "LteAllocationModule::configureMuMimoPeering end at " << simTime().dbl() << std::endl;
-
     // peering configured successfully
     return true;
 }
 
 Plane LteAllocationModule::getOFDMPlane(const MacNodeId nodeId)
 {
-    //std::cout << "LteAllocationModule::getOFDMPlane  at " << simTime().dbl() << std::endl;
-
     return (allocatedRbsUe_[nodeId].secondaryUser_) ? MU_MIMO_PLANE : MAIN_PLANE;
 }
 
-MacNodeId LteAllocationModule::getMuMimoPeer(const MacNodeId nodeId) const {
-	//std::cout << "LteAllocationModule::getMuMimoPeer start at " << simTime().dbl() << std::endl;
-	if (allocatedRbsUe_.find(nodeId) != allocatedRbsUe_.end()) {
-		return (allocatedRbsUe_.at(nodeId).muMimoEnabled_) ? allocatedRbsUe_.at(nodeId).peerId_ : nodeId;
-	}
-	return nodeId;
+MacNodeId LteAllocationModule::getMuMimoPeer(const MacNodeId nodeId) const
+    {
+    if (allocatedRbsUe_.find(nodeId) != allocatedRbsUe_.end())
+    {
+        return (allocatedRbsUe_.at(nodeId).muMimoEnabled_) ? allocatedRbsUe_.at(nodeId).peerId_ : nodeId;
+    }
+    return nodeId;
 }
 
 unsigned int LteAllocationModule::computeTotalRbs()
 {
-
-    //std::cout << "LteAllocationModule::computeTotalRbs start at " << simTime().dbl() << std::endl;
-
     // The amount of available blocks in all the OFDM spaces is obtained from the overall
     // amount of RBs in every plane of every antenna, decreased by the number of the allocated blocks
 
@@ -206,17 +186,14 @@ unsigned int LteAllocationModule::computeTotalRbs()
         throw cRuntimeError("LteAllocator::checkOFDMspace(): Negative OFDM space");
 
     // DEBUG
-    //EV << NOW << " LteAllocationModule::computeTotalRbs " << dirToA(dir_) << " - total " << resourceBlocks << ", allocated " << allocatedBlocks << ", " << availableBlocks << " blocks available" << endl;
-
-    //std::cout << "LteAllocationModule::computeTotalRbs end at " << simTime().dbl() << std::endl;
+    EV << NOW << " LteAllocationModule::computeTotalRbs " << dirToA(dir_) << " - total " << resourceBlocks <<
+    ", allocated " << allocatedBlocks << ", " << availableBlocks << " blocks available" << endl;
 
     return ((unsigned int) availableBlocks);
 }
 
 unsigned int LteAllocationModule::availableBlocks(const MacNodeId nodeId, const Remote antenna, const Band band)
 {
-    //std::cout << "LteAllocationModule::availableBlocks start at " << simTime().dbl() << std::endl;
-
     Plane plane = getOFDMPlane(nodeId);
 
     unsigned int blocksPerBand = (totalRbsMatrix_[plane][antenna]) / bands_;
@@ -226,16 +203,14 @@ unsigned int LteAllocationModule::availableBlocks(const MacNodeId nodeId, const 
     if (blocksPerBand >= allocatedBlocks)
     {
         // DEBUG
-        //EV << NOW << " LteAllocator::availableBlocks " << dirToA(dir_) << " - Band " << band << " has " << blocksPerBand - allocatedBlocks << " blocks available [total " << blocksPerBand << ", allocated " << allocatedBlocks << "]" << endl;
-
-        //std::cout << "LteAllocationModule::availableBlocks end at " << simTime().dbl() << std::endl;
+        EV << NOW << " LteAllocator::availableBlocks " << dirToA(dir_) << " - Band " << band <<
+        " has " << blocksPerBand - allocatedBlocks <<
+        " blocks available [total " << blocksPerBand << ", allocated " << allocatedBlocks << "]" << endl;
 
         return (blocksPerBand - allocatedBlocks);
     }
     else
     {
-        //std::cout << "LteAllocationModule::availableBlocks end at " << simTime().dbl() << std::endl;
-
         // no space available on current antenna.
         return 0;
     }
@@ -243,15 +218,11 @@ unsigned int LteAllocationModule::availableBlocks(const MacNodeId nodeId, const 
 
 unsigned int LteAllocationModule::getAllocatedBlocks(Plane plane, const Remote antenna, const Band band)
 {
-    //std::cout << "LteAllocationModule::getAllocatedBlocks start at " << simTime().dbl() << std::endl;
-
     return allocatedRbsPerBand_[plane][antenna][band].allocated_;
 }
 
 unsigned int LteAllocationModule::getInterferringBlocks(Plane plane, const Remote antenna, const Band band)
 {
-    //std::cout << "LteAllocationModule::getInterferringBlocks start at " << simTime().dbl() << std::endl;
-
     if (!prevAllocatedRbsPerBand_.empty())
         return prevAllocatedRbsPerBand_[plane][antenna][band].allocated_;
     else
@@ -260,8 +231,6 @@ unsigned int LteAllocationModule::getInterferringBlocks(Plane plane, const Remot
 
 unsigned int LteAllocationModule::availableBlocks(const MacNodeId nodeId, const Plane plane, const Band band)
 {
-    //std::cout << "LteAllocationModule::availableBlocks start at " << simTime().dbl() << std::endl;
-
     // compute available blocks on all antennas for given user and plane.
     RemoteSet antennas = allocatedRbsUe_.at(nodeId).availableAntennaSet_;
     RemoteSet::iterator it = antennas.begin(), et = antennas.end();
@@ -272,9 +241,6 @@ unsigned int LteAllocationModule::availableBlocks(const MacNodeId nodeId, const 
     {
         available += availableBlocks(nodeId, *it, band);
     }
-
-    //std::cout << "LteAllocationModule::availableBlocks end at " << simTime().dbl() << std::endl;
-
     // returning available blocks
     return available;
 }
@@ -282,8 +248,6 @@ unsigned int LteAllocationModule::availableBlocks(const MacNodeId nodeId, const 
 bool LteAllocationModule::addBlocks(const Band band, const MacNodeId nodeId, const unsigned int blocks,
     const unsigned int bytes)
 {
-    //std::cout << "LteAllocationModule::addBlocks start at " << simTime().dbl() << std::endl;
-
     //  all antennas for given user and plane.
     RemoteSet antennas = allocatedRbsUe_.at(nodeId).availableAntennaSet_;
     RemoteSet::iterator it = antennas.begin(), et = antennas.end();
@@ -294,9 +258,6 @@ bool LteAllocationModule::addBlocks(const Band band, const MacNodeId nodeId, con
         if (ret)
             break;
     }
-
-    //std::cout << "LteAllocationModule::addBlocks end at " << simTime().dbl() << std::endl;
-
     // returning allocation result
     return ret;
 }
@@ -304,8 +265,6 @@ bool LteAllocationModule::addBlocks(const Band band, const MacNodeId nodeId, con
 bool LteAllocationModule::addBlocks(const Remote antenna, const Band band, const MacNodeId nodeId,
     const unsigned int blocks, const unsigned int bytes)
 {
-    //std::cout << "LteAllocationModule::addBlocks start at " << simTime().dbl() << std::endl;
-
     // Check if the band exists
     if (band >= bands_)
         throw cRuntimeError("LteAllocator::addBlocks(): Invalid band %d", (int) band);
@@ -320,13 +279,15 @@ bool LteAllocationModule::addBlocks(const Remote antenna, const Band band, const
     // Check if the band can satisfy the request
     if ((availableBlocksOnBand - (int) blocks) < 0)
     {
-        //EV << NOW << " LteAllocator::addBlocks " << dirToA(dir_) << " - Node " << nodeId << ", not enough space on band " << band << ": requested " << blocks << " available " << availableBlocksOnBand << " " << endl;
+        EV << NOW << " LteAllocator::addBlocks " << dirToA(dir_) << " - Node " << nodeId <<
+        ", not enough space on band " << band << ": requested " << blocks <<
+        " available " << availableBlocksOnBand << " " << endl;
         return false;
     }
         // check if UE is out of range. (CQI=0 => bytes=0)
     if (bytes == 0)
     {
-        //EV << NOW << " LteAllocator::addBlocks " << dirToA(dir_) << " - Node " << nodeId << " - 0 bytes available with " << blocks << " blocks" << endl;
+        EV << NOW << " LteAllocator::addBlocks " << dirToA(dir_) << " - Node " << nodeId << " - 0 bytes available with " << blocks << " blocks" << endl;
         return false;
     }
 
@@ -349,22 +310,17 @@ bool LteAllocationModule::addBlocks(const Remote antenna, const Band band, const
     // update the allocatedBlocks counter
     allocatedRbsMatrix_[plane][antenna] += blocks;
 
-    //EV << NOW << " LteAllocator::addBlocks " << dirToA(dir_) << " - Node " << nodeId << ", the request of " << blocks << " blocks on band " << band << " satisfied" << endl;
-
-    //std::cout << "LteAllocationModule::addBlocks end at " << simTime().dbl() << std::endl;
+    EV << NOW << " LteAllocator::addBlocks " << dirToA(dir_) << " - Node " << nodeId << ", the request of " << blocks << " blocks on band " << band << " satisfied" << endl;
 
     return true;
 }
 
 unsigned int LteAllocationModule::removeBlocks(const Remote antenna, const Band band, const MacNodeId nodeId)
 {
-
-    //std::cout << "LteAllocationModule::removeBlocks start at " << simTime().dbl() << std::endl;
-
     // Check if the band exists
     if (band >= bands_)
     {
-        //EV << NOW << " LteAllocator::removeBlocks " << dirToA(dir_) << " - Node " << nodeId << ", invalid band " << band << endl;
+        EV << NOW << " LteAllocator::removeBlocks " << dirToA(dir_) << " - Node " << nodeId << ", invalid band " << band << endl;
         return 0;
     }
 
@@ -392,9 +348,7 @@ unsigned int LteAllocationModule::removeBlocks(const Remote antenna, const Band 
     allocatedRbsMatrix_[plane][antenna] -= toDrain;
 
     // DEBUG
-    //EV << NOW << " LteAllocator::removeBlocks " << dirToA(dir_) << " - Node " << nodeId << ", " << toDrain << " blocks drained from band " << band << endl;
-
-    //std::cout << "LteAllocationModule::removeBlocks end at " << simTime().dbl() << std::endl;
+    EV << NOW << " LteAllocator::removeBlocks " << dirToA(dir_) << " - Node " << nodeId << ", " << toDrain << " blocks drained from band " << band << endl;
 
     return toDrain;
 }
@@ -402,9 +356,6 @@ unsigned int LteAllocationModule::removeBlocks(const Remote antenna, const Band 
 unsigned int
 LteAllocationModule::rbOccupation(const MacNodeId nodeId, RbMap& rbMap)
 {
-
-    //std::cout << "LteAllocationModule::rbOccupation start at " << simTime().dbl() << std::endl;
-
     // compute allocated blocks on all antennas for given user and logical band.
     RemoteSet antennas = allocatedRbsUe_.at(nodeId).availableAntennaSet_;
     RemoteSet::iterator it = antennas.begin(), et = antennas.end();
@@ -418,8 +369,5 @@ LteAllocationModule::rbOccupation(const MacNodeId nodeId, RbMap& rbMap)
             blocks += (rbMap[*it][b] = getBlocks(*it, b, nodeId));
         }
     }
-
-    //std::cout << "LteAllocationModule::rbOccupation end at " << simTime().dbl() << std::endl;
-
     return blocks;
 }

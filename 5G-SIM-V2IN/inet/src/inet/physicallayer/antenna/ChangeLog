@@ -1,12 +1,44 @@
+====== inet-4.x ======
+
+2021-01-07  ------ inet-4.2.2 released ------
+
+2020-10-27  ------ inet-4.2.1 released ------
+
+2020-01-08  ------ inet-4.2.0 released ------
+
+2019-03-28  Gyorgy Szaszko
+
+	Added more documentation to the CosineAntenna.
+
+2019-01-28  ------ inet-4.1.0 released ------
+
+2018-10-15  Levente Mészáros
+
+	Added AxiallySymmetricAntenna model.
+	Added wireAxis parameter to DipoleAntenna.
+	Changed CosineAntenna and ParabolicAntenna to work properly in 3 dimensions.
+
+2018-07-19  Gyorgy Szaszko
+
+	Fixed computeGain() in CosineAntenna.
+
+2018-07-19  Levente Mészáros
+
+	Fixed ParabolicAntenna gain computation when the angle is >180.
+
+2018-06-27  ------ inet-4.0.0 released ------
+
+2018-04-13  ------ inet-3.99.3 released ------
+
+2017-12-22  ------ inet-3.99.2 released ------
+
+2017-11-16  ------ inet-3.99.1 released ------
+
+2017-09-15  Raphael Riebl
+
+	Extracted IAntennaGain from IAntenna interface.
+
 ====== inet-3.x ======
-
-2020-10-20  ------ inet-3.6.8 released ------
-
-2019-11-04  ------ inet-3.6.7 released ------
-
-2019-08-16  ------ inet-3.6.6 released ------
-
-2019-04-12  ------ inet-3.6.5 released ------
 
 2018-03-21  ------ inet-3.6.4 released ------
 

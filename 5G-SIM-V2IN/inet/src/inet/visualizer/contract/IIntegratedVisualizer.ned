@@ -29,5 +29,6 @@ package inet.visualizer.contract;
 moduleinterface IIntegratedVisualizer
 {
     parameters:
-        @display("i=block/app_s");
+        @display("i=block/app");
 }
+

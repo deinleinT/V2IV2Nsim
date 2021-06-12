@@ -42,8 +42,6 @@ void NRsdapGNB::initialize(int stage) {
         toLowerLayer = registerSignal("toLowerLayer");
         pkdrop = registerSignal("pkdrop");
 
-
-
         qosHandler = check_and_cast<QosHandler*>(
                 getParentModule()->getSubmodule("qosHandler"));
 
@@ -60,9 +58,7 @@ void NRsdapGNB::handleMessage(cMessage *msg) {
 
     //std::cout << "NRsdap::handleMessage start at " << simTime().dbl() << std::endl;
 
-    if (msg->isSelfMessage()) {
-        handleSelfMessage(msg);
-    } else if (strcmp(msg->getArrivalGate()->getBaseName(), "upperLayer")
+    if (strcmp(msg->getArrivalGate()->getBaseName(), "upperLayer")
             == 0) {
 
         fromUpperToLower(msg);
@@ -77,26 +73,18 @@ void NRsdapGNB::handleMessage(cMessage *msg) {
     //std::cout << "NRsdap::handleMessage end at " << simTime().dbl() << std::endl;
 }
 
-void NRsdapGNB::handleSelfMessage(cMessage *msg) {
-
-    //std::cout << "NRsdap::handleSelfMessage start at " << simTime().dbl() << std::endl;
-	//TODO
-    //std::cout << "NRsdap::handleSelfMessage end at " << simTime().dbl() << std::endl;
-
-}
-
 //incoming messages from IP2NR, to pdcp
 void NRsdapGNB::fromUpperToLower(cMessage *msg) {
 
     //std::cout << "NRsdap::fromUpperToLower start at " << simTime().dbl() << std::endl;
 
-    cPacket* pkt = check_and_cast<cPacket *>(msg);
-    FlowControlInfo * lteInfo = check_and_cast<FlowControlInfo*>(
-            pkt->removeControlInfo());
-    setTrafficInformation(pkt, lteInfo);
+    auto pktIn = check_and_cast<cPacket*>(msg);
+    auto pkt = check_and_cast<inet::Packet *>(pktIn);
+    auto lteInfo = pkt->getTag<FlowControlInfo>();
+
+    setTrafficInformation(pkt->getName(), pkt);
     // dest id
-    MacNodeId destId = getNRBinder()->getMacNodeId(
-            IPv4Address(lteInfo->getDstAddr()));
+    MacNodeId destId = getNRBinder()->getMacNodeId(inet::Ipv4Address(lteInfo->getDstAddr()));
     // master of this ue (myself or a relay)
     MacNodeId master = getNRBinder()->getNextHop(destId);
     if (master != nodeId_) {
@@ -104,7 +92,7 @@ void NRsdapGNB::fromUpperToLower(cMessage *msg) {
     }
 
     if (nodeType == UE) {
-        nodeId_ = getBinder()->getMacNodeId(IPv4Address(lteInfo->getSrcAddr()));
+        nodeId_ = getBinder()->getMacNodeId(inet::Ipv4Address(lteInfo->getSrcAddr()));
         destId = getNRBinder()->getNextHop(nodeId_);
     }
 
@@ -117,20 +105,18 @@ void NRsdapGNB::fromUpperToLower(cMessage *msg) {
     //nodeid is nodeB-Id, destid is ue
     NRSdapEntity* entity = getEntity(nodeId_, destId, (ApplicationType)(lteInfo->getApplication()));
 
-    lteInfo->setDestId(destId);
-    lteInfo->setSourceId(nodeId_);
-    lteInfo->setHeaderSize(1);
+    pkt->addTagIfAbsent<FlowControlInfo>()->setDestId(destId);
+    pkt->addTagIfAbsent<FlowControlInfo>()->setSourceId(nodeId_);
+    pkt->addTagIfAbsent<FlowControlInfo>()->setHeaderSize(1);
 
-    SdapPdu * sdapPkt = new SdapPdu(pkt->getName());
-    sdapPkt->setKind(lteInfo->getApplication());
-    sdapPkt->encapsulate(pkt);
-    sdapPkt->setControlInfo(lteInfo);
-
-    if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
-		//add processing delay
-		sendDelayed(sdapPkt, uniform(0, pkt->getByteLength() / 10e6), lowerLayer);
-	} else {
-		send(sdapPkt, lowerLayer);
+	if (getSystemModule()->hasPar("considerProcessingDelay")) {
+		if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
+			//add processing delay
+			sendDelayed(pkt, uniform(0, pkt->getByteLength() / 10e6), lowerLayer);
+		}
+		else {
+			send(pkt, lowerLayer);
+		}
 	}
 
     //std::cout << "NRsdap::fromUpperToLower end at " << simTime().dbl() << std::endl;
@@ -141,20 +127,17 @@ void NRsdapGNB::fromLowerToUpper(cMessage *msg) {
 
     //std::cout << "NRsdap::fromLowerToUpper start at " << simTime().dbl() << std::endl;
 
-    cPacket* pkt = check_and_cast<cPacket *>(msg);
-    SdapPdu * sdapPkt = check_and_cast<SdapPdu*>(pkt);
-    FlowControlInfo* lteInfo = check_and_cast<FlowControlInfo*>(
-            sdapPkt->removeControlInfo());
-    cPacket* upPkt = sdapPkt->decapsulate();
-    delete sdapPkt;
+    auto pktIn = check_and_cast<cPacket*>(msg);
+    auto upPkt = check_and_cast<inet::Packet *>(pktIn);
 
-    upPkt->setControlInfo(lteInfo);
-
-	if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
-		//add processing delay
-		sendDelayed(upPkt, uniform(0, upPkt->getByteLength() / 10e6), upperLayer);
-	} else {
-		send(upPkt, upperLayer);
+	if (getSystemModule()->hasPar("considerProcessingDelay")) {
+		if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
+			//add processing delay
+			sendDelayed(upPkt, uniform(0, upPkt->getByteLength() / 10e6), upperLayer);
+		}
+		else {
+			send(upPkt, upperLayer);
+		}
 	}
 
     //std::cout << "NRsdap::fromLowerToUpper end at " << simTime().dbl() << std::endl;

@@ -20,8 +20,11 @@
 //
 // This file is part of for 5G-Sim-V2I/N
 //
+import inet.common.INETDefs;
+import inet.common.packet.chunk.Chunk;
 
-packet DataMessage {
+class DataMessage extends inet::FieldsChunk{
+
     int senderNodeId;
     string senderName;
     string senderIpAddress;
@@ -29,5 +32,10 @@ packet DataMessage {
     string destIpAddress;
     int destPort;
     int sequenceNumber;
+    
+    simtime_t creationTime;
+    simtime_t arrivalTime;
+    string name;
+    simtime_t timestamp;
 }
 

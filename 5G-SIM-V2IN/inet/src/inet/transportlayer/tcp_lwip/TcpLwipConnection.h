@@ -20,22 +20,22 @@
 #define __INET_TCPLWIPCONNECTION_H
 
 #include "inet/common/INETDefs.h"
-
+#include "inet/common/packet/Packet.h"
 #include "inet/networklayer/common/L3Address.h"
+#include "inet/transportlayer/contract/tcp/TcpCommand_m.h"
+#include "inet/transportlayer/tcp_common/TcpHeader.h"
 #include "lwip/lwip_tcp.h"
-#include "inet/transportlayer/tcp_common/TCPSegment.h"
-#include "inet/transportlayer/contract/tcp/TCPCommand_m.h"
 
 namespace inet {
 
 // forward declarations:
-class TCPConnectInfo;
-class TCPStatusInfo;
+class TcpConnectInfo;
+class TcpStatusInfo;
 
 namespace tcp {
 
 // forward declarations:
-class TCP_lwIP;
+class TcpLwip;
 class TcpLwipReceiveQueue;
 class TcpLwipSendQueue;
 class INetStack;
@@ -44,39 +44,21 @@ class INetStreamSocket;
 /**
  *
  */
-class INET_API TcpLwipConnection
+class INET_API TcpLwipConnection : public cSimpleModule
 {
   protected:
-    class Stats
-    {
-      public:
-        Stats();
-        ~Stats();
-        void recordSend(const TCPSegment& tcpsegP);
-        void recordReceive(const TCPSegment& tcpsegP);
-
-      protected:
-        // statistics
-        cOutVector sndWndVector;    // snd_wnd
-        cOutVector sndSeqVector;    // sent seqNo
-        cOutVector sndAckVector;    // sent ackNo
-
-        cOutVector rcvWndVector;    // rcv_wnd
-        cOutVector rcvSeqVector;    // received seqNo
-        cOutVector rcvAckVector;    // received ackNo (= snd_una)
-    };
-
     // prevent copy constructor:
     TcpLwipConnection(const TcpLwipConnection&);
 
   public:
-    TcpLwipConnection(TCP_lwIP& tcpLwipP, int connIdP, int gateIndexP,
-            TCPDataTransferMode dataTransferModeP);
-
-    TcpLwipConnection(TcpLwipConnection& tcpLwipConnectionP, int connIdP,
-            LwipTcpLayer::tcp_pcb *pcbP);
-
+    TcpLwipConnection() {}
     ~TcpLwipConnection();
+
+    void initConnection(TcpLwip& tcpLwipP, int connIdP);
+    void initConnection(TcpLwipConnection& tcpLwipConnectionP, int connIdP, LwipTcpLayer::tcp_pcb *pcbP);
+
+    /** Utility: sends TCP_I_AVAILABLE indication with TcpAvailableInfo to application */
+    void sendAvailableIndicationToApp(int listenConnId);
 
     void sendEstablishedMsg();
 
@@ -84,20 +66,21 @@ class INET_API TcpLwipConnection
 
     void sendIndicationToApp(int code);
 
-    void listen(L3Address& localAddr, unsigned short localPort);
+    void listen(const L3Address& localAddr, unsigned short localPort);
 
-    void connect(L3Address& localAddr, unsigned short localPort, L3Address& remoteAddr,
-            unsigned short remotePort);
+    void connect(const L3Address& localAddr, unsigned short localPort, const L3Address& remoteAddr, unsigned short remotePort);
 
     void close();
 
     void abort();
 
-    void send(cPacket *msgP);
+    void accept();
 
-    void fillStatusInfo(TCPStatusInfo& statusInfo);
+    void send(Packet *msgP);
 
-    void notifyAboutSending(const TCPSegment& tcpsegP);
+    void fillStatusInfo(TcpStatusInfo& statusInfo);
+
+    void notifyAboutSending(const TcpHeader& tcpsegP);
 
     int send_data(void *data, int len);
 
@@ -107,20 +90,33 @@ class INET_API TcpLwipConnection
 
     void initStats();
 
+    bool isSendUpEnabled() { return sendUpEnabled; }
+
+    void sendUpData();
+    void recordSend(const TcpHeader& tcpsegP);
+    void recordReceive(const TcpHeader& tcpsegP);
+
   public:
     int connIdM;
-    int appGateIndexM;
-    LwipTcpLayer::tcp_pcb *pcbM;
-    TcpLwipSendQueue *sendQueueM;
-    TcpLwipReceiveQueue *receiveQueueM;
-    TCP_lwIP& tcpLwipM;
+    LwipTcpLayer::tcp_pcb *pcbM = nullptr;
+    TcpLwipSendQueue *sendQueueM = nullptr;
+    TcpLwipReceiveQueue *receiveQueueM = nullptr;
+    TcpLwip *tcpLwipM = nullptr;
 
   protected:
-    long int totalSentM;
-    bool isListenerM;
-    bool onCloseM;
+    long int totalSentM = 0;
+    bool isListenerM = false;
+    bool onCloseM = false;
+    bool sendUpEnabled = false;
 
-    Stats *statsM;
+    // statistics
+    static simsignal_t sndWndSignal;    // snd_wnd
+    static simsignal_t sndNxtSignal;    // sent seqNo
+    static simsignal_t sndAckSignal;    // sent ackNo
+
+    static simsignal_t rcvWndSignal;    // rcv_wnd
+    static simsignal_t rcvSeqSignal;    // received seqNo
+    static simsignal_t rcvAckSignal;    // received ackNo (= snd_una)
 };
 
 } // namespace tcp

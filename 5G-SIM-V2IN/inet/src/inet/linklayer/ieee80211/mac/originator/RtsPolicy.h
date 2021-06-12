@@ -19,8 +19,8 @@
 #define __INET_RTSPOLICY_H
 
 #include "inet/linklayer/ieee80211/mac/common/ModeSetListener.h"
-#include "inet/linklayer/ieee80211/mac/contract/IRtsPolicy.h"
 #include "inet/linklayer/ieee80211/mac/contract/IRateSelection.h"
+#include "inet/linklayer/ieee80211/mac/contract/IRtsPolicy.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -37,8 +37,8 @@ class INET_API RtsPolicy : public ModeSetListener, public IRtsPolicy
         virtual void initialize(int stage) override;
 
     public:
-        virtual bool isRtsNeeded(Ieee80211Frame *protectedFrame) const override;
-        virtual simtime_t getCtsTimeout(Ieee80211RTSFrame *rtsFrame) const override;
+        virtual bool isRtsNeeded(Packet *packet, const Ptr<const Ieee80211MacHeader>& protectedHeader) const override;
+        virtual simtime_t getCtsTimeout(Packet *packet, const Ptr<const Ieee80211RtsFrame>& rtsFrame) const override;
         virtual int getRtsThreshold() const override { return rtsThreshold; }
 };
 

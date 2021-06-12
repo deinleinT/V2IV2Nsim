@@ -1,41 +1,31 @@
 //
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-// 
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
+//
+// This file is part of a software released under the license included in file
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
+// and cannot be removed from it.
+//
 
 //
 // This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
+// Date: 2021
 // Author: Thomas Deinlein
 //
 
 #ifndef STACK_PHY_CHANNELMODEL_LTEREALISTICCHANNELMODEL_H_
 #define STACK_PHY_CHANNELMODEL_LTEREALISTICCHANNELMODEL_H_
 
+#include <omnetpp.h>
 #include "stack/phy/ChannelModel/LteChannelModel.h"
 
-class LteBinder;
+class Binder;
 
-/*
- * Realistic Channel Model as taken from
- * "ITU-R M.2135-1 Guidelines for evaluation of radio interface technologies for IMT-Advanced"
- */
 class LteRealisticChannelModel : public LteChannelModel
 {
-
-  protected:
-    // Carrier Frequency
-    double carrierFrequency_;
+protected:
 
   // Information needed about the playground
   bool useTorus_;
@@ -49,6 +39,12 @@ class LteRealisticChannelModel : public LteChannelModel
   // average Building Heights
   double hBuilding_;
 
+  // true if the UE is inside a building
+  bool inside_building_;
+
+  // distance from the building wall
+  double inside_distance_;
+
   // Average street's wide
   double wStreet_;
 
@@ -61,7 +57,9 @@ class LteRealisticChannelModel : public LteChannelModel
   bool enableUplinkInterference_;
   bool enableD2DInterference_;
 
-  typedef std::pair<simtime_t, inet::Coord> Position;
+  bool enable_extCell_los_;
+
+  typedef std::pair<inet::simtime_t, inet::Coord> Position;
 
   // last position of current user
   std::map<MacNodeId, std::queue<Position> > positionHistory_;
@@ -77,7 +75,7 @@ class LteRealisticChannelModel : public LteChannelModel
   std::map<MacNodeId, bool> losMap_;
 
   // Store the last computed shadowing for each user
-  std::map<MacNodeId, std::pair<simtime_t, double> > lastComputedSF_;
+  std::map<MacNodeId, std::pair<inet::simtime_t, double> > lastComputedSF_;
 
   //correlation distance used in shadowing computation and
   //also used to recompute the probability of LOS
@@ -105,7 +103,7 @@ class LteRealisticChannelModel : public LteChannelModel
   double thermalNoise_;
 
   //pointer to Binder module
-  LteBinder* binder_;
+  Binder* binder_;
 
   //Cable loss
   double cableLoss_;
@@ -131,7 +129,7 @@ class LteRealisticChannelModel : public LteChannelModel
   struct JakesFadingData
   {
       std::vector<double> angleOfArrival;
-      std::vector<simtime_t> delaySpread;
+      std::vector<omnetpp::simtime_t> delaySpread;
   };
 
   // for each node and for each band we store information about jakes fading
@@ -155,19 +153,19 @@ class LteRealisticChannelModel : public LteChannelModel
   bool fixedLos_;
 
   // statistics
-  simsignal_t rcvdSinr_;
+  static omnetpp::simsignal_t rcvdSinr_;
+  static omnetpp::simsignal_t distance_;
+  static omnetpp::simsignal_t measuredSinr_;
+
+  // rsrq from log file
+  bool useRsrqFromLog_;
+  int rsrqShift_;
+  double rsrqScale_;
+  int oldTime_;
+  int oldRsrq_;
 
 public:
-    virtual void resetOnHandover(MacNodeId nodeId, MacNodeId oldMasterId){}
-
-protected:
-    inet::Coord myCoord_;
-
-public:
-  virtual void initialize();
-
-  virtual void setBand( unsigned int band );
-  virtual void setPhy( LtePhyBase * phy );
+  virtual void initialize(int stage);
 
   /*
    * Compute Attenuation caused by pathloss and shadowing (optional)
@@ -186,6 +184,37 @@ public:
    */
   virtual double getAttenuation_D2D(MacNodeId nodeId, Direction dir, inet::Coord coord,MacNodeId node2_Id, inet::Coord coord_2);
   /*
+   *  Compute angle between two coordinates
+   *
+   * @param center first coord
+   * @param point second coord
+   */
+  double computeAngle(Coord center, Coord point);
+  /*
+   *  Compute vertical angle between two coordinates
+   *  The returned angle is the angle with respect to the zenith direction
+   *
+   * @param center first coord
+   * @param point second coord
+   * @return angle
+   */
+  double computeVerticalAngle(Coord center, Coord point);
+  /*
+  *  Compute Attenuation caused by transmission direction
+  *
+  * @param angle angle
+  */
+  virtual double computeAngolarAttenuation(double hAngle, double vAngle = 0);
+
+  /*
+   * Compute shadowing
+   *
+   * @param distance between UE and eNodeB
+   * @param nodeid mac node id of UE
+   * @param speed speed of UE
+   */
+  virtual double computeShadowing(double sqrDistance, MacNodeId nodeId, double speed);
+  /*
    * Compute sir for each band for user nodeId according to multipath fading
    *
    * @param frame pointer to the packet
@@ -198,7 +227,7 @@ public:
    * @param frame pointer to the packet
    * @param lteinfo pointer to the user control info
    */
-  virtual std::vector<double> getSINR(LteAirFrame *frame, UserControlInfo* lteInfo, bool recordStats);
+  virtual std::vector<double> getSINR(LteAirFrame *frame, UserControlInfo* lteInfo, bool flag = false);
   /*
    * Compute Received useful signal for D2D transmissions
    */
@@ -219,7 +248,7 @@ public:
    * @param lteinfo pointer to the user control info
    * @param rsrpVector the received signal for each RB, if it has already been computed
    */
-  virtual bool error_D2D(LteAirFrame *frame, UserControlInfo* lteI, const std::vector<double>& rsrpVector);
+  virtual bool isError_D2D(LteAirFrame *frame, UserControlInfo* lteI, const std::vector<double>& rsrpVector);
   /*
    * Compute the error probability of the transmitted packet according to cqi used, txmode, and the received power
    * after that it throws a random number in order to check if this packet will be corrupted or not
@@ -234,15 +263,11 @@ public:
    * @param frame pointer to the packet
    * @param lteinfo pointer to the user control info
    */
-  virtual bool isCorruptedDas(LteAirFrame *frame, UserControlInfo* lteI)
+  virtual bool isErrorDas(LteAirFrame *frame, UserControlInfo* lteI)
   {
-      throw cRuntimeError("DAS PHY LAYER TO BE IMPLEMENTED");
+      throw omnetpp::cRuntimeError("DAS PHY LAYER TO BE IMPLEMENTED");
       return -1;
   }
-
-  virtual double computeAngle(Coord center, Coord point);
-  virtual double computeAngolarAttenuation(double angle);
-
   /*
    * Compute the path-loss attenuation according to the selected scenario
    *
@@ -325,11 +350,28 @@ public:
   virtual bool isD2DInterferenceEnabled() { return enableD2DInterference_; }
 protected:
 
+  /*
+   * Returns the 2D distance between two coordinate (ignore z-axis)
+   */
+  double getTwoDimDistance(inet::Coord a, inet::Coord b);
+
   /* compute speed (m/s) for a given node
    * @param nodeid mac node id of UE
    * @return the speed in m/s
    */
-  virtual double computeSpeed(const MacNodeId nodeId, const inet::Coord coord, double & mov);
+  virtual double computeSpeed(const MacNodeId nodeId, const inet::Coord coord);
+
+  /*
+   * compute the euclidean distance between the current position and the
+   * last position used to calculate the LOS probability
+   */
+  double computeCorrelationDistance(const MacNodeId nodeId, const inet::Coord coord);
+
+  /*
+   * update base point if distance to previous value is greater than the
+   * correlationDistance_
+   */
+  void updateCorrelationDistance(const MacNodeId nodeId, const inet::Coord coord);
 
   /*
    * Updates position for a given node
@@ -337,40 +379,28 @@ protected:
    */
   void updatePositionHistory(const MacNodeId nodeId, const inet::Coord coord);
 
-	/*
-	 * compute the euclidean distance between the current position and the
-	 * last position used to calculate the LOS probability
-	 */
-	double computeCorrelationDistance(const MacNodeId nodeId, const inet::Coord coord);
-
-	/*
-	 * update base point if distance to previous value is greater than the
-	 * correlationDistance_
-	 */
-	void updateCorrelationDistance(const MacNodeId nodeId, const inet::Coord coord);
-
   /*
    * compute total interference due to eNB coexistence for the DL direction
    * @param eNbId id of the considered eNb
    * @param isCqi if we are computing a CQI
    */
-  bool computeDownlinkInterference(MacNodeId eNbId, MacNodeId ueId, inet::Coord coord, bool isCqi, const RbMap& rbmap, std::vector<double> * interference);
+  bool computeDownlinkInterference(MacNodeId eNbId, MacNodeId ueId, inet::Coord coord, bool isCqi, double carrierFrequency, const RbMap& rbmap, std::vector<double> * interference);
 
   /*
    * compute interference coming from neighboring cells for the UL direction
    */
-  bool computeUplinkInterference(MacNodeId eNbId, MacNodeId senderId, bool isCqi, const RbMap& rbmap, std::vector<double> * interference);
+  bool computeUplinkInterference(MacNodeId eNbId, MacNodeId senderId, bool isCqi, double carrierFrequency, const RbMap& rbmap, std::vector<double> * interference);
 
   /*
    * compute interference coming from neighboring UEs for the D2D/D2D_MULTI direction
    */
-  bool computeD2DInterference(MacNodeId eNbId, MacNodeId senderId, inet::Coord senderCoord, MacNodeId destId, inet::Coord destCoord, bool isCqi, const RbMap& rbmap, std::vector<double>* interference,Direction dir);
+  bool computeD2DInterference(MacNodeId eNbId, MacNodeId senderId, inet::Coord senderCoord, MacNodeId destId, inet::Coord destCoord, bool isCqi, double carrierFrequency, const RbMap& rbmap, std::vector<double>* interference,Direction dir);
 
   /*
    * evaluates total interference from external cells seen from the spot given by coord
    * @return total interference expressed in dBm
    */
-  bool computeExtCellInterference(MacNodeId eNbId, MacNodeId nodeId, inet::Coord coord, bool isCqi, std::vector<double>* interference);
+  virtual bool computeExtCellInterference(MacNodeId eNbId, MacNodeId nodeId, inet::Coord coord, bool isCqi, double carrierFrequency, std::vector<double>* interference);
 
   /*
    * compute attenuation due to path loss and shadowing

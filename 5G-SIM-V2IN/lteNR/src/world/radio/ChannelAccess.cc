@@ -1,24 +1,19 @@
-/***************************************************************************
- * file:        ChannelAccess.cc
- *
- * author:      Marc Loebbers, Rudolf Hornig, Zoltan Bojthe
- *
- * copyright:   (C) 2004 Telecommunication Networks Group (TKN) at
- *              Technische Universitaet Berlin, Germany.
- *
- *              This program is free software; you can redistribute it
- *              and/or modify it under the terms of the GNU General Public
- *              License as published by the Free Software Foundation; either
- *              version 2 of the License, or (at your option) any later
- *              version.
- *              For further information see file COPYING
- *              in the top level directory
- **************************************************************************/
-
+//
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
+//
+// This file is part of a software released under the license included in file
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
+// and cannot be removed from it.
+//
 
 #include "world/radio/ChannelAccess.h"
-#include "inet/mobility/contract/IMobility.h"
-#include "inet/common/ModuleAccess.h"
+#include <inet/mobility/contract/IMobility.h>
+#include <inet/common/ModuleAccess.h>
+
+using namespace omnetpp;
 
 static int parseInt(const char *s, int defaultValue)
 {
@@ -39,7 +34,7 @@ ChannelAccess::~ChannelAccess()
         IChannelControl *cc = dynamic_cast<IChannelControl *>(getSimulation()->getModuleByPath("channelControl"));
         if (cc)
              cc->unregisterRadio(myRadioRef);
-        myRadioRef = NULL;
+        myRadioRef = nullptr;
     }
 }
 /**
@@ -54,7 +49,7 @@ void ChannelAccess::initialize(int stage)
     {
         cc = getChannelControl();
         hostModule = inet::findContainingNode(this);
-        myRadioRef = NULL;
+        myRadioRef = nullptr;
 
         positionUpdateArrived = false;
 
@@ -66,7 +61,7 @@ void ChannelAccess::initialize(int stage)
             hostModule->subscribe(inet::IMobility::mobilityStateChangedSignal, this);
         }
     }
-    else if (stage == inet::INITSTAGE_PHYSICAL_ENVIRONMENT_2)
+    else if (stage == inet::INITSTAGE_PHYSICAL_LAYER)
     {
         if (!positionUpdateArrived && hostModule->isSubscribed(inet::IMobility::mobilityStateChangedSignal, this))
         {
@@ -93,10 +88,6 @@ void ChannelAccess::initialize(int stage)
 
 IChannelControl *ChannelAccess::getChannelControl()
 {
-    //std::cout << "ChannelAccess::getChannelControl  at " << simTime().dbl() << std::endl;
-
-    Enter_Method_Silent("getChannelControl");
-
     IChannelControl *cc = dynamic_cast<IChannelControl *>(getSimulation()->getModuleByPath("channelControl"));
     if (!cc)
         throw cRuntimeError("Could not find ChannelControl module with name 'channelControl' in the toplevel network.");
@@ -112,11 +103,7 @@ IChannelControl *ChannelAccess::getChannelControl()
  */
 void ChannelAccess::sendToChannel(AirFrame *msg)
 {
-    //std::cout << "ChannelAccess::sendToChannel  at " << simTime().dbl() << std::endl;
-
-    //EV << "sendToChannel: sending to gates\n";
-
-    Enter_Method_Silent("sendToChannel");
+    EV << "sendToChannel: sending to gates\n";
 
     // delegate it to ChannelControl
     cc->sendToChannel(myRadioRef, msg);
@@ -124,10 +111,6 @@ void ChannelAccess::sendToChannel(AirFrame *msg)
 
 void ChannelAccess::receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *)
 {
-    //std::cout << "ChannelAccess::receiveSignal start at " << simTime().dbl() << std::endl;
-
-    Enter_Method_Silent("receiveSignal");
-
     if (signalID == inet::IMobility::mobilityStateChangedSignal)
     {
         inet::IMobility *mobility = check_and_cast<inet::IMobility*>(obj);
@@ -137,6 +120,4 @@ void ChannelAccess::receiveSignal(cComponent *source, simsignal_t signalID, cObj
         if (myRadioRef)
             cc->setRadioPosition(myRadioRef, radioPos);
     }
-
-    //std::cout << "ChannelAccess::receiveSignal end at " << simTime().dbl() << std::endl;
 }

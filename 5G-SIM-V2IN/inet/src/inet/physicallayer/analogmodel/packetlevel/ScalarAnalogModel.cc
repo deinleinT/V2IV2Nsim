@@ -15,9 +15,9 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "inet/physicallayer/contract/packetlevel/IRadioMedium.h"
 #include "inet/physicallayer/analogmodel/packetlevel/ScalarAnalogModel.h"
 #include "inet/physicallayer/analogmodel/packetlevel/ScalarReception.h"
+#include "inet/physicallayer/contract/packetlevel/IRadioMedium.h"
 
 namespace inet {
 
@@ -35,12 +35,12 @@ const IReception *ScalarAnalogModel::computeReception(const IRadio *receiverRadi
     const INarrowbandSignal *narrowbandSignalAnalogModel = check_and_cast<const INarrowbandSignal *>(transmission->getAnalogModel());
     const simtime_t receptionStartTime = arrival->getStartTime();
     const simtime_t receptionEndTime = arrival->getEndTime();
-    const EulerAngles receptionStartOrientation = arrival->getStartOrientation();
-    const EulerAngles receptionEndOrientation = arrival->getEndOrientation();
+    const Quaternion receptionStartOrientation = arrival->getStartOrientation();
+    const Quaternion receptionEndOrientation = arrival->getEndOrientation();
     const Coord receptionStartPosition = arrival->getStartPosition();
     const Coord receptionEndPosition = arrival->getEndPosition();
     W receptionPower = computeReceptionPower(receiverRadio, transmission, arrival);
-    return new ScalarReception(receiverRadio, transmission, receptionStartTime, receptionEndTime, receptionStartPosition, receptionEndPosition, receptionStartOrientation, receptionEndOrientation, narrowbandSignalAnalogModel->getCarrierFrequency(), narrowbandSignalAnalogModel->getBandwidth(), receptionPower);
+    return new ScalarReception(receiverRadio, transmission, receptionStartTime, receptionEndTime, receptionStartPosition, receptionEndPosition, receptionStartOrientation, receptionEndOrientation, narrowbandSignalAnalogModel->getCenterFrequency(), narrowbandSignalAnalogModel->getBandwidth(), receptionPower);
 }
 
 } // namespace physicallayer

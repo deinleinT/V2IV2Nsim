@@ -1,9 +1,11 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
@@ -28,7 +30,7 @@ class LteMacEnbD2D : public LteMacEnb
      * Stores the mirrored status of H-ARQ buffers for D2D transmissions.
      * The key value of the map is the pair <sender,receiver> of the D2D flow
      */
-    HarqBuffersMirrorD2D harqBuffersMirrorD2D_;
+    std::map<double, HarqBuffersMirrorD2D> harqBuffersMirrorD2D_;
 
     // if true, use the preconfigured TX params for transmission, else use that signaled by the eNB
     bool usePreconfiguredTxParams_;
@@ -41,7 +43,7 @@ class LteMacEnbD2D : public LteMacEnb
     bool reuseD2D_;
     bool reuseD2DMulti_;
 
-    simtime_t conflictGraphUpdatePeriod_;
+    omnetpp::simtime_t conflictGraphUpdatePeriod_;
     double conflictGraphThreshold_;
 
     // handling of D2D mode switch
@@ -61,16 +63,16 @@ class LteMacEnbD2D : public LteMacEnb
      *
      * @param pkt container packet
      */
-    virtual void macPduUnmake(cPacket* pkt);
+    virtual void macPduUnmake(omnetpp::cPacket* pkt);
 
-    virtual void macHandleFeedbackPkt(cPacket *pkt);
+    virtual void macHandleFeedbackPkt(omnetpp::cPacket *pkt);
     /**
      * creates scheduling grants (one for each nodeId) according to the Schedule List.
      * It sends them to the  lower layer
      */
-    virtual void sendGrants(LteMacScheduleList* scheduleList);
+    virtual void sendGrants(std::map<double, LteMacScheduleList>* scheduleList);
 
-    void macHandleD2DModeSwitch(cPacket* pkt);
+    void macHandleD2DModeSwitch(omnetpp::cPacket* pkt);
 
     /**
      * Flush Tx H-ARQ buffers for all users
@@ -78,7 +80,7 @@ class LteMacEnbD2D : public LteMacEnb
     virtual void flushHarqBuffers();
 
     /// Lower Layer Handler
-    virtual void fromPhy(cPacket *pkt);
+    virtual void fromPhy(omnetpp::cPacket *pkt);
 
   public:
 
@@ -95,7 +97,7 @@ class LteMacEnbD2D : public LteMacEnb
      */
     virtual void handleSelfMessage();
 
-    virtual void handleMessage(cMessage* msg);
+    virtual void handleMessage(omnetpp::cMessage* msg);
 
     virtual bool isD2DCapable()
     {
@@ -126,7 +128,7 @@ class LteMacEnbD2D : public LteMacEnb
     virtual void deleteQueues(MacNodeId nodeId);
 
     // get the reference to the "mirror" buffers
-    HarqBuffersMirrorD2D* getHarqBuffersMirrorD2D();
+    HarqBuffersMirrorD2D* getHarqBuffersMirrorD2D(double carrierFrequency);
 
     // delete the "mirror" Harq Buffer for this pair (useful at mode switch)
     void deleteHarqBuffersMirrorD2D(MacNodeId txPeer, MacNodeId rxPeer);
@@ -138,6 +140,13 @@ class LteMacEnbD2D : public LteMacEnb
 
     bool isMsHarqInterrupt() { return msHarqInterrupt_; }
 
+    /*
+     * getter
+     */
+    UserTxParams* getPreconfiguredTxParams(){
+
+        return preconfiguredTxParams_;
+    }
 };
 
 #endif

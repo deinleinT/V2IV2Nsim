@@ -15,11 +15,10 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "IndicatorLabelFigure.h"
 #include "inet/common/INETUtils.h"
+#include "inet/common/figures/IndicatorLabelFigure.h"
 
-//TODO namespace inet { -- for the moment commented out, as OMNeT++ 5.0 cannot instantiate a figure from a namespace
-using namespace inet;
+namespace inet {
 
 static const char *PKEY_TEXT_FORMAT = "textFormat";
 static const char *PKEY_INITIAL_VALUE = "initialValue";
@@ -69,5 +68,5 @@ void IndicatorLabelFigure::refresh()
     }
 }
 
-// } // namespace inet
+} // namespace inet
 

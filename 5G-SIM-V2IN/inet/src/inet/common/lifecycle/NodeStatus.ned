@@ -32,3 +32,4 @@ simple NodeStatus
         @display("i=block/cogwheel;is=s");
         @signal[nodeStatusChanged](type=inet::NodeStatus);
 }
+

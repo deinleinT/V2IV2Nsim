@@ -29,15 +29,15 @@ class INET_API BasicMsduAggregationPolicy : public IMsduAggregationPolicy, publi
         bool qOsCheck = false;
         int subframeNumThreshold = -1;
         int aggregationLengthThreshold = -1;
-        int maxAMsduSize = -1;
+        b maxAMsduSize = b(-1);
 
     protected:
         virtual void initialize() override;
         virtual bool isAggregationPossible(int numOfFramesToAggragate, int aMsduLength);
-        virtual bool isEligible(Ieee80211DataFrame *frame, Ieee80211DataFrame *testFrame, int aMsduLength);
+        virtual bool isEligible(Packet *packet, const Ptr<const Ieee80211DataHeader>& header, const Ptr<const Ieee80211MacTrailer>& trailer, const Ptr<const Ieee80211DataHeader>& testHeader, b aMsduLength);
 
     public:
-        virtual std::vector<Ieee80211DataFrame *> *computeAggregateFrames(cQueue *queue) override;
+        virtual std::vector<Packet *> *computeAggregateFrames(queueing::IPacketQueue *queue) override;
 };
 
 } /* namespace ieee80211 */

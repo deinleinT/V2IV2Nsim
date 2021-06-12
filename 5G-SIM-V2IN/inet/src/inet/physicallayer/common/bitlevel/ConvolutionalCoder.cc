@@ -15,12 +15,11 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "inet/physicallayer/common/bitlevel/ConvolutionalCoder.h"
 #include "inet/common/BitVector.h"
 #include "inet/common/ShortBitVector.h"
+#include "inet/physicallayer/common/bitlevel/ConvolutionalCoder.h"
 
 namespace inet {
-
 namespace physicallayer {
 
 std::ostream& ConvolutionalCoder::printToStream(std::ostream& stream, int level) const
@@ -483,7 +482,7 @@ std::pair<BitVector, bool> ConvolutionalCoder::decode(const BitVector& encodedBi
     std::pair<BitVector, bool> result = traversePath(bestNode, trellisGraph, isTruncatedMode);
     if (result.second)
     {
-        ////EV_DEBUG << "Recovered message: " << result.first << endl;
+        //EV_DEBUG << "Recovered message: " << result.first << endl;
         //EV_DEBUG << "Number of errors: " << bestNode.numberOfErrors                 << " Cumulative error (Hamming distance): " << bestNode.comulativeHammingDistance                 << " End state: " << bestNode.state << endl;
     }
     else{
@@ -565,6 +564,7 @@ ConvolutionalCoder::~ConvolutionalCoder()
     delete[] decimalToOutputSymbol;
     delete[] decimalToInputSymbol;
 }
+
 } /* namespace physicallayer */
 } /* namespace inet */
 

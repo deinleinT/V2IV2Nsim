@@ -22,6 +22,7 @@
 // * ported to Mixim 2.0.1 by Theodoros Kapourniotis
 // * last modification: 06/02/11
 // **************************************************************************/
+
 package inet.networklayer.wiseroute;
 
 import inet.networklayer.base.NetworkProtocolBase;
@@ -47,7 +48,7 @@ import inet.networklayer.contract.INetworkProtocol;
 simple WiseRoute extends NetworkProtocolBase like INetworkProtocol
 {
     parameters:
-        int headerLength @unit(bit) = default(100b); // length of the network packet header (in bits)
+        int headerLength @unit(b) = default(96b); // length of the network packet header (in bits)
 
         // debug switch
         bool debug = default(false);
@@ -71,3 +72,4 @@ simple WiseRoute extends NetworkProtocolBase like INetworkProtocol
         @display("i=block/fork");
         @class(WiseRoute);
 }
+

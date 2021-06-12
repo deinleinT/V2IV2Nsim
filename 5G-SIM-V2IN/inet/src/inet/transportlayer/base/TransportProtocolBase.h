@@ -19,7 +19,7 @@
 #define __INET_TRANSPORTPROTOCOLBASE_H
 
 #include "inet/common/LayeredProtocolBase.h"
-#include "inet/common/lifecycle/NodeOperations.h"
+#include "inet/common/lifecycle/ModuleOperations.h"
 
 namespace inet {
 
@@ -29,9 +29,12 @@ class INET_API TransportProtocolBase : public LayeredProtocolBase
     TransportProtocolBase() {};
 
   protected:
-    virtual bool isInitializeStage(int stage) override { return stage == INITSTAGE_TRANSPORT_LAYER; }
-    virtual bool isNodeStartStage(int stage) override { return stage == NodeStartOperation::STAGE_TRANSPORT_LAYER; }
-    virtual bool isNodeShutdownStage(int stage) override { return stage == NodeShutdownOperation::STAGE_TRANSPORT_LAYER; }
+    virtual bool isUpperMessage(cMessage *message) override;
+    virtual bool isLowerMessage(cMessage *message) override;
+
+    virtual bool isInitializeStage(int stage) override;
+    virtual bool isModuleStartStage(int stage) override;
+    virtual bool isModuleStopStage(int stage) override;
 };
 
 } // namespace inet

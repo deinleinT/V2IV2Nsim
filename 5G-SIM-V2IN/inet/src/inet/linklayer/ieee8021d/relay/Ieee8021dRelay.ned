@@ -15,8 +15,7 @@
 
 package inet.linklayer.ieee8021d.relay;
 
-import inet.linklayer.contract.IMACRelayUnit;
-
+import inet.linklayer.contract.IMacRelayUnit;
 
 //
 // This modul forwards frames (~EtherFrame) based on their destination MAC addresses to appropriate ports.
@@ -29,19 +28,24 @@ import inet.linklayer.contract.IMACRelayUnit;
 //     Handles BPDU frames.
 //     If relaying a message also checks the port's status in the InterfaceTable.
 //
-// @see EtherFrame, MACAddressTable, STP, RSTP
+// @see EtherFrame, MacAddressTable, Stp, Rstp
 //
-simple Ieee8021dRelay like IMACRelayUnit
+simple Ieee8021dRelay like IMacRelayUnit
 {
     parameters:
-        string interfaceTablePath = default("^.interfaceTable"); // The path to the InterfaceTable module
-        string macTablePath = default("^.macTable");             // The path to the MACAddressTable module
         @display("i=block/broadcast;bgb=425,114");
+        string interfaceTableModule = default("^.interfaceTable"); // The path to the InterfaceTable module
+        string macTableModule = default("^.macTable");             // The path to the MacAddressTable module
         @signal[packetSentToLower](type=cPacket);
         @signal[packetReceivedFromLower](type=cPacket);
+        @signal[packetReceivedFromUpper](type=cPacket);
+
+        bool hasStp;
+
     gates:
-        input ifIn[];
-        output ifOut[];
-        input stpIn @loose;
-        output stpOut @loose;
+        input ifIn;
+        output ifOut;
+        input upperLayerIn;
+        output upperLayerOut;
 }
+

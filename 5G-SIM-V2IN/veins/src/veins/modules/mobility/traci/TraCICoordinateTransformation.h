@@ -42,6 +42,7 @@ public:
     using OmnetHeading = Heading;
 
     TraCICoordinateTransformation(TraCICoord topleft, TraCICoord bottomright, float margin);
+
     TraCICoord omnet2traci(const OmnetCoord& coord) const;
     TraCICoordList omnet2traci(const OmnetCoordList& coords) const;
     TraCIHeading omnet2traciHeading(OmnetHeading heading) const; /**< TraCI's heading interpretation: 0 is north, 90 is east */

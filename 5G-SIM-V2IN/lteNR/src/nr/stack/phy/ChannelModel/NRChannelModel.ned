@@ -21,12 +21,12 @@
 // Part of 5G-Sim-V2I/N
 //
 
-package nr.stack.phy.ChannelModel;
+package lteNR.nr.stack.phy.ChannelModel;
 
-import lte.stack.phy.ChannelModel.LteRealisticChannelModel;
+import lteNR.stack.phy.ChannelModel.LteRealisticChannelModel;
+import lteNR.stack.phy.ChannelModel.LteChannelModelInterface;
 
-
-simple NRRealisticChannelModel extends LteRealisticChannelModel
+simple NRRealisticChannelModel extends LteRealisticChannelModel like LteChannelModelInterface
 {
     parameters:
     @class("NRRealisticChannelModel");
@@ -91,7 +91,7 @@ simple NRRealisticChannelModel extends LteRealisticChannelModel
 	bool dynamicNlos = default(false);
 	bool NlosEvaluationIn3D = default(false);
 	bool veinsObstacleShadowing = default(false);
-	bool isNodeB;
+	bool isNodeB = default(false);
 	useTorus = default(false);
 	
 	//bool cqiFlag = default(false);

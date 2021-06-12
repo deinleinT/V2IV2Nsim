@@ -1,23 +1,19 @@
-# local and generated files not to be committed
+# ignore generated files
+src/**/*_m.h
+src/**/*_m.cc
 src/Makefile
 src/Makefile.vc
-*_m.h
-*_m.cc
-*_sm.h
-*_sm.cc
-.nedexclusions
-
-
-# output and result files
-.settings/
-*.log
-*.sim
-*.pyc
+/doc/doxy/
+/doc/neddoc/
 *.pcap
 *.sca
 *.vec
 *.vci
-.buildlog*
+*.anf
+*.qtenvrc
+.settings/
+err/
+src/err
 
 # ignore binary files
 out/
@@ -32,20 +28,45 @@ out/
 *.pdb
 *.idb
 *.manifest
-.qtenv.ini
-.qtenvrc
 .tkenvrc
 .tkenvlog
-.cmdenv-log
-netanim-trace.txt
 *.out
+.computed
 
 # ignore backup and temp files
-*.UPDATED
-*.FAILED
-*.ERROR
 *.bak
 backups
 *~
-xxx
-/tmp/
+*.log
+
+
+*.FAILED
+*.UPDATED
+*.ERROR
+.cproject
+.project
+ui/com.simulte.configeditor/bin/
+
+# ignore result folders
+/simulations/gtpNetwork/ResultLteCoreNetwork/
+/simulations/*/results*/
+/simulations/*/*/results*/
+/simulations/*/*/*/results*/
+/simulations/*/scenario*/
+/simulations/*/eval*/
+/simulations/*/.cmdenv-log
+*.rt
+*.elog
+
+/simulations/*/*/stats*/
+/simulations/*/*/positions*/
+/simulations/*/*/outLogs*/
+/simulations/*/*/scripts/plots*/
+
+vim files
+*.swp
+*.swo
+.qtenvrc.*
+
+# project file 
+.cproject

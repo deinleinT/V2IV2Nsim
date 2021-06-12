@@ -15,7 +15,7 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 //
 
-#include "SequenceControlField.h"
+#include "inet/linklayer/ieee80211/mac/common/SequenceControlField.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -24,13 +24,12 @@ SequenceControlField::SequenceControlField(SequenceNumber sequenceNumber, Fragme
     sequenceNumber(sequenceNumber),
     fragmentNumber(fragmentNumber)
 {
-    ASSERT(sequenceNumber < 4096);
     ASSERT(fragmentNumber < 16);
 }
 
-SequenceControlField::SequenceControlField(Ieee80211DataOrMgmtFrame* frame) :
-    sequenceNumber(frame->getSequenceNumber()),
-    fragmentNumber(frame->getFragmentNumber())
+SequenceControlField::SequenceControlField(const Ptr<const Ieee80211DataOrMgmtHeader>& header) :
+    sequenceNumber(header->getSequenceNumber()),
+    fragmentNumber(header->getFragmentNumber())
 {
 }
 

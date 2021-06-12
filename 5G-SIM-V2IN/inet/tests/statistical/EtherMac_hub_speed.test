@@ -1,7 +1,7 @@
 %description:
 Testing Ethernet communication on EtherHub with 100MBps.
 Simulation has 5 pairs of hosts that communicate with each other.
-All hosts use EtherMAC implementation with half duplex mode.
+All hosts use EtherMac implementation with half duplex mode.
 All hosts have same ethernet configurations.
 All hosts send requests and responses to requests for its pair, too.
 
@@ -99,7 +99,6 @@ network SpeedTest
 %inifile: omnetpp.ini
 [General]
 sim-time-limit = 5s
-
 
 #record-eventlog = true
 **.vector-recording = false

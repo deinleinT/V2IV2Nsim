@@ -1,7 +1,7 @@
 package inet.showcases.visualizer.ieee80211;
 
 import inet.environment.common.PhysicalEnvironment;
-import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
+import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 import inet.node.inet.WirelessHost;
 import inet.node.wireless.AccessPoint;
 import inet.physicallayer.ieee80211.packetlevel.Ieee80211ScalarRadioMedium;
@@ -18,7 +18,7 @@ network Ieee80211VisualizationDisplayingAssociationsShowcase
         wirelessHost: WirelessHost {
             @display("p=127,157");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=409,32");
         }
         visualizer: IntegratedVisualizer {
@@ -41,7 +41,7 @@ network Ieee80211VisualizationAdvancedFeaturesShowcase
             parameters:
                 @display("p=99,111");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             parameters:
                 @display("p=100,178");
         }
@@ -87,7 +87,7 @@ network Ieee80211VisualizationVisualizingHandoverShowcase
         accessPointB: AccessPoint {
             @display("p=450,250");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=100,344");
         }
         visualizer: IntegratedVisualizer {
@@ -98,5 +98,50 @@ network Ieee80211VisualizationVisualizingHandoverShowcase
         }
         wirelessHost: WirelessHost {
             @display("p=100,150");
+        }
+}
+
+network Ieee80211VisualizationSignalLevelsShowcase
+{
+    @display("bgb=574,468");
+    submodules:
+        visualizer: IntegratedVisualizer {
+            parameters:
+                @display("p=100,50");
+        }
+        radioMedium: Ieee80211ScalarRadioMedium {
+            parameters:
+                @display("p=99,111");
+        }
+        configurator: Ipv4NetworkConfigurator {
+            parameters:
+                @display("p=100,178");
+        }
+        physicalEnvironment: PhysicalEnvironment {
+            @display("p=101,245");
+        }
+        accessPointA: AccessPoint {
+            parameters:
+                @display("p=258,94");
+        }
+        accessPointB: AccessPoint {
+            parameters:
+                @display("p=458,94");
+        }
+        hostA1: WirelessHost {
+            parameters:
+                @display("p=258,293");
+        }
+        hostA2: WirelessHost {
+            parameters:
+                @display("p=258,393");
+        }
+        hostB1: WirelessHost {
+            parameters:
+                @display("p=458,293");
+        }
+        hostB2: WirelessHost {
+            parameters:
+                @display("p=458,393");
         }
 }

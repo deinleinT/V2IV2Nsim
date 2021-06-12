@@ -18,51 +18,59 @@
 
 package inet.examples.diffserv.onedomain;
 
-import inet.common.queue.DropTailQueue;
-import inet.common.queue.FIFOQueue;
-import inet.common.queue.IOutputQueue;
-import inet.common.queue.REDDropper;
-import inet.common.queue.WRRScheduler;
 import inet.networklayer.diffserv.BehaviorAggregateClassifier;
-
+import inet.queueing.common.PacketMultiplexer;
+import inet.queueing.filter.RedDropper;
+import inet.queueing.queue.CompoundPacketQueue;
+import inet.queueing.queue.DropTailQueue;
+import inet.queueing.queue.PacketQueue;
+import inet.queueing.scheduler.WrrScheduler;
 
 //
 // Diffserv Queue used in Experiment 2.1 - 2.4.
 //
-module DSQueue2 like IOutputQueue
+module DSQueue2 extends CompoundPacketQueue
 {
-    gates:
-        input in;
-        output out;
-
     submodules:
         classifier: BehaviorAggregateClassifier {
             dscps = "AF11 AF12 AF13";
-            @display("p=50,181");
+            @display("p=100,200");
         }
-        red: REDDropper {
-            numGates = 3;
-            @display("p=142,94");
+        red1: RedDropper {
+            collectionModule = "^.afQueue";
+            @display("p=200,100");
         }
-        afQueue: FIFOQueue {
-            @display("p=266,94");
+        red2: RedDropper {
+            collectionModule = "^.afQueue";
+            @display("p=200,200");
+        }
+        red3: RedDropper {
+            collectionModule = "^.afQueue";
+            @display("p=200,300");
+        }
+        mux: PacketMultiplexer {
+            @display("p=300,200");
+        }
+        afQueue: PacketQueue {
+            @display("p=400,200");
         }
         beQueue: DropTailQueue {
-            @display("p=204,277");
+            @display("p=200,400");
         }
-        wrr: WRRScheduler {
-            @display("p=347,181");
+        wrr: WrrScheduler {
+            @display("p=500,300");
         }
     connections:
         in --> classifier.in;
-        classifier.outs++ --> red.in[0];
-        classifier.outs++ --> red.in[1];
-        classifier.outs++ --> red.in[2];
+        classifier.out++ --> red1.in;
+        classifier.out++ --> red2.in;
+        classifier.out++ --> red3.in;
         classifier.defaultOut --> beQueue.in;
 
-        red.out[0] --> afQueue.in++;
-        red.out[1] --> afQueue.in++;
-        red.out[2] --> afQueue.in++;
+        red1.out --> mux.in++;
+        red2.out --> mux.in++;
+        red3.out --> mux.in++;
+        mux.out --> afQueue.in;
         beQueue.out --> wrr.in++;
         afQueue.out --> wrr.in++;
         wrr.out --> out;

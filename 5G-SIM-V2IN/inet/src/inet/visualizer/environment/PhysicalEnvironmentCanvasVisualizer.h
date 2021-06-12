@@ -25,22 +25,20 @@ namespace inet {
 
 namespace visualizer {
 
-using namespace inet::physicalenvironment;
-
 class INET_API PhysicalEnvironmentCanvasVisualizer : public PhysicalEnvironmentVisualizerBase
 {
   protected:
     class ObjectPositionComparator
     {
       protected:
-        const Rotation &viewRotation;
+        const RotationMatrix &viewRotation;
 
       public:
-        ObjectPositionComparator(const Rotation &viewRotation) : viewRotation(viewRotation) {}
+        ObjectPositionComparator(const RotationMatrix &viewRotation) : viewRotation(viewRotation) {}
 
-        bool operator() (const IPhysicalObject *left, const IPhysicalObject *right) const
+        bool operator() (const physicalenvironment::IPhysicalObject *left, const physicalenvironment::IPhysicalObject *right) const
         {
-            return viewRotation.rotateVectorClockwise(left->getPosition()).z < viewRotation.rotateVectorClockwise(right->getPosition()).z;
+            return viewRotation.rotateVector(left->getPosition()).z < viewRotation.rotateVector(right->getPosition()).z;
         }
     };
 
@@ -60,7 +58,7 @@ class INET_API PhysicalEnvironmentCanvasVisualizer : public PhysicalEnvironmentV
     virtual void initialize(int stage) override;
     virtual void refreshDisplay() const override;
 
-    virtual void computeFacePoints(const IPhysicalObject *object, std::vector<std::vector<Coord> >& faces, const Rotation& rotation) const;
+    virtual void computeFacePoints(const physicalenvironment::IPhysicalObject *object, std::vector<std::vector<Coord> >& faces, const RotationMatrix& rotation) const;
 };
 
 } // namespace visualizer

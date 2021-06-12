@@ -15,8 +15,8 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "inet/physicallayer/base/packetlevel/AntennaBase.h"
 #include "inet/common/ModuleAccess.h"
+#include "inet/physicallayer/base/packetlevel/AntennaBase.h"
 
 namespace inet {
 
@@ -31,7 +31,9 @@ AntennaBase::AntennaBase() :
 void AntennaBase::initialize(int stage)
 {
     if (stage == INITSTAGE_LOCAL) {
-        mobility = getModuleFromPar<IMobility>(par("mobilityModule"), getContainingNode(this));
+        mobility = check_and_cast_nullable<IMobility *>(getSubmodule("mobility"));
+        if (mobility == nullptr)
+            mobility = getModuleFromPar<IMobility>(par("mobilityModule"), this);
         numAntennas = par("numAntennas");
     }
 }

@@ -1,15 +1,17 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
 //
 // This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
+// Date: 2021
 // Author: Thomas Deinlein
 //
 
@@ -22,6 +24,9 @@
  * - rimuovere i commenti dalle funzioni quando saranno implementate nel enb scheduler
  */
 
+using namespace omnetpp;
+
+
 void LteScheduler::setEnbScheduler(LteSchedulerEnb* eNbScheduler)
 {
     eNbScheduler_ = eNbScheduler;
@@ -30,78 +35,169 @@ void LteScheduler::setEnbScheduler(LteSchedulerEnb* eNbScheduler)
     initializeGrants();
 }
 
-
-unsigned int LteScheduler::requestGrant(MacCid cid, unsigned int bytes, bool& terminate, bool& active, bool& eligible , std::vector<BandLimit>* bandLim)
+void LteScheduler::setCarrierFrequency(double carrierFrequency)
 {
-    //std::cout << "LteScheduler::requestGrant  at " << simTime().dbl() << std::endl;
+    carrierFrequency_ = carrierFrequency;
+    bandLimit_ = mac_->getCellInfo()->getCarrierBandLimit(carrierFrequency_);
 
-    return eNbScheduler_->scheduleGrant(cid, bytes, terminate, active, eligible ,bandLim);
+    // === DEBUG === //
+    EV << "LteScheduler::setCarrierFrequency - Set Band Limit for this carrier: " << endl;
+    BandLimitVector::iterator it = bandLimit_->begin();
+    for (; it != bandLimit_->end(); ++it)
+    {
+        EV << " - Band[" << it->band_ << "] limit[";
+        for (int cw=0; cw < it->limit_.size(); cw++)
+        {
+            EV << it->limit_[cw] << ", ";
+        }
+        EV << "]" << endl;
+    }
+    // === END DEBUG === //
+}
+
+void LteScheduler::initializeSchedulerPeriodCounter(NumerologyIndex maxNumerologyIndex)
+{
+    // 2^(maxNumerologyIndex - numerologyIndex)
+    maxSchedulingPeriodCounter_ = 1 << (maxNumerologyIndex - numerologyIndex_);
+    currentSchedulingPeriodCounter_ = maxSchedulingPeriodCounter_ - 1;
+}
+
+unsigned int LteScheduler::decreaseSchedulerPeriodCounter()
+{
+    unsigned int ret = currentSchedulingPeriodCounter_;
+    if (currentSchedulingPeriodCounter_ == 0) // reset
+        currentSchedulingPeriodCounter_ = maxSchedulingPeriodCounter_ - 1;
+    else
+        currentSchedulingPeriodCounter_--;
+    return ret;
 }
 
 
+unsigned int LteScheduler::requestGrant(MacCid cid, unsigned int bytes, bool& terminate, bool& active, bool& eligible, BandLimitVector* bandLim)
+{
+    BandLimitVector tempBandLimit;
+    tempBandLimit.clear();
+    if (bandLim == NULL)
+    {
+        // for each band of the band vector provided
+        BandLimitVector::iterator it = bandLimit_->begin();
+        for (; it != bandLimit_->end(); ++it)
+        {
+            BandLimit elem;
+            // copy the band
+            elem.band_ = it->band_;
+            elem.limit_ = it->limit_;
+
+            tempBandLimit.push_back(elem);
+        }
+        bandLim = &tempBandLimit;
+    }
+
+//    // === DEBUG === //
+//    EV << "LteScheduler::requestGrant - Set Band Limit for this carrier: " << endl;
+//    BandLimitVector::iterator it = bandLim->begin();
+//    for (; it != bandLim->end(); ++it)
+//    {
+//        EV << " - Band[" << it->band_ << "] limit[";
+//        for (int cw=0; cw < it->limit_.size(); cw++)
+//        {
+//            EV << it->limit_[cw] << ", ";
+//        }
+//        EV << "]" << endl;
+//    }
+//    // === END DEBUG === //
+
+    return eNbScheduler_->scheduleGrant(cid, bytes, terminate, active, eligible, carrierFrequency_, bandLim);
+}
+
 bool LteScheduler::scheduleRetransmissions()
 {
-    //std::cout << "LteScheduler::scheduleRetransmissions  at " << simTime().dbl() << std::endl;
+    BandLimitVector tempBandLimit;
 
-    return eNbScheduler_->rtxschedule();
+    // for each band of the band vector provided
+    BandLimitVector::iterator it = bandLimit_->begin();
+    for (; it != bandLimit_->end(); ++it)
+    {
+        BandLimit elem;
+        // copy the band
+        elem.band_ = it->band_;
+        elem.limit_ = it->limit_;
+
+        tempBandLimit.push_back(elem);
+    }
+
+    return eNbScheduler_->rtxschedule(carrierFrequency_, &tempBandLimit);
 }
 
 void LteScheduler::scheduleRacRequests()
 {
-    //std::cout << "LteScheduler::scheduleRacRequests  at " << simTime().dbl() << std::endl;
-
     //return (dynamic_cast<LteSchedulerEnbUl*>(eNbScheduler_))->serveRacs();
 }
 
 void LteScheduler::requestRacGrant(MacNodeId nodeId)
 {
-    //std::cout << "LteScheduler::requestRacGrant  at " << simTime().dbl() << std::endl;
-
     //return (dynamic_cast<LteSchedulerEnbUl*>(eNbScheduler_))->racGrantEnb(nodeId);
 }
 
 void LteScheduler::schedule()
 {
-    //std::cout << "LteScheduler::schedule start at " << simTime().dbl() << std::endl;
+    activeConnectionSet_ = eNbScheduler_->readActiveConnections();
 
+    // obtain the list of cids that can be scheduled on this carrier
+    buildCarrierActiveConnectionSet();
+
+    // scheduling
     prepareSchedule();
     commitSchedule();
+}
 
-    //std::cout << "LteScheduler::schedule end at " << simTime().dbl() << std::endl;
+void LteScheduler::buildCarrierActiveConnectionSet()
+{
+    carrierActiveConnectionSet_.clear();
+
+    // put in the activeConnectionSet only connections that are active
+    // and whose UE is enabled to use this carrier
+
+    if (binder_ == NULL)
+        binder_ = getBinder();
+
+    const UeSet& carrierUeSet = binder_->getCarrierUeSet(carrierFrequency_);
+    ActiveSet::iterator it = activeConnectionSet_->begin();
+    for (; it != activeConnectionSet_->end(); ++it)
+    {
+        if (carrierUeSet.find(MacCidToNodeId(*it)) != carrierUeSet.end())
+            carrierActiveConnectionSet_.insert(*it);
+    }
 }
 
 void LteScheduler::initializeGrants()
 {
-    //std::cout << "LteScheduler::initializeGrants start at " << simTime().dbl() << std::endl;
+    if (direction_ == DL)
+    {
+        grantTypeMap_[CONVERSATIONAL] = aToGrantType(mac_->par("grantTypeConversationalDl"));
+        grantTypeMap_[STREAMING] = aToGrantType(mac_->par("grantTypeStreamingDl"));
+        grantTypeMap_[INTERACTIVE] = aToGrantType(mac_->par("grantTypeInteractiveDl"));
+        grantTypeMap_[BACKGROUND] = aToGrantType(mac_->par("grantTypeBackgroundDl"));
 
-//    if (direction_ == DL)
-//    {
-//        grantTypeMap_[CONVERSATIONAL] = aToGrantType(mac_->par("grantTypeConversationalDl"));
-//        grantTypeMap_[STREAMING] = aToGrantType(mac_->par("grantTypeStreamingDl"));
-//        grantTypeMap_[INTERACTIVE] = aToGrantType(mac_->par("grantTypeInteractiveDl"));
-//        grantTypeMap_[BACKGROUND] = aToGrantType(mac_->par("grantTypeBackgroundDl"));
-//
-//        grantSizeMap_[CONVERSATIONAL] = mac_->par("grantSizeConversationalDl");
-//        grantSizeMap_[STREAMING] = mac_->par("grantSizeStreamingDl");
-//        grantSizeMap_[INTERACTIVE] = mac_->par("grantSizeInteractiveDl");
-//        grantSizeMap_[BACKGROUND] = mac_->par("grantSizeBackgroundDl");
-//    }
-//    else if (direction_ == UL)
-//    {
-//        grantTypeMap_[CONVERSATIONAL] = aToGrantType(mac_->par("grantTypeConversationalUl"));
-//        grantTypeMap_[STREAMING] = aToGrantType(mac_->par("grantTypeStreamingUl"));
-//        grantTypeMap_[INTERACTIVE] = aToGrantType(mac_->par("grantTypeInteractiveUl"));
-//        grantTypeMap_[BACKGROUND] = aToGrantType(mac_->par("grantTypeBackgroundUl"));
-//
-//        grantSizeMap_[CONVERSATIONAL] = mac_->par("grantSizeConversationalUl");
-//        grantSizeMap_[STREAMING] = mac_->par("grantSizeStreamingUl");
-//        grantSizeMap_[INTERACTIVE] = mac_->par("grantSizeInteractiveUl");
-//        grantSizeMap_[BACKGROUND] = mac_->par("grantSizeBackgroundUl");
-//    }
-//    else
-//    {
-//        throw cRuntimeError("Unknown direction %d", direction_);
-//    }
+        grantSizeMap_[CONVERSATIONAL] = mac_->par("grantSizeConversationalDl");
+        grantSizeMap_[STREAMING] = mac_->par("grantSizeStreamingDl");
+        grantSizeMap_[INTERACTIVE] = mac_->par("grantSizeInteractiveDl");
+        grantSizeMap_[BACKGROUND] = mac_->par("grantSizeBackgroundDl");
+    }
+    else if (direction_ == UL)
+    {
+        grantTypeMap_[CONVERSATIONAL] = aToGrantType(mac_->par("grantTypeConversationalUl"));
+        grantTypeMap_[STREAMING] = aToGrantType(mac_->par("grantTypeStreamingUl"));
+        grantTypeMap_[INTERACTIVE] = aToGrantType(mac_->par("grantTypeInteractiveUl"));
+        grantTypeMap_[BACKGROUND] = aToGrantType(mac_->par("grantTypeBackgroundUl"));
 
-    //std::cout << "LteScheduler::initializeGrants end at " << simTime().dbl() << std::endl;
+        grantSizeMap_[CONVERSATIONAL] = mac_->par("grantSizeConversationalUl");
+        grantSizeMap_[STREAMING] = mac_->par("grantSizeStreamingUl");
+        grantSizeMap_[INTERACTIVE] = mac_->par("grantSizeInteractiveUl");
+        grantSizeMap_[BACKGROUND] = mac_->par("grantSizeBackgroundUl");
+    }
+    else
+    {
+        throw cRuntimeError("Unknown direction %d", direction_);
+    }
 }

@@ -1,9 +1,11 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
@@ -30,7 +32,8 @@ class X2CompProportionalReplyIE : public X2CompReplyIE
   public:
     X2CompProportionalReplyIE()
     {
-        length_ = 0;
+        length_ = sizeof(uint32_t);    // required to store length of map
+        type_ = COMP_PROP_REPLY_IE;
     }
     X2CompProportionalReplyIE(const X2CompProportionalReplyIE& other) :
         X2CompReplyIE()
@@ -56,7 +59,8 @@ class X2CompProportionalReplyIE : public X2CompReplyIE
     void setAllowedBlocksMap(std::vector<CompRbStatus>& map)
     {
         allowedBlocksMap_ = map;
-        length_ += allowedBlocksMap_.size() * sizeof(CompRbStatus);
+        // number of bytes of map when being serialized
+        length_ += allowedBlocksMap_.size() * sizeof(uint8_t);
     }
     std::vector<CompRbStatus>& getAllowedBlocksMap() { return allowedBlocksMap_; }
 };

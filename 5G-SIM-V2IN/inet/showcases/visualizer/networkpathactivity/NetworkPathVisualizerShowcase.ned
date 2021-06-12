@@ -14,10 +14,9 @@
 // 
 
 package inet.showcases.visualizer.networkpathactivity;
-import inet.common.lifecycle.LifecycleController;
 import inet.common.scenario.ScenarioManager;
-import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
-import inet.node.aodv.AODVRouter;
+import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
+import inet.node.aodv.AodvRouter;
 import inet.node.ethernet.Eth100M;
 import inet.node.ethernet.EtherSwitch;
 import inet.node.inet.Router;
@@ -29,9 +28,6 @@ import inet.visualizer.integrated.IntegratedVisualizer;
 import inet.visualizer.networklayer.NetworkRouteVisualizer;
 
 
-//
-// TODO documentation
-//
 network NetworkPathSimpleShowcase
 {
     @display("bgb=600,250");
@@ -40,7 +36,7 @@ network NetworkPathSimpleShowcase
             parameters:
                 @display("p=100,50");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             parameters:
                 @display("p=100,150");
         }
@@ -55,9 +51,6 @@ network NetworkPathSimpleShowcase
         source.ethg++ <--> Eth100M <--> destination.ethg++;
 }
 
-//
-// TODO documentation
-//
 network NetworkPathComplexShowcase
 {
     @display("bgb=1050,720");
@@ -66,7 +59,7 @@ network NetworkPathComplexShowcase
             parameters:
                 @display("p=100,50");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             parameters:
                 @display("p=100,150");
         }
@@ -143,9 +136,6 @@ network NetworkPathComplexShowcase
         router0.pppg++ <--> Eth100M <--> router4.pppg++;
 }
 
-//
-// TODO documentation
-//
 network NetworkPathMobileShowcase
 {
     @display("bgb=660,630");
@@ -153,38 +143,35 @@ network NetworkPathMobileShowcase
         visualizer: IntegratedVisualizer {
             @display("p=100,50");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=100,150");
         }
         radioMedium: Ieee80211ScalarRadioMedium {
             @display("p=100,250");
         }
-        source: AODVRouter {
+        source: AodvRouter {
             @display("p=229,46");
         }
-        destination: AODVRouter {
+        destination: AodvRouter {
             @display("p=488.832,512.952");
         }
-        aodvRouter1: AODVRouter {
+        aodvRouter1: AodvRouter {
             @display("p=421.296,295.872");
         }
-        aodvRouter2: AODVRouter {
+        aodvRouter2: AodvRouter {
             @display("p=273.36002,440.592");
         }
-        aodvRouter3: AODVRouter {
+        aodvRouter3: AodvRouter {
             @display("p=305.52,188.136");
         }
-        aodvRouter4: AODVRouter {
+        aodvRouter4: AodvRouter {
             @display("p=562.8,328.032");
         }
-        aodvRouter5: AODVRouter {
+        aodvRouter5: AodvRouter {
             @display("p=421.296,77.184");
         }
 }
 
-//
-// TODO documentation
-//
 network NetworkPathRIPShowcase
 {
     @display("bgb=1100,680");
@@ -193,7 +180,7 @@ network NetworkPathRIPShowcase
             parameters:
                 @display("p=100,50");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             parameters:
                 @display("p=100,150");
         }
@@ -204,9 +191,6 @@ network NetworkPathRIPShowcase
         scenarioManager: ScenarioManager {
             parameters:
                 @display("p=100,350");
-        }
-        lifecycleController: LifecycleController {
-            @display("p=100,450");
         }
         wiredSource: StandardHost {
             @display("p=257.28,535.464");

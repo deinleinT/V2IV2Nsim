@@ -26,18 +26,25 @@ namespace ieee80211 {
 class INET_API IRecoveryProcedure
 {
     public:
+        static simsignal_t contentionWindowChangedSignal;
+        static simsignal_t retryLimitReachedSignal;
+
+    public:
         class ICwCalculator
         {
             public:
+                virtual ~ICwCalculator() { }
+
                 virtual void incrementCw() = 0;
                 virtual void resetCw() = 0;
+                virtual int getCw() = 0;
         };
 
     public:
         virtual ~IRecoveryProcedure() { }
 };
 
-} /* namespace ieee80211 */
-} /* namespace inet */
+} // namespace ieee80211
+} // namespace inet
 
 #endif // ifndef __INET_IRECOVERYPROCEDURE_H

@@ -21,9 +21,9 @@
 // Part of 5G-Sim-V2I/N
 //
 
-package nr.stack.phy.feedback;
+package lteNR.nr.stack.phy.feedback;
 
-import lte.stack.phy.feedback.*;
+import lteNR.stack.phy.feedback.*;
 
 simple NRDlFeedbackGenerator extends LteDlFeedbackGenerator
 {
@@ -31,10 +31,6 @@ simple NRDlFeedbackGenerator extends LteDlFeedbackGenerator
         @display("i=block/cogwheel");
         @class("NRDlFeedbackGenerator");
 
-        //initialTxMode = default("SINGLE_ANTENNA_PORT0");
-		//initialTxMode = default("TRANSMIT_DIVERSITY");
-		initialTxMode = default("OL_SPATIAL_MULTIPLEXING");
-        feedbackGeneratorType = default("IDEAL");
 }
 
 

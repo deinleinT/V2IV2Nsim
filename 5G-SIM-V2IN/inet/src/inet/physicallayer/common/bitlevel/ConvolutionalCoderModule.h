@@ -21,13 +21,12 @@
 #include "inet/physicallayer/common/bitlevel/ConvolutionalCoder.h"
 
 namespace inet {
-
 namespace physicallayer {
 
-class INET_API ConvolutionalCoderModule : public cSimpleModule, public IFECCoder
+class INET_API ConvolutionalCoderModule : public cSimpleModule, public IFecCoder
 {
   protected:
-    ConvolutionalCoder *convolutionalCoder;
+    ConvolutionalCoder *convolutionalCoder = nullptr;
 
   protected:
     virtual int numInitStages() const override { return NUM_INIT_STAGES; }
@@ -42,6 +41,7 @@ class INET_API ConvolutionalCoderModule : public cSimpleModule, public IFECCoder
     virtual std::pair<BitVector, bool> decode(const BitVector& encodedBits) const override { return convolutionalCoder->decode(encodedBits); }
     virtual const ConvolutionalCode *getForwardErrorCorrection() const override { return convolutionalCoder->getForwardErrorCorrection(); }
 };
+
 } /* namespace physicallayer */
 } /* namespace inet */
 

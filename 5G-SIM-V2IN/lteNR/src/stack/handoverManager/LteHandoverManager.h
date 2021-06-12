@@ -1,27 +1,29 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
-#ifndef LTE_LTEHANDOVERMANAGER_H_
-#define LTE_LTEHANDOVERMANAGER_H_
+#ifndef __LTEHANDOVERMANAGER_H_
+#define __LTEHANDOVERMANAGER_H_
 
+#include "stack/ip2nic/IP2Nic.h"
 #include "common/LteCommon.h"
 #include "x2/packet/X2ControlInfo_m.h"
 #include "stack/handoverManager/X2HandoverControlMsg.h"
 #include "stack/handoverManager/X2HandoverDataMsg.h"
-#include "corenetwork/lteip/IP2lte.h"
 
-class IP2lte;
+class IP2Nic;
 
 //
 // LteHandoverManager
 //
-class LteHandoverManager : public cSimpleModule
+class LteHandoverManager : public omnetpp::cSimpleModule
 {
 
   protected:
@@ -30,22 +32,22 @@ class LteHandoverManager : public cSimpleModule
     X2NodeId nodeId_;
 
     // reference to the gates
-    cGate* x2Manager_[2];
+    omnetpp::cGate* x2Manager_[2];
 
     // reference to the PDCP layer
-    IP2lte* ip2lte_;
+    IP2Nic* ip2nic_;
 
     // flag for seamless/lossless handover
     bool losslessHandover_;
 
-    void handleX2Message(cPacket* pkt);
+    void handleX2Message(omnetpp::cPacket* pkt);
 
   public:
     LteHandoverManager() {}
     virtual ~LteHandoverManager() {}
 
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
+    virtual void initialize() override;
+    virtual void handleMessage(omnetpp::cMessage *msg) override;
 
     // send handover command on X2 to the eNB
     void sendHandoverCommand(MacNodeId ueId, MacNodeId enb, bool startHo);
@@ -54,10 +56,10 @@ class LteHandoverManager : public cSimpleModule
     void receiveHandoverCommand(MacNodeId ueId, MacNodeId eEnb, bool startHo);
 
     // send an IP datagram to the X2 Manager
-    void forwardDataToTargetEnb(inet::IPv4Datagram* datagram, MacNodeId targetEnb);
+    void forwardDataToTargetEnb(inet::Packet* datagram, MacNodeId targetEnb);
 
     // receive data from X2 message and send it to the X2 Manager
-    void receiveDataFromSourceEnb(inet::IPv4Datagram* datagram, MacNodeId sourceEnb);
+    void receiveDataFromSourceEnb(inet::Packet* datagram, MacNodeId sourceEnb);
 };
 
-#endif /* LTE_LTEHANDOVERMANAGER_H_ */
+#endif /* __LTEHANDOVERMANAGER_H_ */

@@ -21,7 +21,7 @@
 // This file is part of 5G-Sim-V2I/N
 //
 
-package nr.stack.sdap.utils;
+package lteNR.nr.stack.sdap.utils;
 
 
 moduleinterface IQosHandler

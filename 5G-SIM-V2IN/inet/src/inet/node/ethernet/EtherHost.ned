@@ -15,15 +15,15 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-
 package inet.node.ethernet;
 
-import inet.applications.ethernet.EtherAppCli;
-import inet.applications.ethernet.EtherAppSrv;
+import inet.applications.ethernet.EtherAppClient;
+import inet.applications.ethernet.EtherAppServer;
+import inet.common.MessageDispatcher;
 import inet.common.lifecycle.NodeStatus;
-import inet.linklayer.contract.IEtherMAC;
-import inet.linklayer.ethernet.EtherLLC;
-import inet.linklayer.ethernet.EtherQoSQueue;
+import inet.linklayer.contract.IEthernetInterface;
+import inet.linklayer.ethernet.EtherEncap;
+import inet.networklayer.common.InterfaceTable;
 
 
 //
@@ -37,56 +37,57 @@ module EtherHost
     parameters:
         bool hasStatus = default(false);
         bool csmacdSupport = default(true);  // by default use CSMA/CD
-        string macType = default(csmacdSupport ? "EtherMAC" : "EtherMACFullDuplex"); // ~EtherMAC or ~EtherMACFullDuplex
-        string queueType = default(""); // DropTailQueue, DiffServQueue, or empty to use the internal queue
+        string fcsMode @enum("declared","computed") = default("declared");
         @networkNode();
         @labels(node,ethernet-node);
         @display("i=device/pc2");
-        *.interfaceTableModule = default("");
+        eth.csmacdSupport = csmacdSupport;
+        *.interfaceTableModule = default(absPath(".interfaceTable"));
+        *.fcsMode = fcsMode;
+        eth.encap.typename = "EtherEncapDummy";
     gates:
         inout ethg @labels(EtherFrame-conn);
     submodules:
         status: NodeStatus if hasStatus {
-            @display("p=50,50;is=s");
+            @display("p=100,100;is=s");
         }
-        cli: EtherAppCli {
+        interfaceTable: InterfaceTable {
             parameters:
-                registerSAP = true;
-                @display("p=120,58,col");
+                @display("p=100,240;is=s");
         }
-        srv: EtherAppSrv {
+        cli: EtherAppClient {
             parameters:
-                registerSAP = true;
-                @display("p=310,58,col");
+                @display("p=250,100");
         }
-        llc: EtherLLC {
+        srv: EtherAppServer {
             parameters:
-                @display("p=215,118");
-            gates:
-                upperLayerIn[2];
-                upperLayerOut[2];
+                @display("p=450,100");
         }
-        queue: EtherQoSQueue if queueType != "" {
+        dp: MessageDispatcher {
             parameters:
-                dataQueueType = queueType;
-                @display("p=159,199;q=l2queue");
+                @display("p=350,158;b=300,5,,,,1");
         }
-        mac: <macType> like IEtherMAC {
+        llc: EtherEncap {
             parameters:
-                queueModule = (queueType == "" ? "" : "^.queue");
-                @display("p=215,270;q=txQueue");
+                registerProtocol = true;
+                @display("p=350,240");
+        }
+        eth: <default("EthernetInterface")> like IEthernetInterface {
+            parameters:
+                @display("p=350,336,row,150;q=txQueue");
         }
     connections:
+        cli.out --> dp.in++;
+        dp.out++ --> cli.in;
+        srv.out --> dp.in++;
+        dp.out++ --> srv.in;
 
-        cli.out --> llc.upperLayerIn[0];
-        cli.in <-- llc.upperLayerOut[0];
-        srv.out --> llc.upperLayerIn[1];
-        srv.in <-- llc.upperLayerOut[1];
+        dp.out++ --> llc.upperLayerIn;
+        llc.upperLayerOut --> dp.in++;
 
-        llc.lowerLayerOut --> queue.in if queueType != "";
-        queue.out --> mac.upperLayerIn if queueType != "";
-        llc.lowerLayerOut --> mac.upperLayerIn if queueType == "";
-        mac.upperLayerOut --> llc.lowerLayerIn;
+        llc.lowerLayerOut --> eth.upperLayerIn;
+        eth.upperLayerOut --> llc.lowerLayerIn;
 
-        mac.phys <--> ethg;
+        eth.phys <--> { @display("m=s"); } <--> ethg;
 }
+

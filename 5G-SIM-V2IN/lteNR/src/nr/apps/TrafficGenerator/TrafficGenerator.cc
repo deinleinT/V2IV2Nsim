@@ -34,7 +34,6 @@ Define_Module(TrafficGeneratorCarUL);
 Define_Module(TrafficGeneratorServerDL);
 Define_Module(TrafficGeneratorCarDL);
 
-
 TrafficGenerator::~TrafficGenerator() {
 
 }
@@ -52,7 +51,7 @@ void TrafficGenerator::initialize(int stage) {
 		localPort = par("localPort");
 		destPort = par("destPort");
 		packetName = par("packetName");
-		autoReply = par("autoReply").boolValue();
+
 		messageLength = par("messageLength").intValue();
 		videoSize = par("videoSize").intValue();
 		sendVideoPacket = true;
@@ -105,10 +104,6 @@ void TrafficGenerator::initialize(int stage) {
 		WATCH(sentPacketsVoip);
 		WATCH(sentPacketsData);
 
-		delayDataTransferFinished.setName("delayDataTransferFinished");
-
-		messages = par("messages").intValue();
-
 		delayBudget10ms = par("delayBudget10ms").doubleValue();
 		delayBudget20ms = par("delayBudget20ms").doubleValue();
 		delayBudget50ms = par("delayBudget50ms").doubleValue();
@@ -116,11 +111,6 @@ void TrafficGenerator::initialize(int stage) {
 		delayBudget200ms = par("delayBudget200ms").doubleValue();
 		delayBudget500ms = par("delayBudget500ms").doubleValue();
 		delayBudget1s = par("delayBudget1s").doubleValue();
-
-		considerDatasizeAndMessages = par("considerDatasizeAndMessages").boolValue();
-		//
-
-		lastSentStatusUpdateSN = 0;
 
 		selfMsg = new cMessage("sendTimer");
 		sendInterval = par("sendInterval").doubleValue();
@@ -141,7 +131,8 @@ void TrafficGenerator::recordReliability() {
 	if (nodeType == "car") {
 		tmpMap = connectionsServToUE;
 		direction = "DL";
-	} else {
+	}
+	else {
 		tmpMap = connectionsUEtoServ;
 		direction = "UL";
 	}
@@ -402,21 +393,24 @@ void TrafficGenerator::recordReliability() {
 			nameString = "reliabilityVideo100ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityVideo100ms);
 			nameString = "TotalReliabilityVideo100ms" + direction + std::to_string(carNodeId);
-			double TotalReliabilityVideo100ms = 1.0 - double((recPacketsVideoOutBudget100ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
+			double TotalReliabilityVideo100ms = 1.0
+					- double((recPacketsVideoOutBudget100ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
 			recordScalar(nameString.c_str(), TotalReliabilityVideo100ms);
 
 			double reliabilityVideo200ms = 1.0 - double(recPacketsVideoOutBudget200ms / recPacketsVideo);
 			nameString = "reliabilityVideo200ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityVideo200ms);
 			nameString = "TotalReliabilityVideo200ms" + direction + std::to_string(carNodeId);
-			double TotalReliabilityVideo200ms = 1.0 - double((recPacketsVideoOutBudget200ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
+			double TotalReliabilityVideo200ms = 1.0
+					- double((recPacketsVideoOutBudget200ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
 			recordScalar(nameString.c_str(), TotalReliabilityVideo200ms);
 
 			double reliabilityVideo500ms = 1.0 - double(recPacketsVideoOutBudget500ms / recPacketsVideo);
 			nameString = "reliabilityVideo500ms" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), reliabilityVideo500ms);
 			nameString = "TotalReliabilityVideo500ms" + direction + std::to_string(carNodeId);
-			double TotalReliabilityVideo500ms = 1.0 - double((recPacketsVideoOutBudget500ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
+			double TotalReliabilityVideo500ms = 1.0
+					- double((recPacketsVideoOutBudget500ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
 			recordScalar(nameString.c_str(), TotalReliabilityVideo500ms);
 
 			double reliabilityVideo1s = 1.0 - double(recPacketsVideoOutBudget1s / recPacketsVideo);
@@ -447,7 +441,7 @@ void TrafficGenerator::processStop() {
 	socket.close();
 }
 
-void TrafficGenerator::handleMessageWhenUp(cMessage *msg) {
+void TrafficGenerator::handleMessageWhenUp(cMessage * msg) {
 	if (msg->isSelfMessage()) {
 		switch (msg->getKind()) {
 		case START:
@@ -465,55 +459,52 @@ void TrafficGenerator::handleMessageWhenUp(cMessage *msg) {
 		default:
 			throw cRuntimeError("Invalid kind %d in self message", (int) selfMsg->getKind());
 		}
-	} else if (msg->getKind() == UDP_I_DATA) {
+	}
+	else if (msg->getKind() == UDP_I_DATA) {
 		// process incoming packet
-		processPacket(PK(msg));
-	} else if (msg->getKind() == UDP_I_ERROR) {
+		processPacket(check_and_cast<Packet*>(msg));
+	}
+	else if (msg->getKind() == UDP_I_ERROR) {
 		EV_WARN << "Ignoring UDP error report\n";
 		delete msg;
-	} else {
+	}
+	else {
 		delete msg;
 	}
 }
 
-bool TrafficGenerator::handleNodeStart(IDoneCallback *doneCallback) {
+void TrafficGenerator::handleStartOperation(LifecycleOperation * operation) {
 	simtime_t start = std::max(startTime, simTime());
 	if ((stopTime < SIMTIME_ZERO) || (start < stopTime) || (start == stopTime && startTime == stopTime)) {
 		selfMsg->setKind(START);
 		if (!selfMsg->isScheduled())
 			scheduleAt(start, selfMsg);
 	}
-	return true;
 }
 
-bool TrafficGenerator::handleNodeShutdown(IDoneCallback *doneCallback) {
-	if (selfMsg)
-		cancelEvent(selfMsg);
-
-	return true;
+void TrafficGenerator::handleStopOperation(LifecycleOperation * operation) {
+	UdpBasicApp::handleStopOperation(operation);
 }
 
-void TrafficGenerator::handleNodeCrash() {
-	if (selfMsg)
-		cancelEvent(selfMsg);
+void TrafficGenerator::handleCrashOperation(LifecycleOperation * operation) {
+	UdpBasicApp::handleCrashOperation(operation);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Server UL --> TrafficGeneratorServerUL is used on a Server in UPLINK for receiving packets from cars and recording statistics
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool TrafficGeneratorServerUL::handleNodeStart(IDoneCallback *doneCallback) {
+void TrafficGeneratorServerUL::handleStartOperation(LifecycleOperation * operation) {
 	//do nothing
-	socket.setOutputGate(gate("udpOut"));
+	socket.setOutputGate(gate("socketOut"));
 	localAddress_ = L3AddressResolver().resolve(getParentModule()->getFullName());
 
 	//const char *localAddress = par("localAddress");
 	socket.bind(localAddress_, localPort);
 
-	return true;
 }
 
-void TrafficGeneratorServerUL::handleMessageWhenUp(cMessage *msg) {
+void TrafficGeneratorServerUL::handleMessageWhenUp(cMessage * msg) {
 
 	processPacketServer(PK(msg));
 
@@ -525,25 +516,23 @@ void TrafficGeneratorServerUL::handleMessageWhenUp(cMessage *msg) {
  *
  * @param pk The packet received from Car
  */
-void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
+void TrafficGeneratorServerUL::processPacketServer(cPacket * pkt) {
 
 	numberReceivedPackets++;
 	//from UDPBasicApp
 	numReceived++;
 	//
+	auto pk = check_and_cast<inet::Packet*>(pkt);
 
-	if (strcmp(pk->getName(), "V2X") == 0 || strcmp(pk->getName(), "status-update") == 0 || strcmp(pk->getName(), "request-to-merge") == 0 || strcmp(pk->getName(), "request-ack") == 0
-			|| strcmp(pk->getName(), "safe-to-merge|denial") == 0) {
+	if (strcmp(pk->getName(), "V2X") == 0) {
 
-		if (strcmp(pk->getName(), "request-to-merge") == 0 || strcmp(pk->getName(), "request-ack") == 0 || strcmp(pk->getName(), "safe-to-merge|denial") == 0) {
-
-			return;
-		}
-
-		V2XMessage *temp = check_and_cast<V2XMessage*>(pk->dup());
+		auto msg = pk->popAtFront<V2XMessage>();
+		V2XMessage *temp = msg.get()->dup();
 		int nodeId = temp->getSenderNodeId();
 		unsigned int number = temp->getSequenceNumber();
 		const char *name = temp->getSenderName();
+		temp->setArrivalTime(NOW);
+
 		carsV2X.insert(name);
 
 		cModule *mod = getSimulation()->getModuleByPath(name);
@@ -597,7 +586,8 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 				// packetDelayVariationReal --> consecutive packets
 				calcPVV2XUL(nodeId, temp, true);
 
-			} else {
+			}
+			else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsUEtoServ[nodeId].statReport.lastV2X->getSequenceNumber() + 1);
 				connectionsUEtoServ[nodeId].statReport.lostPacketsV2X += lostPackets; //lost packets from this node
@@ -607,16 +597,17 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 
 				//save number of lost packets for direction and each car
 				// check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
-				recordVehiclePositionAndLostPackets(nodeId, UL, lostPackets);
+				//recordVehiclePositionAndLostPackets(nodeId, UL, lostPackets);
 			}
 
 			delete connectionsUEtoServ[nodeId].statReport.lastV2X;
-			connectionsUEtoServ[nodeId].statReport.lastV2X = temp->dup();
+			connectionsUEtoServ[nodeId].statReport.lastV2X = temp;
 
 			simtime_t delay = NOW - temp->getCreationTime();
 			emit(delayV2X, delay);
 
-		} else {
+		}
+		else {
 			Connection tmp;
 			tmp.sendIpAddress = L3AddressResolver().resolve(name);
 			tmp.sendName = name;
@@ -632,20 +623,19 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 			tmp.videoSize = videoSize;
 			tmp.dataSize = dataSize;
 			tmp.dataBytesLeft = 0;
-			tmp.statReport.lastV2X = temp->dup();
+			tmp.statReport.lastV2X = temp;
 			tmp.statReport.recPacketsV2X++;
-			tmp.messages = messages;
 
 			connectionsUEtoServ[nodeId] = tmp;
 		}
 
-		delete temp;
+	}
+	else if (strcmp(pk->getName(), "Video") == 0) {
 
-	} else if (strcmp(pk->getName(), "Video") == 0) {
-
-		VideoMessage *temp = check_and_cast<VideoMessage*>(pk->dup());
+		auto msg = pk->popAtFront<VideoMessage>();
+		VideoMessage *temp = msg.get()->dup();
 		int nodeId = temp->getSenderNodeId();
-		int number = temp->getSequenceNumber();
+		unsigned int number = temp->getSequenceNumber();
 		const char *name = temp->getSenderName();
 		temp->setArrivalTime(NOW);
 
@@ -694,7 +684,8 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 				// packetDelayVariation
 				calcPVVideoUL(nodeId, temp, true);
 
-			} else {
+			}
+			else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsUEtoServ[nodeId].statReport.lastVideo->getSequenceNumber() + 1);
 				connectionsUEtoServ[nodeId].statReport.lostPacketsVideo += lostPackets; //lost packets from this node
@@ -704,16 +695,18 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 
 				//save number of lost packets for direction and each car
 				// check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
-				recordVehiclePositionAndLostPackets(nodeId, UL, lostPackets);
+				//recordVehiclePositionAndLostPackets(nodeId, UL, lostPackets);
+
 			}
 
 			delete connectionsUEtoServ[nodeId].statReport.lastVideo;
-			connectionsUEtoServ[nodeId].statReport.lastVideo = temp->dup();
+			connectionsUEtoServ[nodeId].statReport.lastVideo = temp;
 
 			simtime_t delay = NOW - temp->getCreationTime();
 			emit(delayVideo, delay);
 
-		} else {
+		}
+		else {
 			Connection tmp;
 			tmp.sendIpAddress = L3AddressResolver().resolve(name);
 			tmp.sendName = name;
@@ -729,20 +722,19 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 			tmp.videoSize = videoSize;
 			tmp.dataSize = dataSize;
 			tmp.dataBytesLeft = 0;
-			tmp.statReport.lastVideo = temp->dup();
+			tmp.statReport.lastVideo = temp;
 			tmp.statReport.recPacketsVideo++;
-			tmp.messages = messages;
 
 			connectionsUEtoServ[nodeId] = tmp;
 		}
 
-		delete temp;
+	}
+	else if (strcmp(pk->getName(), "VoIP") == 0) {
 
-	} else if (strcmp(pk->getName(), "VoIP") == 0) {
-
-		VoIPMessage *temp = check_and_cast<VoIPMessage*>(pk->dup());
+		auto msg = pk->popAtFront<VoIPMessage>();
+		VoIPMessage *temp = msg.get()->dup();
 		int nodeId = temp->getSenderNodeId();
-		int number = temp->getSequenceNumber();
+		unsigned int number = temp->getSequenceNumber();
 		const char *name = temp->getSenderName();
 		temp->setArrivalTime(NOW);
 
@@ -791,7 +783,8 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 				// packetDelayVariation
 				calcPVVoipUL(nodeId, temp, true);
 
-			} else {
+			}
+			else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsUEtoServ[nodeId].statReport.lastVoIP->getSequenceNumber() + 1);
 				connectionsUEtoServ[nodeId].statReport.lostPacketsVoip += lostPackets; //lost packets from this node
@@ -801,16 +794,17 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 
 				//save number of lost packets for direction and each car
 				// check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
-				recordVehiclePositionAndLostPackets(nodeId, UL, lostPackets);
+				//recordVehiclePositionAndLostPackets(nodeId, UL, lostPackets);
 			}
 
 			delete connectionsUEtoServ[nodeId].statReport.lastVoIP;
-			connectionsUEtoServ[nodeId].statReport.lastVoIP = temp->dup();
+			connectionsUEtoServ[nodeId].statReport.lastVoIP = temp;
 
 			simtime_t delay = NOW - temp->getCreationTime();
 			emit(delayVoip, delay);
 
-		} else {
+		}
+		else {
 			Connection tmp;
 			tmp.sendIpAddress = L3AddressResolver().resolve(name);
 			tmp.sendName = name;
@@ -826,23 +820,23 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 			tmp.videoSize = videoSize;
 			tmp.dataSize = dataSize;
 			tmp.dataBytesLeft = 0;
-			tmp.statReport.lastVoIP = temp->dup();
+			tmp.statReport.lastVoIP = temp;
 			tmp.statReport.recPacketsVoip++;
-			tmp.messages = messages;
 
 			connectionsUEtoServ[nodeId] = tmp;
 		}
 
-		delete temp;
-	} else if (strcmp(pk->getName(), "Data") == 0) {
+	}
+	else if (strcmp(pk->getName(), "Data") == 0) {
 
-		DataMessage *temp = check_and_cast<DataMessage*>(pk->dup());
+		auto msg = pk->popAtFront<DataMessage>();
+		DataMessage *temp = msg.get()->dup();
 		int nodeId = temp->getSenderNodeId();
-		int number = temp->getSequenceNumber();
+		unsigned int number = temp->getSequenceNumber();
 		const char *name = temp->getSenderName();
-		carsData.insert(name);
 		temp->setArrivalTime(NOW);
-		int messageLen = temp->getByteLength();
+
+		carsData.insert(name);
 
 		if (connectionsUEtoServ.find(nodeId) != connectionsUEtoServ.end()) {
 
@@ -880,46 +874,6 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 				connectionsUEtoServ[nodeId].statReport.recPacketsDataOutBudget1s++;
 			}
 
-			//
-			if (considerDatasizeAndMessages) {
-				//HD Map
-				if (connectionsUEtoServ[nodeId].timeFirstDataPacketArrived == 0) { //at least one full map packet arrived
-					connectionsUEtoServ[nodeId].timeFirstDataPacketArrived = NOW;
-				}
-				if (connectionsUEtoServ[nodeId].dataBytesLeft <= 0 && connectionsUEtoServ[nodeId].messages <= 0) {
-					delete temp;
-					return;
-				} else {
-					connectionsUEtoServ[nodeId].dataBytesLeft = connectionsUEtoServ[nodeId].dataBytesLeft - messageLen;
-
-					if (connectionsUEtoServ[nodeId].dataBytesLeft <= 0) {
-						--connectionsUEtoServ[nodeId].messages;
-
-						if (connectionsUEtoServ[nodeId].messages <= 0) {
-							TrafficGeneratorCarUL *tmp1 = check_and_cast<TrafficGeneratorCarUL*>(getSimulation()->getModuleByPath(name)->getSubmodule("udpApp", 0));
-							tmp1->setDataPacketFlag(false);
-							connectionsUEtoServ[nodeId].timeLastDataPacketArrived = NOW;
-
-							simtime_t delay = connectionsUEtoServ[nodeId].timeLastDataPacketArrived - connectionsUEtoServ[nodeId].timeFirstDataPacketArrived;
-							delayDataTransferFinished.record(delay);
-							connectionsUEtoServ[nodeId].dataBytesLeft = 0;
-
-							delete temp;
-							return;
-						}
-						//now finished
-						connectionsUEtoServ[nodeId].timeLastDataPacketArrived = NOW;
-
-						simtime_t delay = connectionsUEtoServ[nodeId].timeLastDataPacketArrived - connectionsUEtoServ[nodeId].timeFirstDataPacketArrived;
-						delayDataTransferFinished.record(delay);
-						connectionsUEtoServ[nodeId].dataBytesLeft = dataSize;
-
-						connectionsUEtoServ[nodeId].timeFirstDataPacketArrived = 0;
-					}
-				}
-			}
-			//
-
 			//already one entry
 			//find the corresponding destination and check the next sequenceNumber
 			if ((connectionsUEtoServ[nodeId].statReport.lastData->getSequenceNumber() + 1) == number) {
@@ -927,7 +881,8 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 				// packetDelayVariation
 				calcPVDataUL(nodeId, temp, true);
 
-			} else {
+			}
+			else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsUEtoServ[nodeId].statReport.lastData->getSequenceNumber() + 1);
 				connectionsUEtoServ[nodeId].statReport.lostPacketsData += lostPackets; //lost packets from this node
@@ -937,17 +892,18 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 
 				//save number of lost packets for direction and each car
 				// check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
-				recordVehiclePositionAndLostPackets(nodeId, UL, lostPackets);
+				//recordVehiclePositionAndLostPackets(nodeId, UL, lostPackets);
 			}
 
 			delete connectionsUEtoServ[nodeId].statReport.lastData;
-			connectionsUEtoServ[nodeId].statReport.lastData = temp->dup();
+			connectionsUEtoServ[nodeId].statReport.lastData = temp;
 
 			assert(temp->getTimestamp() == temp->getCreationTime());
 			simtime_t delay = NOW - temp->getCreationTime();
 			emit(delayData, delay);
 
-		} else {
+		}
+		else {
 			Connection tmp;
 			tmp.timeFirstDataPacketArrived = NOW;
 			tmp.sendIpAddress = L3AddressResolver().resolve(name);
@@ -964,22 +920,12 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 			tmp.videoSize = videoSize;
 			tmp.dataSize = dataSize;
 			tmp.dataBytesLeft = dataSize;
-			tmp.statReport.lastData = temp->dup();
+			tmp.statReport.lastData = temp;
 			tmp.statReport.recPacketsData++;
-			tmp.messages = messages;
-
-			if (considerDatasizeAndMessages) {
-
-				tmp.dataSize = dataSize;
-
-				tmp.dataBytesLeft = tmp.dataSize - messageLen;
-
-			}
 
 			connectionsUEtoServ[nodeId] = tmp;
 		}
 
-		delete temp;
 	}
 
 }
@@ -992,7 +938,7 @@ void TrafficGeneratorCarUL::processStart() {
 
 	localAddress_ = L3AddressResolver().resolve(getParentModule()->getFullName());
 
-	socket.setOutputGate(gate("udpOut"));
+	socket.setOutputGate(gate("socketOut"));
 
 	socket.bind(localAddress_, localPort);
 	setSocketOptions();
@@ -1002,7 +948,8 @@ void TrafficGeneratorCarUL::processStart() {
 	if (strcmp(destAddress_.str().c_str(), "") != 0) {
 		selfMsg->setKind(SEND);
 		processSend();
-	} else {
+	}
+	else {
 		if (stopTime >= SIMTIME_ZERO) {
 			selfMsg->setKind(STOP);
 			scheduleAt(stopTime, selfMsg);
@@ -1012,14 +959,14 @@ void TrafficGeneratorCarUL::processStart() {
 }
 
 //send packet from vehicle to server
-void TrafficGeneratorCarUL::sendPacket(long bytes) {
+void TrafficGeneratorCarUL::sendPacket() {
 
-	unsigned short nodeId = getNRBinder()->getMacNodeId(localAddress_.toIPv4());
+	unsigned short nodeId = getNRBinder()->getMacNodeId(localAddress_.toIpv4());
 
 	//do not send a packet if unconnected
-	if(getSimulation()->getSystemModule()->par("useSINRThreshold").boolValue()){
+	if (getSimulation()->getSystemModule()->par("useSINRThreshold").boolValue()) {
 		//get the binder an the ueNotConnectedList
-		if(getBinder()->isNotConnected(nodeId)){
+		if (getBinder()->isNotConnected(nodeId)) {
 			return;
 		}
 	}
@@ -1042,22 +989,26 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 
 		sentPacketsV2X++;
 
-		V2XMessage *payload = new V2XMessage(packetName);
-		payload->setByteLength(messageLength);
-		payload->setSenderNodeId(nodeId);
-		payload->setSenderName(getParentModule()->getFullName());
-		payload->setTimestamp(NOW);
-		payload->setSequenceNumber(0);
+		Packet *payload = new inet::Packet(packetName);
+		auto v2x = makeShared<V2XMessage>();
+		v2x->setName(packetName);
+		v2x->setChunkLength(B(messageLength));
+		v2x->setSenderNodeId(nodeId);
+		v2x->setSenderName(getParentModule()->getFullName());
+		v2x->setTimestamp(NOW);
+		v2x->setCreationTime(NOW);
+		v2x->setSequenceNumber(0);
 
 		if (connectionsUEtoServ.find(nodeId) != connectionsUEtoServ.end()) {
 			//already one entry
 			//find the corresponding destination
 
-			payload->setSequenceNumber(connectionsUEtoServ[nodeId].statReport.lastV2X->getSequenceNumber() + 1);
+			v2x->setSequenceNumber(connectionsUEtoServ[nodeId].statReport.lastV2X->getSequenceNumber() + 1);
 			delete connectionsUEtoServ[nodeId].statReport.lastV2X;
-			connectionsUEtoServ[nodeId].statReport.lastV2X = payload->dup();
+			connectionsUEtoServ[nodeId].statReport.lastV2X = v2x.get()->dup();
 
-		} else {
+		}
+		else {
 			//new connection
 			Connection tmp;
 			tmp.sendIpAddress = localAddress_;
@@ -1076,26 +1027,28 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 			tmp.dataSize = dataSize;
 			tmp.dataBytesLeft = 0;
 
-			tmp.statReport.lastV2X = payload->dup();
-
-			tmp.messages = messages;
+			tmp.statReport.lastV2X = v2x.get()->dup();
 
 			connectionsUEtoServ[nodeId] = tmp;
 		}
+		payload->insertAtBack(v2x);
 
-		socket.sendTo(payload, destAddress_, destPort);
+		socket.sendTo(check_and_cast<Packet*>(payload), destAddress_, destPort);
 
-	} else if (strcmp(packetName, "Video") == 0) {
+	}
+	else if (strcmp(packetName, "Video") == 0) {
 
 		sentPacketsVideo++;
 
-		VideoMessage *payload = new VideoMessage(packetName);
-		payload->setByteLength(messageLength);
-		payload->setSenderNodeId(nodeId);
-		payload->setSenderName(getParentModule()->getFullName());
-		payload->setTimestamp(NOW);
-		payload->setSequenceNumber(0);
-
+		Packet *payload = new inet::Packet(packetName);
+		auto video = makeShared<VideoMessage>();
+		video->setName(packetName);
+		video->setChunkLength(B(messageLength));
+		video->setSenderNodeId(nodeId);
+		video->setSenderName(getParentModule()->getFullName());
+		video->setTimestamp(NOW);
+		video->setCreationTime(NOW);
+		video->setSequenceNumber(0);
 
 		/*
 		 * realisticApproach
@@ -1108,33 +1061,34 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 			if (nodeId % 10 == 0) {
 				//VideoStream with 5Mbps
 				//packet size 15625 byte, packet interval 25ms
-				payload->setByteLength(15625);
+				video->setChunkLength(B(15625));
 				sendInterval = 0.025;
-			} else if (nodeId % 2 == 0) {
+			}
+			else if (nodeId % 2 == 0) {
 				//VoipStream with 80kpbs
 				//packet size 100byte, packet interval 10ms
-				payload->setByteLength(100);
+				video->setChunkLength(B(100));
 				sendInterval = 0.01;
-			} else {
+			}
+			else {
 				//random streams (packet size uniform(50byte,1500byte), packet interval uniform(10ms, 500ms)
 				unsigned int bytes = uniform(50, 1500);
-				payload->setByteLength(bytes);
+				video->setChunkLength(B(bytes));
 				sendInterval = uniform(0.01, 0.500);
 			}
 		}
 		//
 
-
 		if (connectionsUEtoServ.find(nodeId) != connectionsUEtoServ.end()) {
 			//already one entry
 			//find the corresponding destination
 
-			payload->setSequenceNumber(connectionsUEtoServ[nodeId].statReport.lastVideo->getSequenceNumber() + 1);
+			video->setSequenceNumber(connectionsUEtoServ[nodeId].statReport.lastVideo->getSequenceNumber() + 1);
 			delete connectionsUEtoServ[nodeId].statReport.lastVideo;
-			connectionsUEtoServ[nodeId].statReport.lastVideo = payload->dup();
+			connectionsUEtoServ[nodeId].statReport.lastVideo = video.get()->dup();
 
-
-		} else {
+		}
+		else {
 			//new connection
 			Connection tmp;
 			tmp.sendIpAddress = localAddress_;
@@ -1153,36 +1107,40 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 			tmp.dataSize = dataSize;
 			tmp.dataBytesLeft = 0;
 
-			tmp.statReport.lastVideo = payload->dup();
-
-			tmp.messages = messages;
+			tmp.statReport.lastVideo = video.get()->dup();
 
 			connectionsUEtoServ[nodeId] = tmp;
 		}
+		payload->insertAtBack(video);
 
 		//emit(sentPkSignal, payload);
-		socket.sendTo(payload, destAddress_, destPort);
+		socket.sendTo(check_and_cast<Packet*>(payload), destAddress_, destPort);
 
-	} else if (strcmp(packetName, "VoIP") == 0) {
+	}
+	else if (strcmp(packetName, "VoIP") == 0) {
 
 		sentPacketsVoip++;
 
-		VoIPMessage *payload = new VoIPMessage(packetName);
-		payload->setByteLength(messageLength);
-		payload->setSenderNodeId(nodeId);
-		payload->setSenderName(getParentModule()->getFullName());
-		payload->setTimestamp(NOW);
-		payload->setSequenceNumber(0);
+		Packet *payload = new inet::Packet(packetName);
+		auto voip = makeShared<VoIPMessage>();
+		voip->setName(packetName);
+		voip->setChunkLength(B(messageLength));
+		voip->setSenderNodeId(nodeId);
+		voip->setSenderName(getParentModule()->getFullName());
+		voip->setTimestamp(NOW);
+		voip->setCreationTime(NOW);
+		voip->setSequenceNumber(0);
 
 		if (connectionsUEtoServ.find(nodeId) != connectionsUEtoServ.end()) {
 			//already one entry
 			//find the corresponding destination
 
-			payload->setSequenceNumber(connectionsUEtoServ[nodeId].statReport.lastVoIP->getSequenceNumber() + 1);
+			voip->setSequenceNumber(connectionsUEtoServ[nodeId].statReport.lastVoIP->getSequenceNumber() + 1);
 			delete connectionsUEtoServ[nodeId].statReport.lastVoIP;
-			connectionsUEtoServ[nodeId].statReport.lastVoIP = payload->dup();
+			connectionsUEtoServ[nodeId].statReport.lastVoIP = voip.get()->dup();
 
-		} else {
+		}
+		else {
 			//new connection
 			Connection tmp;
 			tmp.sendIpAddress = localAddress_;
@@ -1201,16 +1159,16 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 			tmp.dataSize = dataSize;
 			tmp.dataBytesLeft = 0;
 
-			tmp.statReport.lastVoIP = payload->dup();
-
-			tmp.messages = messages;
+			tmp.statReport.lastVoIP = voip.get()->dup();
 
 			connectionsUEtoServ[nodeId] = tmp;
 		}
+		payload->insertAtBack(voip);
 
-		socket.sendTo(payload, destAddress_, destPort);
+		socket.sendTo(check_and_cast<Packet*>(payload), destAddress_, destPort);
 
-	} else if (strcmp(packetName, "Data") == 0) {
+	}
+	else if (strcmp(packetName, "Data") == 0) {
 
 		if (getSimulation()->getSystemModule()->par("remoteDrivingUL")) {
 			//check nodeId --> every 10th car is a remote car
@@ -1222,22 +1180,26 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 
 		sentPacketsData++;
 
-		DataMessage *payload = new DataMessage(packetName);
-		payload->setByteLength(messageLength);
-		payload->setSenderNodeId(nodeId);
-		payload->setSenderName(getParentModule()->getFullName());
-		payload->setTimestamp(NOW);
-		payload->setSequenceNumber(0);
+		Packet *payload = new inet::Packet(packetName);
+		auto data = makeShared<DataMessage>();
+		data->setName(packetName);
+		data->setChunkLength(B(messageLength));
+		data->setSenderNodeId(nodeId);
+		data->setSenderName(getParentModule()->getFullName());
+		data->setTimestamp(NOW);
+		data->setCreationTime(NOW);
+		data->setSequenceNumber(0);
 
 		if (connectionsUEtoServ.find(nodeId) != connectionsUEtoServ.end()) {
 			//already one entry
 			//find the corresponding destination
 
-			payload->setSequenceNumber(connectionsUEtoServ[nodeId].statReport.lastData->getSequenceNumber() + 1);
+			data->setSequenceNumber(connectionsUEtoServ[nodeId].statReport.lastData->getSequenceNumber() + 1);
 			delete connectionsUEtoServ[nodeId].statReport.lastData;
-			connectionsUEtoServ[nodeId].statReport.lastData = payload->dup();
+			connectionsUEtoServ[nodeId].statReport.lastData = data.get()->dup();
 
-		} else {
+		}
+		else {
 			//new connection
 			Connection tmp;
 			tmp.sendIpAddress = localAddress_;
@@ -1256,22 +1218,22 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 			tmp.dataSize = dataSize;
 			tmp.dataBytesLeft = dataSize - messageLength;
 
-			tmp.statReport.lastData = payload->dup();
-
-			tmp.messages = messages;
+			tmp.statReport.lastData = data.get()->dup();
 
 			connectionsUEtoServ[nodeId] = tmp;
 		}
+		payload->insertAtBack(data);
 
-		socket.sendTo(payload, destAddress_, destPort);
-	} else
+		socket.sendTo(check_and_cast<Packet*>(payload), destAddress_, destPort);
+	}
+	else
 		throw cRuntimeError("Unknown Application Type");
 
 }
 
 void TrafficGeneratorCarUL::processSend() {
 
-	sendPacket(0);
+	sendPacket();
 
 	if (!sendVideoPacket)
 		return;
@@ -1287,15 +1249,11 @@ void TrafficGeneratorCarUL::processSend() {
 	if (stopTime < SIMTIME_ZERO || duration < stopTime) {
 		selfMsg->setKind(SEND);
 		scheduleAt(duration, selfMsg);
-	} else {
+	}
+	else {
 		selfMsg->setKind(STOP);
 		scheduleAt(stopTime, selfMsg);
 	}
-}
-
-bool TrafficGeneratorCarUL::handleNodeStart(IDoneCallback *doneCallback) {
-	//do nothing
-	return TrafficGenerator::handleNodeStart(doneCallback);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1308,7 +1266,8 @@ void TrafficGeneratorCarDL::initialize(int stage) {
 	if (stage == INITSTAGE_LOCAL) {
 		TrafficGenerator::initialize(stage);
 
-	} else if (stage == INITSTAGE_LAST) {
+	}
+	else if (stage == INITSTAGE_LAST) {
 		const char *carName = getParentModule()->getFullName();
 
 		//for V2X Broadcast
@@ -1317,23 +1276,25 @@ void TrafficGeneratorCarDL::initialize(int stage) {
 			return;
 		//
 
-		TrafficGeneratorServerDL *tmp0 = check_and_cast<TrafficGeneratorServerDL*>(getSimulation()->getModuleByPath(par("destAddresses").stdstringValue().c_str())->getSubmodule("udpApp", 0));
+		TrafficGeneratorServerDL *tmp0 = check_and_cast<TrafficGeneratorServerDL*>(
+				getSimulation()->getModuleByPath(par("destAddresses").stdstringValue().c_str())->getSubmodule("app", 0));
 		listener0 = new Listener(tmp0);
 		carNameSignal = registerSignal("carName");
 		subscribe(carNameSignal, listener0);
 
-		if (getSimulation()->getSystemModule()->par("remoteDrivingUL").boolValue() && getSimulation()->getSystemModule()->par("remoteDrivingDL").boolValue()
-				&& getAncestorPar("numUdpApps").intValue() == 4) {
+		if (getSimulation()->getSystemModule()->par("remoteDrivingUL").boolValue()
+				&& getSimulation()->getSystemModule()->par("remoteDrivingDL").boolValue() && getAncestorPar("numApps").intValue() == 4) {
 			unsigned short tmpGate = 0;
 			if (getAncestorPar("oneServer").boolValue())
 				tmpGate = 1;
 			TrafficGeneratorServerDL *tmp1 = check_and_cast<TrafficGeneratorServerDL*>(
-					getSimulation()->getModuleByPath(par("destAddresses").stdstringValue().c_str())->getSubmodule("udpApp", tmpGate));
+					getSimulation()->getModuleByPath(par("destAddresses").stdstringValue().c_str())->getSubmodule("app", tmpGate));
 
 			listener1 = new Listener(tmp1);
 			subscribe(carNameSignal, listener1);
 
-		} else if (getAncestorPar("numUdpApps").intValue() == 4) {
+		}
+		else if (getAncestorPar("numApps").intValue() == 4) {
 
 			unsigned short tmpGate = 0;
 			unsigned short tmpGateTwo = 0;
@@ -1341,17 +1302,17 @@ void TrafficGeneratorCarDL::initialize(int stage) {
 			if (getAncestorPar("oneServer").boolValue())
 				tmpGate = 1;
 			TrafficGeneratorServerDL *tmp1 = check_and_cast<TrafficGeneratorServerDL*>(
-					getSimulation()->getModuleByPath(par("destAddresses").stdstringValue().c_str())->getSubmodule("udpApp", tmpGate));
+					getSimulation()->getModuleByPath(par("destAddresses").stdstringValue().c_str())->getSubmodule("app", tmpGate));
 
 			if (getAncestorPar("oneServer").boolValue())
 				tmpGateTwo = 2;
 			TrafficGeneratorServerDL *tmp2 = check_and_cast<TrafficGeneratorServerDL*>(
-					getSimulation()->getModuleByPath(par("destAddresses").stdstringValue().c_str())->getSubmodule("udpApp", tmpGateTwo));
+					getSimulation()->getModuleByPath(par("destAddresses").stdstringValue().c_str())->getSubmodule("app", tmpGateTwo));
 
 			if (getAncestorPar("oneServer").boolValue())
 				tmpGateThree = 3;
 			TrafficGeneratorServerDL *tmp3 = check_and_cast<TrafficGeneratorServerDL*>(
-					getSimulation()->getModuleByPath(par("destAddresses").stdstringValue().c_str())->getSubmodule("udpApp", tmpGateThree));
+					getSimulation()->getModuleByPath(par("destAddresses").stdstringValue().c_str())->getSubmodule("app", tmpGateThree));
 
 			listener1 = new Listener(tmp1);
 			listener2 = new Listener(tmp2);
@@ -1359,13 +1320,14 @@ void TrafficGeneratorCarDL::initialize(int stage) {
 			subscribe(carNameSignal, listener1);
 			subscribe(carNameSignal, listener2);
 			subscribe(carNameSignal, listener3);
-		} else if (getAncestorPar("numUdpApps").intValue() == 2) {
+		}
+		else if (getAncestorPar("numApps").intValue() == 2) {
 			unsigned short tmpGate = 0;
 
 			if (getAncestorPar("oneServer").boolValue())
 				tmpGate = 1;
 			TrafficGeneratorServerDL *tmp1 = check_and_cast<TrafficGeneratorServerDL*>(
-					getSimulation()->getModuleByPath(par("destAddresses").stdstringValue().c_str())->getSubmodule("udpApp", tmpGate));
+					getSimulation()->getModuleByPath(par("destAddresses").stdstringValue().c_str())->getSubmodule("app", tmpGate));
 
 			listener1 = new Listener(tmp1);
 			subscribe(carNameSignal, listener1);
@@ -1375,9 +1337,9 @@ void TrafficGeneratorCarDL::initialize(int stage) {
 	}
 }
 
-void TrafficGeneratorCarDL::handleMessageWhenUp(cMessage *msg) {
+void TrafficGeneratorCarDL::handleMessageWhenUp(cMessage * msg) {
 
-	processPacket(PK(msg));
+	processPacket(check_and_cast<Packet*>(msg));
 
 	delete msg;
 
@@ -1387,24 +1349,24 @@ void TrafficGeneratorCarDL::handleMessageWhenUp(cMessage *msg) {
  * DOWNLINK Car receives a UDP Packet from a server, records statistics
  * @param pk
  */
-void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
+void TrafficGeneratorCarDL::processPacket(Packet * pk) {
 
 	numberReceivedPackets++;
 	//from UDPBasicApp
 	numReceived++;
 	//
 
-	if (strcmp(pk->getName(), "V2X") == 0 || strcmp(pk->getName(), "status-update") == 0 || strcmp(pk->getName(), "request-to-merge") == 0 || strcmp(pk->getName(), "request-ack") == 0
-			|| strcmp(pk->getName(), "safe-to-merge|denial") == 0) {
+	if (strcmp(pk->getName(), "V2X") == 0) {
 
-		V2XMessage *temp = check_and_cast<V2XMessage*>(pk->dup());
+		auto msg = pk->popAtFront<V2XMessage>();
+		V2XMessage *temp = msg.get()->dup();
 		int nodeId = temp->getSenderNodeId();
 		unsigned int number = temp->getSequenceNumber();
 		const char *name = temp->getSenderName();
 
 		cModule *mod = getSimulation()->getModuleByPath(name);
 		if (!mod) {
-			delete temp;
+//			delete msg->get();
 			return;
 		}
 
@@ -1455,7 +1417,8 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 				// packetDelayVariation
 				calcPVV2XDL(nodeId, temp, true);
 
-			} else {
+			}
+			else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsServToUE[nodeId].statReport.lastV2X->getSequenceNumber() + 1);
 				connectionsServToUE[nodeId].statReport.lostPacketsV2X += lostPackets; //lost packets from this node
@@ -1464,18 +1427,19 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 				calcPVV2XDL(nodeId, temp, false);
 
 				//save number of lost packets for direction and each car
-				recordVehiclePositionAndLostPackets(nodeId, DL, lostPackets);
+				//recordVehiclePositionAndLostPackets(nodeId, DL, lostPackets);
 
 			}
 			//
 
 			delete connectionsServToUE[nodeId].statReport.lastV2X;
-			connectionsServToUE[nodeId].statReport.lastV2X = temp->dup();
+			connectionsServToUE[nodeId].statReport.lastV2X = temp;
 
 			simtime_t delay = NOW - temp->getCreationTime();
 			emit(delayV2X, delay);
 
-		} else {
+		}
+		else {
 			Connection tmp;
 			tmp.sendIpAddress = L3AddressResolver().resolve(name);
 			tmp.sendName = name;
@@ -1491,18 +1455,17 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 			tmp.videoSize = videoSize;
 			tmp.dataSize = dataSize;
 			tmp.dataBytesLeft = 0;
-			tmp.statReport.lastV2X = temp->dup();
+			tmp.statReport.lastV2X = temp;
 			tmp.statReport.recPacketsV2X++;
-			tmp.messages = messages;
 
 			connectionsServToUE[nodeId] = tmp;
 		}
 
-		delete temp;
+	}
+	else if (strcmp(pk->getName(), "Video") == 0) {
 
-	} else if (strcmp(pk->getName(), "Video") == 0) {
-
-		VideoMessage *temp = check_and_cast<VideoMessage*>(pk->dup());
+		auto msg = pk->popAtFront<VideoMessage>();
+		VideoMessage *temp = msg.get()->dup();
 		int nodeId = temp->getSenderNodeId();
 		int number = temp->getSequenceNumber();
 		const char *name = temp->getSenderName();
@@ -1553,7 +1516,8 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 				// packetDelayVariation
 				calcPVVideoDL(nodeId, temp, true);
 
-			} else {
+			}
+			else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsServToUE[nodeId].statReport.lastVideo->getSequenceNumber() + 1);
 				connectionsServToUE[nodeId].statReport.lostPacketsVideo += lostPackets; //lost packets from this node
@@ -1563,17 +1527,18 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 
 				//save number of lost packets for direction and each car
 				// check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
-				recordVehiclePositionAndLostPackets(nodeId, DL, lostPackets);
+				//recordVehiclePositionAndLostPackets(nodeId, DL, lostPackets);
 
 			}
 
 			delete connectionsServToUE[nodeId].statReport.lastVideo;
-			connectionsServToUE[nodeId].statReport.lastVideo = temp->dup();
+			connectionsServToUE[nodeId].statReport.lastVideo = temp;
 
 			simtime_t delay = NOW - temp->getCreationTime();
 			emit(delayVideo, delay);
 
-		} else {
+		}
+		else {
 			Connection tmp;
 			tmp.sendIpAddress = L3AddressResolver().resolve(name);
 			tmp.sendName = name;
@@ -1589,24 +1554,23 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 			tmp.videoSize = videoSize;
 			tmp.dataSize = dataSize;
 			tmp.dataBytesLeft = 0;
-			tmp.statReport.lastVideo = temp->dup();
+			tmp.statReport.lastVideo = temp;
 			tmp.statReport.recPacketsVideo++;
-
-			tmp.messages = messages;
 
 			connectionsServToUE[nodeId] = tmp;
 		}
 
-		delete temp;
+		//delete temp;
 
-	} else if (strcmp(pk->getName(), "VoIP") == 0) {
+	}
+	else if (strcmp(pk->getName(), "VoIP") == 0) {
 
-		VoIPMessage *temp = check_and_cast<VoIPMessage*>(pk->dup());
+		auto msg = pk->popAtFront<VoIPMessage>();
+		VoIPMessage *temp = msg.get()->dup();
 		int nodeId = temp->getSenderNodeId();
 		int number = temp->getSequenceNumber();
 		const char *name = temp->getSenderName();
 		temp->setArrivalTime(NOW);
-
 		if (connectionsServToUE.find(nodeId) != connectionsServToUE.end()) {
 			//
 			recPacketsVoip++;
@@ -1652,7 +1616,8 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 				// packetDelayVariationReal
 				calcPVVoipDL(nodeId, temp, true);
 
-			} else {
+			}
+			else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsServToUE[nodeId].statReport.lastVoIP->getSequenceNumber() + 1);
 				connectionsServToUE[nodeId].statReport.lostPacketsVoip += lostPackets; //lost packets from this node
@@ -1662,16 +1627,17 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 
 				//save number of lost packets for direction and each car
 				// check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
-				recordVehiclePositionAndLostPackets(nodeId, DL, lostPackets);
+				//recordVehiclePositionAndLostPackets(nodeId, DL, lostPackets);
 			}
 
 			delete connectionsServToUE[nodeId].statReport.lastVoIP;
-			connectionsServToUE[nodeId].statReport.lastVoIP = temp->dup();
+			connectionsServToUE[nodeId].statReport.lastVoIP = temp;
 
 			simtime_t delay = NOW - temp->getCreationTime();
 			emit(delayVoip, delay);
 
-		} else {
+		}
+		else {
 			Connection tmp;
 			tmp.sendIpAddress = L3AddressResolver().resolve(name);
 			tmp.sendName = name;
@@ -1687,23 +1653,22 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 			tmp.videoSize = videoSize;
 			tmp.dataSize = dataSize;
 			tmp.dataBytesLeft = 0;
-			tmp.statReport.lastVoIP = temp->dup();
+			tmp.statReport.lastVoIP = temp;
 			tmp.statReport.recPacketsVoip++;
-
-			tmp.messages = messages;
 
 			connectionsServToUE[nodeId] = tmp;
 		}
 
-		delete temp;
+		//delete temp;
 
-	} else if (strcmp(pk->getName(), "Data") == 0) {
+	}
+	else if (strcmp(pk->getName(), "Data") == 0) {
 
-		DataMessage *temp = check_and_cast<DataMessage*>(pk->dup());
+		auto msg = pk->popAtFront<DataMessage>();
+		DataMessage *temp = msg.get()->dup();
 		int nodeId = temp->getSenderNodeId();
 		int number = temp->getSequenceNumber();
 		const char *name = temp->getSenderName();
-		unsigned int messageLen = temp->getByteLength();
 		temp->setArrivalTime(NOW);
 
 		if (connectionsServToUE.find(nodeId) != connectionsServToUE.end()) {
@@ -1744,47 +1709,6 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 			}
 			//
 
-			if (considerDatasizeAndMessages) {
-				//******************
-				//HD Map
-				if (connectionsServToUE[nodeId].timeFirstDataPacketArrived == 0) { //at least one full map packet arrived
-					connectionsServToUE[nodeId].timeFirstDataPacketArrived = NOW;
-				}
-				if (connectionsServToUE[nodeId].dataBytesLeft <= 0 && connectionsServToUE[nodeId].messages <= 0) {
-					delete temp;
-					return;
-				} else {
-					connectionsServToUE[nodeId].dataBytesLeft = connectionsServToUE[nodeId].dataBytesLeft - messageLen;
-
-					if (connectionsServToUE[nodeId].dataBytesLeft <= 0) {
-						--connectionsServToUE[nodeId].messages;
-
-						if (connectionsServToUE[nodeId].messages <= 0) {
-							TrafficGeneratorServerDL *tmp1 = check_and_cast<TrafficGeneratorServerDL*>(getSimulation()->getModuleByPath(name)->getSubmodule("udpApp", 0));
-							const char *ueName = this->getParentModule()->getFullName();
-							tmp1->deleteNameFromQueuedNames(ueName);
-
-							connectionsServToUE[nodeId].timeLastDataPacketArrived = NOW;
-
-							simtime_t delay = connectionsServToUE[nodeId].timeLastDataPacketArrived - connectionsServToUE[nodeId].timeFirstDataPacketArrived;
-							delayDataTransferFinished.record(delay);
-							connectionsServToUE[nodeId].dataBytesLeft = dataSize;
-
-							delete temp;
-							return;
-						}
-						//now finished
-						connectionsServToUE[nodeId].timeLastDataPacketArrived = NOW;
-
-						simtime_t delay = connectionsServToUE[nodeId].timeLastDataPacketArrived - connectionsServToUE[nodeId].timeFirstDataPacketArrived;
-						delayDataTransferFinished.record(delay);
-						connectionsServToUE[nodeId].dataBytesLeft = dataSize;
-
-						connectionsServToUE[nodeId].timeFirstDataPacketArrived = 0;
-					}
-				}
-			}
-
 			//already one entry
 			//find the corresponding destination and check the next sequenceNumber
 
@@ -1793,7 +1717,8 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 				// packetDelayVariation
 				calcPVDataDL(nodeId, temp, true);
 
-			} else {
+			}
+			else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsServToUE[nodeId].statReport.lastData->getSequenceNumber() + 1);
 				connectionsServToUE[nodeId].statReport.lostPacketsData += lostPackets; //lost packets from this node
@@ -1803,16 +1728,17 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 
 				//save number of lost packets for direction and each car
 				// check_and_cast<LtePhyBase*>(getParentModule()->getSubmodule("phy"))->getPosition();
-				recordVehiclePositionAndLostPackets(nodeId, DL, lostPackets);
+				//recordVehiclePositionAndLostPackets(nodeId, DL, lostPackets);
 			}
 
 			delete connectionsServToUE[nodeId].statReport.lastData;
-			connectionsServToUE[nodeId].statReport.lastData = temp->dup();
+			connectionsServToUE[nodeId].statReport.lastData = temp;
 
 			simtime_t delay = NOW - temp->getCreationTime();
 			emit(delayData, delay);
 
-		} else {
+		}
+		else {
 			Connection tmp;
 			tmp.timeFirstDataPacketArrived = NOW;
 			tmp.sendIpAddress = L3AddressResolver().resolve(name);
@@ -1829,35 +1755,24 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 			tmp.videoSize = videoSize;
 			tmp.dataSize = dataSize;
 			tmp.dataBytesLeft = 0;
-			tmp.statReport.lastData = temp->dup();
+			tmp.statReport.lastData = temp;
 			tmp.statReport.recPacketsData++;
-
-			tmp.messages = messages;
-
-			if (considerDatasizeAndMessages) {
-
-				tmp.dataSize = dataSize;
-
-				tmp.dataBytesLeft = tmp.dataSize - messageLen;
-
-			}
 
 			connectionsServToUE[nodeId] = tmp;
 		}
 
-		delete temp;
+		//delete temp;
 	}
 
 }
 
-bool TrafficGeneratorCarDL::handleNodeStart(IDoneCallback *doneCallback) {
+void TrafficGeneratorCarDL::handleStartOperation(LifecycleOperation * operation) {
 	//do nothing
-	socket.setOutputGate(gate("udpOut"));
+	socket.setOutputGate(gate("socketOut"));
 	localAddress_ = L3AddressResolver().resolve(getParentModule()->getFullName());
 
 	//const char *localAddress = par("localAddress");
 	socket.bind(localAddress_, localPort);
-	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1869,24 +1784,22 @@ void TrafficGeneratorServerDL::initialize(int stage) {
 
 	if (stage == INITSTAGE_LOCAL) {
 		TrafficGenerator::initialize(stage);
-
 	}
 }
 
-void TrafficGeneratorServerDL::handleMessageWhenUp(cMessage *msg) {
+void TrafficGeneratorServerDL::handleMessageWhenUp(cMessage * msg) {
 	if (msg->isSelfMessage()) {
 
 		switch (msg->getKind()) {
 		case START:
-			sendPacket(0);
+			sendPacket();
 			break;
 
 		default:
 			throw cRuntimeError("Invalid kind %d in self message", (int) selfMsg->getKind());
 		}
-	} else {
-//        throw cRuntimeError("Unrecognized message (%s)%s", msg->getClassName(),
-//                msg->getName());
+	}
+	else {
 		delete msg;
 	}
 }
@@ -1894,7 +1807,7 @@ void TrafficGeneratorServerDL::handleMessageWhenUp(cMessage *msg) {
 /**
  * iterate over all car names and sends packets after the corresponding packet interval expired
  */
-void TrafficGeneratorServerDL::sendPacket(long bytes) {
+void TrafficGeneratorServerDL::sendPacket() {
 
 	if (names.size() == 0) {
 		scheduleAt(NOW + par("sendInterval").doubleValue(), selfMsg);
@@ -1923,7 +1836,8 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 			if (getSimulation()->getSystemModule()->par("remoteDrivingDL")) {
 				//use the same random time
 				carsSendingTimes[carName] = carsSendingIntervalRemoteDrivingDL[carName] + NOW;
-			} else {
+			}
+			else {
 				carsSendingTimes[carName] = nextSelfMsgTime;
 			}
 			//
@@ -1932,9 +1846,9 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 			int nodeId = getNRBinder()->getMacNodeIdFromOmnetId(omnetId);
 
 			//do not send a packet if unconnected
-			if(getSimulation()->getSystemModule()->par("useSINRThreshold").boolValue()){
+			if (getSimulation()->getSystemModule()->par("useSINRThreshold").boolValue()) {
 				//get the binder an the ueNotConnectedList
-				if(getBinder()->isNotConnected(nodeId)){
+				if (getBinder()->isNotConnected(nodeId)) {
 					continue;
 				}
 			}
@@ -1955,35 +1869,44 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 						carsSendingTimes.erase(carName);
 						carsByteLengthRemoteDrivingDL.erase(carName);
 						carsSendingIntervalRemoteDrivingDL.erase(carName);
+			            numberSentPackets--;
+			            //from UDPBasicApp
+			            numSent--;
 						continue;
 					}
 				}
 
 				sentPacketsV2X++;
-				V2XMessage *payload = new V2XMessage(packetName);
+
+				Packet *payload = new inet::Packet(packetName);
+				auto v2x = makeShared<V2XMessage>();
+				v2x->setName(packetName);
 
 				//
 				if (getSimulation()->getSystemModule()->par("remoteDrivingDL")) {
-					payload->setByteLength(carsByteLengthRemoteDrivingDL[carName]);
-				} else {
-					payload->setByteLength(messageLength);
+					v2x->setChunkLength(B(carsByteLengthRemoteDrivingDL[carName]));
+				}
+				else {
+					v2x->setChunkLength(B(messageLength));
 				}
 				//
 
-				payload->setSenderNodeId(nodeId);
-				payload->setSenderName(getParentModule()->getFullName());
-				payload->setTimestamp(NOW);
-				payload->setSequenceNumber(0);
+				v2x->setSenderNodeId(nodeId);
+				v2x->setSenderName(getParentModule()->getFullName());
+				v2x->setTimestamp(NOW);
+				v2x->setCreationTime(NOW);
+				v2x->setSequenceNumber(0);
 
 				if (connectionsServToUE.find(nodeId) != connectionsServToUE.end()) {
 					//already one entry
 					//find the corresponding destination
 
-					payload->setSequenceNumber(connectionsServToUE[nodeId].statReport.lastV2X->getSequenceNumber() + 1);
+					v2x->setSequenceNumber(connectionsServToUE[nodeId].statReport.lastV2X->getSequenceNumber() + 1);
 					delete connectionsServToUE[nodeId].statReport.lastV2X;
-					connectionsServToUE[nodeId].statReport.lastV2X = payload->dup();
+					connectionsServToUE[nodeId].statReport.lastV2X = v2x.get()->dup();
 
-				} else {
+				}
+				else {
 					//new connection
 					Connection tmp;
 					tmp.sendIpAddress = localAddress_;
@@ -1995,43 +1918,48 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 					tmp.dataSize = dataSize;
 					tmp.dataBytesLeft = 0;
 
-					tmp.messages = messages;
-
-					tmp.statReport.lastV2X = payload->dup();
+					tmp.statReport.lastV2X = v2x.get()->dup();
 
 					connectionsServToUE[nodeId] = tmp;
 				}
+				payload->insertAtBack(v2x);
 
-				socket.sendTo(payload, L3AddressResolver().resolve(carName.c_str()), destPort);
-			} else if (strcmp(packetName, "Video") == 0) {
+				socket.sendTo(check_and_cast<Packet*>(payload), L3AddressResolver().resolve(carName.c_str()), destPort);
+			}
+			else if (strcmp(packetName, "Video") == 0) {
 				sentPacketsVideo++;
 
-				VideoMessage *payload = new VideoMessage(packetName);
-				payload->setByteLength(messageLength);
-				payload->setSenderNodeId(nodeId);
-				payload->setSenderName(getParentModule()->getFullName());
-				payload->setTimestamp(NOW);
-				payload->setSequenceNumber(0);
+				Packet *payload = new inet::Packet(packetName);
+				auto video = makeShared<VideoMessage>();
+				video->setName(packetName);
+				video->setChunkLength(B(messageLength));
+				video->setSenderNodeId(nodeId);
+				video->setSenderName(getParentModule()->getFullName());
+				video->setTimestamp(NOW);
+				video->setCreationTime(NOW);
+				video->setSequenceNumber(0);
 
 				//
-				if(getSimulation()->getSystemModule()->par("realisticApproach")){
+				if (getSimulation()->getSystemModule()->par("realisticApproach")) {
 
 					//10th car
-					if(nodeId % 10 == 0){
+					if (nodeId % 10 == 0) {
 						//VideoStream with 5Mbps
 						//packet size 15625 byte, packet intervall 25ms
-						payload->setByteLength(15625);
+						video->setChunkLength(B(15625));
 						sendInterval = 0.025;
-					}else if(nodeId % 2 == 0){
+					}
+					else if (nodeId % 2 == 0) {
 						//VoipStream with 80kpbs
 						//packet size 100byte, packet interval 10ms
-						payload->setByteLength(100);
+						video->setChunkLength(B(100));
 						sendInterval = 0.01;
-					}else{
+					}
+					else {
 						//random streams (packet size uniform(50byte,1500byte), packet interval uniform(10ms, 500ms)
-						unsigned int bytes = uniform(50,1500);
-						payload->setByteLength(bytes);
-						sendInterval = uniform(0.01,0.500);
+						unsigned int bytes = uniform(50, 1500);
+						video->setChunkLength(B(bytes));
+						sendInterval = uniform(0.01, 0.500);
 					}
 					//
 
@@ -2044,13 +1972,14 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 					//already one entry
 					//find the corresponding destination
 
-					payload->setSequenceNumber(connectionsServToUE[nodeId].statReport.lastVideo->getSequenceNumber() + 1);
+					video->setSequenceNumber(connectionsServToUE[nodeId].statReport.lastVideo->getSequenceNumber() + 1);
 					delete connectionsServToUE[nodeId].statReport.lastVideo;
-					connectionsServToUE[nodeId].statReport.lastVideo = payload->dup();
+					connectionsServToUE[nodeId].statReport.lastVideo = video.get()->dup();
 
 					connectionsServToUE[nodeId].videoBytesLeft = connectionsServToUE[nodeId].videoBytesLeft - messageLength;
 
-				} else {
+				}
+				else {
 					//new connection
 					Connection tmp;
 					tmp.sendIpAddress = localAddress_;
@@ -2062,33 +1991,38 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 					tmp.dataSize = dataSize;
 					tmp.dataBytesLeft = 0;
 
-					tmp.statReport.lastVideo = payload->dup();
-
-					tmp.messages = messages;
+					tmp.statReport.lastVideo = video.get()->dup();
 
 					connectionsServToUE[nodeId] = tmp;
 				}
+				payload->insertAtBack(video);
 
-				socket.sendTo(payload, L3AddressResolver().resolve(carName.c_str()), destPort);
+				socket.sendTo(check_and_cast<Packet*>(payload), L3AddressResolver().resolve(carName.c_str()), destPort);
 
-			} else if (strcmp(packetName, "VoIP") == 0) {
+			}
+			else if (strcmp(packetName, "VoIP") == 0) {
 				sentPacketsVoip++;
-				VoIPMessage *payload = new VoIPMessage(packetName);
-				payload->setByteLength(messageLength);
-				payload->setSenderNodeId(nodeId);
-				payload->setSenderName(getParentModule()->getFullName());
-				payload->setTimestamp(NOW);
-				payload->setSequenceNumber(0);
+
+				Packet *payload = new inet::Packet(packetName);
+				auto voip = makeShared<VoIPMessage>();
+				voip->setName(packetName);
+				voip->setChunkLength(B(messageLength));
+				voip->setSenderNodeId(nodeId);
+				voip->setSenderName(getParentModule()->getFullName());
+				voip->setTimestamp(NOW);
+				voip->setCreationTime(NOW);
+				voip->setSequenceNumber(0);
 
 				if (connectionsServToUE.find(nodeId) != connectionsServToUE.end()) {
 					//already one entry
 					//find the corresponding destination
 
-					payload->setSequenceNumber(connectionsServToUE[nodeId].statReport.lastVoIP->getSequenceNumber() + 1);
+					voip->setSequenceNumber(connectionsServToUE[nodeId].statReport.lastVoIP->getSequenceNumber() + 1);
 					delete connectionsServToUE[nodeId].statReport.lastVoIP;
-					connectionsServToUE[nodeId].statReport.lastVoIP = payload->dup();
+					connectionsServToUE[nodeId].statReport.lastVoIP = voip.get()->dup();
 
-				} else {
+				}
+				else {
 					//new connection
 					Connection tmp;
 					tmp.sendIpAddress = localAddress_;
@@ -2100,15 +2034,15 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 					tmp.dataSize = dataSize;
 					tmp.dataBytesLeft = 0;
 
-					tmp.statReport.lastVoIP = payload->dup();
-
-					tmp.messages = messages;
+					tmp.statReport.lastVoIP = voip.get()->dup();
 
 					connectionsServToUE[nodeId] = tmp;
 				}
+				payload->insertAtBack(voip);
 
-				socket.sendTo(payload, L3AddressResolver().resolve(carName.c_str()), destPort);
-			} else if (strcmp(packetName, "Data") == 0) {
+				socket.sendTo(check_and_cast<Packet*>(payload), L3AddressResolver().resolve(carName.c_str()), destPort);
+			}
+			else if (strcmp(packetName, "Data") == 0) {
 
 				if (getSimulation()->getSystemModule()->par("remoteDrivingDL")) {
 					//check nodeId --> every 10th car is a remote car
@@ -2124,30 +2058,35 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 
 				sentPacketsData++;
 
-				DataMessage *payload = new DataMessage(packetName);
+				Packet *payload = new inet::Packet(packetName);
+				auto data = makeShared<DataMessage>();
+				data->setName(packetName);
 
 				//
 				if (getSimulation()->getSystemModule()->par("remoteDrivingDL")) {
-					payload->setByteLength(carsByteLengthRemoteDrivingDL[carName]);
-				} else {
-					payload->setByteLength(messageLength);
+					data->setChunkLength(B(carsByteLengthRemoteDrivingDL[carName]));
+				}
+				else {
+					data->setChunkLength(B(messageLength));
 				}
 				//
-
-				payload->setSenderNodeId(nodeId);
-				payload->setSenderName(getParentModule()->getFullName());
-				payload->setTimestamp(NOW);
-				payload->setSequenceNumber(0);
+				data->setChunkLength(B(messageLength));
+				data->setSenderNodeId(nodeId);
+				data->setSenderName(getParentModule()->getFullName());
+				data->setTimestamp(NOW);
+				data->setCreationTime(NOW);
+				data->setSequenceNumber(0);
 
 				if (connectionsServToUE.find(nodeId) != connectionsServToUE.end()) {
 					//already one entry
 					//find the corresponding destination
 
-					payload->setSequenceNumber(connectionsServToUE[nodeId].statReport.lastData->getSequenceNumber() + 1);
+					data->setSequenceNumber(connectionsServToUE[nodeId].statReport.lastData->getSequenceNumber() + 1);
 					delete connectionsServToUE[nodeId].statReport.lastData;
-					connectionsServToUE[nodeId].statReport.lastData = payload->dup();
+					connectionsServToUE[nodeId].statReport.lastData = data.get()->dup();
 
-				} else {
+				}
+				else {
 					//new connection
 					Connection tmp;
 
@@ -2160,14 +2099,13 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 					tmp.dataSize = dataSize;
 					tmp.dataBytesLeft = 0;
 
-					tmp.statReport.lastData = payload->dup();
-
-					tmp.messages = messages;
+					tmp.statReport.lastData = data.get()->dup();
 
 					connectionsServToUE[nodeId] = tmp;
 				}
+				payload->insertAtBack(data);
 
-				socket.sendTo(payload, L3AddressResolver().resolve(carName.c_str()), destPort);
+				socket.sendTo(check_and_cast<Packet*>(payload), L3AddressResolver().resolve(carName.c_str()), destPort);
 			}
 
 		}
@@ -2184,12 +2122,12 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 	scheduleAt(nextSelfMsgTime, selfMsg);
 }
 
-bool TrafficGeneratorServerDL::handleNodeStart(IDoneCallback *doneCallback) {
+void TrafficGeneratorServerDL::handleStartOperation(LifecycleOperation * operation) {
 
-	socket.setOutputGate(gate("udpOut"));
+	socket.setOutputGate(gate("socketOut"));
 	localAddress_ = L3AddressResolver().resolve(getParentModule()->getFullName());
 
 	socket.bind(localAddress_, localPort);
 
-	return TrafficGenerator::handleNodeStart(doneCallback);
+	TrafficGenerator::handleStartOperation(operation);
 }

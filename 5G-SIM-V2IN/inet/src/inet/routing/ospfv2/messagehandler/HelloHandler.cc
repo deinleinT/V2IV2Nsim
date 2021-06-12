@@ -15,25 +15,24 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
+#include "inet/networklayer/common/L3AddressTag_m.h"
+#include "inet/routing/ospfv2/interface/Ospfv2Interface.h"
 #include "inet/routing/ospfv2/messagehandler/HelloHandler.h"
-
-#include "inet/routing/ospfv2/router/OSPFArea.h"
-#include "inet/routing/ospfv2/interface/OSPFInterface.h"
-#include "inet/routing/ospfv2/neighbor/OSPFNeighbor.h"
-#include "inet/routing/ospfv2/router/OSPFRouter.h"
+#include "inet/routing/ospfv2/neighbor/Ospfv2Neighbor.h"
+#include "inet/routing/ospfv2/router/Ospfv2Area.h"
+#include "inet/routing/ospfv2/router/Ospfv2Router.h"
 
 namespace inet {
-
-namespace ospf {
+namespace ospfv2 {
 
 HelloHandler::HelloHandler(Router *containingRouter) :
     IMessageHandler(containingRouter)
 {
 }
 
-void HelloHandler::processPacket(OSPFPacket *packet, Interface *intf, Neighbor *unused)
+void HelloHandler::processPacket(Packet *packet, Ospfv2Interface *intf, Neighbor *unused)
 {
-    OSPFHelloPacket *helloPacket = check_and_cast<OSPFHelloPacket *>(packet);
+    const auto& helloPacket = packet->peekAtFront<Ospfv2HelloPacket>();
     bool shouldRebuildRoutingTable = false;
 
     /* The values of the Network Mask, HelloInterval,
@@ -45,13 +44,13 @@ void HelloHandler::processPacket(OSPFPacket *packet, Interface *intf, Neighbor *
     if ((intf->getHelloInterval() == helloPacket->getHelloInterval()) &&
         (intf->getRouterDeadInterval() == helloPacket->getRouterDeadInterval()))
     {
-        Interface::OSPFInterfaceType interfaceType = intf->getType();
+        Ospfv2Interface::Ospfv2InterfaceType interfaceType = intf->getType();
         /* There is one exception to the above rule: on point-to-point
            networks and on virtual links, the Network Mask in the received
            Hello Packet should be ignored.
          */
-        if (!((interfaceType != Interface::POINTTOPOINT) &&
-              (interfaceType != Interface::VIRTUAL) &&
+        if (!((interfaceType != Ospfv2Interface::POINTTOPOINT) &&
+              (interfaceType != Ospfv2Interface::VIRTUAL) &&
               (intf->getAddressRange().mask != helloPacket->getNetworkMask())
               )
             )
@@ -60,8 +59,7 @@ void HelloHandler::processPacket(OSPFPacket *packet, Interface *intf, Neighbor *
                ExternalRoutingCapability.
              */
             if (intf->getArea()->getExternalRoutingCapability() == helloPacket->getOptions().E_ExternalRoutingCapability) {
-                INetworkProtocolControlInfo *controlInfo = check_and_cast<INetworkProtocolControlInfo *>(helloPacket->getControlInfo());
-                IPv4Address srcAddress = controlInfo->getSourceAddress().toIPv4();
+                Ipv4Address srcAddress = packet->getTag<L3AddressInd>()->getSrcAddress().toIpv4();
                 bool neighborChanged = false;
                 bool neighborsDRStateChanged = false;
                 bool drChanged = false;
@@ -72,9 +70,9 @@ void HelloHandler::processPacket(OSPFPacket *packet, Interface *intf, Neighbor *
                    MultiPoint or NBMA network the source is identified by the IP
                    source address found in the Hello's IP header.
                  */
-                if ((interfaceType == Interface::BROADCAST) ||
-                    (interfaceType == Interface::POINTTOMULTIPOINT) ||
-                    (interfaceType == Interface::NBMA))
+                if ((interfaceType == Ospfv2Interface::BROADCAST) ||
+                    (interfaceType == Ospfv2Interface::POINTTOMULTIPOINT) ||
+                    (interfaceType == Ospfv2Interface::NBMA))
                 {
                     neighbor = intf->getNeighborByAddress(srcAddress);
                 }
@@ -82,21 +80,21 @@ void HelloHandler::processPacket(OSPFPacket *packet, Interface *intf, Neighbor *
                     /* If the receiving interface connects to a point-to-point link or a virtual link,
                        the source is identified by the Router ID found in the Hello's OSPF packet header.
                      */
-                    neighbor = intf->getNeighborByID(helloPacket->getRouterID());
+                    neighbor = intf->getNeighborById(helloPacket->getRouterID());
                 }
 
                 if (neighbor != nullptr) {
                     router->getMessageHandler()->printEvent("Hello packet received", intf, neighbor);
 
-                    IPv4Address designatedAddress = neighbor->getDesignatedRouter().ipInterfaceAddress;
-                    IPv4Address backupAddress = neighbor->getBackupDesignatedRouter().ipInterfaceAddress;
+                    Ipv4Address designatedAddress = neighbor->getDesignatedRouter().ipInterfaceAddress;
+                    Ipv4Address backupAddress = neighbor->getBackupDesignatedRouter().ipInterfaceAddress;
                     char newPriority = helloPacket->getRouterPriority();
-                    IPv4Address source = controlInfo->getSourceAddress().toIPv4();
-                    IPv4Address newDesignatedRouter = helloPacket->getDesignatedRouter();
-                    IPv4Address newBackupRouter = helloPacket->getBackupDesignatedRouter();
-                    DesignatedRouterID dRouterID;
+                    Ipv4Address source = srcAddress;
+                    Ipv4Address newDesignatedRouter = helloPacket->getDesignatedRouter();
+                    Ipv4Address newBackupRouter = helloPacket->getBackupDesignatedRouter();
+                    DesignatedRouterId dRouterID;
 
-                    if ((interfaceType == Interface::VIRTUAL) &&
+                    if ((interfaceType == Ospfv2Interface::VIRTUAL) &&
                         (neighbor->getState() == Neighbor::DOWN_STATE))
                     {
                         neighbor->setPriority(helloPacket->getRouterPriority());
@@ -120,7 +118,7 @@ void HelloHandler::processPacket(OSPFPacket *packet, Interface *intf, Neighbor *
                      */
                     if ((newDesignatedRouter == source) &&
                         (newBackupRouter == NULL_IPV4ADDRESS) &&
-                        (intf->getState() == Interface::WAITING_STATE))
+                        (intf->getState() == Ospfv2Interface::WAITING_STATE))
                     {
                         backupSeen = true;
                     }
@@ -148,7 +146,7 @@ void HelloHandler::processPacket(OSPFPacket *packet, Interface *intf, Neighbor *
                        scheduled with the event BACKUP_SEEN.
                      */
                     if ((newBackupRouter == source) &&
-                        (intf->getState() == Interface::WAITING_STATE))
+                        (intf->getState() == Ospfv2Interface::WAITING_STATE))
                     {
                         backupSeen = true;
                     }
@@ -213,7 +211,7 @@ void HelloHandler::processPacket(OSPFPacket *packet, Interface *intf, Neighbor *
                     }
                 }
                 else {
-                    DesignatedRouterID dRouterID;
+                    DesignatedRouterId dRouterID;
                     bool designatedSetUp = false;
                     bool backupSetUp = false;
 
@@ -258,14 +256,14 @@ void HelloHandler::processPacket(OSPFPacket *packet, Interface *intf, Neighbor *
                 }
 
                 neighbor->processEvent(Neighbor::HELLO_RECEIVED);
-                if ((interfaceType == Interface::NBMA) &&
+                if ((interfaceType == Ospfv2Interface::NBMA) &&
                     (intf->getRouterPriority() == 0) &&
                     (neighbor->getState() >= Neighbor::INIT_STATE))
                 {
                     intf->sendHelloPacket(neighbor->getAddress());
                 }
 
-                IPv4Address interfaceAddress = intf->getAddressRange().address;
+                Ipv4Address interfaceAddress = intf->getAddressRange().address;
                 unsigned int neighborsNeighborCount = helloPacket->getNeighborArraySize();
                 unsigned int i;
                 /* The list of neighbors contained in the Hello Packet is
@@ -287,7 +285,7 @@ void HelloHandler::processPacket(OSPFPacket *packet, Interface *intf, Neighbor *
                 }
 
                 if (neighborChanged) {
-                    intf->processEvent(Interface::NEIGHBOR_CHANGE);
+                    intf->processEvent(Ospfv2Interface::NEIGHBOR_CHANGE);
                     /* In some cases neighbors get stuck in TwoWay state after a DR
                        or Backup change. (calculateDesignatedRouter runs before the
                        neighbors' signal of DR change + this router does not become
@@ -307,19 +305,19 @@ void HelloHandler::processPacket(OSPFPacket *packet, Interface *intf, Neighbor *
                     }
 
                     if (neighborsDRStateChanged) {
-                        RouterLSA *routerLSA = intf->getArea()->findRouterLSA(router->getRouterID());
+                        RouterLsa *routerLSA = intf->getArea()->findRouterLSA(router->getRouterID());
 
                         if (routerLSA != nullptr) {
                             long sequenceNumber = routerLSA->getHeader().getLsSequenceNumber();
                             if (sequenceNumber == MAX_SEQUENCE_NUMBER) {
-                                routerLSA->getHeader().setLsAge(MAX_AGE);
+                                routerLSA->getHeaderForUpdate().setLsAge(MAX_AGE);
                                 intf->getArea()->floodLSA(routerLSA);
                                 routerLSA->incrementInstallTime();
                             }
                             else {
-                                RouterLSA *newLSA = intf->getArea()->originateRouterLSA();
+                                RouterLsa *newLSA = intf->getArea()->originateRouterLSA();
 
-                                newLSA->getHeader().setLsSequenceNumber(sequenceNumber + 1);
+                                newLSA->getHeaderForUpdate().setLsSequenceNumber(sequenceNumber + 1);
                                 shouldRebuildRoutingTable |= routerLSA->update(newLSA);
                                 delete newLSA;
 
@@ -330,7 +328,7 @@ void HelloHandler::processPacket(OSPFPacket *packet, Interface *intf, Neighbor *
                 }
 
                 if (backupSeen) {
-                    intf->processEvent(Interface::BACKUP_SEEN);
+                    intf->processEvent(Ospfv2Interface::BACKUP_SEEN);
                 }
             }
         }
@@ -341,7 +339,6 @@ void HelloHandler::processPacket(OSPFPacket *packet, Interface *intf, Neighbor *
     }
 }
 
-} // namespace ospf
-
+} // namespace ospfv2
 } // namespace inet
 

@@ -1,18 +1,24 @@
+//
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
+//
+// This file is part of a software released under the license included in file
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
+// and cannot be removed from it.
+//
 
 #include "CbrReceiver.h"
 
 Define_Module(CbrReceiver);
+using namespace inet;
 
 simsignal_t CbrReceiver::cbrFrameLossSignal_ = registerSignal("cbrFrameLossSignal");
 simsignal_t CbrReceiver::cbrFrameDelaySignal_ = registerSignal("cbrFrameDelaySignal");
 simsignal_t CbrReceiver::cbrJitterSignal_ = registerSignal("cbrJitterSignal");
 simsignal_t CbrReceiver::cbrReceivedThroughtput_ = registerSignal("cbrReceivedThroughtputSignal");
-//simsignal_t CbrReceiver::cbrReceivedThroughtput_rate_ = registerSignal("cbrReceivedThroughtput_rateSignal");
-
-CbrReceiver::~CbrReceiver()
-{
-
-}
+simsignal_t CbrReceiver::cbrReceivedBytesSignal_ = registerSignal("cbrReceivedBytesSignal");
 
 void CbrReceiver::initialize(int stage)
 {
@@ -21,18 +27,17 @@ void CbrReceiver::initialize(int stage)
     if (stage == INITSTAGE_LOCAL)
     {
         mInit_ = true;
-
         numReceived_ = 0;
-
         recvBytes_ = 0;
+        cbrRcvdPkt_ = registerSignal("cbrRcvdPkt");
     }
     else if (stage == INITSTAGE_APPLICATION_LAYER)
     {
         int port = par("localPort");
-        //EV << "CbrReceiver::initialize - binding to port: local:" << port << endl;
+        EV << "CbrReceiver::initialize - binding to port: local:" << port << endl;
         if (port != -1)
         {
-            socket.setOutputGate(gate("udpOut"));
+            socket.setOutputGate(gate("socketOut"));
             socket.bind(port);
         }
     }
@@ -43,29 +48,26 @@ void CbrReceiver::handleMessage(cMessage *msg)
     if (msg->isSelfMessage())
         return;
 
-    CbrPacket* pPacket = check_and_cast<CbrPacket*>(msg);
-
-    if (pPacket == 0)
-    {
-        throw cRuntimeError("CbrReceiver::handleMessage - FATAL! Error when casting to Cbr packet");
-    }
+    Packet* pPacket = check_and_cast<Packet*>(msg);
+    auto cbrHeader = pPacket->popAtFront<CbrPacket>();
 
     numReceived_++;
-    totFrames_ = pPacket->getNframes(); // XXX this value can be written just once
-    int pktSize = (int)pPacket->getByteLength();
+    totFrames_ = cbrHeader->getNframes(); // XXX this value can be written just once
+    int pktSize = (int)cbrHeader->getPayloadSize();
 
     // just to make sure we do not update recvBytes AND we avoid dividing by 0
     if( simTime() > getSimulation()->getWarmupPeriod() )
     {
         recvBytes_ += pktSize;
-        simtime_t elapsedTime = simTime() - getSimulation()->getWarmupPeriod();
-        emit( cbrReceivedThroughtput_, recvBytes_ / elapsedTime );
+        emit( cbrReceivedBytesSignal_ , pktSize );
     }
 
-    simtime_t delay = simTime()-pPacket->getTimestamp();
+    simtime_t delay = simTime()-cbrHeader->getPayloadTimestamp();
     emit(cbrFrameDelaySignal_,delay );
 
-    //EV << "CbrReceiver::handleMessage - Packet received: FRAME[" << pPacket->getIDframe() << "/" << pPacket->getNframes() << "] with delay["<< delay << "]" << endl;
+    EV << "CbrReceiver::handleMessage - Packet received: FRAME[" << cbrHeader->getIDframe() << "/" << cbrHeader->getNframes() << "] with delay["<< delay << "]" << endl;
+
+    emit(cbrRcvdPkt_, (long)cbrHeader->getIDframe());
 
     delete msg;
 }
@@ -74,9 +76,12 @@ void CbrReceiver::finish()
 {
     double lossRate = 0;
     if(totFrames_ > 0)
-        lossRate = numReceived_/(totFrames_*1.0);
+        lossRate = 1.0-(numReceived_/(totFrames_*1.0));
 
     emit(cbrFrameLossSignal_,lossRate);
+
+    simtime_t elapsedTime = simTime() - getSimulation()->getWarmupPeriod();
+    emit( cbrReceivedThroughtput_, recvBytes_ / elapsedTime );
 }
 
 

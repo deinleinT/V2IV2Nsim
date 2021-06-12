@@ -24,8 +24,10 @@
 #pragma once
 
 #include <omnetpp.h>
+
+#include "../../stack/phy/layer/NRPhyUE.h"
 #include "nr/common/NRCommon.h"
-#include "inet/applications/udpapp/UDPBasicApp.h"
+#include "inet/applications/udpapp/UdpBasicApp.h"
 #include "inet/common/INETDefs.h"
 #include "inet/networklayer/common/L3AddressResolver.h"
 #include "inet/applications/base/ApplicationPacket_m.h"
@@ -35,7 +37,6 @@
 #include "nr/apps/TrafficGenerator/packet/VoIPMessage_m.h"
 #include "nr/apps/TrafficGenerator/packet/DataMessage_m.h"
 #include "veins/modules/mobility/traci/TraCIScenarioManager.h"
-#include "nr/stack/phy/layer/NRPhyUe.h"
 
 using namespace omnetpp;
 using namespace inet;
@@ -133,7 +134,6 @@ struct Connection {
 	OmnetId omnetIdSender;
 	MacNodeId macNodeIdDest;
 	OmnetId omnetIdDest;
-	int messages;
 
 	//for exchange delay
 	unsigned int lastReceivedStatusUpdateSN = 0;
@@ -155,7 +155,7 @@ typedef ConnectionsMap::iterator ConnectionsMapIterator;
  * Downlink (TrafficGeneratorServerDL is the sender, TrafficGeneratorCarDL is the receiver)
  * and in Uplink (TrafficGeneratorCarUL is the sender, TrafficGeneratorServerUL is the receiver)
  */
-class TrafficGenerator: public UDPBasicApp {
+class TrafficGenerator: public UdpBasicApp {
 protected:
 
 	std::string nodeType;
@@ -167,7 +167,6 @@ protected:
 	ConnectionsMap connectionsUEtoServ;
 	ConnectionsMap connectionsServToUE;
 
-	bool autoReply;
 	bool sendVideoPacket;
 	bool sendDataPacket;
 
@@ -183,7 +182,6 @@ protected:
 
 	//Packet Delay Variation
 	//considers the delay variation of the arrived packet and the last received packet before
-	//(lost packets are neglected)
 	simsignal_t delayVoipVariation;
 	simsignal_t delayV2XVariation;
 	simsignal_t delayVideoVariation;
@@ -213,12 +211,6 @@ protected:
 	unsigned int sentPacketsVoip;
 	unsigned int sentPacketsData;
 
-	//
-	cOutVector delayDataTransferFinished;
-
-	//server DL
-	unsigned int messages;
-
 	simtime_t delayBudget10ms;
 	simtime_t delayBudget20ms;
 	simtime_t delayBudget50ms;
@@ -226,10 +218,6 @@ protected:
 	simtime_t delayBudget200ms;
 	simtime_t delayBudget500ms;
 	simtime_t delayBudget1s;
-
-	bool considerDatasizeAndMessages;
-
-	unsigned int lastSentStatusUpdateSN;
 
 	std::set<std::string> carsV2X;
 	std::set<std::string> carsData;
@@ -274,34 +262,13 @@ protected:
 
 	virtual void processStop() override;
 
-	virtual bool handleNodeStart(IDoneCallback *doneCallback) override;
-	virtual bool handleNodeShutdown(IDoneCallback *doneCallback) override;
-	virtual void handleNodeCrash() override;
+	virtual void handleStartOperation(LifecycleOperation *operation) override;
+    virtual void handleStopOperation(LifecycleOperation *operation) override;
+    virtual void handleCrashOperation(LifecycleOperation *operation) override;
 
 	virtual void recordReliability();
 
-	/*
-	 * records the position of the vehicle when a packet loss was detected at application layer
-	 */
-	virtual void recordVehiclePositionAndLostPackets(MacNodeId nodeId, Direction direction, unsigned int lostPackets) {
-
-		Enter_Method_Silent("recordVehiclePositionAndLostPackets");
-
-		if(!(getSystemModule()->par("recordPositionAndPacketLoss"))){
-			return;
-		}
-
-		if (direction == DL) {
-			//server sends to car, this is called on UE side, get access to its physical layer
-			check_and_cast<NRPhyUe*>(getParentModule()->getSubmodule("lteNic")->getSubmodule("phy"))->recordPositionAndLostPackets(lostPackets, direction);
-			//
-		} else {
-			//car sends to server, this is called on server side, but the value is recorded in the corresponding car!
-			cModule * module = getMacUe(nodeId);
-			check_and_cast<NRPhyUe*>(module->getParentModule()->getSubmodule("phy"))->recordPositionAndLostPackets(lostPackets, direction);
-			//
-		}
-	}
+	virtual void sendPacket(){ UdpBasicApp::sendPacket();};
 
 	/**
 	 * Calculates the Packet delay variation, two variations are considered:
@@ -445,7 +412,7 @@ public:
 	}
 
 protected:
-	virtual bool handleNodeStart(IDoneCallback *doneCallback) override;
+	virtual void handleStartOperation(LifecycleOperation *operation) override;
 	virtual void handleMessageWhenUp(cMessage *msg) override;
 	virtual void processPacketServer(cPacket *msg);
 
@@ -489,9 +456,8 @@ public:
 	}
 
 protected:
-	virtual bool handleNodeStart(IDoneCallback *doneCallback) override;
 	virtual void processStart() override;
-	virtual void sendPacket(long bytes) override;
+	virtual void sendPacket() override;
 	virtual void processSend() override;
 };
 
@@ -543,12 +509,7 @@ public:
 		//startTime --> server determines the first time a packet is sent to this car
 		simtime_t interval = par("sendInterval").doubleValue();
 		simtime_t nextSelfMsgTime = NOW + interval + +uniform(0.0, par("startTimeDL").doubleValue());
-		if (considerDatasizeAndMessages) {
-			//HD Map
-//			if ("car[159]" == name || "car[237]" == name) {
-//				nextSelfMsg = NOW + par("startTime").doubleValue();
-//			}
-		}
+
 		if (names.find(name) == names.end()) {
 			carsSendingTimes[name] = nextSelfMsgTime;
 		}
@@ -587,8 +548,8 @@ protected:
 	std::map<std::string, unsigned int> carsByteLengthRemoteDrivingDL;
 	std::map<std::string, simtime_t> carsSendingIntervalRemoteDrivingDL;
 
-	virtual bool handleNodeStart(IDoneCallback *doneCallback) override;
-	virtual void sendPacket(long bytes) override;
+	virtual void handleStartOperation(LifecycleOperation *operation) override;
+	virtual void sendPacket() override;
 	virtual void handleMessageWhenUp(cMessage *msg) override;
 	virtual void initialize(int stage) override;
 
@@ -640,8 +601,8 @@ protected:
 	simsignal_t carNameSignal;
 	virtual void initialize(int stage) override;
 	virtual void handleMessageWhenUp(cMessage *msg) override;
-	virtual void processPacket(cPacket *msg) override;
-	virtual bool handleNodeStart(IDoneCallback *doneCallback) override;
+	virtual void processPacket(Packet *msg) override;
+	virtual void handleStartOperation(LifecycleOperation *operation) override;
 
 };
 

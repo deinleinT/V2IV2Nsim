@@ -91,7 +91,7 @@ DeploymentScenarioNR aToDeploymentScenarioNR(std::string s)
     return UNKNOW_SCENARIO_NR;
 }
 
-const std::string NRChannelModelToA(NRChannelModel type)
+const std::string NRChannelModelToA(NRChannelModels type)
 {
     int i = 0;
     while (NRChannelModelTable[i].channelModel != UNKNOWN) {
@@ -102,7 +102,7 @@ const std::string NRChannelModelToA(NRChannelModel type)
     return "UNKNOWN";
 }
 
-NRChannelModel aToNRChannelModel(std::string s)
+NRChannelModels aToNRChannelModel(std::string s)
 {
     int i = 0;
     while (NRChannelModelTable[i].channelModel != UNKNOWN) {

@@ -27,40 +27,40 @@ class INET_API TransmitStep : public ITransmitStep
 {
     protected:
         Completion completion = Completion::UNDEFINED;
-        Ieee80211Frame *frameToTransmit = nullptr;
+        Packet *frameToTransmit = nullptr;
         simtime_t ifs = -1;
 
     public:
-        TransmitStep(Ieee80211Frame *frame, simtime_t ifs) :
+        TransmitStep(Packet *frame, simtime_t ifs) :
             frameToTransmit(frame),
             ifs(ifs)
         { }
         virtual ~TransmitStep()
         {
 #if OMNETPP_BUILDNUM < 1505   //OMNETPP_VERSION < 0x0600    // 6.0 pre9
-            if (!dynamic_cast<Ieee80211DataOrMgmtFrame*>(frameToTransmit))
+            if (!dynamicPtrCast<const Ieee80211DataOrMgmtHeader>(frameToTransmit->peekAtFront<Ieee80211MacHeader>()))
                 delete frameToTransmit;
 #endif
         }
 
         virtual Completion getCompletion() override { return completion; }
         virtual void setCompletion(Completion completion) override { this->completion = completion; }
-        virtual Ieee80211Frame *getFrameToTransmit() override { return frameToTransmit; }
+        virtual Packet *getFrameToTransmit() override { return frameToTransmit; }
         virtual simtime_t getIfs() override { return ifs; }
 };
 
 class INET_API RtsTransmitStep : public TransmitStep
 {
     protected:
-        Ieee80211DataOrMgmtFrame *protectedFrame = nullptr;
+        const Packet *protectedFrame = nullptr;
 
     public:
-        RtsTransmitStep(Ieee80211DataOrMgmtFrame *protectedFrame, Ieee80211Frame *frame, simtime_t ifs) :
+        RtsTransmitStep(Packet *protectedFrame, Packet *frame, simtime_t ifs) :
             TransmitStep(frame, ifs),
             protectedFrame(protectedFrame)
         { }
 
-        virtual Ieee80211DataOrMgmtFrame *getProtectedFrame() { return protectedFrame; }
+        virtual const Packet *getProtectedFrame() { return protectedFrame; }
 };
 
 class INET_API ReceiveStep : public IReceiveStep
@@ -68,7 +68,7 @@ class INET_API ReceiveStep : public IReceiveStep
     protected:
         Completion completion = Completion::UNDEFINED;
         simtime_t timeout = -1;
-        Ieee80211Frame *receivedFrame = nullptr;
+        Packet *receivedFrame = nullptr;
 
     public:
         ReceiveStep(simtime_t timeout = -1) :
@@ -79,8 +79,8 @@ class INET_API ReceiveStep : public IReceiveStep
         virtual Completion getCompletion() override { return completion; }
         virtual void setCompletion(Completion completion) override { this->completion = completion; }
         virtual simtime_t getTimeout() override { return timeout; }
-        virtual Ieee80211Frame *getReceivedFrame() override { return receivedFrame; }
-        virtual void setFrameToReceive(Ieee80211Frame *frame) override { this->receivedFrame = frame; }
+        virtual Packet *getReceivedFrame() override { return receivedFrame; }
+        virtual void setFrameToReceive(Packet *frame) override { this->receivedFrame = frame; }
 };
 
 } // namespace ieee80211

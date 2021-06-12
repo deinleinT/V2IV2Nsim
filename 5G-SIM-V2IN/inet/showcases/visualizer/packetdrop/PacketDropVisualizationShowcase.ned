@@ -1,6 +1,6 @@
 package inet.showcases.visualizer.packetdrop;
 
-import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
+import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 import inet.node.ethernet.Eth100G;
 import inet.node.ethernet.Eth100M;
 import inet.node.ethernet.Eth10M;
@@ -34,7 +34,7 @@ network PacketDropQueueOverflowShowcase
         destination: WirelessHost {
             @display("p=589,194");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=88,37");
         }
         visualizer: IntegratedVisualizer {
@@ -60,7 +60,7 @@ network PacketDropArpResolutionFailedShowcase
             parameters:
                 @display("p=100,150");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             parameters:
                 @display("p=100,250");
         }
@@ -81,7 +81,7 @@ network PacketDropMacRetryLimitReachedShowcase
             parameters:
                 @display("p=100,150");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             parameters:
                 @display("p=100,250");
         }
@@ -99,7 +99,7 @@ network PacketDropInterfaceNotConnectedShowcase
 {
     @display("bgb=400,400");
     submodules:
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=60,40");
         }
         visualizer: IntegratedVisualizer {
@@ -119,7 +119,7 @@ network PacketDropNoRouteToDestinationShowcase
 {
     @display("bgb=400,400");
     submodules:
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=60,40");
         }
         visualizer: IntegratedVisualizer {

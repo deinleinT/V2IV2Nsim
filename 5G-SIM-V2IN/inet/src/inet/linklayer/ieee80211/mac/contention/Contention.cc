@@ -17,13 +17,14 @@
 
 #include "inet/common/FSMA.h"
 #include "inet/common/ModuleAccess.h"
-#include "inet/linklayer/ieee80211/mac/contention/Contention.h"
 #include "inet/linklayer/ieee80211/mac/Ieee80211Frame_m.h"
+#include "inet/linklayer/ieee80211/mac/contention/Contention.h"
 
 namespace inet {
 namespace ieee80211 {
 
 simsignal_t Contention::stateChangedSignal = registerSignal("stateChanged");
+
 // for @statistic; don't forget to keep synchronized the C++ enum and the runtime enum definition
 Register_Enum(Contention::State,
         (Contention::IDLE,
@@ -41,7 +42,7 @@ void Contention::initialize(int stage)
         mac = check_and_cast<Ieee80211Mac *>(getContainingNicModule(this)->getSubmodule("mac"));
         startTxEvent = new cMessage("startTx");
         startTxEvent->setSchedulingPriority(1000); // low priority, i.e. processed later than most events for the same time
-        // FIXME: kludge
+        // KLUDGE:
         // The callback->channelAccessGranted() call should be the last
         // event at a simulation time in order to handle internal collisions
         // properly.
@@ -61,6 +62,7 @@ void Contention::initialize(int stage)
         WATCH(backoffOptimizationDelta);
         WATCH(mediumFree);
         WATCH(backoffOptimization);
+        WATCH(startTime);
         updateDisplayString(-1);
     }
     else if (stage == INITSTAGE_LAST) {
@@ -79,7 +81,7 @@ void Contention::startContention(int cw, simtime_t ifs, simtime_t eifs, simtime_
 {
     startTime = simTime();
     ASSERT(ifs >= 0 && eifs >= 0 && slotTime >= 0 && cw >= 0);
-    Enter_Method("startContention()");
+    Enter_Method_Silent("startContention");
     cancelEvent(channelGrantedEvent);
     ASSERT(fsm.getState() == IDLE);
     this->ifs = ifs;
@@ -87,14 +89,15 @@ void Contention::startContention(int cw, simtime_t ifs, simtime_t eifs, simtime_
     this->slotTime = slotTime;
     this->callback = callback;
     backoffSlots = intrand(cw + 1);
-    //EV_DETAIL << "Starting contention: cw = " << cw << ", slots = " << backoffSlots << endl;
+    emit(backoffPeriodGeneratedSignal, backoffSlots);
+    //EV_DETAIL << "Starting contention: cw = " << cw << ", slots = " << backoffSlots << ", slotTime = " << slotTime << ", ifs = " << ifs << ", eifs = " << eifs << endl;
     handleWithFSM(START);
 }
 
 void Contention::handleWithFSM(EventType event)
 {
     emit(stateChangedSignal, fsm.getState());
-    //EV_DEBUG << "handleWithFSM: processing event " << getEventName(event) << "\n";
+    //EV_TRACE << "handleWithFSM: processing event " << getEventName(event) << "\n";
     bool finallyReportChannelAccessGranted = false;
     FSMA_Switch(fsm) {
         FSMA_State(IDLE) {
@@ -170,10 +173,13 @@ void Contention::mediumStateChanged(bool mediumFree)
 
 void Contention::handleMessage(cMessage *msg)
 {
-    if (msg == startTxEvent)
+    if (msg == startTxEvent) {
+        emit(backoffStoppedSignal, SimTime::ZERO);
         handleWithFSM(CHANNEL_ACCESS_GRANTED);
+    }
     else if (msg == channelGrantedEvent) {
-        //EV_INFO << "Channel granted: contention started at " << startTime << std::endl;
+        //EV_INFO << "Channel granted: startTime = " << startTime << std::endl;
+        emit(channelAccessGrantedSignal, this);
         callback->channelAccessGranted();
         callback = nullptr;
     }
@@ -183,7 +189,7 @@ void Contention::handleMessage(cMessage *msg)
 
 void Contention::corruptedFrameReceived()
 {
-    Enter_Method("corruptedFrameReceived()");
+    Enter_Method_Silent("corruptedFrameReceived");
     handleWithFSM(CORRUPTED_FRAME_RECEIVED);
 }
 
@@ -191,6 +197,7 @@ void Contention::scheduleTransmissionRequestFor(simtime_t txStartTime)
 {
     scheduleAt(txStartTime, startTxEvent);
     callback->expectedChannelAccess(txStartTime);
+    emit(backoffStartedSignal, txStartTime);
     if (hasGUI())
         updateDisplayString(txStartTime);
 }
@@ -199,6 +206,7 @@ void Contention::cancelTransmissionRequest()
 {
     cancelEvent(startTxEvent);
     callback->expectedChannelAccess(-1);
+    emit(backoffStoppedSignal, SimTime::ZERO);
     if (hasGUI())
         updateDisplayString(-1);
 }
@@ -209,23 +217,24 @@ void Contention::scheduleTransmissionRequest()
     simtime_t now = simTime();
     bool useEifs = endEifsTime > now + ifs;
     simtime_t waitInterval = (useEifs ? eifs : ifs) + backoffSlots * slotTime;
-    //EV_INFO << "backoffslots = " << backoffSlots << " slotTime = " << slotTime << std::endl;
+    //EV_INFO << "Scheduling contention end: backoffslots = " << backoffSlots << ", slotTime = " << slotTime;
     if (backoffOptimization && fsm.getState() == IDLE) {
         // we can pretend the frame has arrived into the queue a little bit earlier, and may be able to start transmitting immediately
         simtime_t elapsedFreeChannelTime = now - lastChannelBusyTime;
         simtime_t elapsedIdleTime = now - lastIdleStartTime;
-        //EV_INFO << "lastBusyTime = " << lastChannelBusyTime << " lastIdle = " << lastIdleStartTime << std::endl;
+        //EV_INFO << ", lastBusyTime = " << lastChannelBusyTime << ", lastIdle = " << lastIdleStartTime;
         backoffOptimizationDelta = std::min(waitInterval, std::min(elapsedFreeChannelTime, elapsedIdleTime));
         if (backoffOptimizationDelta > SIMTIME_ZERO)
             waitInterval -= backoffOptimizationDelta;
     }
     scheduledTransmissionTime = now + waitInterval;
-    //EV_INFO << "waitInterval = " <<  waitInterval << std::endl;
+    //EV_INFO << ", waitInterval = " <<  waitInterval << ".\n";
     scheduleTransmissionRequestFor(scheduledTransmissionTime);
 }
 
 void Contention::switchToEifs()
 {
+    //EV_DEBUG << "Switching to EIFS from DISF.\n";
     endEifsTime = simTime() + eifs;
     cancelTransmissionRequest();
     scheduleTransmissionRequest();
@@ -242,6 +251,7 @@ void Contention::computeRemainingBackoffSlots()
 // TODO: we should call it when internal collision occurs after backoff optimization
 void Contention::revokeBackoffOptimization()
 {
+    //EV_DEBUG << "Revoking backoff optimization: backoffOptimizationDelta = " << backoffOptimizationDelta << std::endl;
     scheduledTransmissionTime += backoffOptimizationDelta;
     backoffOptimizationDelta = SIMTIME_ZERO;
     cancelTransmissionRequest();

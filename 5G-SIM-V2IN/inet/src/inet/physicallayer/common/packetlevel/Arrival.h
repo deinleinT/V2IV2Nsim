@@ -21,7 +21,6 @@
 #include "inet/physicallayer/contract/packetlevel/IArrival.h"
 
 namespace inet {
-
 namespace physicallayer {
 
 class INET_API Arrival : public virtual IArrival
@@ -36,11 +35,11 @@ class INET_API Arrival : public virtual IArrival
     const simtime_t dataDuration;
     const Coord startPosition;
     const Coord endPosition;
-    const EulerAngles startOrientation;
-    const EulerAngles endOrientation;
+    const Quaternion startOrientation;
+    const Quaternion endOrientation;
 
   public:
-    Arrival(const simtime_t startPropagationTime, const simtime_t endPropagationTime, const simtime_t startTime, const simtime_t endTime, const simtime_t preambleDuration, const simtime_t headerDuration, const simtime_t dataDuration, const Coord startPosition, const Coord endPosition, const EulerAngles startOrientation, const EulerAngles endOrientation);
+    Arrival(const simtime_t startPropagationTime, const simtime_t endPropagationTime, const simtime_t startTime, const simtime_t endTime, const simtime_t preambleDuration, const simtime_t headerDuration, const simtime_t dataDuration, const Coord startPosition, const Coord endPosition, const Quaternion startOrientation, const Quaternion endOrientation);
 
     virtual std::ostream& printToStream(std::ostream& stream, int level) const override;
 
@@ -60,15 +59,14 @@ class INET_API Arrival : public virtual IArrival
     virtual const simtime_t getDataStartTime() const override { return endTime - dataDuration; }
     virtual const simtime_t getDataEndTime() const override { return endTime; }
 
-    virtual const Coord getStartPosition() const override { return startPosition; }
-    virtual const Coord getEndPosition() const override { return endPosition; }
+    virtual const Coord& getStartPosition() const override { return startPosition; }
+    virtual const Coord& getEndPosition() const override { return endPosition; }
 
-    virtual const EulerAngles getStartOrientation() const override { return startOrientation; }
-    virtual const EulerAngles getEndOrientation() const override { return endOrientation; }
+    virtual const Quaternion& getStartOrientation() const override { return startOrientation; }
+    virtual const Quaternion& getEndOrientation() const override { return endOrientation; }
 };
 
 } // namespace physicallayer
-
 } // namespace inet
 
 #endif // ifndef __INET_ARRIVAL_H

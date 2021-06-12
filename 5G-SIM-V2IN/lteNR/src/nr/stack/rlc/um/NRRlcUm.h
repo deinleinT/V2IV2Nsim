@@ -27,37 +27,49 @@
 #pragma once
 
 #include <omnetpp.h>
+
+#include "../../phy/layer/NRPhyUE.h"
 #include "stack/rlc/um/LteRlcUm.h"
-#include "nr/stack/phy/layer/NRPhyUe.h"
 #include "nr/stack/phy/layer/NRPhyGnb.h"
+#include "nr/stack/sdap/utils/QosHandler.h"
 
 //see inherit class for method description
 class NRRlcUm: public LteRlcUm {
 
 protected:
-    virtual void initialize();
+    cOutVector totalRlcThroughputUl;
+    double totalRcvdBytesUl;
+    double totalRcvdBytesDl;
+    cOutVector totalRlcThroughputDl;
+
+    double numberOfConnectedUes;
+    cOutVector cellConnectedUes;
+
+    simsignal_t UEtotalRlcThroughputDlMean;
+    simsignal_t UEtotalRlcThroughputUlMean;
+
+    QosHandler * qosHandler;
+    virtual void initialize(int stage) override;
     virtual void handleMessage(cMessage *msg);
 	virtual void sendDefragmented(cPacket *pkt);
 	virtual void handleLowerMessage(cPacket *pkt);
     virtual void handleUpperMessage(cPacket *pkt);
 
-    simsignal_t UEtotalRlcThroughputDlMean;
-    simsignal_t UEtotalRlcThroughputUlMean;
-
 public:
-	virtual void recordTotalRlcThroughputUl(double length) {
-		this->totalRcvdBytesUl += length;
-		double tp = totalRcvdBytesUl / (NOW - getSimulation()->getWarmupPeriod());
-		totalRlcThroughputUl.record(tp);
-		emit(UEtotalRlcThroughputUlMean,tp);
-	}
+    virtual void recordTotalRlcThroughputUl(double length) {
+        this->totalRcvdBytesUl += length;
+        double tp = totalRcvdBytesUl / (NOW - getSimulation()->getWarmupPeriod());
+        totalRlcThroughputUl.record(tp);
+        emit(UEtotalRlcThroughputUlMean,tp);
+    }
 
-	virtual void recordTotalRlcThroughputDl(double length) {
-		this->totalRcvdBytesDl += length;
-		double tp = totalRcvdBytesDl / (NOW - getSimulation()->getWarmupPeriod());
-		totalRlcThroughputDl.record(tp);
-		emit(UEtotalRlcThroughputDlMean,tp);
-	}
+    virtual void recordTotalRlcThroughputDl(double length) {
+        this->totalRcvdBytesDl += length;
+        double tp = totalRcvdBytesDl / (NOW - getSimulation()->getWarmupPeriod());
+        totalRlcThroughputDl.record(tp);
+        emit(UEtotalRlcThroughputDlMean,tp);
+    }
+
 
 };
 

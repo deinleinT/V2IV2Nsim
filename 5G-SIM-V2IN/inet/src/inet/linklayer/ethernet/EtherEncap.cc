@@ -15,15 +15,24 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-
-#include "inet/linklayer/ethernet/EtherEncap.h"
-
+#include "inet/applications/common/SocketTag_m.h"
 #include "inet/common/INETUtils.h"
+#include "inet/common/IProtocolRegistrationListener.h"
 #include "inet/common/ModuleAccess.h"
-#include "inet/linklayer/ethernet/EtherFrame.h"
-#include "inet/networklayer/contract/IInterfaceTable.h"
+#include "inet/common/ProtocolTag_m.h"
+#include "inet/common/checksum/EthernetCRC.h"
+#include "inet/linklayer/common/FcsMode_m.h"
 #include "inet/linklayer/common/Ieee802Ctrl.h"
+#include "inet/linklayer/common/Ieee802SapTag_m.h"
+#include "inet/linklayer/common/InterfaceTag_m.h"
+#include "inet/linklayer/common/MacAddressTag_m.h"
+#include "inet/linklayer/common/VlanTag_m.h"
+#include "inet/linklayer/ethernet/EtherEncap.h"
+#include "inet/linklayer/ethernet/EtherFrame_m.h"
+#include "inet/linklayer/ethernet/EthernetCommand_m.h"
+#include "inet/linklayer/ethernet/EtherPhyFrame_m.h"
+#include "inet/linklayer/ieee8022/Ieee8022LlcHeader_m.h"
+#include "inet/networklayer/contract/IInterfaceTable.h"
 
 namespace inet {
 
@@ -33,157 +42,251 @@ simsignal_t EtherEncap::encapPkSignal = registerSignal("encapPk");
 simsignal_t EtherEncap::decapPkSignal = registerSignal("decapPk");
 simsignal_t EtherEncap::pauseSentSignal = registerSignal("pauseSent");
 
+EtherEncap::~EtherEncap()
+{
+    for (auto it : socketIdToSocketMap)
+        delete it.second;
+}
+
+bool EtherEncap::Socket::matches(Packet *packet, const Ptr<const EthernetMacHeader>& ethernetMacHeader)
+{
+    if (!sourceAddress.isUnspecified() && !ethernetMacHeader->getSrc().isBroadcast() && ethernetMacHeader->getSrc() != sourceAddress)
+        return false;
+    if (!destinationAddress.isUnspecified() && !ethernetMacHeader->getDest().isBroadcast() && ethernetMacHeader->getDest() != destinationAddress)
+        return false;
+    if (protocol != nullptr && packet->getTag<PacketProtocolTag>()->getProtocol() != protocol)
+        return false;
+    if (vlanId != -1 && packet->getTag<VlanInd>()->getVlanId() != vlanId)
+        return false;
+    return true;
+}
+
 void EtherEncap::initialize(int stage)
 {
+    Ieee8022Llc::initialize(stage);
     if (stage == INITSTAGE_LOCAL) {
+        fcsMode = parseFcsMode(par("fcsMode"));
         seqNum = 0;
         WATCH(seqNum);
         totalFromHigherLayer = totalFromMAC = totalPauseSent = 0;
-        useSNAP = par("useSNAP").boolValue();
+        useSNAP = par("useSNAP");
         WATCH(totalFromHigherLayer);
         WATCH(totalFromMAC);
         WATCH(totalPauseSent);
     }
-    else if (stage == INITSTAGE_LINK_LAYER_2) {
-        IInterfaceTable *ift = findModuleFromPar<IInterfaceTable>(par("interfaceTableModule"), this);
-        InterfaceEntry *myIface = ift != nullptr ? ift->getInterfaceByName(utils::stripnonalnum(findModuleUnderContainingNode(this)->getFullName()).c_str()) : nullptr;
-        interfaceId = (myIface != nullptr) ? myIface->getInterfaceId() : -1;
-    }
-}
-
-void EtherEncap::handleMessage(cMessage *msg)
-{
-    if (msg->arrivedOn("lowerLayerIn")) {
-        //EV_INFO << "Received " << msg << " from lower layer." << endl;
-        processFrameFromMAC(check_and_cast<EtherFrame *>(msg));
-    }
-    else {
-        //EV_INFO << "Received " << msg << " from upper layer." << endl;
-        // from higher layer
-        switch (msg->getKind()) {
-            case IEEE802CTRL_DATA:
-            case 0:    // default message kind (0) is also accepted
-                processPacketFromHigherLayer(PK(msg));
-                break;
-
-            case IEEE802CTRL_SENDPAUSE:
-                // higher layer want MAC to send PAUSE frame
-                handleSendPause(msg);
-                break;
-
-            default:
-                throw cRuntimeError("Received message `%s' with unknown message kind %d", msg->getName(), msg->getKind());
+    else if (stage == INITSTAGE_LINK_LAYER)
+    {
+        if (par("registerProtocol").boolValue()) {    //FIXME //KUDGE should redesign place of EtherEncap and LLC modules
+            //register service and protocol
+            registerService(Protocol::ethernetMac, gate("upperLayerIn"), nullptr);
+            registerProtocol(Protocol::ethernetMac, nullptr, gate("upperLayerOut"));
         }
     }
 }
 
+void EtherEncap::processCommandFromHigherLayer(Request *msg)
+{
+    auto ctrl = msg->getControlInfo();
+    if (dynamic_cast<Ieee802PauseCommand *>(ctrl) != nullptr)
+        handleSendPause(msg);
+    else if (auto bindCommand = dynamic_cast<EthernetBindCommand *>(ctrl)) {
+        int socketId = check_and_cast<Request *>(msg)->getTag<SocketReq>()->getSocketId();
+        Socket *socket = new Socket(socketId);
+        socket->sourceAddress = bindCommand->getSourceAddress();
+        socket->destinationAddress = bindCommand->getDestinationAddress();
+        socket->protocol = bindCommand->getProtocol();
+        socket->vlanId = bindCommand->getVlanId();
+        socketIdToSocketMap[socketId] = socket;
+        delete msg;
+    }
+    else if (dynamic_cast<EthernetCloseCommand *>(ctrl) != nullptr) {
+        int socketId = check_and_cast<Request *>(msg)->getTag<SocketReq>()->getSocketId();
+        auto it = socketIdToSocketMap.find(socketId);
+        delete it->second;
+        socketIdToSocketMap.erase(it);
+        delete msg;
+        auto indication = new Indication("closed", ETHERNET_I_SOCKET_CLOSED);
+        auto ctrl = new EthernetSocketClosedIndication();
+        indication->setControlInfo(ctrl);
+        indication->addTag<SocketInd>()->setSocketId(socketId);
+        send(indication, "transportOut");
+    }
+    else if (dynamic_cast<EthernetDestroyCommand *>(ctrl) != nullptr) {
+        int socketId = check_and_cast<Request *>(msg)->getTag<SocketReq>()->getSocketId();
+        auto it = socketIdToSocketMap.find(socketId);
+        delete it->second;
+        socketIdToSocketMap.erase(it);
+        delete msg;
+    }
+    else
+        Ieee8022Llc::processCommandFromHigherLayer(msg);
+}
+
 void EtherEncap::refreshDisplay() const
 {
+    Ieee8022Llc::refreshDisplay();
     char buf[80];
     sprintf(buf, "passed up: %ld\nsent: %ld", totalFromMAC, totalFromHigherLayer);
     getDisplayString().setTagArg("t", 0, buf);
 }
 
-void EtherEncap::processPacketFromHigherLayer(cPacket *msg)
+void EtherEncap::processPacketFromHigherLayer(Packet *packet)
 {
-    if (msg->getByteLength() > MAX_ETHERNET_DATA_BYTES)
-        throw cRuntimeError("packet from higher layer (%d bytes) exceeds maximum Ethernet payload length (%d)", (int)msg->getByteLength(), MAX_ETHERNET_DATA_BYTES);
+    delete packet->removeTagIfPresent<DispatchProtocolReq>();
+    if (packet->getDataLength() > MAX_ETHERNET_DATA_BYTES)
+        throw cRuntimeError("packet length from higher layer (%s) exceeds maximum Ethernet payload length (%s)", packet->getDataLength().str().c_str(), MAX_ETHERNET_DATA_BYTES.str().c_str());
 
     totalFromHigherLayer++;
-    emit(encapPkSignal, msg);
+    emit(encapPkSignal, packet);
 
     // Creates MAC header information and encapsulates received higher layer data
     // with this information and transmits resultant frame to lower layer
 
     // create Ethernet frame, fill it in from Ieee802Ctrl and encapsulate msg in it
-    //EV_DETAIL << "Encapsulating higher layer packet `" << msg->getName() << "' for MAC\n";
+    //EV_DETAIL << "Encapsulating higher layer packet `" << packet->getName() << "' for MAC\n";
 
-    IMACProtocolControlInfo *controlInfo = check_and_cast<IMACProtocolControlInfo *>(msg->removeControlInfo());
-    Ieee802Ctrl *etherctrl = dynamic_cast<Ieee802Ctrl *>(controlInfo);
-    EtherFrame *frame = nullptr;
-
-    if (useSNAP) {
-        EtherFrameWithSNAP *snapFrame = new EtherFrameWithSNAP(msg->getName());
-
-        snapFrame->setSrc(controlInfo->getSourceAddress());    // if blank, will be filled in by MAC
-        snapFrame->setDest(controlInfo->getDestinationAddress());
-        snapFrame->setOrgCode(0);
-        if (etherctrl)
-            snapFrame->setLocalcode(etherctrl->getEtherType());
-        frame = snapFrame;
+    int typeOrLength = -1;
+    if (!useSNAP) {
+        auto protocolTag = packet->findTag<PacketProtocolTag>();
+        if (protocolTag) {
+            const Protocol *protocol = protocolTag->getProtocol();
+            if (protocol) {
+                int ethType = ProtocolGroup::ethertype.findProtocolNumber(protocol);
+                if (ethType != -1)
+                    typeOrLength = ethType;
+            }
+        }
     }
-    else {
-        EthernetIIFrame *eth2Frame = new EthernetIIFrame(msg->getName());
-
-        eth2Frame->setSrc(controlInfo->getSourceAddress());    // if blank, will be filled in by MAC
-        eth2Frame->setDest(controlInfo->getDestinationAddress());
-        if (etherctrl)
-            eth2Frame->setEtherType(etherctrl->getEtherType());
-        frame = eth2Frame;
+    if (typeOrLength == -1) {
+        Ieee8022Llc::encapsulate(packet);
+        typeOrLength = packet->getByteLength();
     }
-    delete controlInfo;
+    auto macAddressReq = packet->getTag<MacAddressReq>();
+    const auto& ethHeader = makeShared<EthernetMacHeader>();
+    ethHeader->setSrc(macAddressReq->getSrcAddress());    // if blank, will be filled in by MAC
+    ethHeader->setDest(macAddressReq->getDestAddress());
+    ethHeader->setTypeOrLength(typeOrLength);
+    packet->insertAtFront(ethHeader);
 
-    ASSERT(frame->getByteLength() > 0); // length comes from msg file
+    packet->insertAtBack(makeShared<EthernetFcs>(fcsMode));
 
-    frame->encapsulate(msg);
-    if (frame->getByteLength() < MIN_ETHERNET_FRAME_BYTES)
-        frame->setByteLength(MIN_ETHERNET_FRAME_BYTES); // "padding"
-
-    //EV_INFO << "Sending " << frame << " to lower layer.\n";
-    send(frame, "lowerLayerOut");
+    packet->addTagIfAbsent<PacketProtocolTag>()->setProtocol(&Protocol::ethernetMac);
+    //EV_INFO << "Sending " << packet << " to lower layer.\n";
+    send(packet, "lowerLayerOut");
 }
 
-void EtherEncap::processFrameFromMAC(EtherFrame *frame)
+const Ptr<const EthernetMacHeader> EtherEncap::decapsulateMacHeader(Packet *packet)
 {
-    // decapsulate and attach control info
-    cPacket *higherlayermsg = frame->decapsulate();
+    auto ethHeader = packet->popAtFront<EthernetMacHeader>();
+    packet->popAtBack<EthernetFcs>(ETHER_FCS_BYTES);
 
     // add Ieee802Ctrl to packet
-    Ieee802Ctrl *etherctrl = new Ieee802Ctrl();
-    etherctrl->setSrc(frame->getSrc());
-    etherctrl->setDest(frame->getDest());
-    etherctrl->setInterfaceId(interfaceId);
-    if (dynamic_cast<EthernetIIFrame *>(frame) != nullptr)
-        etherctrl->setEtherType(((EthernetIIFrame *)frame)->getEtherType());
-    else if (dynamic_cast<EtherFrameWithSNAP *>(frame) != nullptr)
-        etherctrl->setEtherType(((EtherFrameWithSNAP *)frame)->getLocalcode());
-    higherlayermsg->setControlInfo(etherctrl);
+    auto macAddressInd = packet->addTagIfAbsent<MacAddressInd>();
+    macAddressInd->setSrcAddress(ethHeader->getSrc());
+    macAddressInd->setDestAddress(ethHeader->getDest());
 
-    //EV_DETAIL << "Decapsulating frame `" << frame->getName() << "', passing up contained packet `"              << higherlayermsg->getName() << "' to higher layer\n";
+    // remove Padding if possible
+    if (isIeee8023Header(*ethHeader)) {
+        b payloadLength = B(ethHeader->getTypeOrLength());
+        if (packet->getDataLength() < payloadLength)
+            throw cRuntimeError("incorrect payload length in ethernet frame");
+        packet->setBackOffset(packet->getFrontOffset() + payloadLength);
+        packet->addTagIfAbsent<PacketProtocolTag>()->setProtocol(&Protocol::ieee8022);
+    }
+    else if (isEth2Header(*ethHeader)) {
+        if (auto protocol = ProtocolGroup::ethertype.findProtocol(ethHeader->getTypeOrLength()))
+            packet->addTagIfAbsent<PacketProtocolTag>()->setProtocol(protocol);
+        else
+            packet->removeTagIfPresent<PacketProtocolTag>();
+    }
+    return ethHeader;
+}
 
-    totalFromMAC++;
-    emit(decapPkSignal, higherlayermsg);
+void EtherEncap::processPacketFromMac(Packet *packet)
+{
+    const Protocol *payloadProtocol = nullptr;
+    auto ethHeader = decapsulateMacHeader(packet);
 
-    // pass up to higher layers.
-    //EV_INFO << "Sending " << higherlayermsg << " to upper layer.\n";
-    send(higherlayermsg, "upperLayerOut");
-    delete frame;
+    // remove llc header if possible
+    if (isIeee8023Header(*ethHeader)) {
+        Ieee8022Llc::processPacketFromMac(packet);
+        return;
+    }
+    else if (isEth2Header(*ethHeader)) {
+        payloadProtocol = ProtocolGroup::ethertype.findProtocol(ethHeader->getTypeOrLength());
+        if (payloadProtocol != nullptr) {
+            packet->addTagIfAbsent<PacketProtocolTag>()->setProtocol(payloadProtocol);
+            packet->addTagIfAbsent<DispatchProtocolReq>()->setProtocol(payloadProtocol);
+        }
+        else {
+            packet->removeTagIfPresent<PacketProtocolTag>();
+            packet->removeTagIfPresent<DispatchProtocolReq>();
+        }
+        bool stealPacket = false;
+        for (auto it : socketIdToSocketMap) {
+            auto socket = it.second;
+            if (socket->matches(packet, ethHeader)) {
+                auto packetCopy = packet->dup();
+                packetCopy->setKind(ETHERNET_I_DATA);
+                packetCopy->addTagIfAbsent<SocketInd>()->setSocketId(it.first);
+                send(packetCopy, "upperLayerOut");
+                stealPacket |= socket->vlanId != -1;
+            }
+        }
+        // TODO: should the socket configure if it steals packets or not?
+        if (stealPacket)
+            delete packet;
+        else if (payloadProtocol != nullptr && upperProtocols.find(payloadProtocol) != upperProtocols.end()) {
+            //EV_DETAIL << "Decapsulating frame `" << packet->getName() << "', passing up contained packet `"                      << packet->getName() << "' to higher layer\n";
+
+            totalFromMAC++;
+            emit(decapPkSignal, packet);
+
+            // pass up to higher layers.
+            //EV_INFO << "Sending " << packet << " to upper layer.\n";
+            send(packet, "upperLayerOut");
+        }
+        else {
+            //EV_WARN << "Unknown protocol, dropping packet\n";
+            PacketDropDetails details;
+            details.setReason(NO_PROTOCOL_FOUND);
+            emit(packetDroppedSignal, packet, &details);
+            delete packet;
+        }
+    }
+    else
+        throw cRuntimeError("Unknown ethernet header");
 }
 
 void EtherEncap::handleSendPause(cMessage *msg)
 {
-    Ieee802Ctrl *etherctrl = dynamic_cast<Ieee802Ctrl *>(msg->removeControlInfo());
+    Ieee802PauseCommand *etherctrl = dynamic_cast<Ieee802PauseCommand *>(msg->getControlInfo());
     if (!etherctrl)
-        throw cRuntimeError("PAUSE command `%s' from higher layer received without Ieee802Ctrl", msg->getName());
+        throw cRuntimeError("PAUSE command `%s' from higher layer received without Ieee802PauseCommand controlinfo", msg->getName());
+    MacAddress dest = etherctrl->getDestinationAddress();
     int pauseUnits = etherctrl->getPauseUnits();
-    MACAddress dest = etherctrl->getDest();
-    delete etherctrl;
+    delete msg;
 
     //EV_DETAIL << "Creating and sending PAUSE frame, with duration = " << pauseUnits << " units\n";
 
     // create Ethernet frame
     char framename[40];
     sprintf(framename, "pause-%d-%d", getId(), seqNum++);
-    EtherPauseFrame *frame = new EtherPauseFrame(framename);
+    auto packet = new Packet(framename);
+    const auto& frame = makeShared<EthernetPauseFrame>();
+    const auto& hdr = makeShared<EthernetMacHeader>();
     frame->setPauseTime(pauseUnits);
     if (dest.isUnspecified())
-        dest = MACAddress::MULTICAST_PAUSE_ADDRESS;
-    frame->setDest(dest);
-    frame->setByteLength(ETHER_PAUSE_COMMAND_PADDED_BYTES);
+        dest = MacAddress::MULTICAST_PAUSE_ADDRESS;
+    hdr->setDest(dest);
+    packet->insertAtFront(frame);
+    hdr->setTypeOrLength(ETHERTYPE_FLOW_CONTROL);
+    packet->insertAtFront(hdr);
+    packet->insertAtBack(makeShared<EthernetFcs>(fcsMode));
+    packet->addTagIfAbsent<PacketProtocolTag>()->setProtocol(&Protocol::ethernetMac);
 
     //EV_INFO << "Sending " << frame << " to lower layer.\n";
-    send(frame, "lowerLayerOut");
-    delete msg;
+    send(packet, "lowerLayerOut");
 
     emit(pauseSentSignal, pauseUnits);
     totalPauseSent++;

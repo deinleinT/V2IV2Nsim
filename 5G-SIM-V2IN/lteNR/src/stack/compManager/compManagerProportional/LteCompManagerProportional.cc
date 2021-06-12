@@ -1,15 +1,18 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
 #include "stack/compManager/compManagerProportional/LteCompManagerProportional.h"
 
 Define_Module(LteCompManagerProportional);
+using namespace inet;
 
 void LteCompManagerProportional::initialize()
 {
@@ -18,17 +21,18 @@ void LteCompManagerProportional::initialize()
 
 void LteCompManagerProportional::provisionalSchedule()
 {
-    //std::cout << "LteCompManagerProportional::provisionalSchedule start at " << simTime().dbl() << std::endl;
+    EV << NOW << " LteCompManagerProportional::provisionalSchedule - Start " << endl;
 
-    //EV << NOW << " LteCompManagerProportional::provisionalSchedule - Start " << endl;
+    // TODO check if correct
+    double primaryCarrierFrequency = mac_->getCellInfo()->getCarriers()->front();
 
     provisionedBlocks_ = 0;
 
     Direction dir = DL;
     LteMacBufferMap* vbuf = mac_->getMacBuffers();
-    ActiveSet activeSet = mac_->getActiveSet(dir);
-    ActiveSet::iterator ait = activeSet.begin();
-    for (; ait != activeSet.end(); ++ait) {
+    ActiveSet* activeSet = mac_->getActiveSet(dir);
+    ActiveSet::iterator ait = activeSet->begin();
+    for (; ait != activeSet->end(); ++ait) {
         MacCid cid = *ait;
         MacNodeId ueId = MacCidToNodeId(cid);
 
@@ -40,8 +44,8 @@ void LteCompManagerProportional::provisionalSchedule()
         Codeword cw = 0;
         Band band = 0;
         bytesPerBlock = mac_->getAmc()->computeBytesOnNRbs(ueId, band, cw,
-                blocks, dir); // The index of the band is useless
-        //EV << NOW << " LteCompManagerProportional::provisionalSchedule - Per il nodo: " << ueId << " sono disponibili: " << bytesPerBlock << " bytes in un blocco" << endl;
+                blocks, dir, primaryCarrierFrequency); // The index of the band is useless
+        EV << NOW << " LteCompManagerProportional::provisionalSchedule - Per il nodo: " << ueId << " sono disponibili: " << bytesPerBlock << " bytes in un blocco" << endl;
 
         // Compute the number of blocks required to satisfy the UE's buffer
         unsigned int reqBlocks;
@@ -49,21 +53,17 @@ void LteCompManagerProportional::provisionalSchedule()
             reqBlocks = 0;
         else
             reqBlocks = (queueLength + bytesPerBlock - 1) / bytesPerBlock;
-        //EV << NOW << " LteCompManagerProportional::provisionalSchedule - Per il nodo: " << ueId << " sono necessari: " << reqBlocks << " blocchi" << endl;
+        EV << NOW << " LteCompManagerProportional::provisionalSchedule - Per il nodo: " << ueId << " sono necessari: " << reqBlocks << " blocchi" << endl;
 
         provisionedBlocks_ += reqBlocks;
     }
 
-    //EV << NOW << " LteCompManagerProportional::provisionalSchedule - End " << endl;
-
-    //std::cout << "LteCompManagerProportional::provisionalSchedule end at " << simTime().dbl() << std::endl;
+    EV << NOW << " LteCompManagerProportional::provisionalSchedule - End " << endl;
 }
 
 void LteCompManagerProportional::doCoordination()
 {
-    //std::cout << "LteCompManagerProportional::doCoordination start at " << simTime().dbl() << std::endl;
-
-    //EV << NOW << " LteCompManagerProportional::doCoordination - Start " << endl;
+    EV << NOW << " LteCompManagerProportional::doCoordination - Start " << endl;
 
     partitioning_.clear();
     offset_.clear();
@@ -106,28 +106,20 @@ void LteCompManagerProportional::doCoordination()
         offset_.push_back(partitioning_[i]);
     }
 
-    //EV << NOW << " LteCompManagerProportional::doCoordination - End " << endl;
-
-    //std::cout << "LteCompManagerProportional::doCoordination end at " << simTime().dbl() << std::endl;
+    EV << NOW << " LteCompManagerProportional::doCoordination - End " << endl;
 }
 
 X2CompProportionalRequestIE* LteCompManagerProportional::buildClientRequest()
 {
-    //std::cout << "LteCompManagerProportional::buildClientRequest start at " << simTime().dbl() << std::endl;
-
     // build IE
     X2CompProportionalRequestIE* requestIe = new X2CompProportionalRequestIE();
     requestIe->setNumBlocks(provisionedBlocks_);
-
-    //std::cout << "LteCompManagerProportional::buildClientRequest end at " << simTime().dbl() << std::endl;
 
     return requestIe;
 }
 
 X2CompProportionalReplyIE* LteCompManagerProportional::buildCoordinatorReply(X2NodeId clientId)
 {
-    //std::cout << "LteCompManagerProportional::buildCoordinatorReply start at " << simTime().dbl() << std::endl;
-
     // find the correct entry in the partitioning vector
     bool found = false;
     unsigned int index = 0;
@@ -148,6 +140,8 @@ X2CompProportionalReplyIE* LteCompManagerProportional::buildCoordinatorReply(X2N
     {
         numBlocks = partitioning_[index];
         band = offset_[index];
+    } else {
+        EV << "LteCompManagerProportional::buildCoordinatorReply: no information for " << clientId << " available (number of requested blocks unknown)" << std::endl;
     }
 
     // build map for each node
@@ -168,24 +162,22 @@ X2CompProportionalReplyIE* LteCompManagerProportional::buildCoordinatorReply(X2N
     X2CompProportionalReplyIE* replyIe = new X2CompProportionalReplyIE();
     replyIe->setAllowedBlocksMap(allowedBlocks);
 
-    //std::cout << "LteCompManagerProportional::buildCoordinatorReply end at " << simTime().dbl() << std::endl;
-
     return replyIe;
 }
 
-void LteCompManagerProportional::handleClientRequest(X2CompMsg* compMsg)
+void LteCompManagerProportional::handleClientRequest(inet::Ptr<X2CompMsg> compMsg)
 {
-    //std::cout << "LteCompManagerProportional::handleClientRequest start at " << simTime().dbl() << std::endl;
-
     X2NodeId sourceId = compMsg->getSourceId();
     while (compMsg->hasIe())
     {
         X2InformationElement* ie = compMsg->popIe();
-        if (ie->getType() != COMP_REQUEST_IE)
-            throw cRuntimeError("LteCompManagerProportional::handleClientRequest - Expected COMP_REQUEST_IE");
+        if (ie->getType() != COMP_PROP_REQUEST_IE)
+            throw cRuntimeError("LteCompManagerProportional::handleClientRequest - Expected COMP_PROP_REQUEST_IE");
 
         X2CompProportionalRequestIE* requestIe = check_and_cast<X2CompProportionalRequestIE*>(ie);
         unsigned int reqBlocks = requestIe->getNumBlocks();
+
+        EV << "LteCompManagerProportional::handleClientRequest: " << this->getFullPath() << "received request from " << sourceId << " for " << reqBlocks << " blocks." << std::endl;
 
         // update map entry for this node
         if (reqBlocksMap_.find(sourceId) == reqBlocksMap_.end())
@@ -195,38 +187,32 @@ void LteCompManagerProportional::handleClientRequest(X2CompMsg* compMsg)
 
         delete requestIe;
     }
-
-    //std::cout << "LteCompManagerProportional::handleClientRequest end at " << simTime().dbl() << std::endl;
 }
 
-void LteCompManagerProportional::handleCoordinatorReply(X2CompMsg* compMsg)
+void LteCompManagerProportional::handleCoordinatorReply(inet::Ptr<X2CompMsg> compMsg)
 {
-    //std::cout << "LteCompManagerProportional::handleCoordinatorReply start at " << simTime().dbl() << std::endl;
-
     while (compMsg->hasIe())
     {
         X2InformationElement* ie = compMsg->popIe();
-        if (ie->getType() != COMP_REPLY_IE)
+        if (ie->getType() != COMP_PROP_REPLY_IE)
             throw cRuntimeError(
-                    "LteCompManagerProportional::handleCoordinatorReply - Expected COMP_REPLY_IE");
+                    "LteCompManagerProportional::handleCoordinatorReply - Expected COMP_PROP_REPLY_IE");
 
         // parse reply message
-
         X2CompProportionalReplyIE* replyIe = check_and_cast<X2CompProportionalReplyIE*>(ie);
         std::vector<CompRbStatus> allowedBlocksMap = replyIe->getAllowedBlocksMap();
         UsableBands usableBands = parseAllowedBlocksMap(allowedBlocksMap);
+
+        EV << "at" << this->getFullPath() << " LteCompManagerProportional::handleCoordinatorReply: " << usableBands.size() << " bands usable." << std::endl;
+
         setUsableBands(usableBands);
 
         delete replyIe;
     }
-
-    //std::cout << "LteCompManagerProportional::handleCoordinatorReply end at " << simTime().dbl() << std::endl;
 }
 
 UsableBands LteCompManagerProportional::parseAllowedBlocksMap(std::vector<CompRbStatus>& allowedBlocksMap)
 {
-    //std::cout << "LteCompManagerProportional::parseAllowedBlocksMap start at " << simTime().dbl() << std::endl;
-
     unsigned int reservedBlocks = 0;
     UsableBands usableBands;
     for (unsigned int b = 0; b < allowedBlocksMap.size(); b++)
@@ -241,15 +227,11 @@ UsableBands LteCompManagerProportional::parseAllowedBlocksMap(std::vector<CompRb
 
     emit(compReservedBlocks_, reservedBlocks);
 
-    //std::cout << "LteCompManagerProportional::parseAllowedBlocksMap end at " << simTime().dbl() << std::endl;
-
     return usableBands;
 }
 
 std::vector<unsigned int> LteCompManagerProportional::roundVector(std::vector<double>& vec, int sum)
 {
-    //std::cout << "LteCompManagerProportional::roundVector start at " << simTime().dbl() << std::endl;
-
     // the rounding algorithm needs that the vector is sorted in ascending order
 
     // we sort the vector, then put the elements in the original order
@@ -300,8 +282,6 @@ std::vector<unsigned int> LteCompManagerProportional::roundVector(std::vector<do
         }
 
         // TODO -  check numerical errors
-    //    if (integerTot < sum)
-    //        vec[len-1]++;
 
         // set the integer vector with the elements in their original positions
         for (unsigned int i = 0; i < integerVec.size(); i++)
@@ -310,8 +290,5 @@ std::vector<unsigned int> LteCompManagerProportional::roundVector(std::vector<do
             integerVec[index] = vec[i];
         }
     }
-
-    //std::cout << "LteCompManagerProportional::roundVector end at " << simTime().dbl() << std::endl;
-
     return integerVec;
 }

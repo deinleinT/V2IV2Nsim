@@ -15,7 +15,7 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 // 
 
-#include "LegacySequenceNumberAssigment.h"
+#include "inet/linklayer/ieee80211/mac/sequencenumberassignment/LegacySequenceNumberAssigment.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -25,11 +25,11 @@ namespace ieee80211 {
 // Subtype field is equal to 0) from a single modulo-4096 counter, starting at 0 and incrementing by 1, for each
 // MSDU or MMPDU.
 //
-void LegacySequenceNumberAssigment::assignSequenceNumber(Ieee80211DataOrMgmtFrame *frame)
+void LegacySequenceNumberAssigment::assignSequenceNumber(const Ptr<Ieee80211DataOrMgmtHeader>& header)
 {
-    ASSERT(frame->getType() != ST_DATA_WITH_QOS);
-    lastSeqNum = (lastSeqNum + 1) % 4096;
-    frame->setSequenceNumber(lastSeqNum);
+    ASSERT(header->getType() != ST_DATA_WITH_QOS);
+    lastSeqNum = lastSeqNum + 1;
+    header->setSequenceNumber(lastSeqNum);
 }
 
 } /* namespace ieee80211 */

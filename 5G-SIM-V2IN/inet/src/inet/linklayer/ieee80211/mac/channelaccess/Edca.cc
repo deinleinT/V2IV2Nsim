@@ -15,7 +15,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-#include "Edca.h"
+#include "inet/linklayer/ieee80211/mac/channelaccess/Edca.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -24,18 +24,19 @@ Define_Module(Edca);
 
 void Edca::initialize(int stage)
 {
-    if (stage == INITSTAGE_LINK_LAYER_2) {
+    if (stage == INITSTAGE_LINK_LAYER) {
         numEdcafs = par("numEdcafs");
         edcafs = new Edcaf*[numEdcafs];
         for (int ac = 0; ac < numEdcafs; ac++) {
             edcafs[ac] = check_and_cast<Edcaf*>(getSubmodule("edcaf", ac));
         }
+        mgmtAndNonQoSRecoveryProcedure = check_and_cast<NonQosRecoveryProcedure *>(getSubmodule("mgmtAndNonQoSRecoveryProcedure"));
     }
 }
 
-AccessCategory Edca::classifyFrame(Ieee80211DataFrame *frame)
+AccessCategory Edca::classifyFrame(const Ptr<const Ieee80211DataHeader>& header)
 {
-    return mapTidToAc(frame->getTid());
+    return mapTidToAc(header->getTid());
 }
 
 AccessCategory Edca::mapTidToAc(Tid tid)
@@ -79,6 +80,10 @@ void Edca::releaseChannelAccess(AccessCategory ac, IChannelAccess::ICallback* ca
 
 Edca::~Edca()
 {
+#if OMNETPP_BUILDNUM < 1505   //OMNETPP_VERSION < 0x0600    // 6.0 pre9
+    for (int i = 0; i < numEdcafs; i++)
+        edcafs[i]->deleteModule();
+#endif
     delete[] edcafs;
 }
 

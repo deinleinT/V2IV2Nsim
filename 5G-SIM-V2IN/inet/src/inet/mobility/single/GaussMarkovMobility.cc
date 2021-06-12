@@ -25,13 +25,6 @@ Define_Module(GaussMarkovMobility);
 
 GaussMarkovMobility::GaussMarkovMobility()
 {
-    speed = 0;
-    angle = 0;
-    alpha = 0;
-    margin = 0;
-    speedMean = 0;
-    angleMean = 0;
-    variance = 0;
 }
 
 void GaussMarkovMobility::initialize(int stage)
@@ -41,15 +34,14 @@ void GaussMarkovMobility::initialize(int stage)
     //EV_TRACE << "initializing GaussMarkovMobility stage " << stage << endl;
     if (stage == INITSTAGE_LOCAL) {
         speedMean = par("speed");
-        angleMean = par("angle");
+        speedStdDev = par("speedStdDev");
+        angleMean = deg(fmod(deg(par("angle")).get(), 360.0));
+        angleStdDev = deg(par("angleStdDev"));
         alpha = par("alpha");
-        margin = par("margin");
-        variance = par("variance");
-        angle = fmod(angle, 360);
+        if (alpha < 0.0 || alpha > 1.0)
+            throw cRuntimeError("The parameter 'alpha' is out of [0;1] interval");
         //constrain alpha to [0.0;1.0]
-        alpha = fmax(0.0, alpha);
-        alpha = fmin(1.0, alpha);
-
+        margin = par("margin");
         speed = speedMean;
         angle = angleMean;
         stationary = (speed == 0);
@@ -63,24 +55,23 @@ void GaussMarkovMobility::preventBorderHugging()
     bool top = (lastPosition.y < constraintAreaMin.y + margin);
     bool bottom = (lastPosition.y >= constraintAreaMax.y - margin);
     if (top || bottom) {
-        angleMean = bottom ? 270.0 : 90.0;
+        angleMean = bottom ? deg(270.0) : deg(90.0);
         if (right)
-            angleMean -= 45.0;
+            angleMean -= deg(45.0);
         else if (left)
-            angleMean += 45.0;
+            angleMean += deg(45.0);
     }
     else if (left)
-        angleMean = 0.0;
+        angleMean = deg(0.0);
     else if (right)
-        angleMean = 180.0;
+        angleMean = deg(180.0);
 }
 
 void GaussMarkovMobility::move()
 {
     preventBorderHugging();
     LineSegmentsMobilityBase::move();
-    Coord dummy;
-    handleIfOutside(REFLECT, dummy, dummy, angle);
+    handleIfOutside(REFLECT, lastPosition, lastVelocity, angle);
 }
 
 void GaussMarkovMobility::setTargetPosition()
@@ -88,20 +79,15 @@ void GaussMarkovMobility::setTargetPosition()
     // calculate new speed and direction based on the model
     speed = alpha * speed
         + (1.0 - alpha) * speedMean
-        + sqrt(1.0 - alpha * alpha)
-        * normal(0.0, 1.0)
-        * variance;
+        + sqrt(1.0 - alpha * alpha) * normal(0.0, 1.0) * speedStdDev;
 
     angle = alpha * angle
         + (1.0 - alpha) * angleMean
-        + sqrt(1.0 - alpha * alpha)
-        * normal(0.0, 1.0)
-        * variance;
+        + rad(sqrt(1.0 - alpha * alpha) * normal(0.0, 1.0) * angleStdDev);
 
-    double rad = M_PI * angle / 180.0;
-    Coord direction(cos(rad), sin(rad));
+    Coord direction(cos(rad(angle).get()), sin(rad(angle).get()));
     nextChange = simTime() + updateInterval;
-    targetPosition = lastPosition + direction * speed * updateInterval.dbl();
+    targetPosition = lastPosition + direction * (speed * updateInterval.dbl());
 
     //EV_DEBUG << " speed = " << speed << " angle = " << angle << endl;
     //EV_DEBUG << " mspeed = " << speedMean << " mangle = " << angleMean << endl;

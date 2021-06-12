@@ -1,14 +1,16 @@
 // 
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 // 
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself, 
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself, 
 // and cannot be removed from it.
 // 
 
 
-package lte.stack.mac;
+package lteNR.stack.mac;
 
 // 
 // Interface for the MAC layer of LTE Stack.
@@ -23,9 +25,6 @@ moduleinterface LteMac {
         output MAC_to_RLC;    // MAC to RLC
         input PHY_to_MAC;    // PHY to MAC
         output MAC_to_PHY;    // MAC to PHY
-        
-        inout upperLayer;
-        inout lowerLayer;
 }
 
 // 
@@ -45,8 +44,10 @@ simple LteMacBase like LteMac {
         //# H-ARQ
         int harqProcesses = default(8);
         int maxHarqRtx = default(3);
+        int harqFbEvaluationTimer = default(4);              // number of slots for sending back HARQ FB
         
-        bool rtxSignalisedFlagEnabled = default(true);
+        //# Statistics display (in GUI)
+        bool statDisplay = default(false);
          
         //#
         //# Statistics recording
@@ -81,6 +82,10 @@ simple LteMacBase like LteMac {
         @statistic[harqErrorRateUl](title="Harq Error Rate Ul"; unit=""; source="harqErrorRateUl"; record=mean,vector);
         @signal[harqErrorRateDl];
         @statistic[harqErrorRateDl](title="Harq Error Rate Dl"; unit=""; source="harqErrorRateDl"; record=mean,vector);
+        @signal[harqTxAttemptsDl];
+        @statistic[harqTxAttemptsDl](title="Harq Tx Attempts Dl"; unit=""; source="harqTxAttemptsDl"; record=mean,vector);
+        @signal[harqTxAttemptsUl];
+        @statistic[harqTxAttemptsUl](title="Harq Tx Attempts Ul"; unit=""; source="harqTxAttemptsUl"; record=mean,vector);
         @signal[harqErrorRate_1st_Ul];
         @statistic[harqErrorRate_1st_Ul](title="Harq Error Rate Ul"; unit=""; source="harqErrorRate_1st_Ul"; record=mean,vector);
         @signal[harqErrorRate_1st_Dl];
@@ -122,9 +127,6 @@ simple LteMacBase like LteMac {
         
         input PHY_to_MAC;    // PHY to MAC
         output MAC_to_PHY;    // MAC to PHY
-        
-        inout upperLayer;
-        inout lowerLayer;
 }
 
 //
@@ -177,11 +179,14 @@ simple LteMacEnb extends LteMacBase {
         
         @class("LteMacEnb");    
         
-        //volatile xml optSolution = default(xmldoc("solution.sol"));
+        //# volatile xml optSolution = default(xmldoc("solution.sol"));
         
         //#
         //# AMC Parameters
         //#
+        
+        // AMC Type:  "LteAmc", "NRAmc"
+        string amcType = default("LteAmc");
         
         // AMC Mode:  "auto", "piloted", "multi", "das", "D2D"
         string amcMode = default("AUTO");
@@ -251,7 +256,6 @@ simple LteMacEnb extends LteMacBase {
         
         // Proportional Fair parameters
         double pfAlpha    = default(0.95);
-        bool variationFlag = default(false);
         
         // LTE Advanced Scheduler general parameters - DL
         int lteAallocationRbsDl = default(1);
@@ -277,14 +281,14 @@ simple LteMacEnb extends LteMacBase {
         double lteAslackTermINTERACTIVEDL @unit(s) = default(10ms);
         double lteAslackTermBACKGROUNDDL @unit(s) = default(0ms);
         
-        int lteAmaxUrgentBurstCONVERSATIONALDL @unit(byte) = default(0);
-        int lteAmaxUrgentBurstSTREAMINGDL @unit(byte)     = default(0);
-        int lteAmaxUrgentBurstINTERACTIVEDL @unit(byte)    = default(0);
+        int lteAmaxUrgentBurstCONVERSATIONALDL @unit(byte) = default(0B);
+        int lteAmaxUrgentBurstSTREAMINGDL @unit(byte)     = default(0B);
+        int lteAmaxUrgentBurstINTERACTIVEDL @unit(byte)    = default(0B);
         int lteAmaxUrgentBurstBACKGROUNDDL   @unit(byte)  = default(200B);
         
-        int lteAmaxFairnessBurstCONVERSATIONALDL @unit(byte) = default(0);
-        int lteAmaxFairnessBurstSTREAMINGDL @unit(byte)     = default(0);
-        int lteAmaxFairnessBurstINTERACTIVEDL @unit(byte)    = default(0);
+        int lteAmaxFairnessBurstCONVERSATIONALDL @unit(byte) = default(0B);
+        int lteAmaxFairnessBurstSTREAMINGDL @unit(byte)     = default(0B);
+        int lteAmaxFairnessBurstINTERACTIVEDL @unit(byte)    = default(0B);
         int lteAmaxFairnessBurstBACKGROUNDDL   @unit(byte)  = default(200B);
         
         // LTE Advanced Scheduler QOS Parameters - UL
@@ -298,10 +302,10 @@ simple LteMacEnb extends LteMacBase {
         double lteAslackTermINTERACTIVEUL @unit(s) = default(500ms);
         double lteAslackTermBACKGROUNDUL @unit(s) = default(0ms);
         
-        int lteAmaxBurstCONVERSATIONALUL @unit(byte) = default(0);
-        int lteAmaxBurstSTREAMINGUL     @unit(byte) = default(0);
-        int lteAmaxBurstINTERACTIVEUL   @unit(byte) = default(0);
-        int lteAmaxBurstBACKGROUNDUL    @unit(byte) = default(0);
+        int lteAmaxBurstCONVERSATIONALUL @unit(byte) = default(0B);
+        int lteAmaxBurstSTREAMINGUL     @unit(byte) = default(0B);
+        int lteAmaxBurstINTERACTIVEUL   @unit(byte) = default(0B);
+        int lteAmaxBurstBACKGROUNDUL    @unit(byte) = default(0B);
         
         // LTE Advanced Scheduler PF Version - DL
         bool pfTmsAwareDL = default(false);
@@ -414,6 +418,8 @@ simple LteMacEnb extends LteMacBase {
         double prfFixedBROADCAST @unit(W)= default(4.4W);
         double prfRBBROADCAST @unit(W)= default(0.712W);
         
+        string pilotMode = default("ROBUST_CQI"); // one of MIN_CQI, MAX_CQI, AVG_CQI, ROBUST_CQI
+        
         //#
         //# Statistics for Lte Scheduler Enb
         @signal[cellBlocksUtilizationDl];
@@ -458,23 +464,4 @@ simple LteMacEnbD2D extends LteMacEnb
         @statistic[macCellThroughputD2D](title="Cell Throughput at the MAC layer D2D"; unit="Bps"; source="macCellThroughputD2D"; record=mean); 
         @signal[macCellPacketLossD2D];
         @statistic[macCellPacketLossD2D](title="Mac Cell Packet Loss D2D"; unit=""; source="macCellPacketLossD2D"; record=mean);
-}
-      
-
-//
-// Relay (UE side) MAC layer of LTE stack
-// Connection: eNodeB <--> Relay
-//
-simple LteMacRelayUe extends LteMacUe 
-{
-    @class("LteMacRelayUe");
-}
-
-//
-// Relay (eNB side) MAC layer of LTE stack
-// Connection: Relay <--> UE
-//
-simple LteMacRelayEnb extends LteMacEnb 
-{
-    @class("LteMacRelayEnb");
 }

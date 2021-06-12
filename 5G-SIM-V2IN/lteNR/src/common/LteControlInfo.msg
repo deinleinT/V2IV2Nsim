@@ -1,21 +1,24 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
 //
 // This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
+// Date: 2021
 // Author: Thomas Deinlein
 //
 
-cplusplus {{
-    #include "common/LteCommon.h"
-}}
+import inet.common.INETDefs;
+import common.LteCommon;
+import inet.common.TagBase;
+
 
 enum LtePhyFrameType;
 enum LteRlcType;
@@ -25,10 +28,10 @@ enum ApplicationType;
 enum LteTrafficClass;
 
 //
-// Control info usage in Lte simulator
+// Control info usage in Simu5G simulator
 //
 // - FlowControlInfo contains information with flow granularity.
-//   It is used from LteIp to Mac.
+//   It is used from Ip2Nic to Mac.
 //
 // - UserControlInfo contains information with user granularity.
 //   It is used from Mac to Phy.
@@ -51,7 +54,7 @@ enum LteTrafficClass;
 // - Source MAC Node ID
 // - Destination MAC Node ID
 //
-class LteControlInfo {
+class LteControlInfo extends inet::TagBase {
     //# Information shared between FlowControlInfo and UserControlInfo
 
     uint16 sourceId;                                     // Source MacNodeId
@@ -60,7 +63,7 @@ class LteControlInfo {
     uint16 d2dTxPeerId;
     uint16 d2dRxPeerId;
     
-    //for 5G
+        //for 5G
     unsigned int cid;
     unsigned short qfi;
     unsigned short radioBearerId;
@@ -81,14 +84,13 @@ class LteControlInfo {
 
     uint16 lcid;                                        // Logical Connection Identifier
     int32 multicastGroupId = -1;                        // Identifier for a multicast group (it is in range [0:[2^28)-1] ) 
-                                                        // For unicast communications, this field is -1
-                                                        
-   //# for codeBlockGroups
-   bool codeBlockGroupsActivated;
-   unsigned int numberOfCodeBlockGroups;
-   unsigned int restByteSize;
-   unsigned int blocksForCodeBlockGroups;
-   unsigned int initialByteSize;
+    
+    //# for codeBlockGroups
+   	bool codeBlockGroupsActivated;
+   	unsigned int numberOfCodeBlockGroups;
+   	unsigned int restByteSize;
+   	unsigned int blocksForCodeBlockGroups;
+   	unsigned int initialByteSize;                                                    // For unicast communications, this field is -1    
 }
 
 //
@@ -107,12 +109,13 @@ class FlowControlInfo extends LteControlInfo {
 
     uint32 srcAddr;                                       // source IP
     uint32 dstAddr;                                       // destination IP
-    uint16 srcPort;                                          // source port
-    uint16 dstPort;                                       // destination port
+    uint16 typeOfService;								  // IP Type Of Service
     unsigned int sequenceNumber;                          // packet sequence number
     int headerSize;                                       // IP + Transport header size (used by pdcp ROHC)
-    
-
+    bool useNR = false;									  // flag for sending this packet using NR
+	
+	uint16 srcPort;                                          // source port
+    uint16 dstPort;                                       // destination port
 }
 
 //
@@ -126,6 +129,9 @@ class FlowControlInfo extends LteControlInfo {
 //
 class UserControlInfo extends LteControlInfo {
     @customize(true);
+
+    bool isNr = false;
+    double carrierFrequency;         // carrier frequency
 
     //# H-ARQ Control Information
 
@@ -147,7 +153,6 @@ class UserControlInfo extends LteControlInfo {
     double d2dTxPower;                                 //D2D Transmission Power (used for feedback reporting of D2D links
     // blocks granted on all Remotes, all Bands
     unsigned int totalGrantedBlocks;
-
 
     //#
     //# Follows a list of elements only present in

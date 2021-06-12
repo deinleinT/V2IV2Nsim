@@ -34,9 +34,9 @@ Tests interface state transitions of IGMP routers
 
 This scenario checks the following trajectory:
 
-INITIAL --> initialize --> QUERIER --> query received (lower IP) --> NON QUERIER --> 
+INITIAL --> initialize --> QUERIER --> query received (lower IP) --> NON QUERIER -->
   --> query received (lower IP) --> NON QUERIER --> other querier present timer expired --> QUERIER -->
-  --> gen.query timer expired --> QUERIER 
+  --> gen.query timer expired --> QUERIER
 
 
 %inifile: omnetpp.ini
@@ -51,8 +51,8 @@ output-scalar-file = "${resultdir}/${configname}-${runnumber}.sca"
 output-vector-file = "${resultdir}/${configname}-${runnumber}.vec"
 snapshot-file = "${resultdir}/${configname}-${runnumber}.sna"
 
-network=IGMPTestNetwork
-**.igmpType = "TestIGMP"
+network = inet.test.moduletest.lib.IGMPTestNetwork
+**.igmp.typename = "TestIGMP"
 
 **.scenarioManager.script = xmldoc("scenario.xml")
 **.nqrouter.*.igmp.outputFile = "nqrouter-output.txt"
@@ -62,7 +62,7 @@ network=IGMPTestNetwork
 
 %file: scenario.xml
 <scenario>
-<disable t="101" module="router.networkLayer.igmp"/>
+<disable t="101" module="router.ipv4.igmp"/>
 </scenario>
 
 %contains-regex: nqrouter-output.txt

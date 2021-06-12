@@ -1,16 +1,12 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
-//
-
-//
-// This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
-// Author: Thomas Deinlein
 //
 
 #include "stack/phy/layer/LtePhyEnb.h"
@@ -20,10 +16,13 @@
 
 Define_Module(LtePhyEnb);
 
+using namespace omnetpp;
+using namespace inet;
+
 LtePhyEnb::LtePhyEnb()
 {
-    das_ = NULL;
-    bdcStarter_ = NULL;
+    das_ = nullptr;
+    bdcStarter_ = nullptr;
 }
 
 LtePhyEnb::~LtePhyEnb()
@@ -31,11 +30,11 @@ LtePhyEnb::~LtePhyEnb()
     cancelAndDelete(bdcStarter_);
     if(lteFeedbackComputation_){
         delete lteFeedbackComputation_;
-        lteFeedbackComputation_ = NULL;
+        lteFeedbackComputation_ = nullptr;
     }
     if(das_){
         delete das_;
-        das_ = NULL;
+        das_ = nullptr;
     }
 }
 
@@ -52,16 +51,16 @@ void LtePhyEnb::initialize(int stage)
     {
         // get local id
         nodeId_ = getAncestorPar("macNodeId");
-        //EV << "Local MacNodeId: " << nodeId_ << endl;
-        //std::cout << "Local MacNodeId: " << nodeId_ << endl;
-
-        nodeType_ = ENODEB;
+        EV << "Local MacNodeId: " << nodeId_ << endl;
         cellInfo_ = getCellInfo(nodeId_);
-        cellInfo_->channelUpdate(nodeId_, intuniform(1, binder_->phyPisaData.maxChannel2()));
-        das_ = new DasFilter(this, binder_, cellInfo_->getRemoteAntennaSet(), 0);
+        if (cellInfo_ != NULL)
+        {
+            cellInfo_->channelUpdate(nodeId_, intuniform(1, binder_->phyPisaData.maxChannel2()));
+            das_ = new DasFilter(this, binder_, cellInfo_->getRemoteAntennaSet(), 0);
+        }
+        isNr_ = (strcmp(getAncestorPar("nicType").stdstringValue().c_str(),"NRNicEnb") == 0) ? true : false;
 
-        WATCH(nodeType_);
-        WATCH(das_);
+        nodeType_ = (isNr_) ? GNODEB : ENODEB;
     }
     else if (stage == 1)
     {
@@ -91,20 +90,19 @@ void LtePhyEnb::initialize(int stage)
         if (bdcUpdateInterval_ != 0 && par("enableHandover").boolValue()) {
             // self message provoking the generation of a broadcast message
             bdcStarter_ = new cMessage("bdcStarter");
-            bdcStarter_->setSchedulingPriority(-1);
-
-            scheduleAt(NOW + bdcUpdateInterval_, bdcStarter_);
+            scheduleAt(NOW, bdcStarter_);
         }
-        qosHandler = check_and_cast<QosHandlerGNB*>(
-                        getParentModule()->getSubmodule("qosHandler"));
     }
+    else if (stage == INITSTAGE_LINK_LAYER)
+    {
+
+   }
 }
 
-void LtePhyEnb::handleSelfMessage(cMessage *msg) {
-
-    //std::cout << "LtePhyEnb::handleSelfMessage start at " << simTime().dbl() << std::endl;
-
-    if (msg->isName("bdcStarter")) {
+void LtePhyEnb::handleSelfMessage(cMessage *msg)
+{
+    if (msg->isName("bdcStarter"))
+    {
         // send broadcast message
         LteAirFrame *f = createHandoverMessage();
         sendBroadcast(f);
@@ -114,18 +112,15 @@ void LtePhyEnb::handleSelfMessage(cMessage *msg) {
     {
         delete msg;
     }
-    //std::cout << "LtePhyEnb::handleSelfMessage end at " << simTime().dbl() << std::endl;
 }
 
-bool LtePhyEnb::handleControlPkt(UserControlInfo* lteinfo, LteAirFrame* frame) {
-
-    //std::cout << "LtePhyEnb::handleControlPkt  at " << simTime().dbl() << std::endl;
-
-    //EV << "Received control pkt " << endl;
+bool LtePhyEnb::handleControlPkt(UserControlInfo* lteinfo, LteAirFrame* frame)
+{
+    EV << "Received control pkt " << endl;
     MacNodeId senderMacNodeId = lteinfo->getSourceId();
     if (binder_->getOmnetId(senderMacNodeId) == 0)
     {
-        //EV << "Sender (" << senderMacNodeId << ") does not exist anymore!" << std::endl;
+        EV << "Sender (" << senderMacNodeId << ") does not exist anymore!" << std::endl;
         delete frame;
         return true;    // FIXME ? make sure that nodes that left the simulation do not send
     }
@@ -152,10 +147,8 @@ bool LtePhyEnb::handleControlPkt(UserControlInfo* lteinfo, LteAirFrame* frame) {
     return false;
 }
 
-void LtePhyEnb::handleAirFrame(cMessage* msg) {
-
-    //std::cout << "LtePhyEnb::handleAirFrame start at " << simTime().dbl() << std::endl;
-
+void LtePhyEnb::handleAirFrame(cMessage* msg)
+{
     UserControlInfo* lteInfo = check_and_cast<UserControlInfo*>(msg->removeControlInfo());
     if (!lteInfo)
     {
@@ -164,11 +157,23 @@ void LtePhyEnb::handleAirFrame(cMessage* msg) {
 
     LteAirFrame* frame = static_cast<LteAirFrame*>(msg);
 
-    //EV << "LtePhy: received new LteAirFrame with ID " << frame->getId() << " from channel" << endl;
+    EV << "LtePhy: received new LteAirFrame with ID " << frame->getId() << " from channel" << endl;
 
     // handle broadcast packet sent by another eNB
-    if (lteInfo->getFrameType() == HANDOVERPKT) {
-        //EV << "LtePhyEnb::handleAirFrame - received handover packet from another eNodeB. Ignore it." << endl;
+    if (lteInfo->getFrameType() == HANDOVERPKT)
+    {
+        EV << "LtePhyEnb::handleAirFrame - received handover packet from another eNodeB. Ignore it." << endl;
+        delete lteInfo;
+        delete frame;
+        return;
+    }
+
+    // check if the air frame was sent on a correct carrier frequency
+    double carrierFreq = lteInfo->getCarrierFrequency();
+    LteChannelModel* channelModel = getChannelModel(carrierFreq);
+    if (channelModel == NULL)
+    {
+        EV << "Received packet on carrier frequency not supported by this node. Delete it." << endl;
         delete lteInfo;
         delete frame;
         return;
@@ -182,10 +187,11 @@ void LtePhyEnb::handleAirFrame(cMessage* msg) {
      *                     TTI x+0.1: ue changes master
      *                     TTI x+1: packet from UE arrives at the old master
      */
-     if (binder_->getNextHop(lteInfo->getSourceId()) != nodeId_) {
-        //EV << "WARNING: frame from a UE that is leaving this cell (handover): deleted " << endl;
-        //EV << "Source MacNodeId: " << lteInfo->getSourceId() << endl;
-        //EV << "Master MacNodeId: " << nodeId_ << endl;
+    if (binder_->getNextHop(lteInfo->getSourceId()) != nodeId_)
+    {
+        EV << "WARNING: frame from a UE that is leaving this cell (handover): deleted " << endl;
+        EV << "Source MacNodeId: " << lteInfo->getSourceId() << endl;
+        EV << "Master MacNodeId: " << nodeId_ << endl;
         delete lteInfo;
         delete frame;
         return;
@@ -212,14 +218,14 @@ void LtePhyEnb::handleAirFrame(cMessage* msg) {
     {
         // Use DAS
         // Message from ue
-        for (RemoteSet::iterator it = r.begin(); it != r.end(); it++) {
-            //EV << "LtePhy: Receiving Packet from antenna " << (*it) << "\n";
+        for (RemoteSet::iterator it = r.begin(); it != r.end(); it++)
+        {
+            EV << "LtePhy: Receiving Packet from antenna " << (*it) << "\n";
 
             /*
              * On eNodeB set the current position
              * to the receiving das antenna
              */
-            //move.setStart(
             cc->setRadioPosition(myRadioRef, das_->getAntennaCoord(*it));
 
             RemoteUnitPhyData data;
@@ -227,55 +233,61 @@ void LtePhyEnb::handleAirFrame(cMessage* msg) {
             data.m = getRadioPosition();
             frame->addRemoteUnitPhyDataVector(data);
         }
-        result = channelModel_->isCorruptedDas(frame, lteInfo);
+        result = channelModel->isErrorDas(frame, lteInfo);
     }
     else
     {
-        result = channelModel_->isCorrupted(frame, lteInfo);
+        result = channelModel->isCorrupted(frame, lteInfo);
     }
     if (result)
         numAirFrameReceived_++;
     else
         numAirFrameNotReceived_++;
 
-    //EV << "Handled LteAirframe with ID " << frame->getId() << " with result " << (result ? "RECEIVED" : "NOT RECEIVED") << endl;
+    EV << "Handled LteAirframe with ID " << frame->getId() << " with result "
+       << (result ? "RECEIVED" : "NOT RECEIVED") << endl;
 
-    cPacket* pkt = frame->decapsulate();
+    auto pkt = check_and_cast<inet::Packet *>(frame->decapsulate());
 
     // here frame has to be destroyed since it is no more useful
     delete frame;
 
     // attach the decider result to the packet as control info
     lteInfo->setDeciderResult(result);
-    pkt->setControlInfo(lteInfo);
+    *(pkt->addTagIfAbsent<UserControlInfo>()) = *lteInfo;
+    delete lteInfo;
 
     // send decapsulated message along with result control info to upperGateOut_
     send(pkt, upperGateOut_);
 
     if (getEnvir()->isGUI())
         updateDisplayString();
-
-    //std::cout << "LtePhyEnb::handleAirFrame end at " << simTime().dbl() << std::endl;
 }
-void LtePhyEnb::requestFeedback(UserControlInfo* lteinfo, LteAirFrame* frame,
-        LteFeedbackPkt* pkt) {
+void LtePhyEnb::requestFeedback(UserControlInfo* lteinfo, LteAirFrame* frame, Packet* pktAux)
+{
+    EV << NOW << " LtePhyEnb::requestFeedback " << endl;
+    LteFeedbackDoubleVector fb;
 
-    //std::cout << "LtePhyEnb::requestFeedback start at " << simTime().dbl() << std::endl;
+    // select the correct channel model according to the carrier freq
+    LteChannelModel* channelModel = getChannelModel(lteinfo->getCarrierFrequency());
 
-    //EV << NOW << " LtePhyEnb::requestFeedback " << endl;
     //get UE Position
     Coord sendersPos = lteinfo->getCoord();
     cellInfo_->setUePosition(lteinfo->getSourceId(), sendersPos);
-    lteinfo->setTxPower(txPower_);
-    lteinfo->setDirection(DL);
-    lteinfo->setFrameType(FEEDBACKPKT);
+
+    std::vector<double> snr;
+    auto header = pktAux->removeAtFront<LteFeedbackPkt>();
 
     //Apply analog model (pathloss)
-    //
-    std::vector<double> snr = channelModel_->getSINR(frame, lteinfo, true);
+    //Get snr for UL direction
+    if (channelModel != NULL)
+        snr = channelModel->getSINR(frame, lteinfo);
+    else
+        throw cRuntimeError("LtePhyEnbD2D::requestFeedback - channelModel is null pointer. Abort");
+
     FeedbackRequest req = lteinfo->feedbackReq;
     //Feedback computation
-    fb_.clear();
+    fb.clear();
     //get number of RU
     int nRus = cellInfo_->getNumRus();
     TxMode txmode = req.txMode;
@@ -290,19 +302,19 @@ void LtePhyEnb::requestFeedback(UserControlInfo* lteinfo, LteAirFrame* frame,
         //for each RU is called the computation feedback function
         if (req.genType == IDEAL)
         {
-            fb_ = lteFeedbackComputation_->computeFeedback(type, rbtype, txmode,
+            fb = lteFeedbackComputation_->computeFeedback(type, rbtype, txmode,
                 antennaCws, numPreferredBand, IDEAL, nRus, snr,
                 lteinfo->getSourceId());
         }
         else if (req.genType == REAL)
         {
             RemoteSet::iterator it;
-            fb_.resize(das_->getReportingSet().size());
+            fb.resize(das_->getReportingSet().size());
             for (it = das_->getReportingSet().begin();
                 it != das_->getReportingSet().end(); ++it)
             {
-                fb_[(*it)].resize((int) txmode);
-                fb_[(*it)][(int) txmode] =
+                fb[(*it)].resize((int) txmode);
+                fb[(*it)][(int) txmode] =
                 lteFeedbackComputation_->computeFeedback(*it, txmode,
                     type, rbtype, antennaCws[*it], numPreferredBand,
                     REAL, nRus, snr, lteinfo->getSourceId());
@@ -312,11 +324,11 @@ void LtePhyEnb::requestFeedback(UserControlInfo* lteinfo, LteAirFrame* frame,
         else if (req.genType == DAS_AWARE)
         {
             RemoteSet::iterator it;
-            fb_.resize(das_->getReportingSet().size());
+            fb.resize(das_->getReportingSet().size());
             for (it = das_->getReportingSet().begin();
                 it != das_->getReportingSet().end(); ++it)
             {
-                fb_[(*it)] = lteFeedbackComputation_->computeFeedback(*it, type,
+                fb[(*it)] = lteFeedbackComputation_->computeFeedback(*it, type,
                     rbtype, txmode, antennaCws[*it], numPreferredBand,
                     DAS_AWARE, nRus, snr, lteinfo->getSourceId());
             }
@@ -325,36 +337,41 @@ void LtePhyEnb::requestFeedback(UserControlInfo* lteinfo, LteAirFrame* frame,
 
         if (dir == UL)
         {
-            pkt->setLteFeedbackDoubleVectorUl(fb_);
+            header->setLteFeedbackDoubleVectorUl(fb);
             //Prepare  parameters for next loop iteration - in order to compute SNR in DL
             lteinfo->setTxPower(txPower_);
-            lteinfo->setDirection(DL); //we just want to evaluate the DL Feedback!
-            lteinfo->setFrameType(FEEDBACKPKT);
+            lteinfo->setDirection(DL);
 
             //Get snr for DL direction
-            snr = channelModel_->getSINR(frame, lteinfo, false);
+            if (channelModel != NULL)
+                snr = channelModel->getSINR(frame, lteinfo);
+            else
+                throw cRuntimeError("LtePhyEnbD2D::requestFeedback - channelModel is null pointer. Abort");
         }
-        else{
-            pkt->setLteFeedbackDoubleVectorDl(fb_);
-        }
+        else
+            header->setLteFeedbackDoubleVectorDl(fb);
     }
-    //EV << "LtePhyEnb::requestFeedback : Pisa Feedback Generated for nodeId: " << nodeId_ << " with generator type " << fbGeneratorTypeToA(req.genType) << " Fb size: " << fb_.size() << endl;
+    EV << "LtePhyEnb::requestFeedback : Pisa Feedback Generated for nodeId: "
+       << nodeId_ << " with generator type "
+       << fbGeneratorTypeToA(req.genType) << " Fb size: " << fb.size()
+       << " Carrier: " << lteinfo->getCarrierFrequency() << endl;
 
-    //std::cout << "LtePhyEnb::requestFeedback end at " << simTime().dbl() << std::endl;
+    pktAux->insertAtFront(header);
 }
 
 void LtePhyEnb::handleFeedbackPkt(UserControlInfo* lteinfo,
-        LteAirFrame *frame) {
+    LteAirFrame *frame)
+{
+    EV << "Handled Feedback Packet with ID " << frame->getId() << endl;
+    auto pktAux = check_and_cast<Packet *>(frame->decapsulate());
+    auto header =  pktAux->peekAtFront<LteFeedbackPkt>();
 
-    //std::cout << "LtePhyEnb::handleFeedbackPkt start at " << simTime().dbl() << std::endl;
+    *(pktAux->addTagIfAbsent<UserControlInfo>()) = *lteinfo;
 
-    //EV << "Handled Feedback Packet with ID " << frame->getId() << endl;
-    LteFeedbackPkt* pkt = check_and_cast<LteFeedbackPkt*>(frame->decapsulate());
-    // here frame has to be destroyed since it is no more useful
-    pkt->setControlInfo(lteinfo);
     // if feedback was generated by dummy phy we can send up to mac else nodeb should generate the "real" feedback
-    if (lteinfo->feedbackReq.request) {
-        requestFeedback(lteinfo, frame, pkt);
+    if (lteinfo->feedbackReq.request)
+    {
+        requestFeedback(lteinfo, frame, pktAux);
 
         // DEBUG
         bool debug = false;
@@ -362,15 +379,15 @@ void LtePhyEnb::handleFeedbackPkt(UserControlInfo* lteinfo,
         {
             LteFeedbackDoubleVector::iterator it;
             LteFeedbackVector::iterator jt;
-            LteFeedbackDoubleVector vec = pkt->getLteFeedbackDoubleVectorDl();
+            LteFeedbackDoubleVector vec = header->getLteFeedbackDoubleVectorDl();
             for (it = vec.begin(); it != vec.end(); ++it)
             {
                 for (jt = it->begin(); jt != it->end(); ++jt)
                 {
                     MacNodeId id = lteinfo->getSourceId();
-                    //EV << endl << "Node:" << id << endl;
+                    EV << endl << "Node:" << id << endl;
                     TxMode t = jt->getTxMode();
-                    //EV << "TXMODE: " << txModeToA(t) << endl;
+                    EV << "TXMODE: " << txModeToA(t) << endl;
                     if (jt->hasBandCqi())
                     {
                         std::vector<CqiVector> vec = jt->getBandCqi();
@@ -379,18 +396,17 @@ void LtePhyEnb::handleFeedbackPkt(UserControlInfo* lteinfo,
                         int i;
                         for (kt = vec.begin(); kt != vec.end(); ++kt)
                         {
-                            for (i = 0, ht = kt->begin(); ht != kt->end();++ht, i++){
-                                //EV << "Banda " << i << " Cqi " << *ht << endl;
-			    }
+                            for (i = 0, ht = kt->begin(); ht != kt->end();
+                                ++ht, i++)
+                            EV << "Banda " << i << " Cqi " << *ht << endl;
                         }
                     }
                     else if (jt->hasWbCqi())
                     {
                         CqiVector v = jt->getWbCqi();
                         CqiVector::iterator ht = v.begin();
-                        for (; ht != v.end(); ++ht){
-                            //EV << "wb cqi " << *ht << endl;
-			}
+                        for (; ht != v.end(); ++ht)
+                        EV << "wb cqi " << *ht << endl;
                     }
                     if (jt->hasRankIndicator())
                     {
@@ -400,76 +416,73 @@ void LtePhyEnb::handleFeedbackPkt(UserControlInfo* lteinfo,
             }
         }
     }
+    delete lteinfo;
     // send decapsulated message along with result control info to upperGateOut_
-    send(pkt, upperGateOut_);
-
-    //std::cout << "LtePhyEnb::handleFeedbackPkt end at " << simTime().dbl() << std::endl;
+    send(pktAux, upperGateOut_);
 }
 
-// TODO adjust default value, no call
+// TODO adjust default value
 LteFeedbackComputation* LtePhyEnb::getFeedbackComputationFromName(
-        std::string name, ParameterMap& params) {
-
-    //std::cout << "LtePhyEnb::getFeedbackComputationFromName start at " << simTime().dbl() << std::endl;
-
+    std::string name, ParameterMap& params)
+{
     ParameterMap::iterator it;
-    if (name == "REAL") {
+    if (name == "REAL")
+    {
         //default value
         double targetBler = 0.1;
         double lambdaMinTh = 0.02;
         double lambdaMaxTh = 0.2;
         double lambdaRatioTh = 20;
-        bool cqiFlag = false;
         it = params.find("targetBler");
-        if (it != params.end()) {
+        if (it != params.end())
+        {
             targetBler = params["targetBler"].doubleValue();
         }
         it = params.find("lambdaMinTh");
-        if (it != params.end()) {
+        if (it != params.end())
+        {
             lambdaMinTh = params["lambdaMinTh"].doubleValue();
         }
         it = params.find("lambdaMaxTh");
-        if (it != params.end()) {
+        if (it != params.end())
+        {
             lambdaMaxTh = params["lambdaMaxTh"].doubleValue();
         }
         it = params.find("lambdaRatioTh");
-        if (it != params.end()) {
+        if (it != params.end())
+        {
             lambdaRatioTh = params["lambdaRatioTh"].doubleValue();
         }
-		it = params.find("cqiFlag");
-		if (it != params.end()) {
-			cqiFlag = params["cqiFlag"].boolValue();
-		}
         LteFeedbackComputation* fbcomp = new LteFeedbackComputationRealistic(
-                targetBler, cellInfo_->getLambda(), lambdaMinTh, lambdaMaxTh,
-                lambdaRatioTh, cellInfo_->getNumBands());
-        check_and_cast<LteFeedbackComputationRealistic*>(fbcomp)->cqiFlag = cqiFlag;
+            targetBler, cellInfo_->getLambda(), lambdaMinTh, lambdaMaxTh,
+            lambdaRatioTh, cellInfo_->getNumBands());
         return fbcomp;
-    } else
+    }
+    else
         return 0;
-
-    //std::cout << "LtePhyEnb::getFeedbackComputationFromName end at " << simTime().dbl() << std::endl;
 }
 
 void LtePhyEnb::initializeFeedbackComputation()
 {
     lteFeedbackComputation_ = 0;
 
-    //const char* name = "REAL";
+    const char* name = "REAL";
 
     double targetBler = par("targetBler");
     double lambdaMinTh = par("lambdaMinTh");
     double lambdaMaxTh = par("lambdaMaxTh");
     double lambdaRatioTh = par("lambdaRatioTh");
-    bool cqiFlag = par("cqiFlag").boolValue();
 
+//    lteFeedbackComputation_ = new LteFeedbackComputationRealistic(
+//        targetBler, cellInfo_->getLambda(), lambdaMinTh, lambdaMaxTh,
+//        lambdaRatioTh, cellInfo_->getNumBands());
+
+    // compute feedback for the primary carrier only
+    // TODO add support for feedback computation for all carriers
     lteFeedbackComputation_ = new LteFeedbackComputationRealistic(
         targetBler, cellInfo_->getLambda(), lambdaMinTh, lambdaMaxTh,
-        lambdaRatioTh, cellInfo_->getNumBands());
-    check_and_cast<LteFeedbackComputationRealistic*>(lteFeedbackComputation_)->cqiFlag = cqiFlag;
+        lambdaRatioTh, cellInfo_->getPrimaryCarrierNumBands());
 
-    //EV << "Feedback Computation \"" << name << "\" loaded." << endl;
-
-    //std::cout << "LtePhyEnb::initializeFeedbackComputation end at " << simTime().dbl() << std::endl;
+    EV << "Feedback Computation \"" << name << "\" loaded." << endl;
 }
 

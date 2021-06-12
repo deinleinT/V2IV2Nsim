@@ -1,3 +1,3 @@
-package nr.corenetwork;
+package lteNR.nr.corenetwork;
 
 @license(LGPL);

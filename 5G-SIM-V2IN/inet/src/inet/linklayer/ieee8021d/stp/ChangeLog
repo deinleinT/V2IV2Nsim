@@ -1,12 +1,71 @@
+====== inet-4.x ======
+
+2021-01-07  ------ inet-4.2.2 released ------
+
+2020-10-27  ------ inet-4.2.1 released ------
+
+2020-01-08  ------ inet-4.2.0 released ------
+
+2019-10-31  Zoltan Bojthe
+
+	Redesigned BPDU packets.
+	Fixed STP BPDU TCN packet length, correct value is 4 byte.
+
+2019-01-28  ------ inet-4.1.0 released ------
+
+2018-10-17  Zoltan Bojthe
+
+	Changed Stp, Rstp base class to OperationalBase.
+
+2018-09-28  Levente Mészáros
+
+	Extracted INITSTAGE_LINK_LAYER from INITSTAGE_NETWORK_INTERFACE_CONFIGURATION where applicable.
+
+2018-09-27  Levente Mészáros
+
+	Renamed INITSTAGE_LINK_LAYER to INITSTAGE_NETWORK_INTERFACE_CONFIGURATION.	Renamed INITSTAGE_LINK_LAYER_2 to INITSTAGE_LINK_LAYER.
+
+2018-09-17  Zoltan Bojthe
+
+	Fixed bug in stp: send all packets with bridge address as source MAC address.
+
+2018-09-11  Marcel Marek
+
+	Added support for new relay unit
+	Added protocol/service registration.
+	Set PacketProtocolTag and DispatchProtocolReq on outgoing packets.
+
+2018-06-27  ------ inet-4.0.0 released ------
+
+2018-04-13  ------ inet-3.99.3 released ------
+
+2018-02-26  Zoltan Bojthe
+
+	Added SctpProtocolDissector.
+
+2018-01-18  Levente Mészáros
+
+	Replaced packet tags API calls to use the new API.
+
+2017-12-22  ------ inet-3.99.2 released ------
+
+2017-12-20  Zoltan Bojthe
+
+	Renaming:
+	    BDPUType -> BdpuType
+	    BPDU -> Bpdu
+	    MACAddress -> MacAddress
+	    MACAddressTable -> MacAddressTable
+	    STP -> Stp
+	    STPBase -> StpBase
+
+2017-12-14  Levente Mészáros
+
+	Removed unnecessary markImmutable() calls.
+
+2017-11-16  ------ inet-3.99.1 released ------
+
 ====== inet-3.x ======
-
-2020-10-20  ------ inet-3.6.8 released ------
-
-2019-11-04  ------ inet-3.6.7 released ------
-
-2019-08-16  ------ inet-3.6.6 released ------
-
-2019-04-12  ------ inet-3.6.5 released ------
 
 2018-03-21  ------ inet-3.6.4 released ------
 

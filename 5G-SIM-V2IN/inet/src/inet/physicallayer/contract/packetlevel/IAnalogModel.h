@@ -18,16 +18,15 @@
 #ifndef __INET_IANALOGMODEL_H
 #define __INET_IANALOGMODEL_H
 
-#include "inet/physicallayer/contract/packetlevel/IRadio.h"
-#include "inet/physicallayer/contract/packetlevel/IListening.h"
-#include "inet/physicallayer/contract/packetlevel/ITransmission.h"
-#include "inet/physicallayer/contract/packetlevel/IReception.h"
-#include "inet/physicallayer/contract/packetlevel/IInterference.h"
-#include "inet/physicallayer/contract/packetlevel/ISNIR.h"
 #include "inet/physicallayer/contract/packetlevel/IArrival.h"
+#include "inet/physicallayer/contract/packetlevel/IInterference.h"
+#include "inet/physicallayer/contract/packetlevel/IListening.h"
+#include "inet/physicallayer/contract/packetlevel/IRadio.h"
+#include "inet/physicallayer/contract/packetlevel/IReception.h"
+#include "inet/physicallayer/contract/packetlevel/ISnir.h"
+#include "inet/physicallayer/contract/packetlevel/ITransmission.h"
 
 namespace inet {
-
 namespace physicallayer {
 
 /**
@@ -52,14 +51,19 @@ class INET_API IAnalogModel : public IPrintableObject
     virtual const INoise *computeNoise(const IListening *listening, const IInterference *interference) const = 0;
 
     /**
+     * Returns the total noise summing up all the reception and the noise.
+     * This function never returns nullptr.
+     */
+    virtual const INoise *computeNoise(const IReception *reception, const INoise *noise) const = 0;
+
+    /**
      * Returns the signal to noise and interference ratio. This function never
      * returns nullptr.
      */
-    virtual const ISNIR *computeSNIR(const IReception *reception, const INoise *noise) const = 0;
+    virtual const ISnir *computeSNIR(const IReception *reception, const INoise *noise) const = 0;
 };
 
 } // namespace physicallayer
-
 } // namespace inet
 
 #endif // ifndef __INET_IANALOGMODEL_H

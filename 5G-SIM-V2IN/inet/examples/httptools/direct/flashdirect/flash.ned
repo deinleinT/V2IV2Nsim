@@ -31,7 +31,7 @@
 package inet.examples.httptools.direct.flashdirect;
 
 import inet.applications.httptools.configurator.HttpController;
-import inet.node.httptools.DirectHost;
+import inet.node.httptools.HttpDirectHost;
 
 
 //
@@ -45,55 +45,54 @@ network HttpDirectFlash
 {
     parameters:
         int num_browsers @prompt("Number of browsers") = default(2);
-        @display("bgb=754,559");
     submodules:
-        controller: HttpController {
+        httpController: HttpController {
             parameters:
-                @display("p=54,60;i=block/cogwheel");
+                @display("is=s;p=100,100;i=block/cogwheel");
         }
-        server1: DirectHost {
+        server1: HttpDirectHost {
             parameters:
-                @display("p=68,164;i=device/server");
+                @display("p=100,200;i=device/server");
         }
-        server2: DirectHost {
+        server2: HttpDirectHost {
             parameters:
-                @display("p=148,164;i=device/server");
+                @display("p=200,200;i=device/server");
         }
-        server3: DirectHost {
+        server3: HttpDirectHost {
             parameters:
-                @display("p=228,164;i=device/server");
+                @display("p=300,200;i=device/server");
         }
-        server4: DirectHost {
+        server4: HttpDirectHost {
             parameters:
-                @display("p=308,164;i=device/server");
+                @display("p=400,200;i=device/server");
         }
-        server5: DirectHost {
+        server5: HttpDirectHost {
             parameters:
-                @display("p=388,164;i=device/server");
+                @display("p=500,200;i=device/server");
         }
-        server6: DirectHost {
+        server6: HttpDirectHost {
             parameters:
-                @display("p=468,164;i=device/server");
+                @display("p=600,200;i=device/server");
         }
-        server7: DirectHost {
+        server7: HttpDirectHost {
             parameters:
-                @display("p=548,164;i=device/server");
+                @display("p=700,200;i=device/server");
         }
-        server8: DirectHost {
+        server8: HttpDirectHost {
             parameters:
-                @display("p=620,164;i=device/server");
+                @display("p=800,200;i=device/server");
         }
-        server9: DirectHost {
+        server9: HttpDirectHost {
             parameters:
-                @display("p=700,164;i=device/server");
+                @display("p=900,200;i=device/server");
         }
-        abc: DirectHost {
+        abc: HttpDirectHost {
             parameters:
-                @display("p=365,300;i=device/server_l");
+                @display("p=500,300;i=device/server");
         }
-        client[num_browsers]: DirectHost {
+        client[num_browsers]: HttpDirectHost {
             parameters:
-                @display("i=device/laptop");
+                @display("i=device/laptop;p=300,400,row,400");
         }
     connections allowunconnected:
 }

@@ -1,9 +1,11 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
@@ -19,7 +21,7 @@ class LteAllocationModuleFrequencyReuse : public LteAllocationModule
     /// Default constructor.
     LteAllocationModuleFrequencyReuse(LteMacEnb *mac, const Direction direction);
     // Store the Allocation based on passed paremeter
-    virtual void storeAllocation( std::vector<std::vector<AllocatedRbsPerBandMapA> > allocatedRbsPerBand,std::set<Band>* untouchableBands = NULL);
+    virtual void storeAllocation( std::vector<std::vector<AllocatedRbsPerBandMapA> > allocatedRbsPerBand,std::set<Band>* untouchableBands = nullptr);
     // Get the bands already allocated by RAC and RTX ( Debug purpose)
     virtual std::set<Band> getAllocatorOccupiedBands();
 };

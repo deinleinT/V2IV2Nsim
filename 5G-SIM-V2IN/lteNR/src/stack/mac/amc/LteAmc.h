@@ -1,16 +1,12 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
-//
-
-//
-// This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
-// Author: Thomas Deinlein
 //
 
 #ifndef _LTE_LTEAMC_H_
@@ -18,19 +14,22 @@
 
 #include <omnetpp.h>
 
-#include "nr/corenetwork/cellInfo/NRCellInfo.h"
+#include "common/binder/Binder.h"
+#include "common/cellInfo/CellInfo.h"
 #include "stack/phy/feedback/LteFeedback.h"
+#include "stack/phy/feedback/LteSummaryBuffer.h"
 #include "stack/mac/amc/AmcPilot.h"
 #include "stack/mac/amc/LteMcs.h"
 #include "stack/mac/amc/UserTxParams.h"
-#include "corenetwork/binder/LteBinder.h"
 
 /// Forward declaration of AmcPilot class, used by LteAmc.
 class AmcPilot;
-/// Forward declaration of LteCellInfo class, used by LteAmc.
-class LteCellInfo;
+/// Forward declaration of CellInfo class, used by LteAmc.
+class CellInfo;
 /// Forward declaration of LteMacEnb class, used by LteAmc.
 class LteMacEnb;
+
+typedef std::map<Remote, std::vector<std::vector<LteSummaryBuffer> > > History_;
 
 /**
  * @class LteAMC
@@ -40,31 +39,26 @@ class LteMacEnb;
  */
 class LteAmc
 {
-
-  protected:
-    AmcPilot *getAmcPilot(const cPar& amcMode);
+  private:
+    AmcPilot *getAmcPilot(const omnetpp::cPar& amcMode);
     MacNodeId getNextHop(MacNodeId dst);
     public:
     void printParameters();
     void printFbhb(Direction dir);
-    void printTxParams(Direction dir);
+    void printTxParams(Direction dir, double carrierFrequency);
     void printMuMimoMatrix(const char *s);
     protected:
     LteMacEnb *mac_;
-    LteBinder *binder_;
-    LteCellInfo *cellInfo_;
+    Binder *binder_;
+    CellInfo *cellInfo_;
     AmcPilot *pilot_;
     RbAllocationType allocationType_;
     int numBands_;
     MacNodeId nodeId_;
     MacCellId cellId_;
-
-    //CHANGED
-    McsTableNROne dlMcsTable_;
-    McsTableNRTwo ulMcsTable_;
-    McsTableNROne d2dMcsTable_;
-    //
-
+    McsTable dlMcsTable_;
+    McsTable ulMcsTable_;
+    McsTable d2dMcsTable_;
     double mcsScaleDl_;
     double mcsScaleUl_;
     double mcsScaleD2D_;
@@ -80,29 +74,38 @@ class LteAmc
     std::vector<MacNodeId> dlRevNodeIndex_;
     std::vector<MacNodeId> ulRevNodeIndex_;
     std::vector<MacNodeId> d2dRevNodeIndex_;
-    std::vector<UserTxParams> dlTxParams_;
-    std::vector<UserTxParams> ulTxParams_;
-    std::vector<UserTxParams> d2dTxParams_;
-    typedef std::map<Remote, std::vector<std::vector<LteSummaryBuffer> > > History_;
+
+    // one tx param per carrier
+    std::map<double,std::vector<UserTxParams> > dlTxParams_;
+    std::map<double,std::vector<UserTxParams> > ulTxParams_;
+    std::map<double,std::vector<UserTxParams> > d2dTxParams_;
 
     int fType_; //CQI synchronization Debugging
-    History_ dlFeedbackHistory_;
-    History_ ulFeedbackHistory_;
-    std::map<MacNodeId, History_> d2dFeedbackHistory_;
+
+    // one History per carrier
+    std::map<double, History_> dlFeedbackHistory_;
+    std::map<double, History_> ulFeedbackHistory_;
+    std::map<double, std::map<MacNodeId, History_> > d2dFeedbackHistory_;
+
     unsigned int fbhbCapacityDl_;
     unsigned int fbhbCapacityUl_;
     unsigned int fbhbCapacityD2D_;
-    simtime_t lb_;
-    simtime_t ub_;
+    omnetpp::simtime_t lb_;
+    omnetpp::simtime_t ub_;
     double pmiComputationWeight_;
     double cqiComputationWeight_;
     LteMuMimoMatrix muMimoDlMatrix_;
     LteMuMimoMatrix muMimoUlMatrix_;
     LteMuMimoMatrix muMimoD2DMatrix_;
+
+    History_* getHistory(Direction dir, double carrierFrequency);
+
     public:
-    LteAmc(LteMacEnb *mac, LteBinder *binder, LteCellInfo *cellInfo, int numAntennas);
+    LteAmc(LteMacEnb *mac, Binder *binder, CellInfo *cellInfo, int numAntennas);
+    LteAmc(const LteAmc& other) { operator=(other); }
+    LteAmc& operator=(const LteAmc& other);
     void initialize();
-    ~LteAmc();
+    virtual ~LteAmc();
     void sefType(int f)
     {
         fType_ = f;
@@ -115,10 +118,10 @@ class LteAmc
     // CodeRate MCS rescaling
     void rescaleMcs(double rePerRb, Direction dir = DL);
 
-    void pushFeedback(MacNodeId id, Direction dir, LteFeedback fb);
-    void pushFeedbackD2D(MacNodeId id, LteFeedback fb, MacNodeId peerId);
-    LteSummaryFeedback getFeedback(MacNodeId id, Remote antenna, TxMode txMode, const Direction dir);
-    LteSummaryFeedback getFeedbackD2D(MacNodeId id, Remote antenna, TxMode txMode, MacNodeId peerId);
+    void pushFeedback(MacNodeId id, Direction dir, LteFeedback fb, double carrierFrequency);
+    void pushFeedbackD2D(MacNodeId id, LteFeedback fb, MacNodeId peerId, double carrierFrequency);
+    LteSummaryFeedback getFeedback(MacNodeId id, Remote antenna, TxMode txMode, const Direction dir, double carrierFrequency);
+    LteSummaryFeedback getFeedbackD2D(MacNodeId id, Remote antenna, TxMode txMode, MacNodeId peerId, double carrierFrequency);
 
     //used when is necessary to know if the requested feedback exists or not
     // LteSummaryFeedback getFeedback(MacNodeId id, Remote antenna, TxMode txMode, const Direction dir,bool& valid);
@@ -136,46 +139,40 @@ class LteAmc
     }
 
 
-    bool existTxParams(MacNodeId id, const Direction dir);
-    const UserTxParams & getTxParams(MacNodeId id, const Direction dir);
-    const UserTxParams & setTxParams(MacNodeId id, const Direction dir, UserTxParams & info);
-    const UserTxParams & computeTxParams(MacNodeId id, const Direction dir);
+    bool existTxParams(MacNodeId id, const Direction dir, double carrierFrequency);
+    const UserTxParams & getTxParams(MacNodeId id, const Direction dir, double carrierFrequency);
+    const UserTxParams & setTxParams(MacNodeId id, const Direction dir, UserTxParams & info, double carrierFrequency);
+    const UserTxParams & computeTxParams(MacNodeId id, const Direction dir, double carrierFrequency);
     void cleanAmcStructures(Direction dir, ActiveSet aUser);
-//    unsigned int computeReqRbs(MacNodeId id, Band b, Codeword cw, unsigned int bytes, const Direction dir);
-    unsigned int computeReqRbs(MacNodeId id, Band b, Codeword cw, unsigned int bytes, const Direction dir, unsigned int allocatedBlocks);
-
-    unsigned int computeBitsOnNRbs(MacNodeId id, Band b, unsigned int blocks, const Direction dir);
-    unsigned int computeBitsOnNRbs(MacNodeId id, Band b, Codeword cw, unsigned int blocks, const Direction dir);
-    unsigned int computeBytesOnNRbs(MacNodeId id, Band b, unsigned int blocks, const Direction dir);
-    unsigned int computeBytesOnNRbs(MacNodeId id, Band b, Codeword cw, unsigned int blocks, const Direction dir);
+    virtual unsigned int computeReqRbs(MacNodeId id, Band b, Codeword cw, unsigned int bytes, const Direction dir, double carrierFrequency);
+    virtual unsigned int computeBitsOnNRbs(MacNodeId id, Band b, unsigned int blocks, const Direction dir, double carrierFrequency);
+    virtual unsigned int computeBitsOnNRbs(MacNodeId id, Band b, Codeword cw, unsigned int blocks, const Direction dir, double carrierFrequency);
+    virtual unsigned int computeBytesOnNRbs(MacNodeId id, Band b, unsigned int blocks, const Direction dir, double carrierFrequency);
+    virtual unsigned int computeBytesOnNRbs(MacNodeId id, Band b, Codeword cw, unsigned int blocks, const Direction dir, double carrierFrequency);
 
     // multiband version of the above function. It returns the number of bytes that can fit in the given "blocks" of the given "band"
-    unsigned int computeBytesOnNRbs_MB(MacNodeId id, Band b, unsigned int blocks, const Direction dir);
-    unsigned int computeBitsOnNRbs_MB(MacNodeId id, Band b, unsigned int blocks, const Direction dir);
+    virtual unsigned int computeBytesOnNRbs_MB(MacNodeId id, Band b, unsigned int blocks, const Direction dir, double carrierFrequency);
+    virtual unsigned int computeBitsOnNRbs_MB(MacNodeId id, Band b, unsigned int blocks, const Direction dir, double carrierFrequency);
     bool setPilotUsableBands(MacNodeId id , std::vector<unsigned short> usableBands);
     bool getPilotUsableBands(MacNodeId id, std::vector<unsigned short>*& usableBands);
 
     // utilities - do not involve pilot invocation
-//    unsigned int getItbsPerCqi(Cqi cqi, const Direction dir); //--> TBS Calculation new in 5G, Author: Thomas Deinlein
-    unsigned int getMcsIndexCqi(Cqi cqi, const Direction dir);
-
-
-    //double readCoderate(MacNodeId id, Codeword cw, unsigned int bytes, const Direction dir);
+    unsigned int getItbsPerCqi(Cqi cqi, const Direction dir);
 
     /*
      * Access the correct itbs2tbs conversion table given cqi and layer numer
      */
-//    const unsigned int* readTbsVect(Cqi cqi, unsigned int layers, Direction dir);
+    const unsigned int* readTbsVect(Cqi cqi, unsigned int layers, Direction dir);
 
     /*
      * given <cqi> and <layers> returns bytes allocable in <blocks>
      */
-//    unsigned int blockGain(Cqi cqi, unsigned int layers, unsigned int blocks, Direction dir);
+    unsigned int blockGain(Cqi cqi, unsigned int layers, unsigned int blocks, Direction dir);
 
     /*
      * given <cqi> and <layers> returns blocks capable of carrying  <bytes>
      */
-//    unsigned int bytesGain(Cqi cqi, unsigned int layers, unsigned int bytes, Direction dir);
+    unsigned int bytesGain(Cqi cqi, unsigned int layers, unsigned int bytes, Direction dir);
 
     // ---------------------------
     void writeCqiWeight(double weight);
@@ -188,6 +185,11 @@ class LteAmc
     AmcPilot *getPilot() const
     {
         return pilot_;
+    }
+
+    CellInfo* getCellInfo()
+    {
+        return cellInfo_;
     }
 
     inet::Coord getUePosition(MacNodeId id)
@@ -214,9 +216,11 @@ class LteAmc
             muMimoD2DMatrix_.addPair(id1,id2);
     }
 
-    std::vector<Cqi>  readMultiBandCqi(MacNodeId id, const Direction dir);
+    std::vector<Cqi>  readMultiBandCqi(MacNodeId id, const Direction dir, double carrierFrequency);
 
     int getSystemNumBands() { return numBands_; }
+
+    void setPilotMode( PilotComputationModes mode);
 };
 
 #endif

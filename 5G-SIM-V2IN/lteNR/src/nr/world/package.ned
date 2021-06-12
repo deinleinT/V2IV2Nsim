@@ -1,3 +1,3 @@
-package nr.world;
+package lteNR.nr.world;
 
 @license(LGPL);

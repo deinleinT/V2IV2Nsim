@@ -19,14 +19,13 @@ package inet.linklayer.ieee80211.mac;
 
 import inet.linklayer.ieee80211.mac.contract.ITx;
 
-
 //
-// The default implementation of ITx.
+// The default implementation of ~ITx.
 //
 simple Tx like ITx
 {
     parameters:
         string rxModule;
-        string statisticsModule = default("");
         @display("i=block/tx");
 }
+

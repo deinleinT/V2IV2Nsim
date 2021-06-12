@@ -1,15 +1,17 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
 //
 // This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
+// Date: 2021
 // Author: Thomas Deinlein
 //
 
@@ -18,7 +20,7 @@
 
 #include <omnetpp.h>
 
-#include "corenetwork/lteCellInfo/LteCellInfo.h"
+#include "common/cellInfo/CellInfo.h"
 #include "common/LteCommon.h"
 #include "stack/phy/das/DasFilter.h"
 #include "stack/phy/feedback/LteFeedback.h"
@@ -32,16 +34,18 @@ class DasFilter;
  * @brief Lte Downlink Feedback Generator
  *
  */
-class LteDlFeedbackGenerator: public cSimpleModule {
-    enum FbTimerType {
+class LteDlFeedbackGenerator : public omnetpp::cSimpleModule
+{
+
+  protected:
+    enum FbTimerType
+    {
         PERIODIC_SENSING = 0, PERIODIC_TX, APERIODIC_TX
     };
 
-protected:
-
     FeedbackType fbType_;               /// feedback type (ALLBANDS, PREFERRED, WIDEBAND)
     RbAllocationType rbAllocationType_; /// resource allocation type
-    LteFeedbackComputation* lteFeedbackComputation_; // Object used to compute the feedback
+    // LteFeedbackComputation* lteFeedbackComputation_; // Object used to compute the feedback
     FeedbackGeneratorType generatorType_;
     /**
      * NOTE: fbPeriod_ MUST be greater than fbDelay_,
@@ -49,14 +53,14 @@ protected:
      * for periodic feedback (when calling start() on busy
      * transmission timer we have no operation)
      */
-    simtime_t fbPeriod_;    /// period for Periodic feedback in TTI
-    simtime_t fbDelay_;     /// time interval between sensing and transmission in TTI
+    omnetpp::simtime_t fbPeriod_;    /// period for Periodic feedback in TTI
+    omnetpp::simtime_t fbDelay_;     /// time interval between sensing and transmission in TTI
 
     bool usePeriodic_;      /// true if we want to use also periodic feedback
     TxMode currentTxMode_;  /// transmission mode to use in feedback generation
 
     DasFilter *dasFilter_;  /// reference to das filter
-    LteCellInfo *cellInfo_; /// reference to cellInfo
+    CellInfo *cellInfo_; /// reference to cellInfo
 
     // cellInfo parameters
     std::map<Remote, int> antennaCws_; /// number of antenna per remote
@@ -78,36 +82,37 @@ protected:
     MacNodeId nodeId_;
 
     bool feedbackComputationPisa_;
-
-protected:
+    // initialize cell information
+    void initCellInfo();
 
     /**
      * DUMMY: should be provided by PHY
      */
     virtual void sendFeedback(LteFeedbackDoubleVector fb, FbPeriodicity per);
 
+private:
 
-    virtual LteFeedbackComputation* getFeedbackComputationFromName(std::string name, ParameterMap& params);
+    LteFeedbackComputation* getFeedbackComputationFromName(std::string name, ParameterMap& params);
 
 
-  protected:
+protected:
 
     /**
      * Initialization function.
      */
-    virtual void initialize(int stage);
+    virtual void initialize(int stage) override;
 
     /**
      * Manage self messages for sensing and transmission.
      * @param msg self message for sensing or transmission
      */
-    virtual void handleMessage(cMessage *msg);
+    virtual void handleMessage(omnetpp::cMessage *msg) override;
 
     /**
      * Channel sensing
      */
     void sensing(FbPeriodicity per);
-    virtual int numInitStages() const { return inet::INITSTAGE_LINK_LAYER_2 + 1; }
+    virtual int numInitStages() const override { return inet::INITSTAGE_LINK_LAYER + 1; }
 
   public:
 

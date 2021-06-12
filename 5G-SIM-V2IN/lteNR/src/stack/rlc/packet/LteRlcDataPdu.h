@@ -1,9 +1,11 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
@@ -12,7 +14,6 @@
 
 #include "stack/rlc/packet/LteRlcDataPdu_m.h"
 #include "stack/rlc/LteRlcDefs.h"
-#include "stack/rlc/packet/LteRlcSdu_m.h"
 
 /**
  * @class LteRlcDataPdu
@@ -24,11 +25,28 @@
  * a whole SDU or a fragment
  */
 class LteRlcDataPdu : public LteRlcDataPdu_Base {
-
+private:
+    void copy(const LteRlcDataPdu& other) {
+        // "the copy constructor of a container should dup() the owned objects and take() the copies"
+        sduList_.clear();
+        RlcSduList::const_iterator sit;
+        for (sit = other.sduList_.begin(); sit != other.sduList_.end(); ++sit)
+        {
+            auto newPkt = (*sit)->dup();
+            take(newPkt);
+            sduList_.push_back(newPkt);
+        }
+        sduSizes_ = other.sduSizes_;
+        numSdu_ = other.numSdu_;
+        fi_ = other.fi_;
+        pduSequenceNumber_ = other.pduSequenceNumber_;
+        rlcPduLength_ = other.rlcPduLength_;
+    }
 protected:
 
     /// List Of MAC SDUs
     RlcSduList sduList_;
+    RlcSduListSizes sduSizes_;
 
     // number of SDU stored in the message
     unsigned int numSdu_;
@@ -42,15 +60,19 @@ protected:
     // Length of the PDU
     inet::int64 rlcPduLength_;
 
+
 public:
 
     /**
      * Constructor
      */
-    LteRlcDataPdu(const char* name = NULL, int kind = 0) :
-        LteRlcDataPdu_Base(name, kind)
+    LteRlcDataPdu() : LteRlcDataPdu_Base()
     {
+        this->setChunkLength(inet::b(1));
         numSdu_ = 0;
+        pduSequenceNumber_ = 0;
+        fi_ = 0;
+        rlcPduLength_ = 0;
     }
 
     virtual ~LteRlcDataPdu()
@@ -62,9 +84,9 @@ public:
             dropAndDelete(*sit);
     }
 
-    LteRlcDataPdu(const LteRlcDataPdu& other) : LteRlcDataPdu_Base()
+    LteRlcDataPdu(const LteRlcDataPdu& other) : LteRlcDataPdu_Base(other)
     {
-        operator=(other);
+        copy(other);
     }
 
     LteRlcDataPdu& operator=(const LteRlcDataPdu& other)
@@ -73,38 +95,22 @@ public:
             return *this;
         LteRlcDataPdu_Base::operator=(other);
 
-        // "the copy constructor of a container should dup() the owned objects and take() the copies"
-        sduList_.clear();
-        RlcSduList::const_iterator sit;
-        unsigned int count = 0;
-        for (sit = other.sduList_.begin(); sit != other.sduList_.end(); ++sit)
-        {
-            cPacket* newPkt = (*sit)->dup();
-            take(newPkt);
-            LteRlcSdu * tmp = check_and_cast<LteRlcSdu*>(newPkt);
-            if(tmp->getSnoMainPacket() > count)
-                count = tmp->getSnoMainPacket();
-            sduList_.push_back(newPkt);
-        }
-        numSdu_ = other.numSdu_;
-        fi_ = other.fi_;
-        pduSequenceNumber_ = other.pduSequenceNumber_;
-        rlcPduLength_ = other.rlcPduLength_;
+        copy(other);
         return *this;
     }
 
-    virtual LteRlcDataPdu *dup() const
+    virtual LteRlcDataPdu *dup() const override
     {
         return new LteRlcDataPdu(*this);
     }
 
     void setPduSequenceNumber(unsigned int sno);
-    unsigned int getPduSequenceNumber();
+    unsigned int getPduSequenceNumber() const;
 
     void setFramingInfo(FramingInfo fi);
-    FramingInfo getFramingInfo();
+    FramingInfo getFramingInfo() const;
 
-    unsigned int getNumSdu() { return numSdu_; }
+    unsigned int getNumSdu() const { return numSdu_; }
 
     /**
      * pushSdu() gets ownership of the packet
@@ -113,11 +119,21 @@ public:
      *
      * @param pkt packet to store
      */
-    virtual void pushSdu(cPacket* pkt)
+    virtual void pushSdu(inet::Packet* pkt)
     {
         take(pkt);
         rlcPduLength_ += pkt->getByteLength();
         sduList_.push_back(pkt);
+        sduSizes_.push_back(pkt->getByteLength());
+        numSdu_++;
+    }
+
+    virtual void pushSdu(inet::Packet* pkt, int size)
+    {
+        take(pkt);
+        rlcPduLength_ += size;
+        sduList_.push_back(pkt);
+        sduSizes_.push_back(size);
         numSdu_++;
     }
 
@@ -128,11 +144,13 @@ public:
      *
      * @return popped packet
      */
-    virtual cPacket* popSdu()
+    virtual inet::Packet* popSdu(size_t &size)
     {
-        cPacket* pkt = sduList_.front();
+        auto pkt = sduList_.front();
         sduList_.pop_front();
-        rlcPduLength_ -= pkt->getByteLength();
+        size = sduSizes_.front();
+        rlcPduLength_ -= (sduSizes_.front());
+        sduSizes_.pop_front();
         numSdu_--;
         drop(pkt);
         return pkt;
@@ -145,59 +163,39 @@ public:
  *
  * Define additional fields for UM PDU
  */
-class LteRlcUmDataPdu: public LteRlcDataPdu {
-protected:
-    std::vector<LteRlcUmDataPdu*> requests;
-    bool flag;
+class LteRlcUmDataPdu : public LteRlcDataPdu {
+private:
+    void copy(const LteRlcUmDataPdu &other) {
+
+    }
 
 public:
 
-    LteRlcUmDataPdu(const char* name = NULL, int kind = 0) :
-            LteRlcDataPdu(name, kind) {
+    LteRlcUmDataPdu() : LteRlcDataPdu()
+    {
         rlcPduLength_ = RLC_HEADER_UM;
-        flag  = 0;
+        this->setChunkLength(inet::B(rlcPduLength_));
     }
 
     virtual ~LteRlcUmDataPdu() {}
 
-    LteRlcUmDataPdu(const LteRlcUmDataPdu& other) :
-            LteRlcDataPdu() {
-        operator=(other);
+    LteRlcUmDataPdu(const LteRlcUmDataPdu& other) : LteRlcDataPdu(other)
+    {
+        copy(other);
     }
 
-    LteRlcUmDataPdu& operator=(const LteRlcUmDataPdu& other) {
+    LteRlcUmDataPdu& operator=(const LteRlcUmDataPdu& other)
+    {
         if (&other == this)
             return *this;
-        this->requests = other.requests;
-        this->setControlInfo(other.getControlInfo()->dup());
         LteRlcDataPdu::operator=(other);
         return *this;
     }
 
-    virtual LteRlcUmDataPdu *dup() const {
+    virtual LteRlcUmDataPdu *dup() const
+    {
         return new LteRlcUmDataPdu(*this);
     }
-
-
-
-public:
-    void setContainsFlag(bool flag) {
-        this->flag = flag;
-    }
-
-    bool containsSeveralCids() {
-        return flag;
-    }
-
-    std::vector<LteRlcUmDataPdu*> & getRequest() {
-        return requests;
-    }
-
-    void insertRequest(LteRlcUmDataPdu * pkt){
-        take(pkt);
-        requests.push_back(pkt);
-    }
-
 };
 
 /**
@@ -207,25 +205,47 @@ public:
  * Define additional fields for AM PDU
  */
 class LteRlcAmDataPdu : public LteRlcDataPdu {
+private:
+    void copy(const LteRlcAmDataPdu &other) {
+        pollStatus_ = other.pollStatus_;
+    }
+protected:
 
     // if true, a status PDU is required
     bool pollStatus_;
 
 public:
 
-    LteRlcAmDataPdu(const char* name = NULL, int kind = 0) :
-        LteRlcDataPdu(name, kind)
+    LteRlcAmDataPdu() : LteRlcDataPdu()
     {
         rlcPduLength_ = RLC_HEADER_UM;
+        this->setChunkLength(inet::B(rlcPduLength_));
     }
+
+    LteRlcAmDataPdu(const LteRlcAmDataPdu& other) : LteRlcDataPdu(other)
+    {
+        copy(other);
+    }
+
+    LteRlcAmDataPdu& operator=(const LteRlcAmDataPdu& other)
+    {
+        if (&other == this)
+            return *this;
+        copy(other);
+        LteRlcDataPdu::operator=(other);
+        return *this;
+    }
+
 
     virtual ~LteRlcAmDataPdu() {}
 
     void setPollStatus(bool p) { pollStatus_ = p; }
-    bool getPollStatus() { return pollStatus_; }
+    bool getPollStatus() const { return pollStatus_; }
 };
 
 
 Register_Class(LteRlcDataPdu);
+Register_Class(LteRlcUmDataPdu);
+Register_Class(LteRlcAmDataPdu);
 
 #endif /* LTERLCDATAPDU_H_ */

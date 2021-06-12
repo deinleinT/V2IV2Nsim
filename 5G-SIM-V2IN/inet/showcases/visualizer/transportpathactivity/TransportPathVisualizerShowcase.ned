@@ -14,7 +14,7 @@
 // 
 
 package inet.showcases.visualizer.transportpathactivity;
-import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
+import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 import inet.node.ethernet.Eth100M;
 import inet.node.ethernet.EtherSwitch;
 import inet.node.inet.AdhocHost;
@@ -25,9 +25,6 @@ import inet.visualizer.integrated.IntegratedVisualizer;
 import inet.visualizer.transportlayer.TransportRouteVisualizer;
 
 
-//
-// TODO documentation
-//
 network TransportPathVisualizerSimpleWiredShowcase
 {
     @display("bgb=500,250");
@@ -35,7 +32,7 @@ network TransportPathVisualizerSimpleWiredShowcase
         pathVisualizer: TransportRouteVisualizer {
             @display("p=80,80");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=80,150");
         }
         source: StandardHost {
@@ -49,9 +46,6 @@ network TransportPathVisualizerSimpleWiredShowcase
 }
 
 
-//
-// TODO documentation
-//
 network TransportPathVisualizerSimpleWirelessShowcase
 {
     @display("bgb=500,250");
@@ -59,7 +53,7 @@ network TransportPathVisualizerSimpleWirelessShowcase
         pathVisualizer: TransportRouteVisualizer {
             @display("p=80,50");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=80,120");
         }
         radioMedium: Ieee80211ScalarRadioMedium {
@@ -73,9 +67,6 @@ network TransportPathVisualizerSimpleWirelessShowcase
         }
 }
 
-//
-// TODO documentation
-//
 network TransportPathVisualizerFilteringShowcase
 {
     @display("bgb=1024,700");
@@ -84,7 +75,7 @@ network TransportPathVisualizerFilteringShowcase
             parameters:
                 @display("p=80,50");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             parameters:
                 @display("p=80,140");
         }

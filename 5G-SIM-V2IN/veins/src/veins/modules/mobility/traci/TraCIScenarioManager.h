@@ -26,6 +26,7 @@
 #include <memory>
 #include <list>
 #include <queue>
+#include <vector>
 
 #include "veins/veins.h"
 
@@ -132,6 +133,7 @@ public:
     }
 
     virtual bool deleteRemoteVehicle(std::string carName) {
+        Enter_Method_Silent("deleteRemoteVehicle");
         std::set<std::string>::const_iterator it = remoteVehicles.begin();
         //auto it=remoteVehicles.begin();
         while (it != remoteVehicles.end()) {
@@ -143,6 +145,15 @@ public:
             }
         }
         return false;
+    }
+
+    std::vector<double> getOmnet2Traci(Coord coord){
+        Enter_Method_Silent("getOmnet2Traci");
+        std::vector<double> retValue;
+        TraCICoord c = connection.get()->omnet2traci(coord);
+        retValue.push_back(c.x);
+        retValue.push_back(c.y);
+        return retValue;
     }
 
 protected:

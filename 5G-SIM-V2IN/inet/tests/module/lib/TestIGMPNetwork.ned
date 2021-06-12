@@ -1,10 +1,31 @@
+package inet.test.moduletest.lib;
+
 import inet.networklayer.common.InterfaceTable;
-import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
-import inet.networklayer.configurator.ipv4.IPv4NodeConfigurator;
-import inet.networklayer.ipv4.IIGMP;
-import inet.networklayer.ipv4.IPv4RoutingTable;
+import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
+import inet.networklayer.configurator.ipv4.Ipv4NodeConfigurator;
+import inet.networklayer.ipv4.IIgmp;
+import inet.networklayer.ipv4.Ipv4RoutingTable;
 import inet.common.scenario.ScenarioManager;
 
+module IgmpTesterNic
+{
+    parameters:
+        string interfaceTableModule;
+        string routingTableModule;
+        *.interfaceTableModule = absPath(interfaceTableModule);
+        *.routingTableModule = absPath(routingTableModule);
+        @class(InterfaceEntry);
+    gates:
+        input upperLayerIn;
+        output upperLayerOut;
+    submodules:
+        mac: IGMPTester {
+            @display("p=70,153");
+        }
+    connections:
+        upperLayerIn --> mac.upperLayerIn;
+        upperLayerOut <-- mac.upperLayerOut;
+}
 
 network TestIGMPNetwork
 {
@@ -13,30 +34,29 @@ network TestIGMPNetwork
         {
             parameters:
                 @networkNode;
-                string igmpType = default("IGMPv3");
                 *.interfaceTableModule = absPath(".interfaceTable");
                 *.routingTableModule = absPath(".routingTable");
             submodules:
                 interfaceTable: InterfaceTable {
                     @display("p=57,31");
                 }
-                routingTable: IPv4RoutingTable {
+                routingTable: Ipv4RoutingTable {
                     @display("p=168,31");
                 }
-                tester: IGMPTester {
+                tester: IgmpTesterNic {
                     @display("p=70,153");
                 }
-                igmp: <igmpType> like IIGMP {
+                igmp: <default("Igmpv3")> like IIgmp {
                     @display("p=176,153");
                 }
-                nodeConfigurator: IPv4NodeConfigurator {
+                nodeConfigurator: Ipv4NodeConfigurator {
                     @display("p=285,95");
                     networkConfiguratorModule = "";
                     configureRoutingTable = false;
                 }
             connections allowunconnected:
-                tester.igmpOut --> igmp.ipIn;
-                igmp.ipOut --> tester.igmpIn;
+                tester.upperLayerOut --> igmp.ipIn;
+                igmp.ipOut --> tester.upperLayerIn;
         }
     submodules:
         node: TestIGMPNode;

@@ -17,17 +17,17 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-package nr.simulationsNR.Urban;
+package lteNR.simulationsNR.Urban;
 
-import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
+import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 import inet.networklayer.ipv4.RoutingTableRecorder;
 import inet.node.inet.AdhocHost;
 import inet.node.inet.Router;
 import inet.node.inet.StandardHost;
 import inet.node.ethernet.Eth10G;
 
-import nr.world.radio.NRChannelControl;
-import nr.corenetwork.binder.NRBinder;
+import lteNR.nr.world.radio.NRChannelControl;
+import lteNR.nr.common.binder.NRBinder;
 
 import org.car2x.veins.subprojects.veins_inet.VeinsInetManager;
 import org.car2x.veins.modules.obstacle.ObstacleControl;
@@ -35,9 +35,11 @@ import org.car2x.veins.modules.world.annotations.AnnotationManager;
 import org.car2x.veins.base.modules.BaseWorldUtility;
 import org.car2x.veins.visualizer.roads.RoadsCanvasVisualizer;
 
-import nr.corenetwork.nodes.UPF;
-import nr.corenetwork.nodes.gNodeB;
-import nr.corenetwork.nodes.GeneralParameters;
+import lteNR.nr.common.nodes.UPF;
+import lteNR.nr.common.nodes.gnodeB;
+import lteNR.nr.common.nodes.GeneralParameters;
+
+import lteNR.common.carrierAggregation.CarrierAggregation;
 
 
 network NRSeveralBS extends GeneralParameters
@@ -46,54 +48,59 @@ network NRSeveralBS extends GeneralParameters
         double playgroundSizeX @unit(m); // x size of the area the nodes are in (in meters)
         double playgroundSizeY @unit(m); // y size of the area the nodes are in (in meters)
         double playgroundSizeZ @unit(m); // z size of the area the nodes are in (in meters)
-        @display("bgb=5000,5000");
+        @display("bgb=5954.76,4993.992");
 
     submodules:
+
+        carrierAggregation: CarrierAggregation {
+            @display("p=6976.3203,182.52;is=s");
+        }
 
         world: BaseWorldUtility {
             parameters:
                 playgroundSizeX = playgroundSizeX;
                 playgroundSizeY = playgroundSizeY;
                 playgroundSizeZ = playgroundSizeZ;
-                @display("p=3941,2297.04;i=misc/globe");
+                @display("p=5424.336,3242.592;i=misc/globe");
         }
 
 		//INET
         routingRecorder: RoutingTableRecorder {
-            @display("p=3941.2021,167.488;is=s");
+            @display("p=4123.296,470.376;is=s");
         }
+
         //INET
-        configurator: IPv4NetworkConfigurator {
-            @display("p=3941.2021,1188.118");
+        configurator: Ipv4NetworkConfigurator {
+            @display("p=5504.4,4113.288");
             config = xmldoc("demo.xml");
         }
 
         roadsCanvasVisualizer: RoadsCanvasVisualizer {
-            @display("p=3933.144,2852.28");
+            @display("p=5504.4,430.344");
         }
 
         //# Veins manager module
         veinsManager: VeinsInetManager {
-            @display("p=3941.2021,418.72;is=s");
+            @display("p=5424.336,1150.92;is=s");
         }
 
         obstacles: ObstacleControl {
-            @display("p=3941.2021,1915.644");
+            @display("p=4123.296,1931.544");
         }
 
         annotations: AnnotationManager {
-            @display("p=3941.2021,1559.732");
+            @display("p=5384.304,1901.52");
         }
 
         //# NR modules
         //changed
         channelControl: NRChannelControl {
-            @display("p=3935.9683,926.418;is=s");
+            @display("p=4113.288,1150.92;is=s");
         }
 
         //changed
         binder: NRBinder {
-            @display("p=3941.2021,669.952;is=s");
+            @display("p=5384.304,2522.016;is=s");
         }
 
         //INET
@@ -116,35 +123,35 @@ network NRSeveralBS extends GeneralParameters
             @display("p=630.504,4453.56;is=l");
         }
 
-        gNodeB1: gNodeB {
+        gNodeB1: gnodeB {
             @display("p=2304.19,1555.01;is=vl");//hochhaus
         }
 
-        gNodeB2: gNodeB {
+        gNodeB2: gnodeB {
             @display("p=1371.06,1573.35;is=vl");
         }
 
-        gNodeB3: gNodeB {
+        gNodeB3: gnodeB {
             @display("p=1493.88,1091.91;is=vl");
         }
 
-        gNodeB4: gNodeB {
+        gNodeB4: gnodeB {
             @display("p=936.665,842.739;is=vl");
         }
 
-        gNodeB5: gNodeB {
+        gNodeB5: gnodeB {
             @display("p=452.88,1521.78;is=vl");
         }
 
-        gNodeB6: gNodeB {
+        gNodeB6: gnodeB {
             @display("p=377.858,2766.73;is=vl");
         }
 
-        gNodeB7: gNodeB {
+        gNodeB7: gnodeB {
             @display("p=300.669,437.871;is=vl");
         }
 
-        gNodeB8: gNodeB {
+        gNodeB8: gnodeB {
             @display("p=1645.37,163.92;is=vl");
         }
 

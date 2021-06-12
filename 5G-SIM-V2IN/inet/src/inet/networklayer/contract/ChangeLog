@@ -1,12 +1,217 @@
+====== inet-4.x ======
+
+2021-01-07  ------ inet-4.2.2 released ------
+
+2020-10-27  ------ inet-4.2.1 released ------
+
+2020-01-08  ------ inet-4.2.0 released ------
+
+2019-11-12  Zoltan Bojthe
+
+	Rename functions for getFoo()/findFoo() convention in InterfaceTable.
+
+2019-11-08  Zoltan Bojthe
+
+	Converted sprintf to streamout in clns.
+
+2019-11-07  Zoltan Bojthe
+
+	Added getFirstNonLoopbackInterface() to InterfaceTable.
+
+2019-06-17  Andras Varga
+
+	Changed getInterfaceById() to raise an error on invalid IDs.
+	Added findInterfaceById() with old behavior.
+
+2019-03-20  Levente Mészáros
+
+	Changed hooks to maintain a list of netfilters to allow registering to
+	multiple simulatenously.
+
+2019-01-28  ------ inet-4.1.0 released ------
+
+2019-01-18  Zoltan Bojthe
+
+	Fixed unsigned long != uint64_t on some systems in CLNS.
+
+2019-01-11  Zoltan Bojthe
+
+	Fixed compiler warnings: compare signed/unsigned, sprintf buffer was too short.
+
+2018-09-19  Zoltan Bojthe
+
+	Adapted to the new protocol specific data storage API of InterfaceEntry.
+
+2018-09-03  Zoltan Bojthe
+
+	Split INetworkLayer to INetworkLayerUpper and INetworkLayerLower.
+
+2018-08-28  Zoltan Bojthe
+
+	Added EIGRP, LISP, BABEL, ODR, UNKNOWN, ISIS to IRoute::SourceType.
+
+2018-08-28  Zoltan Bojthe
+
+	Added ClnsAddress and ClnsAddressType.
+
+2018-07-19  Mani Amoozadeh
+
+	Display administrative distance in the routing table if enabled.
+
+2018-08-17  Zoltan Bojthe
+
+	Added namespace qualifier to @signal type parameters.
+
+2018-06-27  ------ inet-4.0.0 released ------
+
+2018-06-18  Zoltan Bojthe
+
+	Added bool isFragment() function to NetworkHeaderBase.
+
+2018-06-01  Zoltan Bojthe
+
+	Added B/b units to length constants and length fields of chunks.
+
+2018-05-09  Zoltan Bojthe
+
+	Implemented bind() and connect() with L3Socket.
+
+2018-05-09  Levente Mészáros
+
+	Extended INetworkSockets and implementations with local/remote address filter.
+
+2018-05-07  Levente Mészáros
+
+	Changed L3Socket to implement the new INetworkSocket interface.
+	Added a new INetworkSocket interface.
+
+2018-04-25  Zoltan Bojthe
+
+	Implemented ISocket with L3Socket.
+
+2018-04-13  ------ inet-3.99.3 released ------
+
+2017-12-22  ------ inet-3.99.2 released ------
+
+2017-12-20  Zoltan Bojthe
+
+	Renaming:
+	    ARPPacket -> ArpPacket
+	    IARP -> IArp
+	    ICMPv6 -> Icmpv6
+	    IIPv6Tunneling -> IIpv6Tunneling
+	    IPv4 -> Ipv4
+	    IPv4Address -> Ipv4Address
+	    IPv4MulticastRoute -> Ipv4MulticastRoute
+	    IPv4Route -> Ipv4Route
+	    IPv6 -> Ipv6
+	    IPv6NeighbourDiscovery -> Ipv6NeighbourDiscovery
+	    IPv6Route -> Ipv6Route
+	    MACAddress -> MacAddress
+
+2017-12-11  Zoltan Bojthe
+
+	Updated for new msgc function names: getFooForUpdate, insertFoo, eraseFoo, etc.
+
+2017-12-07  Zoltan Bojthe
+
+	Camelized property names in MSG files.
+
+2017-12-05  Zoltan Bojthe
+
+	Removed "typedef const Foo ConstFoo" statements from MSG files, replaced
+	with proper const support.
+
+2017-11-21  Levente Mészáros
+
+	Removed @opaque from fields, and added @opaque to types where needed.
+
+2017-11-13  Zoltan Bojthe
+
+	Replaced "int ipProtocolId @enum(IPProtocolId)" to "IPProtocolId ipProtocolId".
+
+2017-11-17  Zoltan Bojthe
+
+	Added required import statements to MSG files according to new syntax.
+
+2017-11-16  ------ inet-3.99.1 released ------
+
+2017-09-20  Zoltan Bojthe
+
+	Redesigned Netfilter hooks: functions have only the Packet
+	parameter, in/out interfaces and nextHop are TAGs on the packet.
+
+2017-04-12  Zoltan Bojthe
+
+	Merged INetworkHeader and NetworkHeaderBase.
+
+2017-04-12  Levente Mészáros
+
+	Removed getNetworkHeaderLength from INetworkHeader.
+
+2017-02-03  Levente Mészáros
+
+	Removed extra IPv4Header parameters from Netfilter.
+
+2017-02-03  Levente Mészáros
+
+	Renamed to INetworkHeader.
+
+2016-07-12  Levente Mészáros
+
+	Fixed double destructor after merge and cosmetics.
+
+2016-07-06  Florian Kauer
+
+	Fix regression bug in NetfilterBase
+
+	With the newly introduced NetfilterBase, sometimes a pure virtual method
+	call was issued during the destruction phase. Apparently, under some
+	conditions the NetfilterBase was destructed before the HookBase, leading
+	to this bug. The solution includes unregistering all registered hooks in
+	the destructor of NetfilterBase.
+
+	Signed-off-by: Florian Kauer <florian.kauer@koalo.de>
+
+2016-06-30  Zoltan Bojthe
+
+	Added destructor to NetfilterBase for unregister all registered hooks.
+
+2016-06-27  Zoltan Bojthe
+
+	NetFilter hook changes: auto unregister in destructor.
+
+2016-06-02  Levente Mészáros
+
+	Renamed gates in INetworkProtocol.
+
+2016-06-02  Levente Mészáros
+
+	Added a new raw socket called L3Socket.
+
+2016-05-31  Levente Mészáros
+
+	Merged unsused INetworkLayerUpper and INetworkLayerLower into INetworkLayer.
+
+2016-05-31  Levente Mészáros
+
+	Changed positions and icons in display string to at least have well-layouted
+	network nodes.
+
+2016-04-29  Levente Mészáros
+
+	Changed vector gates to scalar gates towards transport and link layer.
+
+2016-05-31  Levente Mészáros
+
+	Implemented IPacketControlInfo, IProtocolControlInfo, ISocketControlInfo
+	interfaces with network layer control infos.
+
+2015-06-11  Levente Mészáros
+
+	Dropped obsolete RegisterTransportProtocolCommand.
+
 ====== inet-3.x ======
-
-2020-10-20  ------ inet-3.6.8 released ------
-
-2019-11-04  ------ inet-3.6.7 released ------
-
-2019-08-16  ------ inet-3.6.6 released ------
-
-2019-04-12  ------ inet-3.6.5 released ------
 
 2018-03-21  ------ inet-3.6.4 released ------
 

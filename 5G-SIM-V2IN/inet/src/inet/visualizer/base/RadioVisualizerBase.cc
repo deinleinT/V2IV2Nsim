@@ -22,6 +22,8 @@ namespace inet {
 
 namespace visualizer {
 
+using namespace inet::physicallayer;
+
 RadioVisualizerBase::RadioVisualization::RadioVisualization(const int radioModuleId) :
     radioModuleId(radioModuleId)
 {
@@ -56,6 +58,23 @@ void RadioVisualizerBase::initialize(int stage)
         height = par("height");
         placementHint = parsePlacement(par("placementHint"));
         placementPriority = par("placementPriority");
+        // antenna lobe
+        displayAntennaLobes = par("displayAntennaLobes");
+        antennaLobeNormalize = par("antennaLobeNormalize");
+        antennaLobeRelativeLabels = par("antennaLobeRelativeLabels");
+        antennaLobePlaneGlobal = par("antennaLobePlaneGlobal");
+        antennaLobePlane = par("antennaLobePlane");
+        antennaLobeMode = par("antennaLobeMode");
+        antennaLobeLogarithmicBase = par("antennaLobeLogarithmicBase");
+        antennaLobeLogarithmicScale = par("antennaLobeLogarithmicScale");
+        antennaLobeRadius = par("antennaLobeRadius");
+        antennaLobeStep = deg(par("antennaLobeStep"));
+        antennaLobeOpacity = par("antennaLobeOpacity");
+        antennaLobeLineSmooth = par("antennaLobeLineSmooth");
+        antennaLobeLineColor = cFigure::parseColor(par("antennaLobeLineColor"));
+        antennaLobeLineStyle = cFigure::parseLineStyle(par("antennaLobeLineStyle"));
+        antennaLobeLineWidth = par("antennaLobeLineWidth");
+        antennaLobeFillColor = cFigure::parseColor(par("antennaLobeFillColor"));
         if (displayRadios)
             subscribe();
     }
@@ -63,6 +82,7 @@ void RadioVisualizerBase::initialize(int stage)
 
 void RadioVisualizerBase::handleParameterChange(const char *name)
 {
+    if (!hasGUI()) return;
     if (name != nullptr) {
         if (!strcmp(name, "radioFilter"))
             radioFilter.setPattern(par("radioFilter"));
@@ -71,20 +91,19 @@ void RadioVisualizerBase::handleParameterChange(const char *name)
 
 void RadioVisualizerBase::subscribe()
 {
-    auto subscriptionModule = getModuleFromPar<cModule>(par("subscriptionModule"), this);
-    subscriptionModule->subscribe(IRadio::radioModeChangedSignal, this);
-    subscriptionModule->subscribe(IRadio::receptionStateChangedSignal, this);
-    subscriptionModule->subscribe(IRadio::transmissionStateChangedSignal, this);
+    visualizationSubjectModule->subscribe(IRadio::radioModeChangedSignal, this);
+    visualizationSubjectModule->subscribe(IRadio::receptionStateChangedSignal, this);
+    visualizationSubjectModule->subscribe(IRadio::transmissionStateChangedSignal, this);
 }
 
 void RadioVisualizerBase::unsubscribe()
 {
     // NOTE: lookup the module again because it may have been deleted first
-    auto subscriptionModule = getModuleFromPar<cModule>(par("subscriptionModule"), this, false);
-    if (subscriptionModule != nullptr) {
-        subscriptionModule->unsubscribe(IRadio::radioModeChangedSignal, this);
-        subscriptionModule->unsubscribe(IRadio::receptionStateChangedSignal, this);
-        subscriptionModule->unsubscribe(IRadio::transmissionStateChangedSignal, this);
+    auto visualizationSubjectModule = getModuleFromPar<cModule>(par("visualizationSubjectModule"), this, false);
+    if (visualizationSubjectModule != nullptr) {
+        visualizationSubjectModule->unsubscribe(IRadio::radioModeChangedSignal, this);
+        visualizationSubjectModule->unsubscribe(IRadio::receptionStateChangedSignal, this);
+        visualizationSubjectModule->unsubscribe(IRadio::transmissionStateChangedSignal, this);
     }
 }
 

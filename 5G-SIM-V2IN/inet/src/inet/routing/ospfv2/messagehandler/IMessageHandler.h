@@ -19,14 +19,15 @@
 #define __INET_IMESSAGEHANDLER_H
 
 #include "inet/common/INETDefs.h"
-#include "inet/routing/ospfv2/OSPFPacket_m.h"
+#include "inet/common/packet/Packet.h"
+#include "inet/routing/ospfv2/Ospfv2Packet_m.h"
 
 namespace inet {
 
-namespace ospf {
+namespace ospfv2 {
 
 class Router;
-class Interface;
+class Ospfv2Interface;
 class Neighbor;
 
 class INET_API IMessageHandler
@@ -38,10 +39,10 @@ class INET_API IMessageHandler
     IMessageHandler(Router *containingRouter) { router = containingRouter; }
     virtual ~IMessageHandler() {}
 
-    virtual void processPacket(OSPFPacket *, Interface *intf, Neighbor *neighbor) = 0;
+    virtual void processPacket(Packet *, Ospfv2Interface *intf, Neighbor *neighbor) = 0;
 };
 
-} // namespace ospf
+} // namespace ospfv2
 
 } // namespace inet
 

@@ -22,12 +22,11 @@ import inet.physicallayer.common.packetlevel.RadioMedium;
 module Ieee80211LayeredDimensionalRadioMedium extends RadioMedium
 {
     parameters:
-        propagationType = default("ConstantSpeedPropagation");
-        pathLossType = default("FreeSpacePathLoss");
-        analogModelType = default("LayeredDimensionaAnalogModel");
-        backgroundNoiseType = default("IsotropicDimensionaBackgroundNoise");
+        analogModel.typename = default("LayeredDimensionalAnalogModel");
+        backgroundNoise.typename = default("IsotropicDimensionalBackgroundNoise");
         backgroundNoise.power = default(-110dBm);
-        mediumLimitCache.carrierFrequency = default(2.4GHz);
+        mediumLimitCache.centerFrequency = default(2.4GHz);
         mediumLimitCache.minReceptionPower = default(-85dBm);
         mediumLimitCache.minInterferencePower = default(-110dBm);
 }
+

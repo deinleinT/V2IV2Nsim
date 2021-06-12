@@ -15,15 +15,17 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "inet/common/geometry/base/ShapeBase.h"
-#include "inet/common/geometry/common/Rotation.h"
-#include "inet/common/geometry/object/LineSegment.h"
 #include "inet/common/ModuleAccess.h"
+#include "inet/common/geometry/base/ShapeBase.h"
+#include "inet/common/geometry/common/RotationMatrix.h"
+#include "inet/common/geometry/object/LineSegment.h"
 #include "inet/physicallayer/obstacleloss/IdealObstacleLoss.h"
 
 namespace inet {
 
 namespace physicallayer {
+
+using namespace inet::physicalenvironment;
 
 Define_Module(IdealObstacleLoss);
 
@@ -48,9 +50,9 @@ bool IdealObstacleLoss::isObstacle(const IPhysicalObject *object, const Coord& t
 {
     const ShapeBase *shape = object->getShape();
     const Coord& position = object->getPosition();
-    const EulerAngles& orientation = object->getOrientation();
-    Rotation rotation(orientation);
-    const LineSegment lineSegment(rotation.rotateVectorCounterClockwise(transmissionPosition - position), rotation.rotateVectorCounterClockwise(receptionPosition - position));
+    const Quaternion& orientation = object->getOrientation();
+    RotationMatrix rotation(orientation.toEulerAngles());
+    const LineSegment lineSegment(rotation.rotateVectorInverse(transmissionPosition - position), rotation.rotateVectorInverse(receptionPosition - position));
     Coord intersection1, intersection2, normal1, normal2;
     bool hasIntersections = shape->computeIntersection(lineSegment, intersection1, intersection2, normal1, normal2);
     bool isObstacle = hasIntersections && intersection1 != intersection2;

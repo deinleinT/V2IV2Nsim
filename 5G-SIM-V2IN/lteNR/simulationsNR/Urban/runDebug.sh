@@ -1,0 +1,3 @@
+#!/bin/bash
+
+opp_run_dbg -r $2 -m -u Cmdenv -c $1 -n ..:../../src/apps:../../src/common:../../src/corenetwork:../../src/nodes:../../src/nr:../../src/stack:../../src/world:../../src/x2:../../../inet/src:../../../inet/examples:../../../inet/tutorials:../../../inet/showcases:../../../veins/examples/veins:../../../veins/src/veins:../../../veins_inet/src/veins_inet:../../../veins_inet/examples/veins_inet --image-path=../../../inet/images:../../../veins/images:../../../veins_inet/images -l ../../src/lteNR -l ../../../inet/src/INET -l ../../../veins/src/veins -l ../../../veins_inet/src/veins_inet $3

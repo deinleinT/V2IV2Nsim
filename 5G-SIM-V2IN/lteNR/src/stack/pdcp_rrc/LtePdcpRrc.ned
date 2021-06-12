@@ -1,14 +1,16 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
 
-package lte.stack.pdcp_rrc;
+package lteNR.stack.pdcp_rrc;
 
 //
 // Interface for the PDCP/RRC layer of LTE Stack.
@@ -21,9 +23,9 @@ moduleinterface LtePdcpRrc {
     gates:
         inout DataPort;
         inout EUTRAN_RRC_Sap;
-        inout TM_Sap;
-        inout UM_Sap;
-        inout AM_Sap;
+        inout TM_Sap[];
+        inout UM_Sap[];
+        inout AM_Sap[];
 }
 
 
@@ -38,7 +40,7 @@ simple LtePdcpRrcBase like LtePdcpRrc {
         int streamingRlc @enum(TM, UM, AM, UNKNOWN_RLC_TYPE) = default(1);
         int interactiveRlc @enum(TM, UM, AM, UNKNOWN_RLC_TYPE) = default(1);
         int backgroundRlc @enum(TM, UM, AM, UNKNOWN_RLC_TYPE) = default(1);
-
+        
         //# Statistics
         @signal[receivedPacketFromUpperLayer];
         @statistic[receivedPacketFromUpperLayer](source="receivedPacketFromUpperLayer"; record=count,"sum(packetBytes)","vector(packetBytes)"; interpolationmode=none);
@@ -65,13 +67,9 @@ simple LtePdcpRrcBase like LtePdcpRrc {
         //#
         //# Data Ports
 
-        inout TM_Sap;            // Transparent Mode SAP
-        inout UM_Sap;            // Unacknowledged Mode SAP
-        inout AM_Sap;            // Acknowledged Mode SAP
-
-		//added 5G
-        inout upperLayerRRC; //from RRC Module
-        inout lowerLayerRRC; //from RLC Module
+        inout TM_Sap[];            // Transparent Mode SAP
+        inout UM_Sap[];            // Unacknowledged Mode SAP
+        inout AM_Sap[];            // Acknowledged Mode SAP
 }
 
 //
@@ -103,18 +101,20 @@ simple LtePdcpRrcEnbD2D extends LtePdcpRrcEnb {
     @class("LtePdcpRrcEnbD2D");
 }
 
+// 
+// Transmit Entity of NR PDCP
 //
-// Relay (UE side) PDCP/RRC layer of LTE stack
-// Connection: eNodeB <--> Relay
-//
-simple LtePdcpRrcRelayUe extends LtePdcpRrcBase {
-    @class("LtePdcpRrcRelayUe");
+simple LteTxPdcpEntity {
+    parameters:
+        @dynamic(true);
+        @display("i=block/segm");
 }
 
+// 
+// Receive Entity of NR PDCP
 //
-// Relay (eNB side) PDCP/RRC layer of LTE stack
-// Connection: Relay <--> UE
-//
-simple LtePdcpRrcRelayEnb extends LtePdcpRrcBase {
-    @class("LtePdcpRrcRelayEnb");
+simple LteRxPdcpEntity {
+    parameters:
+        @dynamic(true);
+        @display("i=block/segm");
 }

@@ -19,27 +19,42 @@
 #ifndef __INET_HOSTAUTOCONFIGURATOR_H
 #define __INET_HOSTAUTOCONFIGURATOR_H
 
-#include <omnetpp.h>
-#include "inet/common/INETDefs.h"
+#include "inet/common/lifecycle/ModuleOperations.h"
+#include "inet/common/lifecycle/OperationalBase.h"
+#include "inet/networklayer/ipv4/IIpv4RoutingTable.h"
 
 namespace inet {
 
 /**
- * HostAutoConfigurator automatically assigns IP addresses and sets up routing table.
+ * HostAutoConfigurator automatically assigns IP addresses and sets up the
+ * routing table for the host it is part of.
+ *
+ * For more info please see the NED file.
  *
  * @author Christoph Sommer
  */
-class INET_API HostAutoConfigurator : public cSimpleModule
+class INET_API HostAutoConfigurator : public OperationalBase
 {
+  protected:
+    IInterfaceTable *interfaceTable = nullptr;
+
   public:
     virtual void initialize(int stage) override;
     virtual void finish() override;
     virtual int numInitStages() const override { return NUM_INIT_STAGES; }
 
-    virtual void handleMessage(cMessage *msg) override;
+    virtual void handleMessageWhenUp(cMessage *msg) override;
 
   protected:
-    void setupNetworkLayer();
+    // lifecycle
+    virtual void handleStartOperation(LifecycleOperation *operation) override { setupNetworkLayer(); }
+    virtual void handleStopOperation(LifecycleOperation *operation) override { }
+    virtual void handleCrashOperation(LifecycleOperation *operation) override {}
+    virtual bool isInitializeStage(int stage) override { return stage == INITSTAGE_NETWORK_CONFIGURATION; }
+    virtual bool isModuleStartStage(int stage) override { return stage == ModuleStartOperation::STAGE_NETWORK_LAYER; }
+    virtual bool isModuleStopStage(int stage) override { return stage == ModuleStopOperation::STAGE_NETWORK_LAYER; }
+
+    virtual void setupNetworkLayer();
 };
 
 } // namespace inet

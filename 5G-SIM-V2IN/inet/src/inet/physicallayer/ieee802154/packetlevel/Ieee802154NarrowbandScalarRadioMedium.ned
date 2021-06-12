@@ -23,12 +23,12 @@ import inet.physicallayer.common.packetlevel.RadioMedium;
 module Ieee802154NarrowbandScalarRadioMedium extends RadioMedium
 {
     parameters:
-        propagationType = default("ConstantSpeedPropagation");
-        analogModelType = default("ScalarAnalogModel");
-        backgroundNoiseType = default("IsotropicScalarBackgroundNoise");
+        backgroundNoise.typename = default("IsotropicScalarBackgroundNoise");
+
+        mediumLimitCache.centerFrequency = 2450 MHz;
 
         // 802.15.4-2006, page 266
-        pathLossType = default("BreakpointPathLoss");
+        pathLoss.typename = default("BreakpointPathLoss");
         pathLoss.breakpointDistance = 8 m;
         pathLoss.l01 = 40.2;
         pathLoss.alpha1 = 2;
@@ -40,3 +40,4 @@ module Ieee802154NarrowbandScalarRadioMedium extends RadioMedium
         backgroundNoise.power = default(-96.616dBm);
         backgroundNoise.dimensions = default("time");
 }
+

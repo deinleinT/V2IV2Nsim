@@ -22,7 +22,6 @@
 #include "inet/physicallayer/contract/packetlevel/IReceptionResult.h"
 
 namespace inet {
-
 namespace physicallayer {
 
 class INET_API ReceptionResult : public IReceptionResult, public cObject
@@ -30,25 +29,21 @@ class INET_API ReceptionResult : public IReceptionResult, public cObject
   protected:
     const IReception *reception;
     const std::vector<const IReceptionDecision *> *decisions;
-    const ReceptionIndication *indication;
-    const cPacket *macFrame;
+    const Packet *packet;
 
   public:
-    ReceptionResult(const IReception *reception, const std::vector<const IReceptionDecision *> *decisions, const ReceptionIndication *indication);
-    ~ReceptionResult();
+    ReceptionResult(const IReception *reception, const std::vector<const IReceptionDecision *> *decisions, const Packet *packet);
+    virtual ~ReceptionResult();
 
     virtual std::ostream& printToStream(std::ostream& stream, int level) const override;
 
     virtual const IReception *getReception() const override { return reception; }
     virtual const std::vector<const IReceptionDecision *> *getDecisions() const override { return decisions; }
-    virtual const ReceptionIndication *getIndication() const override { return indication; }
 
-    virtual const cPacket *getPhyFrame() const override;
-    virtual const cPacket *getMacFrame() const override;
+    virtual const Packet *getPacket() const override;
 };
 
 } // namespace physicallayer
-
 } // namespace inet
 
 #endif // ifndef __INET_RECEPTIONRESULT_H

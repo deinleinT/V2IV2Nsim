@@ -1,15 +1,19 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
 #include "stack/phy/das/DasFilter.h"
 
-DasFilter::DasFilter(LtePhyBase* ltePhy, LteBinder* binder,
+using namespace omnetpp;
+
+DasFilter::DasFilter(LtePhyBase* ltePhy, Binder* binder,
     RemoteAntennaSet* ruSet, double rssiThreshold)
 {
     ruSet_ = ruSet;
@@ -20,47 +24,42 @@ DasFilter::DasFilter(LtePhyBase* ltePhy, LteBinder* binder,
 
 DasFilter::~DasFilter()
 {
-    ruSet_ = NULL;
+    ruSet_ = nullptr;
 }
 
-//REMARK
-//modified
-//AUTHOR: Thomas Deinlein
 void DasFilter::setMasterRuSet(MacNodeId masterId)
 {
-    //std::cout << "DasFilter::setMasterRuSet start at " << simTime().dbl() << std::endl;
-
     cModule* module = getSimulation()->getModule(binder_->getOmnetId(masterId));
     if (getNodeTypeById(masterId) == ENODEB || getNodeTypeById(masterId) == GNODEB)
     {
-        das_ = check_and_cast<LtePhyEnb*>(module->getSubmodule("lteNic")->
-            getSubmodule("phy"))->getDasFilter();
+        das_ = check_and_cast<LtePhyEnb*>(module->getSubmodule("cellularNic")->getSubmodule("phy"))->getDasFilter();
         ruSet_ = das_->getRemoteAntennaSet();
     }
     else
     {
-        ruSet_ = NULL;
+        ruSet_ = nullptr;
     }
 
     // Clear structures used with old master on handover
     reportingSet_.clear();
-
-    //std::cout << "DasFilter::setMasterRuSet end at " << simTime().dbl() << std::endl;
 }
 
 double DasFilter::receiveBroadcast(LteAirFrame* frame, UserControlInfo* lteInfo)
 {
-    //std::cout << "DasFilter::receiveBroadcast start at " << simTime().dbl() << std::endl;
-
-    //EV << "DAS Filter: Received Broadcast\n";
-    //EV << "DAS Filter: ReportingSet now contains:\n";
+    EV << "DAS Filter: Received Broadcast\n";
+    EV << "DAS Filter: ReportingSet now contains:\n";
     reportingSet_.clear();
 
     double rssiEnb = 0;
     for (unsigned int i=0; i<ruSet_->getAntennaSetSize(); i++)
     {
         // equal bitrate mapping
-        std::vector<double> rssiV = ltePhy_->getChannelModel()->getSINR(frame,lteInfo, true);
+        std::vector<double> rssiV;
+        LteChannelModel* channelModel = ltePhy_->getChannelModel();
+        if (channelModel == NULL)
+            throw cRuntimeError("DasFilter::receiveBroadcast - channel model is a null pointer. Abort.");
+        else
+            rssiV = channelModel->getSINR(frame,lteInfo);
         std::vector<double>::iterator it;
         double rssi = 0;
         for (it=rssiV.begin();it!=rssiV.end();++it)
@@ -69,47 +68,37 @@ double DasFilter::receiveBroadcast(LteAirFrame* frame, UserControlInfo* lteInfo)
         //EV << "Sender Position: (" << senderPos.getX() << "," << senderPos.getY() << ")\n";
         //EV << "My Position: (" << myPos.getX() << "," << myPos.getY() << ")\n";
 
-        //EV << "RU" << i << " RSSI: " << rssi;
+        EV << "RU" << i << " RSSI: " << rssi;
         if (rssi > rssiThreshold_)
         {
-            //EV << " is associated";
+            EV << " is associated";
             reportingSet_.insert((Remote)i);
         }
-        //EV << "\n";
+        EV << "\n";
         if (i == 0)
             rssiEnb = rssi;
     }
-
-    //std::cout << "DasFilter::receiveBroadcast end at " << simTime().dbl() << std::endl;
 
     return rssiEnb;
 }
 
 RemoteSet DasFilter::getReportingSet()
 {
-    //std::cout << "DasFilter::getReportingSet  at " << simTime().dbl() << std::endl;
-
     return reportingSet_;
 }
 
 RemoteAntennaSet* DasFilter::getRemoteAntennaSet() const
 {
-    //std::cout << "DasFilter::getRemoteAntennaSet  at " << simTime().dbl() << std::endl;
-
     return ruSet_;
 }
 
 double DasFilter::getAntennaTxPower(int i)
 {
-    //std::cout << "DasFilter::getAntennaTxPower  at " << simTime().dbl() << std::endl;
-
     return ruSet_->getAntennaTxPower(i);
 }
 
 inet::Coord DasFilter::getAntennaCoord(int i)
 {
-    //std::cout << "DasFilter::getAntennaCoord  at " << simTime().dbl() << std::endl;
-
     return ruSet_->getAntennaCoord(i);
 }
 

@@ -36,6 +36,12 @@ TraCICoordinateTransformation::TraCICoordinateTransformation(TraCICoord topleft,
     , bottomright(bottomright)
     , margin(margin)
 {
+
+    std::cout << "\n\n\nScenario Dimensions x: " << dimensions.x << " y: " << dimensions.y << endl;
+    std::cout << "topleft: x: " << topleft.x << " y: " << topleft.y << std::endl;
+    std::cout << "margin: " << margin << std::endl;
+    std::cout << "bottomright: x: " << bottomright.x << " y: " << bottomright.y << "\n\n\n" << endl;
+
 }
 
 TraCICoord TraCICoordinateTransformation::omnet2traci(const OmnetCoord& coord) const

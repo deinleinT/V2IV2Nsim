@@ -2,7 +2,7 @@
 
 package inet.showcases.visualizer.transportconnection;
 
-import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
+import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 import inet.node.ethernet.Eth100M;
 import inet.node.ethernet.EtherSwitch;
 import inet.node.inet.Router;
@@ -21,7 +21,7 @@ network TransportConnectionVisualizationEnablingShowcase
         host2: StandardHost {
             @display("p=487,133");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=109,290");
         }
         visualizer: IntegratedVisualizer {
@@ -50,7 +50,7 @@ network TransportConnectionVisualizationMultipleConnectionsShowcase
         server: StandardHost {
             @display("p=410,214;i=device/server");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=531,53");
         }
         visualizer: IntegratedVisualizer {
@@ -82,7 +82,7 @@ network Complexer
         server: StandardHost {
             @display("p=410,214;i=device/server");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=531,53");
         }
         visualizer: IntegratedVisualizer {

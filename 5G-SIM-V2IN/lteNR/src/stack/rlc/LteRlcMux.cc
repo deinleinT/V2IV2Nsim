@@ -1,9 +1,11 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
@@ -11,76 +13,72 @@
 
 Define_Module(LteRlcMux);
 
+
+using namespace omnetpp;
+
 /*
  * Upper Layer handler
  */
 
 void LteRlcMux::rlc2mac(cPacket *pkt)
 {
-    //std::cout << "LteRlcMux::rlc2mac start at " << simTime().dbl() << std::endl;
-
-    //EV << "LteRlcMux : Sending packet " << pkt->getName() << " to port RLC_to_MAC\n";
+    EV << "LteRlcMux : Sending packet " << pkt->getName() << " to port RLC_to_MAC\n";
 
     // Send message
-     send(pkt,macSap_[OUT]);
-
-    //std::cout << "LteRlcMux::rlc2mac end at " << simTime().dbl() << std::endl;
+    send(pkt,macSap_[OUT_GATE]);
 }
 
     /*
      * Lower layer handler
      */
 
-void LteRlcMux::mac2rlc(cPacket *pkt)
+void LteRlcMux::mac2rlc(cPacket *pktAux)
 {
-    //std::cout << "LteRlcMux::mac2rlc start at " << simTime().dbl() << std::endl;
-
-    FlowControlInfo* lteInfo = check_and_cast<FlowControlInfo*>(pkt->getControlInfo());
+    auto pkt = check_and_cast<inet::Packet *>(pktAux);
+    auto lteInfo = pkt->getTag<FlowControlInfo>();
     switch (lteInfo->getRlcType())
     {
         case TM:
-        //EV << "LteRlcMux : Sending packet " << pkt->getName() << " to port TM_Sap$o\n";
-        send(pkt,tmSap_[OUT]);
+        EV << "LteRlcMux : Sending packet " << pkt->getName() << " to port TM_Sap$o\n";
+        send(pkt,tmSap_[OUT_GATE]);
         break;
         case UM:
-        //EV << "LteRlcMux : Sending packet " << pkt->getName() << " to port UM_Sap$o\n";
-        send(pkt,umSap_[OUT]);
+        EV << "LteRlcMux : Sending packet " << pkt->getName() << " to port UM_Sap$o\n";
+        send(pkt,umSap_[OUT_GATE]);
         break;
         case AM:
-        //EV << "LteRlcMux : Sending packet " << pkt->getName() << " to port AM_Sap$o\n";
-        send(pkt,amSap_[OUT]);
+        EV << "LteRlcMux : Sending packet " << pkt->getName() << " to port AM_Sap$o\n";
+        send(pkt,amSap_[OUT_GATE]);
         break;
         default:
         throw cRuntimeError("LteRlcMux: wrong traffic type %d", lteInfo->getRlcType());
     }
-
-    //std::cout << "LteRlcMux::mac2rlc end at " << simTime().dbl() << std::endl;
 }
-            /*
-             * Main functions
-             */
+
+/*
+ * Main functions
+ */
 
 void LteRlcMux::initialize()
 {
-    macSap_[IN] = gate("MAC_to_RLC");
-    macSap_[OUT] = gate("RLC_to_MAC");
-    tmSap_[IN] = gate("TM_Sap$i");
-    tmSap_[OUT] = gate("TM_Sap$o");
-    umSap_[IN] = gate("UM_Sap$i");
-    umSap_[OUT] = gate("UM_Sap$o");
-    amSap_[IN] = gate("AM_Sap$i");
-    amSap_[OUT] = gate("AM_Sap$o");
+    macSap_[IN_GATE] = gate("MAC_to_RLC");
+    macSap_[OUT_GATE] = gate("RLC_to_MAC");
+    tmSap_[IN_GATE] = gate("TM_Sap$i");
+    tmSap_[OUT_GATE] = gate("TM_Sap$o");
+    umSap_[IN_GATE] = gate("UM_Sap$i");
+    umSap_[OUT_GATE] = gate("UM_Sap$o");
+    amSap_[IN_GATE] = gate("AM_Sap$i");
+    amSap_[OUT_GATE] = gate("AM_Sap$o");
 }
 
 void LteRlcMux::handleMessage(cMessage* msg)
 {
-    //std::cout << "LteRlcMux::handleMessage start at " << simTime().dbl() << std::endl;
-
     cPacket* pkt = check_and_cast<cPacket *>(msg);
-    //EV << "LteRlcMux : Received packet " << pkt->getName() << " from port " << pkt->getArrivalGate()->getName() << endl;
+    EV << "LteRlcMux : Received packet " << pkt->getName() <<
+    " from port " << pkt->getArrivalGate()->getName() << endl;
 
     cGate* incoming = pkt->getArrivalGate();
-    if (incoming == macSap_[IN])
+    if (incoming == macSap_[IN_GATE])
     {
         mac2rlc(pkt);
     }
@@ -88,8 +86,7 @@ void LteRlcMux::handleMessage(cMessage* msg)
     {
         rlc2mac(pkt);
     }
-//    return;
-    //std::cout << "LteRlcMux::handleMessage end at " << simTime().dbl() << std::endl;
+    return;
 }
 
 void LteRlcMux::finish()

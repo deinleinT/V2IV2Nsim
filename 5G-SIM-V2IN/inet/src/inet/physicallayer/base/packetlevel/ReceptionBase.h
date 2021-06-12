@@ -18,9 +18,9 @@
 #ifndef __INET_RECEPTIONBASE_H
 #define __INET_RECEPTIONBASE_H
 
-#include "inet/physicallayer/contract/packetlevel/ITransmission.h"
-#include "inet/physicallayer/contract/packetlevel/IReception.h"
 #include "inet/physicallayer/contract/packetlevel/IRadio.h"
+#include "inet/physicallayer/contract/packetlevel/IReception.h"
+#include "inet/physicallayer/contract/packetlevel/ITransmission.h"
 
 namespace inet {
 
@@ -38,11 +38,11 @@ class INET_API ReceptionBase : public virtual IReception, public virtual IRecept
     const simtime_t dataDuration;
     const Coord startPosition;
     const Coord endPosition;
-    const EulerAngles startOrientation;
-    const EulerAngles endOrientation;
+    const Quaternion startOrientation;
+    const Quaternion endOrientation;
 
   public:
-    ReceptionBase(const IRadio *receiver, const ITransmission *transmission, const simtime_t startTime, const simtime_t endTime, const Coord startPosition, const Coord endPosition, const EulerAngles startOrientation, const EulerAngles endOrientation);
+    ReceptionBase(const IRadio *receiver, const ITransmission *transmission, const simtime_t startTime, const simtime_t endTime, const Coord startPosition, const Coord endPosition, const Quaternion startOrientation, const Quaternion endOrientation);
 
     virtual std::ostream& printToStream(std::ostream& stream, int level) const override;
 
@@ -68,11 +68,11 @@ class INET_API ReceptionBase : public virtual IReception, public virtual IRecept
     virtual const simtime_t getHeaderDuration() const override { return headerDuration; }
     virtual const simtime_t getDataDuration() const override { return dataDuration; }
 
-    virtual const Coord getStartPosition() const override { return startPosition; }
-    virtual const Coord getEndPosition() const override { return endPosition; }
+    virtual const Coord& getStartPosition() const override { return startPosition; }
+    virtual const Coord& getEndPosition() const override { return endPosition; }
 
-    virtual const EulerAngles getStartOrientation() const override { return startOrientation; }
-    virtual const EulerAngles getEndOrientation() const override { return endOrientation; }
+    virtual const Quaternion& getStartOrientation() const override { return startOrientation; }
+    virtual const Quaternion& getEndOrientation() const override { return endOrientation; }
 
     virtual const IReceptionAnalogModel *getAnalogModel() const override { return check_and_cast<const IReceptionAnalogModel *>(this); }
 };

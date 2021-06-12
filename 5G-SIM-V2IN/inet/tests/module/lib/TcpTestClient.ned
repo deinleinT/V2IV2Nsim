@@ -16,16 +16,14 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 
+package inet.test.moduletest.lib;
 
-// package module_.lib;
-
-import inet.applications.contract.ITCPApp;
-
+import inet.applications.contract.IApp;
 
 //
 // \TCP client application for testing the TCP model.
 //
-simple TcpTestClient like ITCPApp
+simple TcpTestClient like IApp
 {
     parameters:
         string localAddress;
@@ -41,7 +39,7 @@ simple TcpTestClient like ITCPApp
         double tClose @unit(s);
         @display("i=block/app");
     gates:
-        input tcpIn;
-        output tcpOut;
+        input socketIn;
+        output socketOut;
 }
 

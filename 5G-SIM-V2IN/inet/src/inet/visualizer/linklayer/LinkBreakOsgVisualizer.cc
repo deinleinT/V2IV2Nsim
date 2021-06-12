@@ -15,8 +15,8 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "inet/common/OSGScene.h"
-#include "inet/common/OSGUtils.h"
+#include "inet/common/OsgScene.h"
+#include "inet/common/OsgUtils.h"
 #include "inet/visualizer/linklayer/LinkBreakOsgVisualizer.h"
 
 #ifdef WITH_OSG
@@ -43,17 +43,22 @@ LinkBreakOsgVisualizer::LinkBreakOsgVisualization::~LinkBreakOsgVisualization()
     // TODO: delete node;
 }
 
+LinkBreakOsgVisualizer::~LinkBreakOsgVisualizer()
+{
+    if (displayLinkBreaks)
+        removeAllLinkBreakVisualizations();
+}
+
 void LinkBreakOsgVisualizer::refreshDisplay() const
 {
     LinkBreakVisualizerBase::refreshDisplay();
     // TODO: switch to osg canvas when API is extended
-    visualizerTargetModule->getCanvas()->setAnimationSpeed(linkBreakVisualizations.empty() ? 0 : fadeOutAnimationSpeed, this);
+    visualizationTargetModule->getCanvas()->setAnimationSpeed(linkBreakVisualizations.empty() ? 0 : fadeOutAnimationSpeed, this);
 }
 
 const LinkBreakVisualizerBase::LinkBreakVisualization *LinkBreakOsgVisualizer::createLinkBreakVisualization(cModule *transmitter, cModule *receiver) const
 {
-    auto path = resolveResourcePath((std::string(icon) + ".png").c_str());
-    auto image = inet::osg::createImage(path.c_str());
+    auto image = inet::osg::createImageFromResource(icon);
     auto texture = new osg::Texture2D();
     texture->setImage(image);
     auto geometry = osg::createTexturedQuadGeometry(osg::Vec3(-image->s() / 2, 0.0, 0.0), osg::Vec3(image->s(), 0.0, 0.0), osg::Vec3(0.0, image->t(), 0.0), 0.0, 0.0, 1.0, 1.0);
@@ -79,7 +84,7 @@ void LinkBreakOsgVisualizer::addLinkBreakVisualization(const LinkBreakVisualizat
 {
     LinkBreakVisualizerBase::addLinkBreakVisualization(linkBreakVisualization);
     auto linkBreakOsgVisualization = static_cast<const LinkBreakOsgVisualization *>(linkBreakVisualization);
-    auto scene = inet::osg::TopLevelScene::getSimulationScene(visualizerTargetModule);
+    auto scene = inet::osg::TopLevelScene::getSimulationScene(visualizationTargetModule);
     scene->addChild(linkBreakOsgVisualization->node);
 }
 

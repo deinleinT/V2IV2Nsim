@@ -21,10 +21,10 @@
 #include <vector>
 
 #include "inet/common/INETDefs.h"
-
-#include "inet/networklayer/contract/IInterfaceTable.h"
+#include "inet/common/lifecycle/ModuleOperations.h"
+#include "inet/common/lifecycle/OperationalBase.h"
 #include "inet/networklayer/common/InterfaceEntry.h"
-#include "inet/common/lifecycle/ILifecycle.h"
+#include "inet/networklayer/contract/IInterfaceTable.h"
 
 namespace inet {
 
@@ -41,9 +41,9 @@ namespace inet {
  *
  * Interfaces are dynamically registered: at the start of the simulation,
  * every L2 module adds its own InterfaceEntry to the table; after that,
- * IPv4's IIPv4RoutingTable and IPv6's IPv6RoutingTable (an possibly, further
+ * Ipv4's IIpv4RoutingTable and Ipv6's Ipv6RoutingTable (an possibly, further
  * L3 protocols) add protocol-specific data on each InterfaceEntry
- * (see IPv4InterfaceData, IPv6InterfaceData, and InterfaceEntry::setIPv4Data(),
+ * (see Ipv4InterfaceData, Ipv6InterfaceData, and InterfaceEntry::setIPv4Data(),
  * InterfaceEntry::setIPv6Data())
  *
  * Interfaces are represented by InterfaceEntry objects.
@@ -58,15 +58,15 @@ namespace inet {
  * stale Ids can be detected, and they are also invariant to insertion/deletion.
  *
  * Clients can get notified about interface changes by subscribing to
- * the following signals on host module: NF_INTERFACE_CREATED,
- * NF_INTERFACE_DELETED, NF_INTERFACE_STATE_CHANGED, NF_INTERFACE_CONFIG_CHANGED.
+ * the following signals on host module: interfaceCreatedSignal,
+ * interfaceDeletedSignal, interfaceStateChangedSignal, interfaceConfigChangedSignal.
  * State change gets fired for up/down events; all other changes fire as
  * config change.
  *
  * @see InterfaceEntry
  */
 
-class INET_API InterfaceTable : public cSimpleModule, public IInterfaceTable, protected cListener, public ILifecycle
+class INET_API InterfaceTable : public OperationalBase, public IInterfaceTable, protected cListener
 {
   protected:
     cModule *host;    // cached pointer
@@ -84,7 +84,7 @@ class INET_API InterfaceTable : public cSimpleModule, public IInterfaceTable, pr
     // displays summary above the icon
     virtual void refreshDisplay() const override;
 
-    // displays the interface IPv4/IPv6 address on the outgoing link that corresponds to the interface
+    // displays the interface Ipv4/Ipv6 address on the outgoing link that corresponds to the interface
     virtual void updateLinkDisplayString(InterfaceEntry *entry) const;
 
     // discover and store which nwlayer/host gates connect to this interface
@@ -110,7 +110,7 @@ class INET_API InterfaceTable : public cSimpleModule, public IInterfaceTable, pr
     /**
      * Raises an error.
      */
-    virtual void handleMessage(cMessage *) override;
+    virtual void handleMessageWhenUp(cMessage *) override;
 
   public:
     /**
@@ -176,6 +176,13 @@ class INET_API InterfaceTable : public cSimpleModule, public IInterfaceTable, pr
      * to interface deletions/additions. Returns nullptr if there is no such
      * interface (This allows detecting stale IDs without raising an error.)
      */
+    virtual InterfaceEntry *findInterfaceById(int id) const override;
+
+    /**
+     * Returns an interface by its Id. Ids are guaranteed to be invariant
+     * to interface deletions/additions. Throws an error if there is no such
+     * interface.
+     */
     virtual InterfaceEntry *getInterfaceById(int id) const override;
 
     /**
@@ -187,49 +194,52 @@ class INET_API InterfaceTable : public cSimpleModule, public IInterfaceTable, pr
      * Returns an interface given by its getNodeOutputGateId().
      * Returns nullptr if not found.
      */
-    virtual InterfaceEntry *getInterfaceByNodeOutputGateId(int id) const override;
+    virtual InterfaceEntry *findInterfaceByNodeOutputGateId(int id) const override;
 
     /**
      * Returns an interface given by its getNodeInputGateId().
      * Returns nullptr if not found.
      */
-    virtual InterfaceEntry *getInterfaceByNodeInputGateId(int id) const override;
-
-    /**
-     * Returns an interface given by its getNetworkLayerGateIndex().
-     * Returns nullptr if not found.
-     */
-    virtual InterfaceEntry *getInterfaceByNetworkLayerGateIndex(int index) override;
+    virtual InterfaceEntry *findInterfaceByNodeInputGateId(int id) const override;
 
     /**
      * Returns an interface by one of its component module (e.g. PPP).
      * Returns nullptr if not found.
      */
-    virtual InterfaceEntry *getInterfaceByInterfaceModule(cModule *ifmod) const override;
+    virtual InterfaceEntry *findInterfaceByInterfaceModule(cModule *ifmod) const override;
 
     /**
      * Returns an interface given by its name. Returns nullptr if not found.
      */
-    virtual InterfaceEntry *getInterfaceByName(const char *name) const override;
+    virtual InterfaceEntry *findInterfaceByName(const char *name) const override;
 
     /**
      * Returns the first interface with the isLoopback flag set.
-     * (If there's no loopback, it returns nullptr -- but this
-     * should never happen because InterfaceTable itself registers a
-     * loopback interface on startup.)
+     * If there's no loopback, it returns nullptr.
      */
-    virtual InterfaceEntry *getFirstLoopbackInterface() const override;
+    virtual InterfaceEntry *findFirstLoopbackInterface() const override;
+
+    /**
+     * Returns the first interface with the isLoopback flag unset.
+     * If there's no non-loopback, it returns nullptr.
+     */
+    virtual InterfaceEntry *findFirstNonLoopbackInterface() const override;
 
     /**
      * Returns the first multicast capable interface.
      * If there is no such interface, then returns nullptr.
      */
-    virtual InterfaceEntry *getFirstMulticastInterface() const override;
+    virtual InterfaceEntry *findFirstMulticastInterface() const override;
 
     /**
-     * ILifecycle method
+     * Lifecycle method
      */
-    virtual bool handleOperationStage(LifecycleOperation *operation, int stage, IDoneCallback *doneCallback) override;
+    virtual bool isInitializeStage(int stage) override { return stage == INITSTAGE_LINK_LAYER; }
+    virtual bool isModuleStartStage(int stage) override { return stage == ModuleStartOperation::STAGE_LINK_LAYER; }
+    virtual bool isModuleStopStage(int stage) override { return stage == ModuleStopOperation::STAGE_LINK_LAYER; }
+    virtual void handleStartOperation(LifecycleOperation *operation) override;
+    virtual void handleStopOperation(LifecycleOperation *operation) override;
+    virtual void handleCrashOperation(LifecycleOperation *operation) override;
 
     /**
      * Returns all multicast group address, with it's interfaceId

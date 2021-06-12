@@ -1,14 +1,18 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
 #include "stack/mac/allocator/LteAllocationModuleFrequencyReuse.h"
 #include "stack/mac/layer/LteMacEnb.h"
+
+using namespace inet;
 
 LteAllocationModuleFrequencyReuse::LteAllocationModuleFrequencyReuse(LteMacEnb* mac,Direction direction)
         : LteAllocationModule(mac,direction)
@@ -17,14 +21,12 @@ LteAllocationModuleFrequencyReuse::LteAllocationModuleFrequencyReuse(LteMacEnb* 
 
 void LteAllocationModuleFrequencyReuse::storeAllocation( std::vector<std::vector<AllocatedRbsPerBandMapA> > allocatedRbsPerBand,std::set<Band>* untouchableBands)
 {
-    //std::cout << "LteAllocationModuleFrequencyReuse::storeAllocation start at " << simTime().dbl() << std::endl;
-
     Plane plane = MAIN_PLANE;
     const Remote antenna = MACRO;
     std::map<std::pair<MacNodeId,Band>,std::pair<unsigned int,unsigned int> > NodeIdRbsBytesMap;
     NodeIdRbsBytesMap.clear();
     // Create an empty vector
-    if(untouchableBands==NULL)
+    if(untouchableBands==nullptr)
     {
         std::set<Band> tempBand;
         untouchableBands = &tempBand;
@@ -40,8 +42,9 @@ void LteAllocationModuleFrequencyReuse::storeAllocation( std::vector<std::vector
             UeAllocatedBlocksMapA::iterator it_ext = allocatedRbsPerBand[plane][antenna][band].ueAllocatedRbsMap_.begin();
             UeAllocatedBlocksMapA::iterator et_ext = allocatedRbsPerBand[plane][antenna][band].ueAllocatedRbsMap_.end();
             UeAllocatedBytesMapA::iterator it2_ext = allocatedRbsPerBand[plane][antenna][band].ueAllocatedBytesMap_.begin();
+            UeAllocatedBytesMapA::iterator et2_ext = allocatedRbsPerBand[plane][antenna][band].ueAllocatedBytesMap_.end();
 
-            while(it_ext!=et_ext)
+            while(it_ext!=et_ext && it2_ext!=et2_ext)
             {
                 allocatedRbsPerBand_[plane][antenna][band].ueAllocatedRbsMap_[it_ext->first] = it_ext->second;    // Blocks
                 allocatedRbsPerBand_[plane][antenna][band].ueAllocatedBytesMap_[it_ext->first] = it2_ext->second; // Bytes
@@ -82,14 +85,10 @@ void LteAllocationModuleFrequencyReuse::storeAllocation( std::vector<std::vector
         }
         it_rbsB++;
     }
-
-    //std::cout << "LteAllocationModuleFrequencyReuse::storeAllocation end at " << simTime().dbl() << std::endl;
 }
 
 std::set<Band>  LteAllocationModuleFrequencyReuse::getAllocatorOccupiedBands()
 {
-    //std::cout << "LteAllocationModuleFrequencyReuse::getAllocatorOccupiedBands start at " << simTime().dbl() << std::endl;
-
     // TODO add support for logical band different from the number of real bands
     std::set<Band> vectorBand;
     vectorBand.clear();
@@ -98,8 +97,5 @@ std::set<Band>  LteAllocationModuleFrequencyReuse::getAllocatorOccupiedBands()
         if( allocatedRbsPerBand_[MAIN_PLANE][MACRO][i].allocated_>0 ) vectorBand.insert(i);
 
     }
-
-    //std::cout << "LteAllocationModuleFrequencyReuse::getAllocatorOccupiedBands end at " << simTime().dbl() << std::endl;
-
     return vectorBand;
 }

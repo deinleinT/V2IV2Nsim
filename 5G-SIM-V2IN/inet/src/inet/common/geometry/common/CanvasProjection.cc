@@ -19,34 +19,54 @@
 
 namespace inet {
 
-CanvasProjection CanvasProjection::defaultCanvasProjection;
-std::map<const cCanvas *, const CanvasProjection *> CanvasProjection::canvasProjections;
+std::map<const cCanvas *, CanvasProjection *> CanvasProjection::canvasProjections;
 
-CanvasProjection::CanvasProjection(Rotation rotation, cFigure::Point translation) :
+EXECUTE_ON_SHUTDOWN(CanvasProjection::dropCanvasProjections());
+
+void CanvasProjection::dropCanvasProjections()
+{
+    for (auto it : canvasProjections)
+        delete it.second;
+    canvasProjections.clear();
+}
+
+CanvasProjection::CanvasProjection(RotationMatrix rotation, cFigure::Point translation) :
     rotation(rotation),
     scale(cFigure::Point(1, 1)),
     translation(translation)
 {
 }
 
+CanvasProjection::~CanvasProjection()
+{
+}
+
 cFigure::Point CanvasProjection::computeCanvasPoint(const Coord& point) const
 {
-    Coord rotatedPoint = rotation.rotateVectorClockwise(point);
+    double depth;
+    return computeCanvasPoint(point, depth);
+}
+
+cFigure::Point CanvasProjection::computeCanvasPoint(const Coord& point, double& depth) const
+{
+    Coord rotatedPoint = rotation.rotateVector(point);
+    depth = rotatedPoint.z;
     return cFigure::Point(rotatedPoint.x * scale.x + translation.x, rotatedPoint.y * scale.y + translation.y);
 }
 
-const CanvasProjection *CanvasProjection::getCanvasProjection(const cCanvas *canvas)
+Coord CanvasProjection::computeCanvasPointInverse(const cFigure::Point& point, double depth) const
+{
+    Coord p((point.x - translation.x) / scale.x, (point.y - translation.y) / scale.y, depth);
+    return rotation.rotateVectorInverse(p);
+}
+
+CanvasProjection *CanvasProjection::getCanvasProjection(const cCanvas *canvas)
 {
     auto it = canvasProjections.find(canvas);
     if (it == canvasProjections.end())
-        return &defaultCanvasProjection;
+        return canvasProjections[canvas] = new CanvasProjection();
     else
         return it->second;
-}
-
-void CanvasProjection::setCanvasProjection(const cCanvas *canvas, const CanvasProjection *canvasProjection)
-{
-    canvasProjections[canvas] = canvasProjection;
 }
 
 } // namespace inet

@@ -7,16 +7,15 @@ Sequence of operations:
  - at 0 server initializes to up
  - at 1 client executes shutdown operation
  - at 2 server executes shutdown operation
- - simulation stops at 3
+ - simulation stops at 10s
 
 %inifile: omnetpp.ini
 
 [General]
 network = Test
-
 ned-path = .;../../../../src;../../lib
 cmdenv-express-mode = false
-sim-time-limit = 3s
+sim-time-limit = 10s
 record-eventlog = true
 
 #omnetpp 5.0 - 5.1 compatibility:
@@ -33,36 +32,36 @@ snapshot-file = "${resultdir}/${configname}-${runnumber}.sna"
 **.arp.retryTimeout = 100ms
 
 # tcp apps
-**.numTcpApps = 1
-**.client.tcpApp[0].typename = "TCPBasicClientApp"
-**.client.tcpApp[0].startTime = 0s
-**.client.tcpApp[0].localPort = -1
-**.client.tcpApp[0].connectAddress = "server"
-**.client.tcpApp[0].connectPort = 1000
-**.client.tcpApp[0].numRequestsPerSession = 1000
-**.client.tcpApp[0].requestLength = 100B
-**.client.tcpApp[0].idleInterval = 1000000s
-**.client.tcpApp[0].thinkTime = 100ms
+**.client.numApps = 1
+**.client.app[0].typename = "TcpBasicClientApp"
+**.client.app[0].startTime = 0s
+**.client.app[0].localPort = -1
+**.client.app[0].connectAddress = "server"
+**.client.app[0].connectPort = 1000
+**.client.app[0].numRequestsPerSession = 1000
+**.client.app[0].requestLength = 100B
+**.client.app[0].idleInterval = 1000000s
+**.client.app[0].thinkTime = 100ms
 
-**.server.tcpApp[0].typename = "TCPEchoApp"
-**.server.tcpApp[0].localPort = 1000
+**.server.numApps = 1
+**.server.app[0].typename = "TcpEchoApp"
+**.server.app[0].localPort = 1000
 
-**.tcpApp[0].dataTransferMode = "bytecount"
+**.app[0].dataTransferMode = "bytecount"
 
 %file: test.ned
 
+import inet.test.moduletest.lib.*;
 import inet.node.ethernet.Eth10M;
 import inet.node.inet.StandardHost;
-import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
-import inet.common.lifecycle.LifecycleController;
+import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 import inet.common.scenario.ScenarioManager;
 
 network Test
 {
     submodules:
         scenarioManager: ScenarioManager;
-        lifecycleController: LifecycleController;
-        configurator: IPv4NetworkConfigurator;
+        configurator: Ipv4NetworkConfigurator;
         client: StandardHost;
         server: StandardHost;
     connections:
@@ -70,13 +69,13 @@ network Test
 }
 
 %file: scenario.xml
- 
+
 <scenario>
     <at t="1">
-        <tell module="lifecycleController" target="client" operation="NodeShutdownOperation"/>
+        <shutdown module="client"/>
     </at>
     <at t="2">
-        <tell module="lifecycleController" target="server" operation="NodeShutdownOperation"/>
+        <shutdown module="server"/>
     </at>
 </scenario>
 
@@ -91,7 +90,7 @@ Test.server shutting down
 .*
 Test.server shut down
 .*
-Test.client.tcpApp\[0\]: received 1000 bytes in 10 packets
+Test.client.app\[0\]: received 1000 bytes in 10 packets
 .*
 
 %#--------------------------------------------------------------------------------------------------------------

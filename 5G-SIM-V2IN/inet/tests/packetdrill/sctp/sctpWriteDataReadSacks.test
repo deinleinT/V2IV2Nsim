@@ -13,7 +13,6 @@ A retransmission is triggered.
 
 network = PacketDrillSctp
 debug-on-errors = true
-
 ned-path = .;../../../../../src;../../lib
 
 **.scriptFile="../../sctptests/sctpWriteDataReadSacks.pkt"
@@ -43,6 +42,12 @@ ned-path = .;../../../../../src;../../lib
 
 **.sctp.arwnd = 100000
 **.sctp.nagleEnabled = false
+
+**.pdhost.pcapRecorder[0].pcapNetwork = 101
+
+**.pdhost.tunApp[0].crcMode = "computed"
+**.sctp.crcMode = "computed"
+**.ipv4.**.crcMode = "computed"
 
 %#--------------------------------------------------------------------------------------------------------------
 %not-contains: test.out

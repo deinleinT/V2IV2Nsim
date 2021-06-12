@@ -18,20 +18,20 @@
 #ifndef __INET_RADIOMEDIUM_H
 #define __INET_RADIOMEDIUM_H
 
+#include <algorithm>
+
 #include "inet/common/IntervalTree.h"
 #include "inet/environment/contract/IMaterialRegistry.h"
 #include "inet/environment/contract/IPhysicalEnvironment.h"
-#include "inet/linklayer/common/MACAddress.h"
+#include "inet/linklayer/common/MacAddress.h"
 #include "inet/physicallayer/common/packetlevel/CommunicationLog.h"
 #include "inet/physicallayer/common/packetlevel/Radio.h"
 #include "inet/physicallayer/contract/packetlevel/ICommunicationCache.h"
 #include "inet/physicallayer/contract/packetlevel/IMediumLimitCache.h"
 #include "inet/physicallayer/contract/packetlevel/INeighborCache.h"
 #include "inet/physicallayer/contract/packetlevel/IRadioMedium.h"
-#include <algorithm>
 
 namespace inet {
-
 namespace physicallayer {
 
 /**
@@ -75,29 +75,29 @@ class INET_API RadioMedium : public cSimpleModule, public cListener, public IRad
     /**
      * The physical environment model or nullptr if unused.
      */
-    const IPhysicalEnvironment *physicalEnvironment;
+    const physicalenvironment::IPhysicalEnvironment *physicalEnvironment;
     /**
      * The physical material of the medium is never nullptr.
      */
-    const IMaterial *material;
+    const physicalenvironment::IMaterial *material;
     /**
-     * The radio medium doesn't send radio frames to a radio if it's outside
+     * The radio medium doesn't send signals to a radio if it's outside
      * the range provided by the selected range filter.
      */
     RangeFilterKind rangeFilter;
     /**
-     * True means the radio medium doesn't send radio frames to a radio if
+     * True means the radio medium doesn't send signals to a radio if
      * it's neither in receiver nor in transceiver mode.
      */
     bool radioModeFilter;
     /**
-     * True means the radio medium doesn't send radio frames to a radio if
+     * True means the radio medium doesn't send signals to a radio if
      * it listens on the medium in incompatible mode (e.g. different carrier
      * frequency and/or bandwidth, different modulation, etc.)
      */
     bool listeningFilter;
     /**
-     * True means the radio medium doesn't send radio frames to a radio if
+     * True means the radio medium doesn't send signals to a radio if
      * the mac address of the destination is different.
      */
     bool macAddressFilter;
@@ -117,23 +117,6 @@ class INET_API RadioMedium : public cSimpleModule, public cListener, public IRad
     cMessage *removeNonInterferingTransmissionsTimer;
     //@}
 
-    /** @name State */
-    //@{
-    /**
-     * The list of radios that can transmit and receive radio signals on the
-     * radio medium. The radios follow each other in the order of their unique
-     * id. Radios are only removed from the beginning. This list may contain
-     * nullptr values.
-     */
-    std::vector<const IRadio *> radios;
-    /**
-     * The list of ongoing transmissions on the radio medium. The transmissions
-     * follow each other in the order of their unique id. Transmissions are only
-     * removed from the beginning. This list doesn't contain nullptr values.
-     */
-    std::vector<const ITransmission *> transmissions;
-    //@}
-
     /** @name Cache */
     //@{
     /**
@@ -145,7 +128,7 @@ class INET_API RadioMedium : public cSimpleModule, public cListener, public IRad
      */
     mutable INeighborCache *neighborCache;
     /**
-     * Caches intermediate results of the ongoing communication for all radios.
+     * Caches list of radios and transmissions along with intermediate results.
      */
     mutable ICommunicationCache *communicationCache;
     //@}
@@ -165,9 +148,9 @@ class INET_API RadioMedium : public cSimpleModule, public cListener, public IRad
      */
     mutable long transmissionCount;
     /**
-     * Total number of radio frame sends.
+     * Total number of signal sends.
      */
-    mutable long radioFrameSendCount;
+    mutable long signalSendCount;
     /**
      * Total number of reception computations.
      */
@@ -255,35 +238,45 @@ class INET_API RadioMedium : public cSimpleModule, public cListener, public IRad
     virtual void addTransmission(const IRadio *transmitter, const ITransmission *transmission);
 
     /**
-     * Creates a new radio frame for the transmitter.
+     * Removes a transmission from the radio medium.
      */
-    virtual IRadioFrame *createTransmitterRadioFrame(const IRadio *radio, cPacket *macFrame);
+    virtual void removeTransmission(const ITransmission *transmission);
 
     /**
-     * Creates a new radio frame for a receiver.
+     * Creates a new signal for the transmitter.
      */
-    virtual IRadioFrame *createReceiverRadioFrame(const ITransmission *transmission);
+    virtual ISignal *createTransmitterSignal(const IRadio *radio, Packet *packet);
 
     /**
-     * Sends a copy of the provided radio frame to all affected receivers on
+     * Creates a new signal for a receiver.
+     */
+    virtual ISignal *createReceiverSignal(const ITransmission *transmission);
+
+    /**
+     * Sends a copy of the provided signal to all affected receivers on
      * the radio medium.
      */
-    virtual void sendToAffectedRadios(IRadio *transmitter, const IRadioFrame *frame);
+    virtual void sendToAffectedRadios(IRadio *transmitter, const ISignal *signal);
 
     /**
-     * Sends a copy of the provided radio frame to all receivers on the radio medium.
+     * Sends a copy of the provided signal to all receivers on the radio medium.
      */
-    virtual void sendToAllRadios(IRadio *transmitter, const IRadioFrame *frame);
+    virtual void sendToAllRadios(IRadio *transmitter, const ISignal *signal);
+
+    /**
+     * Sends a copy of all ongoing signals to the receiver on the radio medium.
+     */
+    virtual void pickUpSignals(IRadio *receiver);
     //@}
 
     /** @name Reception */
     //@{
-    virtual bool isRadioMacAddress(const IRadio *radio, const MACAddress address) const;
+    virtual bool matchesMacAddressFilter(const IRadio *radio, const Packet *packet) const;
 
     /**
      * Returns true if the radio can potentially receive the transmission
      * successfully. If this function returns false then the radio medium
-     * doesn't send a radio frame to this receiver.
+     * doesn't send a signal to this receiver.
      */
     virtual bool isPotentialReceiver(const IRadio *receiver, const ITransmission *transmission) const;
 
@@ -301,15 +294,15 @@ class INET_API RadioMedium : public cSimpleModule, public cListener, public IRad
      */
     virtual void removeNonInterferingTransmissions();
 
-    virtual const std::vector<const IReception *> *computeInterferingReceptions(const IListening *listening, const std::vector<const ITransmission *> *transmissions) const;
-    virtual const std::vector<const IReception *> *computeInterferingReceptions(const IReception *reception, const std::vector<const ITransmission *> *transmissions) const;
+    virtual const std::vector<const IReception *> *computeInterferingReceptions(const IListening *listening) const;
+    virtual const std::vector<const IReception *> *computeInterferingReceptions(const IReception *reception) const;
 
     virtual const IReception *computeReception(const IRadio *receiver, const ITransmission *transmission) const;
-    virtual const IInterference *computeInterference(const IRadio *receiver, const IListening *listening, const std::vector<const ITransmission *> *transmissions) const;
-    virtual const IInterference *computeInterference(const IRadio *receiver, const IListening *listening, const ITransmission *transmission, const std::vector<const ITransmission *> *transmissions) const;
-    virtual const IReceptionDecision *computeReceptionDecision(const IRadio *receiver, const IListening *listening, const ITransmission *transmission, IRadioSignal::SignalPart part, const std::vector<const ITransmission *> *transmissions) const;
-    virtual const IReceptionResult *computeReceptionResult(const IRadio *receiver, const IListening *listening, const ITransmission *transmission, const std::vector<const ITransmission *> *transmissions) const;
-    virtual const IListeningDecision *computeListeningDecision(const IRadio *receiver, const IListening *listening, const std::vector<const ITransmission *> *transmissions) const;
+    virtual const IInterference *computeInterference(const IRadio *receiver, const IListening *listening) const;
+    virtual const IInterference *computeInterference(const IRadio *receiver, const IListening *listening, const ITransmission *transmission) const;
+    virtual const IReceptionDecision *computeReceptionDecision(const IRadio *receiver, const IListening *listening, const ITransmission *transmission, IRadioSignal::SignalPart part) const;
+    virtual const IReceptionResult *computeReceptionResult(const IRadio *receiver, const IListening *listening, const ITransmission *transmission) const;
+    virtual const IListeningDecision *computeListeningDecision(const IRadio *receiver, const IListening *listening) const;
     //@}
 
   public:
@@ -318,24 +311,26 @@ class INET_API RadioMedium : public cSimpleModule, public cListener, public IRad
 
     virtual std::ostream& printToStream(std::ostream &stream, int level) const override;
 
-    virtual const IMaterial *getMaterial() const override { return material; }
+    virtual const physicalenvironment::IMaterial *getMaterial() const override { return material; }
     virtual const IPropagation *getPropagation() const override { return propagation; }
     virtual const IPathLoss *getPathLoss() const override { return pathLoss; }
     virtual const IObstacleLoss *getObstacleLoss() const override { return obstacleLoss; }
     virtual const IAnalogModel *getAnalogModel() const override { return analogModel; }
     virtual const IBackgroundNoise *getBackgroundNoise() const override { return backgroundNoise; }
-    virtual const IPhysicalEnvironment *getPhysicalEnvironment() const override { return physicalEnvironment; }
+    virtual const physicalenvironment::IPhysicalEnvironment *getPhysicalEnvironment() const override { return physicalEnvironment; }
     virtual const IMediumLimitCache *getMediumLimitCache() const override { return mediumLimitCache; }
     virtual const INeighborCache *getNeighborCache() const override { return neighborCache; }
     virtual const ICommunicationCache *getCommunicationCache() const override { return communicationCache; }
 
     virtual void addRadio(const IRadio *radio) override;
     virtual void removeRadio(const IRadio *radio) override;
+    virtual const IRadio *getRadio(int id) const override;
 
-    virtual void sendToRadio(IRadio *trasmitter, const IRadio *receiver, const IRadioFrame *frame);
+    virtual void sendToRadio(IRadio *trasmitter, const IRadio *receiver, const ISignal *signal);
 
-    virtual IRadioFrame *transmitPacket(const IRadio *transmitter, cPacket *macFrame) override;
-    virtual cPacket *receivePacket(const IRadio *receiver, IRadioFrame *radioFrame) override;
+    virtual ISignal *transmitPacket(const IRadio *transmitter, Packet *packet) override;
+    virtual Packet *receivePacket(const IRadio *receiver, ISignal *signal) override;
+    virtual const ITransmission *getTransmission(int id) const override;
 
     virtual const IListeningDecision *listenOnMedium(const IRadio *receiver, const IListening *listening) const override;
 
@@ -345,7 +340,7 @@ class INET_API RadioMedium : public cSimpleModule, public cListener, public IRad
     virtual const IInterference *getInterference(const IRadio *receiver, const ITransmission *transmission) const override;
     virtual const IInterference *getInterference(const IRadio *receiver, const IListening *listening, const ITransmission *transmission) const;
     virtual const INoise *getNoise(const IRadio *receiver, const ITransmission *transmission) const override;
-    virtual const ISNIR *getSNIR(const IRadio *receiver, const ITransmission *transmission) const override;
+    virtual const ISnir *getSNIR(const IRadio *receiver, const ITransmission *transmission) const override;
 
     virtual bool isReceptionPossible(const IRadio *receiver, const ITransmission *transmission, IRadioSignal::SignalPart part) const override;
     virtual bool isReceptionAttempted(const IRadio *receiver, const ITransmission *transmission, IRadioSignal::SignalPart part) const override;
@@ -354,10 +349,10 @@ class INET_API RadioMedium : public cSimpleModule, public cListener, public IRad
     virtual const IReceptionResult *getReceptionResult(const IRadio *receiver, const IListening *listening, const ITransmission *transmission) const override;
 
     virtual void receiveSignal(cComponent *source, simsignal_t signal, intval_t value, cObject *details) override;
+    virtual void receiveSignal(cComponent *source, simsignal_t signal, cObject *value, cObject *details) override;
 };
 
 } // namespace physicallayer
-
 } // namespace inet
 
 #endif // ifndef __INET_RADIOMEDIUM_H

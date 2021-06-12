@@ -73,18 +73,17 @@ void ChiangMobility::setTargetPosition()
     Coord direction(xState - 1, yState - 1);
     double length = direction.length();
     if (length)
-        lastSpeed = direction / length * speed;
+        lastVelocity = direction / length * speed;
     else
-        lastSpeed = Coord::ZERO;
-    targetPosition = lastPosition - lastSpeed * stateTransitionUpdateInterval;
+        lastVelocity = Coord::ZERO;
+    targetPosition = lastPosition - lastVelocity * stateTransitionUpdateInterval;
 }
 
 void ChiangMobility::move()
 {
     LineSegmentsMobilityBase::move();
-    double dummyAngle;
-    Coord dummyPosition;
-    handleIfOutside(REFLECT, dummyPosition, lastSpeed, dummyAngle);
+    Coord dummyCoord;
+    handleIfOutside(REFLECT, dummyCoord, lastVelocity);
 }
 
 } // namespace inet

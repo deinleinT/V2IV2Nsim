@@ -16,11 +16,10 @@
 //
 //
 
-#include "ThermometerFigure.h"
 #include "inet/common/INETUtils.h"
+#include "inet/common/figures/ThermometerFigure.h"
 
-//TODO namespace inet { -- for the moment commented out, as OMNeT++ 5.0 cannot instantiate a figure from a namespace
-using namespace inet;
+namespace inet {
 
 Register_Figure("thermometer", ThermometerFigure);
 
@@ -56,8 +55,8 @@ ThermometerFigure::~ThermometerFigure()
 {
     // delete figures which is not in canvas
     for (size_t i = numTicks; i < tickFigures.size(); ++i) {
-        dropAndDelete(tickFigures[i]);
-        dropAndDelete(numberFigures[i]);
+        delete tickFigures[i];
+        delete numberFigures[i];
     }
 }
 
@@ -92,7 +91,7 @@ void ThermometerFigure::setLabel(const char *text)
     labelFigure->setText(text);
 }
 
-const int ThermometerFigure::getLabelOffset() const
+int ThermometerFigure::getLabelOffset() const
 {
     return labelOffset;
 }
@@ -346,12 +345,10 @@ void ThermometerFigure::redrawTicks()
     numTicks = std::max(0.0, std::abs(max - min - shifting) / tickSize + 1);
 
     // Allocate ticks and numbers if needed
-    if (numTicks > tickFigures.size()) {
-        while (numTicks > tickFigures.size()) {
+    if ((size_t)numTicks > tickFigures.size()) {
+        while ((size_t)numTicks > tickFigures.size()) {
             cLineFigure *tick = new cLineFigure();
             cTextFigure *number = new cTextFigure();
-            take(tick);
-            take(number);
 
             number->setAnchor(cFigure::ANCHOR_W);
 
@@ -364,12 +361,8 @@ void ThermometerFigure::redrawTicks()
     for (int i = numTicks; i < prevNumTicks; ++i) {
         removeFigure(tickFigures[i]);
         removeFigure(numberFigures[i]);
-        take(tickFigures[i]);
-        take(numberFigures[i]);
     }
     for (int i = prevNumTicks; i < numTicks; ++i) {
-        drop(tickFigures[i]);
-        drop(numberFigures[i]);
         addFigure(tickFigures[i]);
         addFigure(numberFigures[i]);
     }
@@ -405,5 +398,5 @@ void ThermometerFigure::refresh()
     setMercuryAndContainerGeometry();
 }
 
-// } // namespace inet
+} // namespace inet
 

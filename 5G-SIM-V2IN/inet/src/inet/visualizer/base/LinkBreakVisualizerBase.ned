@@ -23,8 +23,8 @@ package inet.visualizer.base;
 // default, see module parameters for how to enable the visualization. The
 // actual visualization of link breaks is done in derived modules.
 //
-// This module subscribes for NF_LINK_BREAK on the module determined by the
-// subscriptionModule parameter. If the visualizer receives a link break signal,
+// This module subscribes for linkBroken on the module determined by the
+// visualizationSubjectModule parameter. If the visualizer receives a link break signal,
 // then it stores the broken link and starts the link break visualization.
 //
 // @see ~LinkBreakCanvasVisualizer, ~LinkBreakOsgVisualizer, ~ILinkBreakVisualizer, ~VisualizerBase
@@ -32,13 +32,12 @@ package inet.visualizer.base;
 simple LinkBreakVisualizerBase extends VisualizerBase
 {
     parameters:
-        string subscriptionModule = default("<root>"); // module where the visualizer subscribes for link break signals, root module by default
-
         bool displayLinkBreaks = default(false); // display icons for link breaks, disabled by default
 
         string nodeFilter = default("*"); // which network nodes are considered, matches all nodes by default
         string interfaceFilter = default("*"); // which interfaces are considered, matches all interfaces by default
         string packetFilter = default("*"); // which packets are considered, matches all packets by default
+        string packetDataFilter = default("*"); // which packets are considered based on the data they contain, matches all packets by default
 
         string icon = default("status/stop");
         double iconTintAmount = default(0);
@@ -50,3 +49,4 @@ simple LinkBreakVisualizerBase extends VisualizerBase
 
         @class(LinkBreakVisualizerBase);
 }
+

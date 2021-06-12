@@ -17,8 +17,8 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "inet/mobility/single/MassMobility.h"
 #include "inet/common/INETMath.h"
+#include "inet/mobility/single/MassMobility.h"
 
 namespace inet {
 
@@ -26,10 +26,6 @@ Define_Module(MassMobility);
 
 MassMobility::MassMobility()
 {
-    changeIntervalParameter = nullptr;
-    changeAngleByParameter = nullptr;
-    speedParameter = nullptr;
-    angle = 0;
 }
 
 void MassMobility::initialize(int stage)
@@ -38,23 +34,36 @@ void MassMobility::initialize(int stage)
 
     //EV_TRACE << "initializing MassMobility stage " << stage << endl;
     if (stage == INITSTAGE_LOCAL) {
-        angle = par("startAngle").doubleValue();
+        rad heading = deg(par("initialMovementHeading"));
+        rad elevation = deg(par("initialMovementElevation"));
         changeIntervalParameter = &par("changeInterval");
-        changeAngleByParameter = &par("changeAngleBy");
+        angleDeltaParameter = &par("angleDelta");
+        rotationAxisAngleParameter = &par("rotationAxisAngle");
         speedParameter = &par("speed");
+        quaternion = Quaternion(EulerAngles(heading, -elevation, rad(0)));
+        WATCH(quaternion);
     }
+}
+
+void MassMobility::orient()
+{
+    if (faceForward)
+        lastOrientation = quaternion;
 }
 
 void MassMobility::setTargetPosition()
 {
-    angle += changeAngleByParameter->doubleValue();
-    //EV_DEBUG << "angle: " << angle << endl;
-    double rad = M_PI * angle / 180.0;
-    Coord direction(cos(rad), sin(rad));
-    simtime_t nextChangeInterval = changeIntervalParameter->doubleValue();
+    rad angleDelta = deg(angleDeltaParameter->doubleValue());
+    rad rotationAxisAngle = deg(rotationAxisAngleParameter->doubleValue());
+    Quaternion dQ = Quaternion(Coord::X_AXIS, rotationAxisAngle.get()) * Quaternion(Coord::Z_AXIS, angleDelta.get());
+    quaternion = quaternion * dQ;
+    quaternion.normalize();
+    Coord direction = quaternion.rotate(Coord::X_AXIS);
+
+    simtime_t nextChangeInterval = *changeIntervalParameter;
     //EV_DEBUG << "interval: " << nextChangeInterval << endl;
     sourcePosition = lastPosition;
-    targetPosition = lastPosition + direction * speedParameter->doubleValue() * nextChangeInterval.dbl();
+    targetPosition = lastPosition + direction * (*speedParameter) * nextChangeInterval.dbl();
     previousChange = simTime();
     nextChange = previousChange + nextChangeInterval;
 }
@@ -62,26 +71,27 @@ void MassMobility::setTargetPosition()
 void MassMobility::move()
 {
     simtime_t now = simTime();
+    rad dummyAngle;
     if (now == nextChange) {
         lastPosition = targetPosition;
-        handleIfOutside(REFLECT, lastPosition, lastSpeed, angle);
+        handleIfOutside(REFLECT, targetPosition, lastVelocity, dummyAngle, dummyAngle, quaternion);
         //EV_INFO << "reached current target position = " << lastPosition << endl;
         setTargetPosition();
         //EV_INFO << "new target position = " << targetPosition << ", next change = " << nextChange << endl;
-        lastSpeed = (targetPosition - lastPosition) / (nextChange - simTime()).dbl();
+        lastVelocity = (targetPosition - lastPosition) / (nextChange - simTime()).dbl();
+        handleIfOutside(REFLECT, targetPosition, lastVelocity, dummyAngle, dummyAngle, quaternion);
     }
     else if (now > lastUpdate) {
         ASSERT(nextChange == -1 || now < nextChange);
         double alpha = (now - previousChange) / (nextChange - previousChange);
         lastPosition = sourcePosition * (1 - alpha) + targetPosition * alpha;
-        double dummyAngle;
-        handleIfOutside(REFLECT, lastPosition, lastSpeed, dummyAngle);
+        handleIfOutside(REFLECT, targetPosition, lastVelocity, dummyAngle, dummyAngle, quaternion);
     }
 }
 
 double MassMobility::getMaxSpeed() const
 {
-    return NaN;
+    return speedParameter->isExpression() ? NaN : speedParameter->doubleValue();
 }
 
 } // namespace inet

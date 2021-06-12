@@ -16,6 +16,8 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 
+package inet.test.moduletest.lib;
+
 import inet.node.inet.Router;
 import inet.node.inet.StandardHost;
 import ned.DatarateChannel;
@@ -32,7 +34,7 @@ network failover
       {
         parameters:
           datarate = 1Mbps;
-	      per = 0.005;
+          per = 0.005;
       }
 
 	channel NormalPath extends DatarateChannel
@@ -43,30 +45,30 @@ network failover
     submodules:
         sctp_client: StandardHost {
             parameters:
-                routingTable.routingFile = "../../lib/multi_client.mrt";
-                networkLayer.configurator.networkConfiguratorModule = "";
+                ipv4.routingTable.routingFile = "../../lib/multi_client.mrt";
+                ipv4.configurator.networkConfiguratorModule = "";
             gates:
                 pppg[2];
         }
         sctp_server: StandardHost {
             parameters:
-                routingTable.routingFile = "../../lib/multi_server.mrt";
-                networkLayer.configurator.networkConfiguratorModule = "";
+                ipv4.routingTable.routingFile = "../../lib/multi_server.mrt";
+                ipv4.configurator.networkConfiguratorModule = "";
             gates:
                 pppg[2];
 
         }
         router1: Router {
             parameters:
-                routingTable.routingFile = "../../lib/multi_router1.mrt";
-                networkLayer.configurator.networkConfiguratorModule = "";
+                ipv4.routingTable.routingFile = "../../lib/multi_router1.mrt";
+                ipv4.configurator.networkConfiguratorModule = "";
             gates:
                 pppg[4];
         }
         router2: Router {
             parameters:
-                routingTable.routingFile = "../../lib/multi_router2.mrt";
-                networkLayer.configurator.networkConfiguratorModule = "";
+                ipv4.routingTable.routingFile = "../../lib/multi_router2.mrt";
+                ipv4.configurator.networkConfiguratorModule = "";
             gates:
                 pppg[4];
         }

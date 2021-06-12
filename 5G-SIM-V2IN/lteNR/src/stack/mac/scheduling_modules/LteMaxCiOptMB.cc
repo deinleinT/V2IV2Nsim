@@ -1,9 +1,13 @@
-/*
- * LteMaxCiOptMB.cc
- *
- *  Created on: Apr 22, 2014
- *      Author: antonio
- */
+//
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
+//
+// This file is part of a software released under the license included in file
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
+// and cannot be removed from it.
+//
 
 #include <sstream>
 #include <fstream>
@@ -15,6 +19,7 @@
 #include "stack/mac/buffer/LteMacBuffer.h"
 
 using namespace std;
+using namespace omnetpp;
 
 LteMaxCiOptMB::LteMaxCiOptMB()
 {
@@ -51,7 +56,7 @@ LteMaxCiOptMB::LteMaxCiOptMB()
  */
 void LteMaxCiOptMB::generateProblem()
 {
-    int totUes = activeConnectionTempSet_.size();
+    int totUes = carrierActiveConnectionSet_.size();
     // skip problem generation if no User is active
     if(totUes==0)
     {
@@ -77,7 +82,7 @@ void LteMaxCiOptMB::generateProblem()
     int numBands = eNbScheduler_->readTotalAvailableRbs();
     if(numBands==0)
     {
-        //EV << NOW <<" LteMaxCiOptMB::generateProblem - No Available RBs" << endl;
+        EV << NOW <<" LteMaxCiOptMB::generateProblem - No Available RBs" << endl;
         return;
     }
     // number of possible combination of bands
@@ -99,13 +104,13 @@ void LteMaxCiOptMB::generateProblem()
     // for each band configuration
     vector<int> cqiPerConfig;
     vector<Cqi> cqiPerBand;
-    for ( ActiveSet::iterator it = activeConnectionTempSet_.begin ();it != activeConnectionTempSet_.end (); ++it )
+    for ( ActiveSet::iterator it = carrierActiveConnectionSet_.begin ();it != carrierActiveConnectionSet_.end (); ++it )
     {
         cqiPerConfig.clear();
         MacNodeId ueId = MacCidToNodeId(*it);
         ueList_.push_back(ueId);
         cidList_.push_back(*it);
-        cqiPerBandMatrix.insert(pair< MacNodeId,std::vector<Cqi> >(ueId,eNbScheduler_->mac_->getAmc()->readMultiBandCqi(ueId,direction_)));
+        cqiPerBandMatrix.insert(pair< MacNodeId,std::vector<Cqi> >(ueId,eNbScheduler_->mac_->getAmc()->readMultiBandCqi(ueId,direction_,carrierFrequency_)));
 //        sort(cqiMatrix[ueId].begin(),cqiMatrix[ueId].end());
 
         // ******* DEBUG *******
@@ -118,7 +123,7 @@ void LteMaxCiOptMB::generateProblem()
             else
                 appFileStream << " \t, ";
             unsigned int availableBlocks = eNbScheduler_->readAvailableRbs(ueId,MACRO,iBand);
-            unsigned int availableBytes_MB = eNbScheduler_->mac_->getAmc()->computeBytesOnNRbs_MB(ueId,iBand, availableBlocks, direction_);
+            unsigned int availableBytes_MB = eNbScheduler_->mac_->getAmc()->computeBytesOnNRbs_MB(ueId,iBand, availableBlocks, direction_,carrierFrequency_);
 
             appFileStream << cqiPerBandMatrix[ueId][iBand] << "/";
             cqiPerBandMatrix[ueId][iBand] = availableBytes_MB;
@@ -267,9 +272,9 @@ void LteMaxCiOptMB::generateProblem()
         LteMacBufferMap * buf = mac_->getMacBuffers();
         LteMacBufferMap::iterator it = buf->find(cidList_[iUe]);
         int queue = 0;
-        if(it != mac_->getMacBuffers()->end())
+        if(it == mac_->getMacBuffers()->end())
         {
-            cRuntimeError("LteMaxCiOptMB::generateProblem Cannot find CID[%f]. Aborting... ",cidList_[iUe]);
+            cRuntimeError("LteMaxCiOptMB::generateProblem Cannot find CID[%u]. Aborting... ",cidList_[iUe]);
         }
         queue = it->second->getQueueOccupancy();
 //        appFileStream << iUe<< ")UE=" << ueList[iUe] << " - cid=" << cidList[iUe] << endl;
@@ -404,10 +409,10 @@ void LteMaxCiOptMB::generateProblem()
 
 void LteMaxCiOptMB::prepareSchedule()
 {
-    //EV << "LteMaxCiOptMB::prepareSchedule - TEST" << endl;
+    EV << "LteMaxCiOptMB::prepareSchedule - TEST" << endl;
 
     // clean all the structures
-    activeConnectionTempSet_ = activeConnectionSet_;
+    activeConnectionTempSet_ = *activeConnectionSet_;
     cidList_.clear();
     ueList_.clear();
     schedulingDecision_.clear();
@@ -417,14 +422,13 @@ void LteMaxCiOptMB::prepareSchedule()
     generateProblem();
 
     // skip the scheduling operation if no connections are active
-    if(cidList_.size() == 0){
-        //EV << NOW << " LteMaxCiOptMB::prepareSchedule  no active connections" << endl;
-    }
+    if(cidList_.size() == 0)
+        EV << NOW << " LteMaxCiOptMB::prepareSchedule  no active connections" << endl;
     else
     {
-        //EV << NOW << " LteMaxCiOptMB::prepareSchedule - Launching problem..." << endl;
+        EV << NOW << " LteMaxCiOptMB::prepareSchedule - Launching problem..." << endl;
         launchProblem();
-        //EV << NOW << " LteMaxCiOptMB::prepareSchedule - Problem Solved" << endl;
+        EV << NOW << " LteMaxCiOptMB::prepareSchedule - Problem Solved" << endl;
         readSolution();
     }
     applyScheduling();
@@ -530,7 +534,7 @@ void LteMaxCiOptMB::readSolution()
         if(limit==-1)
         {
             usableBands_[atoi(ue.c_str())].push_back(bandLimit.band_);
-            //EV << " LteMaxCiOptMB::readSolution - Adding usable band[" << bandLimit.band_ << "] for UE[" <<  atoi(ue.c_str()) << "]" << endl;
+            EV << " LteMaxCiOptMB::readSolution - Adding usable band[" << bandLimit.band_ << "] for UE[" <<  atoi(ue.c_str()) << "]" << endl;
         }
 
     }
@@ -551,12 +555,16 @@ void LteMaxCiOptMB::readSolution()
 void LteMaxCiOptMB::launchProblem()
 {
     std::stringstream cmd;
-    cmd << "cplex -c ";
-    cmd << "\"set logfile *\" \"read " << problemFile_.c_str() << " lp\" \"optimize\" ";
-    cmd << "\"write " << solutionFile_.c_str() << "\" \"y\" ";
-    cmd << " > /dev/null" << endl;
+    FILE* fp = popen("cplex -c","w");
+    if (fp != NULL)
+    {
+        cmd << "\"set logfile *\" \"read " << problemFile_.c_str() << " lp\" \"optimize\" ";
+        cmd << "\"write " << solutionFile_.c_str() << "\" \"y\" ";
+        cmd << " > /dev/null" << endl;
+        fprintf(fp, "%s", cmd.str().c_str());
 
-    system(cmd.str().c_str());
+        fclose(fp);
+    }
 }
 
 void LteMaxCiOptMB::applyScheduling()
@@ -584,7 +592,7 @@ void LteMaxCiOptMB::applyScheduling()
         bool eligible = true;
         unsigned int granted = requestGrant (ueCid, 4294967295U, terminate, active, eligible,&schedulingDecision_[ueId]);
 
-        //EV << NOW << "LteMaxCiMultiband::schedule granted " << granted << " bytes to UE" << ueId << endl;
+        EV << NOW << "LteMaxCiMultiband::schedule granted " << granted << " bytes to UE" << ueId << endl;
 
         // Exit immediately if the terminate flag is set.
         if ( terminate ) break;
@@ -592,14 +600,14 @@ void LteMaxCiOptMB::applyScheduling()
         // Pop the descriptor from the score list if the active or eligible flag are clear.
         if ( ! active || ! eligible )
         {
-            //EV << NOW << "LteMaxCiMultiband::schedule  UE " << ueId << " was found ineligible" << endl;
+            EV << NOW << "LteMaxCiMultiband::schedule  UE " << ueId << " was found ineligible" << endl;
         }
 
         // Set the connection as inactive if indicated by the grant ().
         if ( ! active )
         {
-            //EV << NOW << "LteMaxCiMultiband::schedule scheduling UE " << ueId << " set to inactive " << endl;
-
+            EV << NOW << "LteMaxCiMultiband::schedule scheduling UE " << ueId << " set to inactive " << endl;
+            carrierActiveConnectionSet_.erase(ueCid);
             activeConnectionTempSet_.erase (ueCid);
         }
     }
@@ -607,22 +615,5 @@ void LteMaxCiOptMB::applyScheduling()
 
 void LteMaxCiOptMB::commitSchedule()
 {
-    activeConnectionSet_ = activeConnectionTempSet_;
-}
-
-void LteMaxCiOptMB::updateSchedulingInfo()
-{
-
-}
-
-void LteMaxCiOptMB::notifyActiveConnection(MacCid cid)
-{
-    //EV << NOW << "LteMaxCiMultiband::notify CID notified " << cid<< "/"<<MacCidToNodeId(cid) << endl;
-    activeConnectionSet_.insert(cid);
-}
-
-void LteMaxCiOptMB::removeActiveConnection(MacCid cid)
-{
-    //EV << NOW << "LteMaxCiMultiband::remove CID removed " << cid<< "/"<<MacCidToNodeId(cid) << endl;
-    activeConnectionSet_.erase(cid);
+    *activeConnectionSet_ = activeConnectionTempSet_;
 }

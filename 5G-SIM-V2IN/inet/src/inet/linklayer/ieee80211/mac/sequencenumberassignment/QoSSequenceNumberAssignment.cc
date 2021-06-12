@@ -15,28 +15,28 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 // 
 
-#include "QoSSequenceNumberAssignment.h"
+#include "inet/linklayer/ieee80211/mac/sequencenumberassignment/QoSSequenceNumberAssignment.h"
 
 namespace inet {
 namespace ieee80211 {
 
-QoSSequenceNumberAssignment::CacheType QoSSequenceNumberAssignment::getCacheType(Ieee80211DataOrMgmtFrame *frame, bool incoming)
+QoSSequenceNumberAssignment::CacheType QoSSequenceNumberAssignment::getCacheType(const Ptr<const Ieee80211DataOrMgmtHeader>& header, bool incoming)
 {
     bool isTimePriorityFrame = false; // TODO
-    const MACAddress& address = incoming ? frame->getTransmitterAddress() : frame->getReceiverAddress();
+    const MacAddress& address = incoming ? header->getTransmitterAddress() : header->getReceiverAddress();
     if (isTimePriorityFrame)
         return TIME_PRIORITY;
-    else if (frame->getType() != ST_DATA_WITH_QOS || address.isMulticast())
+    else if (header->getType() != ST_DATA_WITH_QOS || address.isMulticast())
         return SHARED;
     else
         return DATA;
 }
 
-void QoSSequenceNumberAssignment::assignSequenceNumber(Ieee80211DataOrMgmtFrame* frame)
+void QoSSequenceNumberAssignment::assignSequenceNumber(const Ptr<Ieee80211DataOrMgmtHeader>& header)
 {
-    CacheType type = getCacheType(frame, false);
-    int seqNum;
-    MACAddress address = frame->getReceiverAddress();
+    CacheType type = getCacheType(header, false);
+    SequenceNumber seqNum;
+    MacAddress address = header->getReceiverAddress();
     if (type == TIME_PRIORITY)
     {
         // Error in spec?
@@ -46,7 +46,7 @@ void QoSSequenceNumberAssignment::assignSequenceNumber(Ieee80211DataOrMgmtFrame*
         if (it == lastSentTimePrioritySeqNums.end())
             lastSentTimePrioritySeqNums[address] = seqNum = 0;
         else
-            it->second = seqNum = (it->second + 1) % 4096;
+            it->second = seqNum = it->second + 1;
     }
     if (type == SHARED)
     {
@@ -55,24 +55,24 @@ void QoSSequenceNumberAssignment::assignSequenceNumber(Ieee80211DataOrMgmtFrame*
             lastSentSharedSeqNums[address] = seqNum = lastSentSharedCounterSeqNum;
         else {
             if (it->second == lastSentSharedCounterSeqNum)
-                lastSentSharedCounterSeqNum = (lastSentSharedCounterSeqNum + 1) % 4096; // make it different from the last sequence number sent to that RA (spec: "add 2")
+                lastSentSharedCounterSeqNum = lastSentSharedCounterSeqNum + 1; // make it different from the last sequence number sent to that RA (spec: "add 2")
             it->second = seqNum = lastSentSharedCounterSeqNum;
         }
     }
     else if (type == DATA)
     {
-        Ieee80211DataFrame *qosDataFrame = check_and_cast<Ieee80211DataFrame *>(frame);
-        Key key(frame->getReceiverAddress(), qosDataFrame->getTid());
+        const Ptr<const Ieee80211DataHeader>& qosDataHeader = dynamicPtrCast<const Ieee80211DataHeader>(header);
+        Key key(header->getReceiverAddress(), qosDataHeader->getTid());
         auto it = lastSentSeqNums.find(key);
         if (it == lastSentSeqNums.end())
             lastSentSeqNums[key] = seqNum = 0;
         else
-            it->second = seqNum = (it->second + 1) % 4096;
+            it->second = seqNum = it->second + 1;
     }
     else
         ASSERT(false);
 
-    frame->setSequenceNumber(seqNum);
+    header->setSequenceNumber(seqNum);
 }
 
 } /* namespace ieee80211 */

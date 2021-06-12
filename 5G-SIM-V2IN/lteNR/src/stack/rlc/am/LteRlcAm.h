@@ -1,9 +1,11 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
@@ -25,7 +27,7 @@ class AmRxQueue;
  *
  * TODO
  */
-class LteRlcAm : public cSimpleModule
+class LteRlcAm : public omnetpp::cSimpleModule
 {
   protected:
 
@@ -44,13 +46,10 @@ class LteRlcAm : public cSimpleModule
     AmTxBuffers txBuffers_;
     AmRxBuffers rxBuffers_;
 
-    cGate* up_[2];
-    cGate* down_[2];
+    omnetpp::cGate* up_[2];
+    omnetpp::cGate* down_[2];
 
   public:
-    LteRlcAm()
-    {
-    }
     virtual ~LteRlcAm()
     {
     }
@@ -61,10 +60,10 @@ class LteRlcAm : public cSimpleModule
      * Analyze gate of incoming packet
      * and call proper handler
      */
-    virtual void handleMessage(cMessage *msg);
+    virtual void handleMessage(omnetpp::cMessage *msg) override;
 
-    virtual void initialize();
-    virtual void finish()
+    virtual void initialize() override;
+    virtual void finish() override
     {
     }
 
@@ -117,7 +116,7 @@ class LteRlcAm : public cSimpleModule
      *
      * @param pkt packet to process
      */
-    void handleUpperMessage(cPacket *pkt);
+    void handleUpperMessage(omnetpp::cPacket *pkt);
 
     /**
      * Am Mode
@@ -134,7 +133,7 @@ class LteRlcAm : public cSimpleModule
      *
      * @param pkt packet to process
      */
-    void handleLowerMessage(cPacket *pkt);
+    void handleLowerMessage(omnetpp::cPacket *pkt);
 
   public:
     /**
@@ -147,7 +146,8 @@ class LteRlcAm : public cSimpleModule
      *
      * @param pkt packet to process
      */
-    void routeControlMessage(cPacket *pkt);
+    void routeControlMessage(omnetpp::cPacket *pkt);
+
     /**
      * sendFragmented() is invoked by the TXBuffer as a direct method
      * call and used to forward fragments to lower layers. This is needed
@@ -155,7 +155,16 @@ class LteRlcAm : public cSimpleModule
      *
      * @param pkt packet to forward
      */
-    void sendFragmented(cPacket *pkt);
+    void sendFragmented(omnetpp::cPacket *pkt);
+
+    /**
+     * bufferControlPdu() is invoked by the RXBuffer as a direct method
+     * call and used to forward control packets to be sent down upon
+     * the next MAC request.
+     *
+     * @param pkt packet to buffer
+     */
+    void bufferControlPdu(omnetpp::cPacket *pkt);
 
     /**
      * sendDefragmented() is invoked by the RXBuffer as a direct method
@@ -164,7 +173,12 @@ class LteRlcAm : public cSimpleModule
      *
      * @param pkt packet to forward
      */
-    void sendDefragmented(cPacket *pkt);
+    void sendDefragmented(omnetpp::cPacket *pkt);
+
+    /**
+     * informMacOfWaitingData() sends a new data notification to the MAC
+     */
+    void indicateNewDataToMac(omnetpp::cPacket *pkt);
 };
 
 #endif

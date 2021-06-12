@@ -1,28 +1,63 @@
-====== inet-3.x ======
+====== inet-4.x ======
 
-2020-10-20  ------ inet-3.6.8 released ------
+2021-01-07  ------ inet-4.2.2 released ------
+
+2020-10-27  ------ inet-4.2.1 released ------
 
 2020-10-20  Zoltan Bojthe
 
-	KLUDGEs - for omnetpp6 delete module sequence to produce memory leak
-	instead of a crash with OMNeT 6.
+	KLUDGEs - for omnetpp6 delete module sequence
+	for memory leak instead of crash with OMNeT 6
 
-2020-03-27  Christoph Sommer
+2020-01-08  ------ inet-4.2.0 released ------
 
-	bugfix: rely on OMNeT++ to delete submodules
+2019-01-22  Levente Mészáros
 
-2019-11-04  ------ inet-3.6.7 released ------
+	Added InterfaceEntry NED base module to all interfaces.
 
-2019-08-16  ------ inet-3.6.6 released ------
+2019-01-28  ------ inet-4.1.0 released ------
 
-2019-04-12  ------ inet-3.6.5 released ------
+2018-07-11  Raphael Riebl
 
-2018-05-03  Levente Meszaros
+	Changed Ieee80211Interface to use opMode to decide default LLC module.
 
-	802.11: Fixed ACK frame duration bug reported by Raphael Elsner.
+	Actually only the 5.9 GHz band mandates EPD. However, not all radios have
+	a bandName parameter (e.g. UnitDiskRadio) and thus we use opMode instead.
+	Usually "p" is only used in the 5.9 GHz band and vice versa.
 
-	The duration was incorrectly rounded up in seconds instead of
-	microseconds for data fragment ACKs.
+2018-06-27  ------ inet-4.0.0 released ------
+
+2018-04-13  ------ inet-3.99.3 released ------
+
+2017-12-22  ------ inet-3.99.2 released ------
+
+2017-12-20  Zoltan Bojthe
+
+	Renaming:
+	    IIeee8021QoSClassifier -> IIeee8021dQosClassifier
+	    IIeee8021dQoSClassifier -> IIeee8021dQosClassifier
+	    IMACProtocol -> IMacProtocol
+	    Ieee80211AgentSTA -> Ieee80211AgentSta
+	    Ieee80211MgmtAP -> Ieee80211MgmtAp
+	    Ieee80211MgmtAPSimplified -> Ieee80211MgmtApSimplified
+	    Ieee80211MgmtSTA -> Ieee80211MgmtSta
+	    Ieee80211MgmtSTASimplified -> Ieee80211MgmtStaSimplified
+
+2017-11-28  Levente Mészáros
+
+	Renamed TODO files to start with an underscore.
+
+2017-11-21  Levente Mészáros
+
+	Eliminated all #define statements from MSG files.
+
+2017-11-17  Zoltan Bojthe
+
+	Added required import statements to MSG files according to new syntax.
+
+2017-11-16  ------ inet-3.99.1 released ------
+
+====== inet-3.x ======
 
 2018-03-21  ------ inet-3.6.4 released ------
 

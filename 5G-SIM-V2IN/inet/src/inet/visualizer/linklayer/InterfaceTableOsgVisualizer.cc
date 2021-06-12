@@ -16,7 +16,7 @@
 //
 
 #include "inet/common/ModuleAccess.h"
-#include "inet/common/OSGUtils.h"
+#include "inet/common/OsgUtils.h"
 #include "inet/visualizer/linklayer/InterfaceTableOsgVisualizer.h"
 
 namespace inet {
@@ -27,11 +27,17 @@ Define_Module(InterfaceTableOsgVisualizer);
 
 #ifdef WITH_OSG
 
-InterfaceTableOsgVisualizer::InterfaceOsgVisualization::InterfaceOsgVisualization(NetworkNodeOsgVisualization *networkNodeVisualization, osg::Node *node, int networkNodeId, int interfaceId) :
-    InterfaceVisualization(networkNodeId, interfaceId),
+InterfaceTableOsgVisualizer::InterfaceOsgVisualization::InterfaceOsgVisualization(NetworkNodeOsgVisualization *networkNodeVisualization, osg::Node *node, int networkNodeId, int networkNodeGateId, int interfaceId) :
+    InterfaceVisualization(networkNodeId, networkNodeGateId, interfaceId),
     networkNodeVisualization(networkNodeVisualization),
     node(node)
 {
+}
+
+InterfaceTableOsgVisualizer::~InterfaceTableOsgVisualizer()
+{
+    if (displayInterfaceTables)
+        removeAllInterfaceVisualizations();
 }
 
 void InterfaceTableOsgVisualizer::initialize(int stage)
@@ -45,19 +51,23 @@ void InterfaceTableOsgVisualizer::initialize(int stage)
 
 InterfaceTableVisualizerBase::InterfaceVisualization *InterfaceTableOsgVisualizer::createInterfaceVisualization(cModule *networkNode, InterfaceEntry *interfaceEntry)
 {
+    auto gate = getOutputGate(networkNode, interfaceEntry);
     auto label = new osgText::Text();
     label->setCharacterSize(18);
-    label->setBoundingBoxColor(osg::Vec4(backgroundColor.red / 255.0, backgroundColor.green / 255.0, backgroundColor.blue / 255.0, 0.5));
-    label->setColor(osg::Vec4(textColor.red / 255.0, textColor.green / 255.0, textColor.blue / 255.0, 0.5));
+    label->setBoundingBoxColor(osg::Vec4(backgroundColor.red / 255.0, backgroundColor.green / 255.0, backgroundColor.blue / 255.0, opacity));
+    label->setColor(osg::Vec4(textColor.red / 255.0, textColor.green / 255.0, textColor.blue / 255.0, opacity));
     label->setAlignment(osgText::Text::CENTER_BOTTOM);
     label->setText(getVisualizationText(interfaceEntry).c_str());
     label->setDrawMode(osgText::Text::FILLEDBOUNDINGBOX | osgText::Text::TEXT);
     label->setPosition(osg::Vec3(0.0, 0.0, 0.0));
     auto geode = new osg::Geode();
     geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+    geode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
     geode->addDrawable(label);
     auto networkNodeVisualization = networkNodeVisualizer->getNetworkNodeVisualization(networkNode);
-    return new InterfaceOsgVisualization(networkNodeVisualization, geode, networkNode->getId(), interfaceEntry->getInterfaceId());
+    if (networkNodeVisualization == nullptr)
+        throw cRuntimeError("Cannot create interface visualization for '%s', because network node visualization is not found for '%s'", interfaceEntry->getInterfaceName(), networkNode->getFullPath().c_str());
+    return new InterfaceOsgVisualization(networkNodeVisualization, geode, networkNode->getId(), gate == nullptr ? -1 : gate->getId(), interfaceEntry->getInterfaceId());
 }
 
 void InterfaceTableOsgVisualizer::addInterfaceVisualization(const InterfaceVisualization *interfaceVisualization)

@@ -1,16 +1,12 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
-//
-
-//
-// This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
-// Author: Thomas Deinlein
 //
 
 #ifndef _LTE_AIRPHYUE_H_
@@ -19,9 +15,8 @@
 #include "stack/phy/layer/LtePhyBase.h"
 #include "stack/phy/das/DasFilter.h"
 #include "stack/mac/layer/LteMacUe.h"
-#include "nr/stack/pdcp_rrc/layer/NRPdcpRrcGnb.h"
-//
 #include "stack/rlc/um/LteRlcUm.h"
+#include "stack/pdcp_rrc/layer/LtePdcpRrc.h"
 
 class DasFilter;
 
@@ -31,16 +26,14 @@ class LtePhyUe : public LtePhyBase
     /** Master MacNodeId */
     MacNodeId masterId_;
 
-    QosHandler * qosHandler;
-
     /** Statistic for serving cell */
-    simsignal_t servingCell_;
+    omnetpp::simsignal_t servingCell_;
 
     /** Self message to trigger handover procedure evaluation */
-    cMessage *handoverStarter_;
+    omnetpp::cMessage *handoverStarter_;
 
     /** Self message to start the handover procedure */
-    cMessage *handoverTrigger_;
+    omnetpp::cMessage *handoverTrigger_;
 
     /** RSSI received from the current serving node */
     double currentMasterRssi_;
@@ -72,13 +65,16 @@ class LtePhyUe : public LtePhyBase
      * Note that broadcast messages for handover are always received at the very same time
      * (at bdcUpdateInterval_ seconds intervals).
      */
-
+    // TODO: bring it to ned par!
     double handoverDelta_;
-
-    bool exchangeBuffersOnHandover_;
 
     // time for completion of the handover procedure
     double handoverLatency_;
+    double handoverDetachment_;
+    double handoverAttachment_;
+
+    // lower threshold of RSSI for detachment
+    double minRssi_;
 
     /**
      * Handover switch
@@ -103,24 +99,19 @@ class LtePhyUe : public LtePhyBase
 
     LteMacUe *mac_;
     LteRlcUm *rlcUm_;
+    LtePdcpRrcBase *pdcp_;
 
-    simtime_t lastFeedback_;
+    omnetpp::simtime_t lastFeedback_;
 
-    virtual void initialize(int stage)override ;
-    virtual void handleSelfMessage(cMessage *msg) override;
-    virtual void handleAirFrame(cMessage* msg) override;
+    virtual void initialize(int stage) override;
+    virtual void handleSelfMessage(omnetpp::cMessage *msg) override;
+    virtual void handleAirFrame(omnetpp::cMessage* msg) override;
     virtual void finish() override;
+    virtual void finish(cComponent *component, omnetpp::simsignal_t signalID) override {cIListener::finish(component, signalID);}
 
-    virtual void handleUpperMessage(cMessage* msg) override;
+    virtual void handleUpperMessage(omnetpp::cMessage* msg) override;
 
-    /**
-     * Catches host failure due to battery depletion.
-     *
-     * If the battery gets depleted, simpleBattery module publishes an HostState::FAILED
-     * event to the blackboard. The event is caught by baseModule's receiveBBItem
-     * which in turn calls handleHostState method, here inherited and redefined.
-     */
-    //virtual void handleHostState(const HostState& state);
+
     /**
      * Utility function to update the hysteresis threshold using hysteresisFactor_.
      */
@@ -128,9 +119,7 @@ class LtePhyUe : public LtePhyBase
 
     virtual void handoverHandler(LteAirFrame* frame, UserControlInfo* lteInfo);
 
-    //changed to virtual
-    virtual void deleteOldBuffers(MacNodeId masterId);
-    virtual void exchangeBuffersOnHandover(MacNodeId masterId, MacNodeId newMaster){};
+    void deleteOldBuffers(MacNodeId masterId);
 
     virtual void triggerHandover();
     virtual void doHandover();
@@ -145,10 +134,9 @@ class LtePhyUe : public LtePhyBase
     virtual void sendFeedback(LteFeedbackDoubleVector fbDl, LteFeedbackDoubleVector fbUl, FeedbackRequest req);
     MacNodeId getMasterId() const
     {
-        Enter_Method_Silent("getMasterId");
         return masterId_;
     }
-//    simtime_t coherenceTime(double speed)
+//    omnetpp::simtime_t coherenceTime(double speed)
 //    {
 //        double fd = (speed / SPEED_OF_LIGHT) * carrierFrequency_;
 //        return 0.1 / fd;

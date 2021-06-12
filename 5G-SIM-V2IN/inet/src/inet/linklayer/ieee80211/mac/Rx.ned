@@ -19,13 +19,15 @@ package inet.linklayer.ieee80211.mac;
 
 import inet.linklayer.ieee80211.mac.contract.IRx;
 
-
 //
-// The default implementation of IRx.
+// The default implementation of ~IRx.
 //
 simple Rx like IRx
 {
     parameters:
-        string statisticsModule = default(""); // TODO
         @display("i=block/rx");
+        @signal[navChanged](type=simtime_t);
+        @signal[packetDropped](type=inet::Packet);
+        @statistic[nav](title="network allocation vector"; source=navChanged; record=vector; interpolationmode=linear);
 }
+

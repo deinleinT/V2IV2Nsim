@@ -18,10 +18,6 @@ package inet.showcases.visualizer.mobility;
 import inet.node.inet.AdhocHost;
 import inet.visualizer.integrated.IntegratedVisualizer;
 
-
-//
-// TODO documentation
-//
 network MobilityVisualizerShowcase
 {
     @display("bgb=800,600");

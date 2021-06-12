@@ -23,7 +23,7 @@
 namespace inet {
 namespace ieee80211 {
 
-class INET_API RecipientBlockAckAgreement
+class INET_API RecipientBlockAckAgreement : public cObject
 {
     protected:
         BlockAckRecord *blockAckRecord = nullptr;
@@ -35,15 +35,15 @@ class INET_API RecipientBlockAckAgreement
         simtime_t expirationTime = -1;
 
     public:
-        RecipientBlockAckAgreement(MACAddress originatorAddress, Tid tid, SequenceNumber startingSequenceNumber, int bufferSize, simtime_t blockAckTimeoutValue);
+        RecipientBlockAckAgreement(MacAddress originatorAddress, Tid tid, SequenceNumber startingSequenceNumber, int bufferSize, simtime_t blockAckTimeoutValue);
         virtual ~RecipientBlockAckAgreement() { delete blockAckRecord; }
 
-        virtual void blockAckPolicyFrameReceived(Ieee80211DataFrame *frame);
+        virtual void blockAckPolicyFrameReceived(const Ptr<const Ieee80211DataHeader>& header);
 
         virtual BlockAckRecord *getBlockAckRecord() const { return blockAckRecord; }
         virtual simtime_t getBlockAckTimeoutValue() const { return blockAckTimeoutValue; }
         virtual int getBufferSize() const { return bufferSize; }
-        virtual int getStartingSequenceNumber() const { return startingSequenceNumber; }
+        virtual SequenceNumber getStartingSequenceNumber() const { return startingSequenceNumber; }
 
         virtual void addbaResposneSent() { isAddbaResponseSent = true; }
         virtual void calculateExpirationTime() { expirationTime = blockAckTimeoutValue == 0 ? SIMTIME_MAX : simTime() + blockAckTimeoutValue; }

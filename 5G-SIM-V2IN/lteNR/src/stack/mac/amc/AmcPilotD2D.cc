@@ -1,13 +1,17 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
 #include "stack/mac/amc/AmcPilotD2D.h"
+
+using namespace inet;
 
 void AmcPilotD2D::setPreconfiguredTxParams(Cqi cqi)
 {
@@ -28,7 +32,7 @@ void AmcPilotD2D::setPreconfiguredTxParams(Cqi cqi)
 
     BandSet b;
     Band i = 0;
-//    for ( ; i < amc_->getSystemNumBands(); ++i)
+    for ( ; i < getBinder()->getTotalBands(); ++i)
         b.insert(i);
 
     preconfiguredTxParams_->writeBands(b);
@@ -38,21 +42,21 @@ void AmcPilotD2D::setPreconfiguredTxParams(Cqi cqi)
     preconfiguredTxParams_->writeAntennas(antennas);
 }
 
-const UserTxParams& AmcPilotD2D::computeTxParams(MacNodeId id, const Direction dir)
+const UserTxParams& AmcPilotD2D::computeTxParams(MacNodeId id, const Direction dir, double carrierFrequency)
 {
-    //EV << NOW << " AmcPilot" << getName() << "::computeTxParams for UE " << id << ", direction " << dirToA(dir) << endl;
+    EV << NOW << " AmcPilot" << getName() << "::computeTxParams for UE " << id << ", direction " << dirToA(dir) << endl;
 
     if ((dir == D2D || dir == D2D_MULTI) && usePreconfiguredTxParams_)
     {
-        //EV << NOW << " AmcPilot" << getName() << "::computeTxParams Use preconfigured Tx params for D2D connections" << endl;
+        EV << NOW << " AmcPilot" << getName() << "::computeTxParams Use preconfigured Tx params for D2D connections" << endl;
         return *preconfiguredTxParams_;
     }
 
     // Check if user transmission parameters have been already allocated
-    if(amc_->existTxParams(id, dir))
+    if(amc_->existTxParams(id, dir, carrierFrequency))
     {
-        //EV << NOW << " AmcPilot" << getName() << "::computeTxParams The Information for this user have been already assigned" << endl;
-        return amc_->getTxParams(id, dir);
+        EV << NOW << " AmcPilot" << getName() << "::computeTxParams The Information for this user have been already assigned" << endl;
+        return amc_->getTxParams(id, dir, carrierFrequency);
     }
     // TODO make it configurable from NED
     // default transmission mode
@@ -72,7 +76,7 @@ const UserTxParams& AmcPilotD2D::computeTxParams(MacNodeId id, const Direction d
 
     MacNodeId peerId = 0;  // FIXME this way, the getFeedbackD2D() function will return the first feedback available
 
-    LteSummaryFeedback sfb = (dir==UL || dir==DL) ? amc_->getFeedback(id, MACRO, txMode, dir) : amc_->getFeedbackD2D(id, MACRO, txMode, peerId);
+    LteSummaryFeedback sfb = (dir==UL || dir==DL) ? amc_->getFeedback(id, MACRO, txMode, dir, carrierFrequency) : amc_->getFeedbackD2D(id, MACRO, txMode, peerId, carrierFrequency);
 
     if (TxMode(txMode)==MULTI_USER) // Initialize MuMiMoMatrix
         amc_->muMimoMatrixInit(dir,id);
@@ -89,26 +93,38 @@ const UserTxParams& AmcPilotD2D::computeTxParams(MacNodeId id, const Direction d
         // MEAN cqi computation method
         chosenCqi = getBinder()->meanCqi(sfb.getCqi(0),id,dir);
         for (Band i = 0; i < sfb.getCqi(0).size(); ++i)
-            b.insert(i);
+        {
+            Band cellWiseBand = amc_->getCellInfo()->getCellwiseBand(carrierFrequency, i);
+            b.insert(cellWiseBand);
+        }
     }
     else
     {
         // MIN/MAX cqi computation method
         Band band = 0;
+
+        // translate carrier-local band index to cell-wise band index
+        Band cellWiseBand = amc_->getCellInfo()->getCellwiseBand(carrierFrequency, band);
         chosenCqi = summaryCqi.at(band);
         unsigned int bands = summaryCqi.size();// number of bands
-        for(Band b = 1; b < bands; ++b)
+        for(Band i = 1; i < bands; ++i)
         {
             // For all LBs
-            double s = (double)summaryCqi.at(b);
+            double s = (double)summaryCqi.at(i);
             if((mode_ == MIN_CQI && s < chosenCqi) || (mode_ == MAX_CQI && s > chosenCqi))
             {
-                band = b;
+                band = i;
                 chosenCqi = s;
             }
 
+            // add (all) bands to the bandset
+            // TODO check if you want to add only the bands with CQI equel to the MIN/MAX
+            cellWiseBand++;
+            b.insert(cellWiseBand);
         }
-        b.insert(band);
+
+//        Band cellWiseBand = amc_->getCellInfo()->getCellwiseBand(carrierFrequency, band);
+//        b.insert(cellWiseBand);
     }
 
     // Set user transmission parameters
@@ -123,12 +139,12 @@ const UserTxParams& AmcPilotD2D::computeTxParams(MacNodeId id, const Direction d
     info.writeAntennas(antennas);
 
     // DEBUG
-    //EV << NOW << " AmcPilot" << getName() << "::computeTxParams NEW values assigned! - CQI =" << chosenCqi << "\n";
+    EV << NOW << " AmcPilot" << getName() << "::computeTxParams NEW values assigned! - CQI =" << chosenCqi << "\n";
     info.print("AmcPilotD2D::computeTxParams");
 
     //return amc_->setTxParams(id, dir, info,user_type); OLD solution
     // Debug
-    const UserTxParams& info2 = amc_->setTxParams(id, dir, info);
+    const UserTxParams& info2 = amc_->setTxParams(id, dir, info, carrierFrequency);
 
     return info2;
 }

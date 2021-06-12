@@ -18,26 +18,26 @@
 #ifndef __INET_CANVASPROJECTION_H
 #define __INET_CANVASPROJECTION_H
 
-#include "inet/common/geometry/common/Rotation.h"
+#include "inet/common/geometry/common/RotationMatrix.h"
 
 namespace inet {
 
 class INET_API CanvasProjection
 {
   protected:
-    Rotation rotation;
+    RotationMatrix rotation;
     cFigure::Point scale;
     cFigure::Point translation;
 
-    static CanvasProjection defaultCanvasProjection;
-    static std::map<const cCanvas *, const CanvasProjection *> canvasProjections;
+    static std::map<const cCanvas *, CanvasProjection *> canvasProjections;
 
   public:
     CanvasProjection() : scale(cFigure::Point(1, 1)) {}
-    CanvasProjection(Rotation rotation, cFigure::Point translation);
+    CanvasProjection(RotationMatrix rotation, cFigure::Point translation);
+    virtual ~CanvasProjection();
 
-    const Rotation& getRotation() const { return rotation; }
-    void setRotation(const Rotation& rotation) { this->rotation = rotation; }
+    const RotationMatrix& getRotation() const { return rotation; }
+    void setRotation(const RotationMatrix& rotation) { this->rotation = rotation; }
 
     const cFigure::Point& getScale() const { return scale; }
     void setScale(const cFigure::Point& scale) { this->scale = scale; }
@@ -46,9 +46,11 @@ class INET_API CanvasProjection
     void setTranslation(const cFigure::Point& translation) { this->translation = translation; }
 
     cFigure::Point computeCanvasPoint(const Coord& point) const;
+    cFigure::Point computeCanvasPoint(const Coord& point, double& depth) const;
+    Coord computeCanvasPointInverse(const cFigure::Point& point, double depth) const;
 
-    static const CanvasProjection *getCanvasProjection(const cCanvas *canvas);
-    static void setCanvasProjection(const cCanvas *canvas, const CanvasProjection *canvasProjection);
+    static CanvasProjection *getCanvasProjection(const cCanvas *canvas);
+    static void dropCanvasProjections();
 };
 
 } // namespace inet

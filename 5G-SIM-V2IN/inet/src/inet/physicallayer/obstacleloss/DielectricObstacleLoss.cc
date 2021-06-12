@@ -15,15 +15,17 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "inet/common/geometry/base/ShapeBase.h"
-#include "inet/common/geometry/common/Rotation.h"
-#include "inet/common/geometry/object/LineSegment.h"
 #include "inet/common/ModuleAccess.h"
+#include "inet/common/geometry/base/ShapeBase.h"
+#include "inet/common/geometry/common/RotationMatrix.h"
+#include "inet/common/geometry/object/LineSegment.h"
 #include "inet/physicallayer/obstacleloss/DielectricObstacleLoss.h"
 
 namespace inet {
 
 namespace physicallayer {
+
+using namespace inet::physicalenvironment;
 
 Define_Module(DielectricObstacleLoss);
 
@@ -38,6 +40,8 @@ DielectricObstacleLoss::DielectricObstacleLoss() :
 void DielectricObstacleLoss::initialize(int stage)
 {
     if (stage == INITSTAGE_LOCAL) {
+        enableDielectricLoss = par("enableDielectricLoss");
+        enableReflectionLoss = par("enableReflectionLoss");
         medium = check_and_cast<IRadioMedium *>(getParentModule());
         physicalEnvironment = getModuleFromPar<IPhysicalEnvironment>(par("physicalEnvironmentModule"), this);
     }
@@ -91,25 +95,27 @@ double DielectricObstacleLoss::computeObjectLoss(const IPhysicalObject *object, 
     double totalLoss = 1;
     const ShapeBase *shape = object->getShape();
     const Coord& position = object->getPosition();
-    const EulerAngles& orientation = object->getOrientation();
-    Rotation rotation(orientation);
-    const LineSegment lineSegment(rotation.rotateVectorCounterClockwise(transmissionPosition - position), rotation.rotateVectorCounterClockwise(receptionPosition - position));
+    const Quaternion& orientation = object->getOrientation();
+    RotationMatrix rotation(orientation.toEulerAngles());
+    const LineSegment lineSegment(rotation.rotateVectorInverse(transmissionPosition - position), rotation.rotateVectorInverse(receptionPosition - position));
     Coord intersection1, intersection2, normal1, normal2;
     intersectionComputationCount++;
     bool hasIntersections = shape->computeIntersection(lineSegment, intersection1, intersection2, normal1, normal2);
     if (hasIntersections && (intersection1 != intersection2))
     {
         intersectionCount++;
-        double intersectionDistance = intersection2.distance(intersection1);
         const IMaterial *material = object->getMaterial();
-        totalLoss *= computeDielectricLoss(material, frequency, m(intersectionDistance));
-        if (!normal1.isUnspecified()) {
+        if (enableDielectricLoss) {
+            double intersectionDistance = intersection2.distance(intersection1);
+            totalLoss *= computeDielectricLoss(material, frequency, m(intersectionDistance));
+        }
+        if (enableReflectionLoss && !normal1.isUnspecified()) {
             double angle1 = (intersection1 - intersection2).angle(normal1);
             if (!std::isnan(angle1))
                 totalLoss *= computeReflectionLoss(medium->getMaterial(), material, angle1);
         }
         // TODO: this returns NaN because n1 > n2
-//        if (!normal2.isUnspecified()) {
+//        if (enableReflectionLoss && !normal2.isUnspecified()) {
 //            double angle2 = (intersection2 - intersection1).angle(normal2);
 //            if (!std::isnan(angle2))
 //                totalLoss *= computeReflectionLoss(material, medium->getMaterial(), angle2);

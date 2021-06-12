@@ -17,15 +17,12 @@
 
 package inet.applications.httptools.common;
 
-
 //
 // Interface for HTTP server and browser models that communicate directly,
 // without lower layer protocols. This module is intended for use with the
-// DirectHost module and plugs in as a tcpApp.
+// ~HttpDirectHost module and plugs in as an app.
 //
-// @see HttpServerBase
-// @see HttpServer
-// @see DirectHost
+// @see ~HttpServer, ~HttpDirectHost
 //
 // @author  Kristjan V. Jonsson
 //

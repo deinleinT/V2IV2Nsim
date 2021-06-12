@@ -2,8 +2,7 @@
 .tkenvrc
 .tkenvlog
 .cmdenv-log
-visualizer/earth/cache
+**/cache/*
 **/data/resources/*
 **/results/*
 **/frames/*
-_site

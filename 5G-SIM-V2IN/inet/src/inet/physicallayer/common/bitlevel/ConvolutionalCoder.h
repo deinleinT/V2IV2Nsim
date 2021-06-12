@@ -18,16 +18,15 @@
 #ifndef __INET_CONVOLUTIONALCODER_H
 #define __INET_CONVOLUTIONALCODER_H
 
-#include "inet/common/INETDefs.h"
-#include "inet/common/BitVector.h"
-#include "inet/common/ShortBitVector.h"
-#include "inet/physicallayer/contract/bitlevel/IFECCoder.h"
-#include "inet/physicallayer/common/bitlevel/ConvolutionalCode.h"
-#include <vector>
 #include <queue>
+#include <vector>
+#include "inet/common/BitVector.h"
+#include "inet/common/INETDefs.h"
+#include "inet/common/ShortBitVector.h"
+#include "inet/physicallayer/common/bitlevel/ConvolutionalCode.h"
+#include "inet/physicallayer/contract/bitlevel/IFecCoder.h"
 
 namespace inet {
-
 namespace physicallayer {
 
 /*
@@ -45,7 +44,7 @@ namespace physicallayer {
     (MAC) and Physical Layer (PHY) Specifications
     [4]  Puncturing matrices came from http://en.wikipedia.org/wiki/Convolutional_code#Punctured_convolutional_codes
  */
-class INET_API ConvolutionalCoder : public IFECCoder
+class INET_API ConvolutionalCoder : public IFecCoder
 {
   public:
     typedef std::vector<std::vector<ShortBitVector> > ShortBitVectorMatrix;

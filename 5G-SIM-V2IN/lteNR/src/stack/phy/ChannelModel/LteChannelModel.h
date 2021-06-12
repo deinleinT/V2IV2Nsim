@@ -1,42 +1,81 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
 //
 // This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
+// Date: 2021
 // Author: Thomas Deinlein
 //
 
 #ifndef STACK_PHY_CHANNELMODEL_LTECHANNELMODEL_H_
 #define STACK_PHY_CHANNELMODEL_LTECHANNELMODEL_H_
 
-
-
 #include "common/LteCommon.h"
 #include "common/LteControlInfo.h"
+#include "common/carrierAggregation/ComponentCarrier.h"
 #include "stack/phy/layer/LtePhyBase.h"
 #include "stack/phy/packet/LteAirFrame.h"
 #include <omnetpp.h>
 
+using namespace inet;
+using namespace omnetpp;
+
 class LteAirFrame;
 class LtePhyBase;
+class Binder;
 
-class LteChannelModel : public cSimpleModule
+class LteChannelModel : public omnetpp::cSimpleModule
 {
   protected:
-    unsigned int band_;
+    // Reference to Binder module
+    Binder* binder_;
+
+    // Reference to cell info module
+    CellInfo* cellInfo_;
+
+    // Reference to the corresponding PHY layer
     LtePhyBase * phy_;
 
+    // Reference to the component carrier
+    ComponentCarrier* componentCarrier_;
+
+    // Carrier Frequency
+    double carrierFrequency_;
+
+    // Number of bands for this carrier
+    unsigned int numBands_;
+
+
   public:
-    virtual void setBand( unsigned int band ) = 0;// { band_ = band ;}
-    virtual void setPhy( LtePhyBase * phy ) = 0;// { phy_ = phy ; }
-    virtual void resetOnHandover(MacNodeId nodeId, MacNodeId oldMasterId){}
+
+    virtual void initialize(int stage);
+    virtual int numInitStages() const { return inet::INITSTAGE_LOCAL+2; }
+
+    /*
+     * Returns the carrier frequency
+     */
+    virtual double getCarrierFrequency() { return carrierFrequency_; }
+
+    /*
+     * Returns the number of logical bands
+     */
+    virtual unsigned int getNumBands() { return numBands_; }
+
+    /*
+     * Returns the numerology index
+     */
+    virtual unsigned int getNumerologyIndex() { return componentCarrier_->getNumerologyIndex(); }
+
+    virtual void setPhy( LtePhyBase * phy ) { phy_ = phy ; }
+
     /*
      * Compute the error probability of the transmitted packet according to cqi used, txmode, and the received power
      * after that it throws a random number in order to check if this packet will be corrupted or not
@@ -44,9 +83,9 @@ class LteChannelModel : public cSimpleModule
      * @param frame pointer to the packet
      * @param lteinfo pointer to the user control info
      */
-    virtual bool isCorrupted(LteAirFrame *frame, UserControlInfo* lteI) = 0;
+    virtual bool isCorrupted(LteAirFrame *frame, UserControlInfo* lteI)=0;
     //TODO NOT IMPLEMENTED YET
-    virtual bool isCorruptedDas(LteAirFrame *frame, UserControlInfo* lteI) = 0;
+    virtual bool isErrorDas(LteAirFrame *frame, UserControlInfo* lteI)=0;
     /*
      * Compute Attenuation caused by pathloss and shadowing (optional)
      *
@@ -75,7 +114,7 @@ class LteChannelModel : public cSimpleModule
      * @param frame pointer to the packet
      * @param lteinfo pointer to the user control info
      */
-    virtual std::vector<double> getSINR(LteAirFrame *frame, UserControlInfo* lteInfo, bool recordStats) = 0;
+    virtual std::vector<double> getSINR(LteAirFrame *frame, UserControlInfo* lteInfo, bool flag = false) = 0;
     /*
      * Compute the error probability of the transmitted packet according to cqi used, txmode, and the received power
      * after that it throws a random number in order to check if this packet will be corrupted or not
@@ -84,7 +123,7 @@ class LteChannelModel : public cSimpleModule
      * @param lteinfo pointer to the user control info
      * @param rsrpVector the received signal for each RB, if it has already been computed
      */
-    virtual bool error_D2D(LteAirFrame *frame, UserControlInfo* lteInfo, const std::vector<double>& rsrpVector) = 0;
+    virtual bool isError_D2D(LteAirFrame *frame, UserControlInfo* lteInfo, const std::vector<double>& rsrpVector)=0;
     /*
      * Compute Received useful signal for D2D transmissions
      */

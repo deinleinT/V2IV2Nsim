@@ -15,21 +15,21 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 // 
 
-#include "BlockAckRecord.h"
+#include "inet/linklayer/ieee80211/mac/blockack/BlockAckRecord.h"
 
 namespace inet {
 namespace ieee80211 {
 
-BlockAckRecord::BlockAckRecord(MACAddress originatorAddress, Tid tid) :
+BlockAckRecord::BlockAckRecord(MacAddress originatorAddress, Tid tid) :
     originatorAddress(originatorAddress),
     tid(tid)
 {
 }
 
-void BlockAckRecord::blockAckPolicyFrameReceived(Ieee80211DataFrame* frame)
+void BlockAckRecord::blockAckPolicyFrameReceived(const Ptr<const Ieee80211DataHeader>& header)
 {
-    SequenceNumber sequenceNumber = frame->getSequenceNumber();
-    FragmentNumber fragmentNumber = frame->getFragmentNumber();
+    SequenceNumber sequenceNumber = header->getSequenceNumber();
+    FragmentNumber fragmentNumber = header->getFragmentNumber();
     acknowledgmentState[std::make_pair(sequenceNumber, fragmentNumber)] = true;
 }
 
@@ -47,7 +47,18 @@ bool BlockAckRecord::getAckState(SequenceNumber sequenceNumber, FragmentNumber f
     }
     else {
         auto earliest = acknowledgmentState.begin();
-        return earliest->second > sequenceNumber; // old = true
+        return earliest->first.first > sequenceNumber; // old = true
+    }
+}
+
+void BlockAckRecord::removeAckStates(SequenceNumber sequenceNumber)
+{
+    auto it = acknowledgmentState.begin();
+    while (it != acknowledgmentState.end()) {
+        if (it->first.first < sequenceNumber)
+            it = acknowledgmentState.erase(it);
+        else
+            it++;
     }
 }
 

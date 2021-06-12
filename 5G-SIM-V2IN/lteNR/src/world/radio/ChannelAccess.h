@@ -1,22 +1,19 @@
-/* -*- mode:c++ -*- ********************************************************
- * file:        ChannelAccess.h
- *
- * author:      Marc Loebbers
- *
- * copyright:   (C) 2004 Telecommunication Networks Group (TKN) at
- *              Technische Universitaet Berlin, Germany.
- *
- *              This program is free software; you can redistribute it
- *              and/or modify it under the terms of the GNU General Public
- *              License as published by the Free Software Foundation; either
- *              version 2 of the License, or (at your option) any later
- *              version.
- *              For further information see file COPYING
- *              in the top level directory
- ***************************************************************************
- * part of:     framework implementation developed by tkn
- **************************************************************************/
+//
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
+//
+// This file is part of a software released under the license included in file
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
+// and cannot be removed from it.
+//
 
+//
+// This file has been modified/enhanced for 5G-SIM-V2I/N.
+// Date: 2021
+// Author: Thomas Deinlein
+//
 
 #ifndef CHANNEL_ACCESS_H
 #define CHANNEL_ACCESS_H
@@ -24,7 +21,8 @@
 #include <list>
 #include <limits>
 
-#include "inet/common/INETDefs.h"
+#include <omnetpp.h>
+#include <inet/common/INETDefs.h>
 
 #include "world/radio/IChannelControl.h"
 #include "common/features.h"
@@ -32,24 +30,10 @@
 // Forward declarations
 class AirFrame;
 
-/**
- * @brief Basic class for all physical layers, please don't touch!!
- *
- * This class is not supposed to work on its own, but it contains
- * functions and lists that cooperate with ChannelControl to handle
- * the dynamically created gates. This means EVERY SnrEval (the lowest
- * layer in a host) has to be derived from this class!!!! And please
- * follow the instructions on how to declare a physical layer in a
- * .ned file in "The Design of a Mobility Framework in OMNeT++"
- * paper.
- *
- * Please don't touch this class.
- *
- * @author Marc Loebbers
- * @ingroup channelControl
- * @ingroup phyLayer
- */
-class ChannelAccess : public cSimpleModule, public cListener
+//
+// Base class for the PHY layer
+//
+class ChannelAccess : public omnetpp::cSimpleModule, public omnetpp::cListener
 {
   protected:
     IChannelControl* cc;  // Pointer to the ChannelControl module
@@ -59,7 +43,7 @@ class ChannelAccess : public cSimpleModule, public cListener
     bool positionUpdateArrived;
 
   public:
-    ChannelAccess() : cc(NULL), myRadioRef(NULL), hostModule(NULL) {}
+    ChannelAccess() : cc(nullptr), myRadioRef(nullptr), hostModule(nullptr) {}
     virtual ~ChannelAccess();
 
     /**
@@ -67,22 +51,22 @@ class ChannelAccess : public cSimpleModule, public cListener
      *
      * ChannelAccess is subscribed to position changes.
      */
-    virtual void receiveSignal(cComponent *source, simsignal_t signalID, cObject *obj, cObject *);
+    virtual void receiveSignal(omnetpp::cComponent *source, omnetpp::simsignal_t signalID, omnetpp::cObject *obj, omnetpp::cObject *) override;
 
     /** Finds the channelControl module in the network */
     IChannelControl *getChannelControl();
+    const inet::Coord& getRadioPosition() const { return radioPos; }
 
   protected:
     /** Sends a message to all radios in range */
     virtual void sendToChannel(AirFrame *msg);
 
-    virtual cPar& getChannelControlPar(const char *parName) { return dynamic_cast<cModule *>(cc)->par(parName); }
-    const inet::Coord& getRadioPosition() const { return radioPos; }
-    cModule *getHostModule() const { return hostModule; }
+    virtual omnetpp::cPar& getChannelControlPar(const char *parName) { return dynamic_cast<omnetpp::cModule *>(cc)->par(parName); }
+    omnetpp::cModule *getHostModule() const { return hostModule; }
 
     /** Register with ChannelControl and subscribe to hostPos*/
-    virtual void initialize(int stage);
-    virtual int numInitStages() const { return inet::INITSTAGE_PHYSICAL_LAYER + 1; }
+    virtual void initialize(int stage) override;
+    virtual int numInitStages() const override { return inet::INITSTAGE_PHYSICAL_LAYER + 1; }
 };
 
 #endif

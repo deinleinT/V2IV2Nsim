@@ -1,9 +1,11 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
@@ -39,14 +41,14 @@ class LteHarqProcessRxD2D : public LteHarqProcessRx
      *
      * @return feedback message to be sent.
      */
-    virtual LteHarqFeedback *createFeedback(Codeword cw);
+    virtual inet::Packet *createFeedback(Codeword cw);
 
     /**
      * Creates a feedback message based on the evaluation result for this pdu.
      * This is the feedback sent to the eNB
      * @return feedback message to be sent.
      */
-    virtual LteHarqFeedbackMirror* createFeedbackMirror(Codeword cw);
+    virtual inet::Packet* createFeedbackMirror(Codeword cw);
 
     virtual ~LteHarqProcessRxD2D();
 };

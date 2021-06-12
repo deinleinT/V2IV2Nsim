@@ -1,23 +1,27 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
 #include <cmath>
+#include <inet/common/TimeTag_m.h>
 #include "apps/voip/VoIPSender.h"
 
 #define round(x) floor((x) + 0.5)
 
 Define_Module(VoIPSender);
+using namespace inet;
 
 VoIPSender::VoIPSender()
 {
-    selfSource_ = NULL;
-    selfSender_ = NULL;
+    selfSource_ = nullptr;
+    selfSender_ = nullptr;
 }
 
 VoIPSender::~VoIPSender()
@@ -28,7 +32,7 @@ VoIPSender::~VoIPSender()
 
 void VoIPSender::initialize(int stage)
 {
-    //EV << "VoIP Sender initialize: stage " << stage << endl;
+    EV << "VoIP Sender initialize: stage " << stage << endl;
 
     cSimpleModule::initialize(stage);
 
@@ -56,6 +60,10 @@ void VoIPSender::initialize(int stage)
     destPort_ = par("destPort");
     silences_ = par("silences");
 
+    totalSentBytes_ = 0;
+    warmUpPer_ = getSimulation()->getWarmupPeriod();
+    voIPGeneratedThroughtput_ = registerSignal("voIPGeneratedThroughput");
+
     initTraffic_ = new cMessage("initTraffic");
     initTraffic();
 }
@@ -77,34 +85,33 @@ void VoIPSender::initTraffic()
 {
     std::string destAddress = par("destAddress").stringValue();
     cModule* destModule = getModuleByPath(par("destAddress").stringValue());
-    if (destModule == NULL)
+    if (destModule == nullptr)
     {
         // this might happen when users are created dynamically
-        //EV << simTime() << "VoIPSender::initTraffic - destination " << destAddress << " not found" << endl;
+        EV << simTime() << "VoIPSender::initTraffic - destination " << destAddress << " not found" << endl;
 
         simtime_t offset = 0.01; // TODO check value
         scheduleAt(simTime()+offset, initTraffic_);
-        //EV << simTime() << "VoIPSender::initTraffic - the node will retry to initialize traffic in " << offset << " seconds " << endl;
+        EV << simTime() << "VoIPSender::initTraffic - the node will retry to initialize traffic in " << offset << " seconds " << endl;
     }
     else
     {
         delete initTraffic_;
 
-        destAddress_ = inet::L3AddressResolver().resolve(par("destAddress").stringValue());
-        socket.setOutputGate(gate("udpOut"));
+        socket.setOutputGate(gate("socketOut"));
         socket.bind(localPort_);
 
-        //EV << simTime() << "VoIPSender::initialize - binding to port: local:" << localPort_ << " , dest: " << destAddress_.str() << ":" << destPort_ << endl;
+        int tos = par("tos");
+        if (tos != -1)
+            socket.setTos(tos);
+
+        EV << simTime() << "VoIPSender::initialize - binding to port: local:" << localPort_ << " , dest: " << destAddress_.str() << ":" << destPort_ << endl;
 
         // calculating traffic starting time
         simtime_t startTime = par("startTime");
 
-        // TODO maybe un-necesessary
-        // this conversion is made in order to obtain ms-aligned start time, even in case of random generated ones
-        simtime_t offset = (round(SIMTIME_DBL(startTime)*1000)/1000);
-
         scheduleAt(simTime()+startTime, selfSource_);
-        //EV << "\t starting traffic in " << startTime << " seconds " << endl;
+        EV << "\t starting traffic in " << startTime << " seconds " << endl;
     }
 }
 
@@ -117,7 +124,7 @@ void VoIPSender::talkspurt(simtime_t dur)
     if (nframes_ == 0)
         nframes_ = 1;
 
-    //EV << "VoIPSender::talkspurt - TALKSPURT[" << iDtalk_-1 << "] - Will be created[" << nframes_ << "] frames\n\n";
+    EV << "VoIPSender::talkspurt - TALKSPURT[" << iDtalk_-1 << "] - Will be created[" << nframes_ << "] frames\n\n";
 
     iDframe_ = 0;
     nframesTmp_ = nframes_;
@@ -139,8 +146,7 @@ void VoIPSender::selectPeriodTime()
             durSil_ = durSil2 = 0;
         }
 
-        //EV << "VoIPSender::selectPeriodTime - Silence Period: " << "Duration[" << durSil_ << "/" << durSil2 << "] seconds\n";
-//        durSil_ = durSil2;
+        EV << "VoIPSender::selectPeriodTime - Silence Period: " << "Duration[" << durSil_ << "/" << durSil2 << "] seconds\n";
         scheduleAt(simTime() + durSil_, selfSource_);
         isTalk_ = true;
     }
@@ -148,8 +154,7 @@ void VoIPSender::selectPeriodTime()
     {
         durTalk_ = weibull(scaleTalk_, shapeTalk_);
         double durTalk2 = round(SIMTIME_DBL(durTalk_)*1000) / 1000;
-        //EV << "VoIPSender::selectPeriodTime - Talkspurt[" << iDtalk_ << "] - Duration[" << durTalk_ << "/" << durTalk2 << "] seconds\n";
-//        durTalk_ = durTalk2;
+        EV << "VoIPSender::selectPeriodTime - Talkspurt[" << iDtalk_ << "] - Duration[" << durTalk_ << "/" << durTalk2 << "] seconds\n";
         talkspurt(durTalk_);
         scheduleAt(simTime() + durTalk_, selfSource_);
         isTalk_ = false;
@@ -158,18 +163,32 @@ void VoIPSender::selectPeriodTime()
 
 void VoIPSender::sendVoIPPacket()
 {
-    VoipPacket* packet = new VoipPacket("VoIP");
-    packet->setIDtalk(iDtalk_ - 1);
-    packet->setNframes(nframes_);
-    packet->setIDframe(iDframe_);
-    packet->setTimestamp(simTime());
-    //packet->setSize(size);
-    packet->setByteLength(size_);
-    //EV << "VoIPSender::sendVoIPPacket - Talkspurt[" << iDtalk_-1 << "] - Sending frame[" << iDframe_ << "]\n";
+    if (destAddress_.isUnspecified())
+        destAddress_ = L3AddressResolver().resolve(par("destAddress"));
+
+    Packet* packet = new inet::Packet("VoIP");
+    auto voip = makeShared<VoipPacket>();
+    voip->setIDtalk(iDtalk_ - 1);
+    voip->setNframes(nframes_);
+    voip->setIDframe(iDframe_);
+    voip->setPayloadTimestamp(simTime());
+    voip->setChunkLength(B(size_));
+    voip->addTag<CreationTimeTag>()->setCreationTime(simTime());
+    packet->insertAtBack(voip);
+    EV << "VoIPSender::sendVoIPPacket - Talkspurt[" << iDtalk_-1 << "] - Sending frame[" << iDframe_ << "]\n";
 
     socket.sendTo(packet, destAddress_, destPort_);
     --nframesTmp_;
     ++iDframe_;
+
+    // emit throughput sample
+    totalSentBytes_ += size_;
+    double interval = SIMTIME_DBL(simTime() - warmUpPer_);
+    if (interval > 0.0)
+    {
+        double tputSample = (double)totalSentBytes_ / interval;
+        emit(voIPGeneratedThroughtput_, tputSample );
+    }
 
     if (nframesTmp_ > 0)
         scheduleAt(simTime() + sampling_time, selfSender_);

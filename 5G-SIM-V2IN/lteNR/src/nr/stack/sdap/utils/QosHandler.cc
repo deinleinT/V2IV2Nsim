@@ -29,46 +29,46 @@ Define_Module(QosHandlerUPF);
 
 void QosHandlerUE::initialize(int stage) {
 
-    if (stage == 0) {
-        nodeType = UE;
-        initQfiParams();
-    }
+	if (stage == 0) {
+		nodeType = UE;
+		initQfiParams();
+	}
 
 }
 
-void QosHandlerUE::handleMessage(cMessage *msg) {
-    // TODO - Generated method body
+void QosHandlerUE::handleMessage(cMessage * msg) {
+	// TODO - Generated method body
 
-    //std::cout << "QosHandlerUE::handleMessage start at " << simTime().dbl() << std::endl;
+	//std::cout << "QosHandlerUE::handleMessage start at " << simTime().dbl() << std::endl;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //GNB
 void QosHandlerGNB::initialize(int stage) {
 
-    if (stage == 0) {
-        nodeType = GNODEB;
-        initQfiParams();
-    }
+	if (stage == 0) {
+		nodeType = GNODEB;
+		initQfiParams();
+	}
 }
 
-void QosHandlerGNB::handleMessage(cMessage *msg) {
-    // TODO - Generated method body
+void QosHandlerGNB::handleMessage(cMessage * msg) {
+	// TODO - Generated method body
 
-    //std::cout << "QosHandlerGNB::handleMessage start at " << simTime().dbl() << std::endl;
+	//std::cout << "QosHandlerGNB::handleMessage start at " << simTime().dbl() << std::endl;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //UPF
 void QosHandlerUPF::initialize(int stage) {
-    if (stage == 0) {
-        nodeType = UPF;
-        initQfiParams();
-    }
+	if (stage == 0) {
+		nodeType = USER_PLANE_FUNCTION;
+		initQfiParams();
+	}
 }
 
-void QosHandlerUPF::handleMessage(cMessage *msg) {
-    // TODO - Generated method body
+void QosHandlerUPF::handleMessage(cMessage * msg) {
+	// TODO - Generated method body
 
-    //std::cout << "QosHandlerUPF::handleMessage start at " << simTime().dbl() << std::endl;
+	//std::cout << "QosHandlerUPF::handleMessage start at " << simTime().dbl() << std::endl;
 }

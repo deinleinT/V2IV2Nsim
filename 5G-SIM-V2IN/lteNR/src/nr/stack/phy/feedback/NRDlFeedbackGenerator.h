@@ -22,17 +22,19 @@
  * Part of 5G-Sim-V2I/N
  *
  *
-*/
+ */
 
 #pragma once
 
 #include "stack/phy/feedback/LteDlFeedbackGenerator.h"
+#include "common/cellInfo/CellInfo.h"
+#include "stack/phy/layer/LtePhyUe.h"
 
-class NRDlFeedbackGenerator : public LteDlFeedbackGenerator
-{
+class NRDlFeedbackGenerator : public LteDlFeedbackGenerator {
 protected:
 
-    virtual void handleMessage(cMessage *msg);
-    virtual void initialize(int stage);
+	virtual void handleMessage(cMessage * msg);
+	virtual void initialize(int stage);
+	virtual void sendFeedback(LteFeedbackDoubleVector fb, FbPeriodicity per) override;
 
 };

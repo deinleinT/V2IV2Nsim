@@ -20,8 +20,8 @@
 
 #include "inet/mobility/contract/IMobility.h"
 #include "inet/visualizer/base/VisualizerBase.h"
-#include "inet/visualizer/util/ModuleFilter.h"
 #include "inet/visualizer/util/ColorSet.h"
+#include "inet/visualizer/util/ModuleFilter.h"
 
 namespace inet {
 
@@ -40,15 +40,24 @@ class INET_API MobilityVisualizerBase : public VisualizerBase, public cListener
   protected:
     /** @name Parameters */
     //@{
-    bool displayMovements = false;
+    bool displayMobility = false;
     double animationSpeed = NaN;
     ModuleFilter moduleFilter;
+    // position
+    bool displayPositions = false;
+    double positionCircleRadius = NaN;
+    double positionCircleLineWidth = NaN;
+    ColorSet positionCircleLineColorSet;
+    ColorSet positionCircleFillColorSet;
     // orientation
     bool displayOrientations = false;
-    double orientationArcSize = NaN;
+    double orientationPieRadius = NaN;
+    double orientationPieSize = NaN;
+    double orientationPieOpacity = NaN;
     cFigure::Color orientationLineColor;
     cFigure::LineStyle orientationLineStyle;
     double orientationLineWidth = NaN;
+    cFigure::Color orientationFillColor;
     // velocity
     bool displayVelocities = false;
     double velocityArrowScale = NaN;

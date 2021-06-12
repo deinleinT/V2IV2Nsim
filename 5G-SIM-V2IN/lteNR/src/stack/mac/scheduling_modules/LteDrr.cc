@@ -1,21 +1,25 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
 #include "stack/mac/scheduling_modules/LteDrr.h"
 #include "stack/mac/scheduler/LteSchedulerEnb.h"
 
+using namespace omnetpp;
+
 void LteDrr::prepareSchedule()
 {
     activeTempList_ = activeList_;
     drrTempMap_ = drrMap_;
 
-    if (binder_ == NULL)
+    if (binder_ == nullptr)
         binder_ = getBinder();
 
     bool terminateFlag = false, activeFlag = true, eligibleFlag = true;
@@ -32,7 +36,8 @@ void LteDrr::prepareSchedule()
         if(getBinder()->getOmnetId(nodeId) == 0){
             activeTempList_.erase();          // remove from the active list
             activeConnectionTempSet_.erase(cid);
-            //EV << "CID " << cid << " of node "<< nodeId << " removed from active connection set - no OmnetId in Binder known.";
+            carrierActiveConnectionSet_.erase(cid);
+            EV << "CID " << cid << " of node "<< nodeId << " removed from active connection set - no OmnetId in Binder known.";
             continue;
         }
 
@@ -54,8 +59,7 @@ void LteDrr::prepareSchedule()
         activeFlag = true;
         eligibleFlag = true;
         // Try to schedule as many PDUs as possible (or fragments thereof).
-        unsigned int scheduled = eNbScheduler_->scheduleGrant(cid, desc.deficit_, terminateFlag, activeFlag,
-            eligibleFlag);
+        unsigned int scheduled = requestGrant (cid, desc.deficit_, terminateFlag, activeFlag, eligibleFlag);
 
         if (desc.deficit_ - scheduled < 0)
             throw cRuntimeError("LteDrr::execSchedule CID:%d unexpected deficit value of %d", cid, desc.deficit_);
@@ -75,6 +79,7 @@ void LteDrr::prepareSchedule()
         {
             activeTempList_.erase();          // remove from the active list
             activeConnectionTempSet_.erase(cid);
+            carrierActiveConnectionSet_.erase(cid);
             desc.deficit_ = 0;       // reset the deficit to zero
             desc.active_ = false;   // set this descriptor as inactive
 
@@ -106,7 +111,7 @@ void LteDrr::prepareSchedule()
 void LteDrr::commitSchedule()
 {
     activeList_ = activeTempList_;
-    activeConnectionSet_ = activeConnectionTempSet_;
+    *activeConnectionSet_ = activeConnectionTempSet_;
     drrMap_ = drrTempMap_;
 }
 
@@ -123,9 +128,10 @@ LteDrr::updateSchedulingInfo()
     else if (direction_ == UL)
     {
         conn = eNbScheduler_->mac_->getBsrVirtualBuffers();
+    } else {
+        conn = nullptr;
+        throw cRuntimeError("LteDrr::updateSchedulingInfo invalid direction");
     }
-    else
-        throw cRuntimeError("Invalid direction in LteDrr::updateSchedulingInfo()");
 
     //    // Iterators to cycle through the maps of connection descriptors.
 
@@ -140,7 +146,7 @@ LteDrr::updateSchedulingInfo()
         MacCid cid = it->first;
         MacNodeId nodeId = MacCidToNodeId(cid);
         bool eligible = true;
-        const UserTxParams& info = eNbScheduler_->mac_->getAmc()->computeTxParams(nodeId, direction_);
+        const UserTxParams& info = eNbScheduler_->mac_->getAmc()->computeTxParams(nodeId, direction_,carrierFrequency_);
         unsigned int codeword = info.getLayers().size();
         if (eNbScheduler_->allocatedCws(nodeId) == codeword)
             eligible = false;
@@ -167,9 +173,8 @@ LteDrr::updateSchedulingInfo()
 void
 LteDrr::notifyActiveConnection(MacCid cid)
 {
-    //EV << NOW << "LteDrr::notify CID: " << cid << endl;
+    EV << NOW << "LteDrr::notify CID: " << cid << endl;
     //this is a mirror structure of activelist, used by all the modules that want to know the list of active users
-    activeConnectionSet_.insert (cid);
 
     bool alreadyIn=false;
     activeList_.find(cid,alreadyIn);
@@ -181,13 +186,5 @@ LteDrr::notifyActiveConnection(MacCid cid)
 
     (drrMap_[cid]).eligible_=true;
 
-    //EV << NOW << "LteSchedulerEnb::notifyDrr active: " << drrMap_[cid].active_ << endl;
+    EV << NOW << "LteSchedulerEnb::notifyDrr active: " << drrMap_[cid].active_ << endl;
 }
-
-void
-LteDrr::removeActiveConnection(MacCid cid)
-{
-    activeList_.eraseElem(cid);
-    activeConnectionSet_.erase(cid);
-}
-

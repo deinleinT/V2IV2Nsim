@@ -15,7 +15,7 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 //
 
-#include "RecipientBlockAckAgreementPolicy.h"
+#include "inet/linklayer/ieee80211/mac/blockack/RecipientBlockAckAgreementPolicy.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -28,16 +28,16 @@ void RecipientBlockAckAgreementPolicy::initialize(int stage)
         isDelayedBlockAckPolicySupported = par("delayedAckPolicySupported");
         isAMsduSupported = par("aMsduSupported");
         maximumAllowedBufferSize = par("maximumAllowedBufferSize");
-        blockAckTimeoutValue = par("blockAckTimeoutValue").doubleValue();
+        blockAckTimeoutValue = par("blockAckTimeoutValue");
     }
 }
 
-bool RecipientBlockAckAgreementPolicy::isAddbaReqAccepted(Ieee80211AddbaRequest* addbaReq)
+bool RecipientBlockAckAgreementPolicy::isAddbaReqAccepted(const Ptr<const Ieee80211AddbaRequest>& addbaReq)
 {
     return true;
 }
 
-bool RecipientBlockAckAgreementPolicy::isDelbaAccepted(Ieee80211Delba* delba)
+bool RecipientBlockAckAgreementPolicy::isDelbaAccepted(const Ptr<const Ieee80211Delba>& delba)
 {
     return true;
 }

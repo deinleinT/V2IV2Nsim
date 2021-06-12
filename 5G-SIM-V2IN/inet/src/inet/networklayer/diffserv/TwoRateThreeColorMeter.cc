@@ -16,9 +16,9 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "inet/networklayer/diffserv/TwoRateThreeColorMeter.h"
-#include "inet/networklayer/diffserv/DiffservUtil.h"
 #include "inet/common/ModuleAccess.h"
+#include "inet/networklayer/diffserv/DiffservUtil.h"
+#include "inet/networklayer/diffserv/TwoRateThreeColorMeter.h"
 
 namespace inet {
 
@@ -28,8 +28,7 @@ Define_Module(TwoRateThreeColorMeter);
 
 void TwoRateThreeColorMeter::initialize(int stage)
 {
-    cSimpleModule::initialize(stage);
-
+    PacketMeterBase::initialize(stage);
     if (stage == INITSTAGE_LOCAL) {
         numRcvd = 0;
         numYellow = 0;
@@ -38,8 +37,8 @@ void TwoRateThreeColorMeter::initialize(int stage)
         WATCH(numYellow);
         WATCH(numRed);
 
-        PBS = 8 * (int)par("pbs");
-        CBS = 8 * (int)par("cbs");
+        PBS = 8 * par("pbs").intValue();
+        CBS = 8 * par("cbs").intValue();
         colorAwareMode = par("colorAwareMode");
         Tp = PBS;
         Tc = CBS;
@@ -52,29 +51,27 @@ void TwoRateThreeColorMeter::initialize(int stage)
     }
 }
 
-void TwoRateThreeColorMeter::handleMessage(cMessage *msg)
+void TwoRateThreeColorMeter::pushPacket(Packet *packet, cGate *inputGate)
 {
-    cPacket *packet = findIPDatagramInPacket(check_and_cast<cPacket *>(msg));
-    if (!packet)
-        throw cRuntimeError("TwoRateThreeColorMeter received a packet that does not encapsulate an IP datagram.");
-
     numRcvd++;
+    cGate *outputGate = nullptr;
     int color = meterPacket(packet);
     switch (color) {
         case GREEN:
-            send(packet, "greenOut");
+            outputGate = gate("greenOut");
             break;
 
         case YELLOW:
             numYellow++;
-            send(packet, "yellowOut");
+            outputGate = gate("yellowOut");
             break;
 
         case RED:
             numRed++;
-            send(packet, "redOut");
+            outputGate = gate("redOut");
             break;
     }
+    pushOrSendPacket(packet, outputGate);
 }
 
 void TwoRateThreeColorMeter::refreshDisplay() const
@@ -89,7 +86,7 @@ void TwoRateThreeColorMeter::refreshDisplay() const
     getDisplayString().setTagArg("t", 0, buf);
 }
 
-int TwoRateThreeColorMeter::meterPacket(cPacket *packet)
+int TwoRateThreeColorMeter::meterPacket(Packet *packet)
 {
     // update token buckets
     simtime_t currentTime = simTime();

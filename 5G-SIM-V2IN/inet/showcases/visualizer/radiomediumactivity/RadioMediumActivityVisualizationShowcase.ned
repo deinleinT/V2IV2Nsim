@@ -5,12 +5,12 @@
 package inet.showcases.visualizer.radiomediumactivity;
 
 import inet.environment.common.PhysicalEnvironment;
-import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
+import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 import inet.node.inet.AdhocHost;
 import inet.node.inet.WirelessHost;
 import inet.node.wireless.AccessPoint;
-import inet.physicallayer.idealradio.IdealRadioMedium;
 import inet.physicallayer.ieee80211.packetlevel.Ieee80211ScalarRadioMedium;
+import inet.physicallayer.unitdisk.UnitDiskRadioMedium;
 import inet.visualizer.integrated.IntegratedVisualizer;
 
 
@@ -21,34 +21,13 @@ network MediumActivityDisplayingSignalsTransmissionsReceptionsShowcase
         host2: WirelessHost {
             @display("p=645.645,270.27");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=853.545,46.2");
         }
         visualizer: IntegratedVisualizer {
             @display("p=853.545,123.585");
         }
         radioMedium: Ieee80211ScalarRadioMedium {
-            @display("p=852.39,204.435");
-        }
-        host1: WirelessHost {
-            @display("p=179,271");
-        }
-}
-
-network MediumActivityDisplayingPropagationTransmissionsReceptionsShowcaseV2
-{
-    @display("bgb=920,566");
-    submodules:
-        host2: WirelessHost {
-            @display("p=645.645,270.27");
-        }
-        configurator: IPv4NetworkConfigurator {
-            @display("p=853.545,46.2");
-        }
-        visualizer: IntegratedVisualizer {
-            @display("p=853.545,123.585");
-        }
-        radioMedium: IdealRadioMedium {
             @display("p=852.39,204.435");
         }
         host1: WirelessHost {
@@ -65,7 +44,7 @@ network MediumActivityMultipleNodesShowcase
             parameters:
                 @display("p=100,100");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             parameters:
                 @display("p=100,200");
         }
@@ -96,7 +75,7 @@ network MediumActivityInterferingSignalsShowcase
             parameters:
                 @display("p=100,100");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             parameters:
                 @display("p=100,200");
         }
@@ -118,53 +97,5 @@ network MediumActivityInterferingSignalsShowcase
         }
         physicalEnvironment: PhysicalEnvironment {
             @display("p=100.399994,387.79498");
-        }
-}
-
-network PropagationD
-{
-    @display("bgb=300000,300000");
-    submodules:
-        wirelessHost: WirelessHost {
-            @display("p=118801.586,166802.22");
-        }
-        accessPoint: AccessPoint {
-            @display("p=118801.39,166802.22");
-        }
-        configurator: IPv4NetworkConfigurator {
-            @display("p=234003.11,38400.51");
-        }
-        visualizer: IntegratedVisualizer {
-            @display("p=234603.12,75001");
-        }
-        radioMedium: Ieee80211ScalarRadioMedium {
-            @display("p=229203.05,115801.54");
-        }
-        wirelessHost1: WirelessHost {
-            @display("p=5400.072,6000.08");
-        }
-}
-
-network PropagationE
-{
-    @display("bgb=10000,10000");
-    submodules:
-        wirelessHost: WirelessHost {
-            @display("p=5000.586,5668.22");
-        }
-        accessPoint: AccessPoint {
-            @display("p=5001.39,5668.22");
-        }
-        configurator: IPv4NetworkConfigurator {
-            @display("p=2000.11,3840.51");
-        }
-        visualizer: IntegratedVisualizer {
-            @display("p=2000.12,7500");
-        }
-        radioMedium: Ieee80211ScalarRadioMedium {
-            @display("p=229203.05,1158.54");
-        }
-        wirelessHost1: WirelessHost {
-            @display("p=620.248,500.2");
         }
 }

@@ -15,10 +15,10 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "inet/visualizer/networklayer/NetworkRouteOsgVisualizer.h"
+#include "inet/common/INETDefs.h"
 
 #ifdef WITH_ETHERNET
-#include "inet/linklayer/ethernet/switch/MACRelayUnit.h"
+#include "inet/linklayer/ethernet/switch/MacRelayUnit.h"
 #endif
 
 #ifdef WITH_IEEE8021D
@@ -26,8 +26,10 @@
 #endif
 
 #ifdef WITH_IPv4
-#include "inet/networklayer/ipv4/IPv4.h"
+#include "inet/networklayer/ipv4/Ipv4.h"
 #endif
+
+#include "inet/visualizer/networklayer/NetworkRouteOsgVisualizer.h"
 
 namespace inet {
 
@@ -38,7 +40,7 @@ Define_Module(NetworkRouteOsgVisualizer);
 bool NetworkRouteOsgVisualizer::isPathStart(cModule *module) const
 {
 #ifdef WITH_IPv4
-    if (dynamic_cast<IPv4 *>(module) != nullptr)
+    if (dynamic_cast<Ipv4 *>(module) != nullptr)
         return true;
 #endif
 
@@ -48,7 +50,7 @@ bool NetworkRouteOsgVisualizer::isPathStart(cModule *module) const
 bool NetworkRouteOsgVisualizer::isPathEnd(cModule *module) const
 {
 #ifdef WITH_IPv4
-    if (dynamic_cast<IPv4 *>(module) != nullptr)
+    if (dynamic_cast<Ipv4 *>(module) != nullptr)
         return true;
 #endif
 
@@ -58,7 +60,7 @@ bool NetworkRouteOsgVisualizer::isPathEnd(cModule *module) const
 bool NetworkRouteOsgVisualizer::isPathElement(cModule *module) const
 {
 #ifdef WITH_ETHERNET
-    if (dynamic_cast<MACRelayUnit *>(module) != nullptr)
+    if (dynamic_cast<MacRelayUnit *>(module) != nullptr)
         return true;
 #endif
 

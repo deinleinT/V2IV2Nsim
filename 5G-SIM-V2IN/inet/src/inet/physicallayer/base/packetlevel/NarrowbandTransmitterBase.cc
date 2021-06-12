@@ -15,16 +15,16 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
+#include "inet/physicallayer/base/packetlevel/ApskModulationBase.h"
 #include "inet/physicallayer/base/packetlevel/NarrowbandTransmitterBase.h"
-#include "inet/physicallayer/base/packetlevel/APSKModulationBase.h"
+#include "inet/physicallayer/contract/packetlevel/SignalTag_m.h"
 
 namespace inet {
-
 namespace physicallayer {
 
 NarrowbandTransmitterBase::NarrowbandTransmitterBase() :
     modulation(nullptr),
-    carrierFrequency(Hz(NaN)),
+    centerFrequency(Hz(NaN)),
     bandwidth(Hz(NaN))
 {
 }
@@ -33,8 +33,8 @@ void NarrowbandTransmitterBase::initialize(int stage)
 {
     TransmitterBase::initialize(stage);
     if (stage == INITSTAGE_LOCAL) {
-        modulation = APSKModulationBase::findModulation(par("modulation"));
-        carrierFrequency = Hz(par("carrierFrequency"));
+        modulation = ApskModulationBase::findModulation(par("modulation"));
+        centerFrequency = Hz(par("centerFrequency"));
         bandwidth = Hz(par("bandwidth"));
     }
 }
@@ -43,12 +43,24 @@ std::ostream& NarrowbandTransmitterBase::printToStream(std::ostream& stream, int
 {
     if (level <= PRINT_LEVEL_TRACE)
         stream << ", modulation = " << printObjectToString(modulation, level + 1) 
-               << ", carrierFrequency = " << carrierFrequency
+               << ", centerFrequency = " << centerFrequency
                << ", bandwidth = " << bandwidth;
     return stream;
 }
 
-} // namespace physicallayer
 
+Hz NarrowbandTransmitterBase::computeCenterFrequency(const Packet *packet) const
+{
+    auto signalBandReq = const_cast<Packet *>(packet)->findTag<SignalBandReq>();
+    return signalBandReq != nullptr ? signalBandReq->getCenterFrequency() : centerFrequency;
+}
+
+Hz NarrowbandTransmitterBase::computeBandwidth(const Packet *packet) const
+{
+    auto signalBandReq = const_cast<Packet *>(packet)->findTag<SignalBandReq>();
+    return signalBandReq != nullptr ? signalBandReq->getBandwidth() : bandwidth;
+}
+
+} // namespace physicallayer
 } // namespace inet
 

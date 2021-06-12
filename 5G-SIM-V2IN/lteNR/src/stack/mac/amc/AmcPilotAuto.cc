@@ -1,49 +1,52 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
-//
-
-//
-// This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
-// Author: Thomas Deinlein
 //
 
 #include "stack/mac/amc/AmcPilotAuto.h"
 
-const UserTxParams& AmcPilotAuto::computeTxParams(MacNodeId id, const Direction dir) {
-    //std::cout << "AmcPilotAuto::computeTxParams start at " << simTime().dbl() << std::endl;
+using namespace inet;
 
-    //EV << NOW << " AmcPilot" << getName() << "::computeTxParams for UE " << id << ", direction " << dirToA(dir) << endl;
+const UserTxParams& AmcPilotAuto::computeTxParams(MacNodeId id, const Direction dir, double carrierFrequency)
+{
+    EV << NOW << " AmcPilot" << getName() << "::computeTxParams for UE " << id << ", direction " << dirToA(dir) << endl;
+
+    // Check if user transmission parameters have been already allocated
+    if(amc_->existTxParams(id, dir, carrierFrequency))
+    {
+        EV << NOW << " AmcPilot" << getName() << "::computeTxParams The Information for this user have been already assigned \n";
+        return amc_->getTxParams(id, dir, carrierFrequency);
+    }
 
     // TODO make it configurable from NED
     // default transmission mode
-    //TxMode txMode = TRANSMIT_DIVERSITY;
-//    TxMode txMode = SINGLE_ANTENNA_PORT0;
-    TxMode txMode = aToTxMode(getBinder()->getMacFromMacNodeId(id)->getSystemModule()->par("initialTxMode").stringValue());
+    TxMode txMode = TRANSMIT_DIVERSITY;
 
     /**
      *  Select the band which has the best summary
      *  Note: this pilot is not DAS aware, so only MACRO antenna
      *  is used.
      */
-    LteSummaryFeedback sfb = amc_->getFeedback(id, MACRO, txMode, dir);
+    LteSummaryFeedback sfb = amc_->getFeedback(id, MACRO, txMode, dir, carrierFrequency);
 
-    if (TxMode(txMode) == MULTI_USER) // Initialize MuMiMoMatrix
-        amc_->muMimoMatrixInit(dir, id);
+    if (TxMode(txMode)==MULTI_USER) // Initialize MuMiMoMatrix
+    amc_->muMimoMatrixInit(dir,id);
 
-    sfb.print(0, id, dir, txMode, "AmcPilotAuto::computeTxParams");
+
+    sfb.print(0,id,dir,txMode,"AmcPilotAuto::computeTxParams");
 
     // get a vector of  CQI over first CW
     std::vector<Cqi> summaryCqi = sfb.getCqi(0);
 
     // get the usable bands for this user
-    UsableBands* usableB = NULL;
-    bool ret = getUsableBands(id, usableB);
+    UsableBands* usableB = nullptr;
+    getUsableBands(id, usableB);
 
     Band chosenBand = 0;
     double chosenCqi = 0;
@@ -56,7 +59,7 @@ const UserTxParams& AmcPilotAuto::computeTxParams(MacNodeId id, const Direction 
     if(mode_ == MAX_CQI)
     {
         // if there are no usable bands, compute the final CQI through all the bands
-        if (usableB == NULL || usableB->empty())
+        if (usableB == nullptr || usableB->empty())
         {
             chosenBand = 0;
             chosenCqi = summaryCqi.at(chosenBand);
@@ -71,13 +74,16 @@ const UserTxParams& AmcPilotAuto::computeTxParams(MacNodeId id, const Direction 
                     chosenBand = b;
                     chosenCqi = s;
                 }
+
+                Band cellWiseBand = amc_->getCellInfo()->getCellwiseBand(carrierFrequency, b);
+                bandSet.insert(cellWiseBand);
             }
-            //EV << NOW <<" AmcPilotAuto::computeTxParams - no UsableBand available for this user." << endl;
+            EV << NOW <<" AmcPilotAuto::computeTxParams - no UsableBand available for this user." << endl;
         }
         else
         {
             // TODO Add MIN and MEAN cqi computation methods
-            int bandIt = 0;
+            unsigned int bandIt = 0;
             unsigned short currBand = (*usableB)[bandIt];
             chosenBand = currBand;
             chosenCqi = summaryCqi.at(currBand);
@@ -91,14 +97,16 @@ const UserTxParams& AmcPilotAuto::computeTxParams(MacNodeId id, const Direction 
                     chosenBand = currBand;
                     chosenCqi = s;
                 }
+                Band cellWiseBand = amc_->getCellInfo()->getCellwiseBand(carrierFrequency, currBand);
+                bandSet.insert(cellWiseBand);
             }
-            //EV << NOW <<" AmcPilotAuto::computeTxParams - UsableBand of size " << usableB->size() << " available for this user" << endl;
+            EV << NOW <<" AmcPilotAuto::computeTxParams - UsableBand of size " << usableB->size() << " available for this user" << endl;
         }
     }
     else if(mode_ == MIN_CQI)
     {
         // if there are no usable bands, compute the final CQI through all the bands
-        if (usableB == NULL || usableB->empty())
+        if (usableB == nullptr || usableB->empty())
         {
             chosenBand = 0;
             chosenCqi = summaryCqi.at(chosenBand);
@@ -113,10 +121,14 @@ const UserTxParams& AmcPilotAuto::computeTxParams(MacNodeId id, const Direction 
                     chosenBand = b;
                     chosenCqi = s;
                 }
+                Band cellWiseBand = amc_->getCellInfo()->getCellwiseBand(carrierFrequency, b);
+                bandSet.insert(cellWiseBand);
             }
-            //EV << NOW << " AmcPilotAuto::computeTxParams - no UsableBand available for this user." << endl;
-        } else {
-            int bandIt = 0;
+            EV << NOW <<" AmcPilotAuto::computeTxParams - no UsableBand available for this user." << endl;
+        }
+        else
+        {
+            unsigned int bandIt = 0;
             unsigned short currBand = (*usableB)[bandIt];
             chosenBand = currBand;
             chosenCqi = summaryCqi.at(currBand);
@@ -130,20 +142,77 @@ const UserTxParams& AmcPilotAuto::computeTxParams(MacNodeId id, const Direction 
                     chosenBand = currBand;
                     chosenCqi = s;
                 }
+                Band cellWiseBand = amc_->getCellInfo()->getCellwiseBand(carrierFrequency, currBand);
+                bandSet.insert(cellWiseBand);
             }
 
-            //EV << NOW << " AmcPilotAuto::computeTxParams - UsableBand of size " << usableB->size() << " available for this user" << endl;
+            EV << NOW <<" AmcPilotAuto::computeTxParams - UsableBand of size " << usableB->size() << " available for this user" << endl;
         }
     }
+    else if(mode_ == ROBUST_CQI)
+    {
+        int target = 0;
+        int s;
+        unsigned int bands = summaryCqi.size();// number of bands
 
-    // save the chosen band
-    bandSet.insert(chosenBand);
+        EV << "AmcPilotAuto::computeTxParams - computing ROBUST CQI" << endl;
+
+        // computing MIN
+        for(Band b = 0; b < bands; ++b)
+        {
+            // For all LBs
+            s = summaryCqi.at(b);
+            target += s;
+        }
+        target = target/bands;
+
+        EV << "\t target value[" << target << "]" << endl;
+
+        for(Band b = 0; b < bands; ++b)
+        {
+            if( summaryCqi.at(b) >= target )
+            {
+                EV << b << ")" << summaryCqi.at(b) << "yes" << endl;
+                Band cellWiseBand = amc_->getCellInfo()->getCellwiseBand(carrierFrequency, b);
+                bandSet.insert(cellWiseBand);
+            }
+            else
+                EV << b << ")" << summaryCqi.at(b) << "no" << endl;
+        }
+        chosenBand = 0;
+        chosenCqi = target;
+    }
+
+
+    else if (mode_ == AVG_CQI)
+    {
+        // MEAN cqi computation method
+        chosenCqi = getBinder()->meanCqi(sfb.getCqi(0),id,dir);
+        for (Band i = 0; i < sfb.getCqi(0).size(); ++i)
+        {
+            Band cellWiseBand = amc_->getCellInfo()->getCellwiseBand(carrierFrequency, i);
+            bandSet.insert(cellWiseBand);
+        }
+        chosenBand = 0;
+    }
+
+    else if (mode_ == MEDIAN_CQI)
+    {
+        // MEAN cqi computation method
+        chosenCqi = getBinder()->medianCqi(sfb.getCqi(0),id,dir);
+        for (Band i = 0; i < sfb.getCqi(0).size(); ++i)
+        {
+            Band cellWiseBand = amc_->getCellInfo()->getCellwiseBand(carrierFrequency, i);
+            bandSet.insert(cellWiseBand);
+        }
+        chosenBand = 0;
+    }
 
     // Set user transmission parameters only for the best band
     UserTxParams info;
     info.writeTxMode(txMode);
     info.writeRank(sfb.getRi());
-    info.writeCqi(std::vector<Cqi>(1, sfb.getCqi(0, chosenBand)));
+    info.writeCqi(std::vector<Cqi>(1, chosenCqi));
     info.writePmi(sfb.getPmi(chosenBand));
     info.writeBands(bandSet);
     RemoteSet antennas;
@@ -151,59 +220,50 @@ const UserTxParams& AmcPilotAuto::computeTxParams(MacNodeId id, const Direction 
     info.writeAntennas(antennas);
 
     // DEBUG
-    //EV << NOW << " AmcPilot" << getName(),<< "::computeTxParams NEW values assigned! - CQI =" << chosenCqi << "\n";
+    EV << NOW << " AmcPilot" << getName() << "::computeTxParams NEW values assigned! - CQI =" << chosenCqi << "\n";
     info.print("AmcPilotAuto::computeTxParams");
 
-    //std::cout << "AmcPilotAuto::computeTxParams end at " << simTime().dbl() << std::endl;
-
-    return amc_->setTxParams(id, dir, info);
+    return amc_->setTxParams(id, dir, info, carrierFrequency);
 }
 
-std::vector<Cqi> AmcPilotAuto::getMultiBandCqi(MacNodeId id, const Direction dir) {
-    //std::cout << "AmcPilotAuto::getMultiBandCqi start at " << simTime().dbl() << std::endl;
-
-    //EV << NOW << " AmcPilot" << getName() << "::getMultiBandCqi for UE " << id << ", direction " << dirToA(dir) << endl;
+std::vector<Cqi> AmcPilotAuto::getMultiBandCqi(MacNodeId id , const Direction dir, double carrierFrequency)
+{
+    EV << NOW << " AmcPilot" << getName() << "::getMultiBandCqi for UE " << id << ", direction " << dirToA(dir) << endl;
 
     // TODO make it configurable from NED
     // default transmission mode
-    //TxMode txMode = SINGLE_ANTENNA_PORT0;
-    TxMode txMode = aToTxMode(getSimulation()->getSystemModule()->par("initialTxMode").stringValue());
+    TxMode txMode = TRANSMIT_DIVERSITY;
 
     /**
      *  Select the band which has the best summary
      *  Note: this pilot is not DAS aware, so only MACRO antenna
      *  is used.
      */
-    LteSummaryFeedback sfb = amc_->getFeedback(id, MACRO, txMode, dir);
-
-    //std::cout << "AmcPilotAuto::getMultiBandCqi end at " << simTime().dbl() << std::endl;
+    LteSummaryFeedback sfb = amc_->getFeedback(id, MACRO, txMode, dir, carrierFrequency);
 
     // get a vector of  CQI over first CW
     return sfb.getCqi(0);
 }
 
-void AmcPilotAuto::setUsableBands(MacNodeId id, UsableBands usableBands) {
-    //std::cout << "AmcPilotAuto::setUsableBands start at " << simTime().dbl() << std::endl;
-
-    //EV << NOW << " AmcPilotAuto::setUsableBands - setting Usable bands: for node " << id << " [";
-    for (int i = 0; i < usableBands.size(); ++i) {
-        //EV << usableBands[i] << ",";
+void AmcPilotAuto::setUsableBands(MacNodeId id , UsableBands usableBands)
+{
+    EV << NOW << " AmcPilotAuto::setUsableBands - setting Usable bands: for node " << id<< " [" ;
+    for(unsigned int i = 0 ; i<usableBands.size() ; ++i)
+    {
+        EV << usableBands[i] << ",";
     }
-    //EV << "]" << endl;
+    EV << "]"<<endl;
     UsableBandsList::iterator it = usableBandsList_.find(id);
 
     // if usable bands for this node are already setm delete it (probably unnecessary)
-    if (it != usableBandsList_.end())
+    if(it!=usableBandsList_.end())
         usableBandsList_.erase(id);
-    usableBandsList_.insert(std::pair<MacNodeId, UsableBands>(id, usableBands));
-
-    //std::cout << "AmcPilotAuto::setUsableBands end at " << simTime().dbl() << std::endl;
+    usableBandsList_.insert(std::pair<MacNodeId,UsableBands>(id,usableBands));
 }
 
 bool AmcPilotAuto::getUsableBands(MacNodeId id, UsableBands*& uBands)
 {
-    //std::cout << "AmcPilotAuto::getUsableBands start at " << simTime().dbl() << std::endl;
-    //EV << NOW << " AmcPilotAuto::getUsableBands - getting Usable bands for node " << id;
+    EV << NOW << " AmcPilotAuto::getUsableBands - getting Usable bands for node " << id;
 
     bool found = false;
     UsableBandsList::iterator it = usableBandsList_.find(id);
@@ -219,7 +279,7 @@ bool AmcPilotAuto::getUsableBands(MacNodeId id, UsableBands*& uBands)
             // if it is a UE, look for its serving cell
             MacNodeId cellId = getBinder()->getNextHop(id);
             it = usableBandsList_.find(cellId);
-            if (it != usableBandsList_.end())
+            if(it!=usableBandsList_.end())
                 found = true;
         }
     }
@@ -227,19 +287,17 @@ bool AmcPilotAuto::getUsableBands(MacNodeId id, UsableBands*& uBands)
     if (found)
     {
         uBands = &(it->second);
-        //EV << " [" ;
+        EV << " [" ;
         for(unsigned int i = 0 ; i < it->second.size() ; ++i)
         {
-            //EV << it->second[i] << ",";
+            EV << it->second[i] << ",";
         }
-        //EV << "]" << endl;
+        EV << "]"<<endl;
 
         return true;
     }
 
-    //std::cout << "AmcPilotAuto::getUsableBands end at " << simTime().dbl() << std::endl;
-
     EV << " [All bands are usable]" << endl ;
-    uBands = NULL;
+    uBands = nullptr;
     return false;
 }

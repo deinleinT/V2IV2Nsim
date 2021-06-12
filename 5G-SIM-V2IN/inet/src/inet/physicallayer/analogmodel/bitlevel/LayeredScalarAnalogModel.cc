@@ -15,14 +15,14 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "inet/physicallayer/contract/packetlevel/IRadioMedium.h"
-#include "inet/physicallayer/common/packetlevel/BandListening.h"
 #include "inet/physicallayer/analogmodel/bitlevel/LayeredScalarAnalogModel.h"
-#include "inet/physicallayer/analogmodel/packetlevel/ScalarTransmission.h"
-#include "inet/physicallayer/analogmodel/packetlevel/ScalarReception.h"
 #include "inet/physicallayer/analogmodel/packetlevel/ScalarNoise.h"
-#include "inet/physicallayer/analogmodel/packetlevel/ScalarSNIR.h"
+#include "inet/physicallayer/analogmodel/packetlevel/ScalarReception.h"
+#include "inet/physicallayer/analogmodel/packetlevel/ScalarSnir.h"
+#include "inet/physicallayer/analogmodel/packetlevel/ScalarTransmission.h"
 #include "inet/physicallayer/common/bitlevel/LayeredTransmission.h"
+#include "inet/physicallayer/common/packetlevel/BandListening.h"
+#include "inet/physicallayer/contract/packetlevel/IRadioMedium.h"
 
 namespace inet {
 
@@ -39,14 +39,14 @@ const IReception *LayeredScalarAnalogModel::computeReception(const IRadio *recei
 {
     const simtime_t receptionStartTime = arrival->getStartTime();
     const simtime_t receptionEndTime = arrival->getEndTime();
-    const EulerAngles receptionStartOrientation = arrival->getStartOrientation();
-    const EulerAngles receptionEndOrientation = arrival->getEndOrientation();
+    const Quaternion receptionStartOrientation = arrival->getStartOrientation();
+    const Quaternion receptionEndOrientation = arrival->getEndOrientation();
     const Coord receptionStartPosition = arrival->getStartPosition();
     const Coord receptionEndPosition = arrival->getEndPosition();
     const LayeredTransmission *layeredTransmission = check_and_cast<const LayeredTransmission *>(transmission);
     const ScalarTransmissionSignalAnalogModel *transmissionSignalAnalogModel = check_and_cast<const ScalarTransmissionSignalAnalogModel *>(layeredTransmission->getAnalogModel());
     const W receptionPower = computeReceptionPower(receiverRadio, transmission, arrival);
-    const ScalarReceptionSignalAnalogModel *receptionSignalAnalogModel = new const ScalarReceptionSignalAnalogModel(transmissionSignalAnalogModel->getDuration(), transmissionSignalAnalogModel->getCarrierFrequency(), transmissionSignalAnalogModel->getBandwidth(), receptionPower);
+    const ScalarReceptionSignalAnalogModel *receptionSignalAnalogModel = new ScalarReceptionSignalAnalogModel(transmissionSignalAnalogModel->getDuration(), transmissionSignalAnalogModel->getCenterFrequency(), transmissionSignalAnalogModel->getBandwidth(), receptionPower);
     return new LayeredReception(receptionSignalAnalogModel, receiverRadio, transmission, receptionStartTime, receptionEndTime, receptionStartPosition, receptionEndPosition, receptionStartOrientation, receptionEndOrientation);
 }
 

@@ -18,23 +18,25 @@
 #ifndef __INET_ITRANSMISSION_H
 #define __INET_ITRANSMISSION_H
 
-#include "inet/common/geometry/common/Coord.h"
-#include "inet/common/geometry/common/EulerAngles.h"
 #include "inet/common/Units.h"
+#include "inet/common/geometry/common/Coord.h"
+#include "inet/common/geometry/common/Quaternion.h"
+#include "inet/common/packet/Packet.h"
 #include "inet/physicallayer/contract/bitlevel/ISignalAnalogModel.h"
+#include "inet/physicallayer/contract/packetlevel/IAntennaGain.h"
 #include "inet/physicallayer/contract/packetlevel/IPrintableObject.h"
 #include "inet/physicallayer/contract/packetlevel/IRadioSignal.h"
 
 namespace inet {
-
 namespace physicallayer {
 
 class IRadio;
+class IRadioMedium;
 
 /**
  * This interface represents the transmission of a radio signal. There's one
  * instance per transmission of this interface that is sent to all potential
- * receiver radios in a separate radio frame instance.
+ * receiver radios in a separate signal instance.
  *
  * This interface is strictly immutable to safely support parallel computation.
  */
@@ -52,21 +54,32 @@ class INET_API ITransmission : public IPrintableObject
 
     /**
      * Returns the transmitter that transmitted this radio signal on the radio
-     * channel. This function never returns nullptr.
+     * channel. This function may return nullptr.
      */
     virtual const IRadio *getTransmitter() const = 0;
 
     /**
-     * Returns the PHY frame corresponding to this transmission. This function
-     * may return nullptr.
+     * Returns the transmitter's id that transmitted this radio signal on the
+     * radio channel.
      */
-    virtual const cPacket *getPhyFrame() const = 0;
+    virtual int getTransmitterId() const = 0;
 
     /**
-     * Returns the MAC frame corresponding to this transmission. This function
+     * Returns the gain of the transmitting antenna.
+     */
+    virtual const IAntennaGain *getTransmitterAntennaGain() const = 0;
+
+    /**
+     * Returns the radio medium used for this transmission. This function
+     * never return nullptr.
+     */
+    virtual const IRadioMedium *getMedium() const = 0;
+
+    /**
+     * Returns the packet corresponding to this transmission. This function
      * never returns nullptr.
      */
-    virtual const cPacket *getMacFrame() const = 0;
+    virtual const Packet *getPacket() const = 0;
 
     /**
      * Returns the time when the transmitter started this transmission. It is
@@ -118,22 +131,22 @@ class INET_API ITransmission : public IPrintableObject
     /**
      * Returns the antenna's position when the transmitter started this transmission.
      */
-    virtual const Coord getStartPosition() const = 0;
+    virtual const Coord& getStartPosition() const = 0;
 
     /**
      * Returns the antenna's position when the transmitter ended this transmission.
      */
-    virtual const Coord getEndPosition() const = 0;
+    virtual const Coord& getEndPosition() const = 0;
 
     /**
      * Returns the antenna's orientation when the transmitter started this transmission.
      */
-    virtual const EulerAngles getStartOrientation() const = 0;
+    virtual const Quaternion& getStartOrientation() const = 0;
 
     /**
      * Returns the antenna's orientation when the transmitter ended this transmission.
      */
-    virtual const EulerAngles getEndOrientation() const = 0;
+    virtual const Quaternion& getEndOrientation() const = 0;
 
     /**
      * Returns the analog model of the transmitted signal.
@@ -142,7 +155,6 @@ class INET_API ITransmission : public IPrintableObject
 };
 
 } // namespace physicallayer
-
 } // namespace inet
 
 #endif // ifndef __INET_ITRANSMISSION_H

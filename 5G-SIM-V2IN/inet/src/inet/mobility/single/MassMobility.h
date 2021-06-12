@@ -21,29 +21,27 @@
 #define __INET_MASSMOBILITY_H
 
 #include "inet/common/INETDefs.h"
-
 #include "inet/mobility/base/LineSegmentsMobilityBase.h"
 
 namespace inet {
 
 /**
- * @brief Models the mobility of with mass, making random motions.
+ * @brief Random mobility model for a mobile host with a mass.
  * See NED file for more info.
  *
- * @ingroup mobility
  * @author Emin Ilker Cetinbas, Andras Varga
  */
 class INET_API MassMobility : public LineSegmentsMobilityBase
 {
   protected:
     // config (see NED file for explanation)
-    cPar *changeIntervalParameter;
-    cPar *changeAngleByParameter;
-    cPar *speedParameter;
+    cPar *changeIntervalParameter = nullptr;
+    cPar *angleDeltaParameter = nullptr;
+    cPar *rotationAxisAngleParameter = nullptr;
+    cPar *speedParameter = nullptr;
 
-    // current state
-    double angle;    ///< angle of linear motion
-
+    // state
+    Quaternion quaternion;
     simtime_t previousChange;
     Coord sourcePosition;
 
@@ -55,6 +53,7 @@ class INET_API MassMobility : public LineSegmentsMobilityBase
 
     /** @brief Move the host according to the current simulation time. */
     virtual void move() override;
+    void orient() override;
 
     /** @brief Calculate a new target position to move to. */
     virtual void setTargetPosition() override;

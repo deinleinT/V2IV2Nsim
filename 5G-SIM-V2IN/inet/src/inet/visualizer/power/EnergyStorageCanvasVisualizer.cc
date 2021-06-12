@@ -22,6 +22,8 @@ namespace inet {
 
 namespace visualizer {
 
+using namespace inet::power;
+
 Define_Module(EnergyStorageCanvasVisualizer);
 
 EnergyStorageCanvasVisualizer::EnergyStorageCanvasVisualization::EnergyStorageCanvasVisualization(NetworkNodeCanvasVisualization *networkNodeVisualization, BarFigure *figure, const IEnergyStorage *energyStorage) :
@@ -34,6 +36,12 @@ EnergyStorageCanvasVisualizer::EnergyStorageCanvasVisualization::EnergyStorageCa
 EnergyStorageCanvasVisualizer::EnergyStorageCanvasVisualization::~EnergyStorageCanvasVisualization()
 {
     delete figure;
+}
+
+EnergyStorageCanvasVisualizer::~EnergyStorageCanvasVisualizer()
+{
+    if (displayEnergyStorages)
+        removeAllEnergyStorageVisualizations();
 }
 
 void EnergyStorageCanvasVisualizer::initialize(int stage)
@@ -60,6 +68,8 @@ EnergyStorageVisualizerBase::EnergyStorageVisualization *EnergyStorageCanvasVisu
     figure->setMaxValue(getNominalCapacity(energyStorage));
     auto networkNode = getContainingNode(module);
     auto networkNodeVisualization = networkNodeVisualizer->getNetworkNodeVisualization(networkNode);
+    if (networkNodeVisualization == nullptr)
+        throw cRuntimeError("Cannot create energy storage visualization for '%s', because network node visualization is not found for '%s'", module->getFullPath().c_str(), networkNode->getFullPath().c_str());
     return new EnergyStorageCanvasVisualization(networkNodeVisualization, figure, energyStorage);
 }
 

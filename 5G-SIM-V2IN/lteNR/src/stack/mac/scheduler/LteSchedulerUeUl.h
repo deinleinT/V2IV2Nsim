@@ -1,16 +1,12 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
-//
-
-//
-// This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
-// Author: Thomas Deinlein
 //
 
 #ifndef _LTE_LTE_SCHEDULER_UE_UL_H_
@@ -32,8 +28,7 @@ class LteSchedulerUeUl
     LteMacUe *mac_;
 
     // Schedule List
-//    LteMacScheduleList scheduleList_;
-    LteMacScheduleListWithSizes scheduleListWithSizes_;
+    LteMacScheduleList scheduleList_;
 
     // Scheduled Bytes List
     LteMacScheduleList scheduledBytesList_;
@@ -41,27 +36,40 @@ class LteSchedulerUeUl
     // Inner Scheduler - default to Standard LCG
     LcgScheduler* lcgScheduler_;
 
+    // carrier frequency handled by this scheduler
+    double carrierFrequency_;
+
   public:
 
     /* Performs the standard LCG scheduling algorithm
      * @returns reference to scheduling list
      */
 
-//    LteMacScheduleList* schedule();
-    virtual LteMacScheduleListWithSizes* schedule();
-	/* After the scheduling, returns the amount of bytes
-	 * scheduled for each connection
-	 */
-	virtual LteMacScheduleList getScheduledBytesList();
+    virtual LteMacScheduleList* schedule();
+
+    /* After the scheduling, returns the amount of bytes
+     * scheduled for each connection
+     */
+    LteMacScheduleList* getScheduledBytesList();
 
     /*
      * constructor
      */
-    LteSchedulerUeUl(LteMacUe * mac);
+    LteSchedulerUeUl(LteMacUe * mac, double carrierFrequency);
+
+    /**
+     * Copy constructor and operator=
+     */
+    LteSchedulerUeUl(const LteSchedulerUeUl& other)
+    {
+        operator=(other);
+    }
+    LteSchedulerUeUl& operator=(const LteSchedulerUeUl& other);
+
     /*
      * destructor
      */
-    virtual ~LteSchedulerUeUl();
+    ~LteSchedulerUeUl();
 };
 
 #endif // _LTE_LTE_SCHEDULER_UE_UL_H_

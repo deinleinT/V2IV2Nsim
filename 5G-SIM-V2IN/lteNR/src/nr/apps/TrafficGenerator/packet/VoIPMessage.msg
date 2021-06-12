@@ -20,9 +20,10 @@
 //
 // This file is part of 5G-Sim-V2I/N
 //
+import inet.common.INETDefs;
+import inet.common.packet.chunk.Chunk;
 
-
-packet VoIPMessage {
+class VoIPMessage extends inet::FieldsChunk{
     int senderNodeId;
     string senderName;
     string senderIpAddress;
@@ -30,4 +31,9 @@ packet VoIPMessage {
     string destIpAddress;
     int destPort;
     int sequenceNumber;
+    
+    simtime_t creationTime;
+    simtime_t arrivalTime;
+    string name;
+    simtime_t timestamp;
 }

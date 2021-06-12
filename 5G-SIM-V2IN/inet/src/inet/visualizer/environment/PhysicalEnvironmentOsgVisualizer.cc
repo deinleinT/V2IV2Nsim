@@ -15,13 +15,13 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
+#include "inet/common/ModuleAccess.h"
+#include "inet/common/OsgScene.h"
+#include "inet/common/OsgUtils.h"
 #include "inet/common/geometry/shape/Cuboid.h"
 #include "inet/common/geometry/shape/polyhedron/Polyhedron.h"
 #include "inet/common/geometry/shape/Prism.h"
 #include "inet/common/geometry/shape/Sphere.h"
-#include "inet/common/ModuleAccess.h"
-#include "inet/common/OSGScene.h"
-#include "inet/common/OSGUtils.h"
 #include "inet/visualizer/environment/PhysicalEnvironmentOsgVisualizer.h"
 
 #ifdef WITH_OSG
@@ -35,6 +35,8 @@
 namespace inet {
 
 namespace visualizer {
+
+using namespace inet::physicalenvironment;
 
 Define_Module(PhysicalEnvironmentOsgVisualizer);
 
@@ -51,14 +53,14 @@ void PhysicalEnvironmentOsgVisualizer::initialize(int stage)
 void PhysicalEnvironmentOsgVisualizer::refreshDisplay() const
 {
     // only update after initialize
-    if (physicalEnvironment != nullptr && getSimulation()->getEventNumber() == 0) {
-        auto scene = inet::osg::TopLevelScene::getSimulationScene(visualizerTargetModule);
+    if (physicalEnvironment != nullptr && getSimulation()->getEventNumber() == 0 && displayObjects) {
+        auto scene = inet::osg::TopLevelScene::getSimulationScene(visualizationTargetModule);
         for (int i = 0; i < physicalEnvironment->getNumObjects(); i++) {
             const IPhysicalObject *object = physicalEnvironment->getObject(i);
             const ShapeBase *shape = object->getShape();
             const Coord& position = object->getPosition();
-            const EulerAngles& orientation = object->getOrientation();
-            const Rotation rotation(orientation);
+            const Quaternion& orientation = object->getOrientation();
+            const RotationMatrix rotation(orientation.toEulerAngles());
             const double opacity = enableObjectOpacity? object->getOpacity() : 1.0;
             // cuboid
             const Cuboid *cuboid = dynamic_cast<const Cuboid *>(shape);

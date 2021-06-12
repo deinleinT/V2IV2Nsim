@@ -26,7 +26,9 @@
 // *   Contact: dreibh@iem.uni-due.de
 
 package inet.applications.netperfmeter;
-import inet.applications.contract.INetPerfMeterApp;
+
+import inet.applications.contract.IApp;
+
 
 //
 // Application model for comparing the performance of various transport
@@ -39,13 +41,13 @@ import inet.applications.contract.INetPerfMeterApp;
 // protocols, e.g. TCP vs. SCTP.
 //
 // The model closely mimics the operation of the real-world NetPerfMeter
-// application (https://www.uni-due.de/~be0001/netperfmeter/), a tool for
+// application (https://www.uni-due.de/~~be0001/netperfmeter/), a tool for
 // measuring UDP, TCP, MPTCP, SCTP and DCCP performance over IPv4 and IPv6.
 // Since the parametrisation and features are similar to the real-world
 // application, the model also makes comparisons of simulation results and
 // real-world measurements easy.
 //
-simple NetPerfMeter like INetPerfMeterApp
+simple NetPerfMeter like IApp
 {
     parameters:
         bool            activeMode               = default(true);      // Server (false) or client (true)
@@ -69,8 +71,6 @@ simple NetPerfMeter like INetPerfMeterApp
         string          protocol                 = default("SCTP");    // Transport protocol to use
         string          primaryPath              = default("");        // primary path (may be symbolic; SCTP only)
 
-        string          dataTransferMode         = default("object");  // Data transfer mode for TCP socket (TCP only)
-
         volatile double frameRate      @unit(Hz) = default(1 Hz);      // Outgoing frame rate
         volatile int    frameSize      @unit(B)  = default(1452 B);    // Outgoing frame size
         string          frameRateString          = default("");        // Outgoing frame rate per stream, separated by ";"
@@ -82,10 +82,7 @@ simple NetPerfMeter like INetPerfMeterApp
         bool            decoupleSaturatedStreams = default(true);      // Apply buffer splitting when using multiple streams
 
     gates:
-        input  tcpIn;
-        output tcpOut;
-        input  sctpIn;
-        output sctpOut;
-        input  udpIn;
-        output udpOut;
+        input socketIn;
+        output socketOut;
 }
+

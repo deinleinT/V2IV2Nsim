@@ -1,24 +1,32 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
-#include "stack/phy/ChannelModel/LteDummyChannelModel.h"
+#include "LteDummyChannelModel.h"
+
+using namespace omnetpp;
 
 Define_Module(LteDummyChannelModel);
 
-void LteDummyChannelModel::initialize()
+void LteDummyChannelModel::initialize(int stage)
 {
-   per_=0.1;
-   harqReduction_=0.3;
+    LteChannelModel::initialize(stage);
+    if (stage == inet::INITSTAGE_LOCAL)
+    {
+        per_=0.1;
+        harqReduction_=0.3;
+    }
 }
 
 
-std::vector<double> LteDummyChannelModel::getSINR(LteAirFrame *frame, UserControlInfo* lteInfo, bool recordStats)
+std::vector<double> LteDummyChannelModel::getSINR(LteAirFrame *frame, UserControlInfo* lteInfo, bool flag)
 {
    std::vector<double> tmp;
    tmp.push_back(10000);
@@ -88,7 +96,7 @@ bool LteDummyChannelModel::isCorrupted(LteAirFrame *frame, UserControlInfo* lteI
    return true;
 }
 
-bool LteDummyChannelModel::error_D2D(LteAirFrame *frame, UserControlInfo* lteInfo,const std::vector<double>& rsrpVector)
+bool LteDummyChannelModel::isError_D2D(LteAirFrame *frame, UserControlInfo* lteInfo,const std::vector<double>& rsrpVector)
 {
    // Number of RTX
    unsigned char nTx = lteInfo->getTxNumber();
@@ -114,6 +122,3 @@ bool LteDummyChannelModel::error_D2D(LteAirFrame *frame, UserControlInfo* lteInf
       << ") -> Receive AirFrame." << endl;
    return true;
 }
-
-void LteDummyChannelModel::setBand( unsigned int band ) { band_ = band ;}
-void LteDummyChannelModel::setPhy( LtePhyBase * phy ) { phy_ = phy ; }

@@ -6,8 +6,8 @@
   </inputs>
   <datasets>
     <datasets name="AARFRateControl">
-      <items xsi:type="scave:Add" filterPattern="name(datarate:vector) AND module(*.dcf.*) AND file(/inet/showcases/wireless/ratecontrol/results/General-rateControl=AARFRateControl-#0.vec) AND module(*.sourceHost.*)  " type="VECTOR"/>
-      <items xsi:type="scave:Add" filterPattern="name(throughput:vector) AND file(/inet/showcases/wireless/ratecontrol/results/General-rateControl=AARFRateControl-#0.vec)  " type="VECTOR"/>
+      <items xsi:type="scave:Add" filterPattern="name(datarateChanged:vector) AND module(*.dcf.*) AND file(/inet/showcases/wireless/ratecontrol/results/General-rateControl=AarfRateControl-#0.vec) AND module(*.sourceHost.*)  " type="VECTOR"/>
+      <items xsi:type="scave:Add" filterPattern="name(throughput:vector) AND file(/inet/showcases/wireless/ratecontrol/results/General-rateControl=AarfRateControl-#0.vec)  " type="VECTOR"/>
       <items xsi:type="scave:LineChart" name="AARFRateControl" lineNameFormat="">
         <properties name="Graph.Title" value="AARFRateControl"/>
         <properties name="Y.Axis.Max" value="7.0E7"/>
@@ -27,7 +27,7 @@
       </items>
     </datasets>
     <datasets name="No rate control">
-      <items xsi:type="scave:Add" filterPattern="name(throughput:vector) AND file(/inet/showcases/wireless/ratecontrol/results/General-rateControl=-#0.vec) " type="VECTOR"/>
+      <items xsi:type="scave:Add" filterPattern="name(throughput:vector) AND file(/inet/showcases/wireless/ratecontrol/results/General-rateControl=-#0.vec)  AND module(*.sinkHost.*) " type="VECTOR"/>
       <items xsi:type="scave:Compute" operation="expression">
         <params name="expression" value="54000000"/>
       </items>
@@ -53,14 +53,19 @@
         <properties name="Line.Name//home/user/omnetpp-5.0/samples/inet/.computed/computed7970616479803065914.vec expression(throughput:vector)" value="Bitrate"/>
         <properties name="Line.Color//home/user/omnetpp-5.0/samples/inet/.computed/computed2194323244598800387.vec expression(throughput:vector)" value="blue"/>
         <properties name="Line.Name//home/user/omnetpp-5.0/samples/inet/.computed/computed2194323244598800387.vec expression(throughput:vector)" value="Bitrate"/>
+        <properties name="Line.Color//home/user/omnetpp-5.0/samples/inet/.computed/computed7946895035611631857.vec expression(throughput:vector)" value="blue"/>
+        <properties name="Line.Name//home/user/omnetpp-5.0/samples/inet/.computed/computed7946895035611631857.vec expression(throughput:vector)" value="Bitrate"/>
         <properties name="Symbols.Type" value="Dot"/>
         <properties name="Symbols.Size" value="2"/>
         <properties name="Line.Type" value="Linear"/>
-        <properties name="Symbols.Type//home/user/omnetpp-5.0/samples/inet/.computed/computed7946895035611631857.vec expression(throughput:vector)" value="Dot"/>
-        <properties name="Symbols.Size//home/user/omnetpp-5.0/samples/inet/.computed/computed7946895035611631857.vec expression(throughput:vector)" value="2"/>
-        <properties name="Line.Type//home/user/omnetpp-5.0/samples/inet/.computed/computed7946895035611631857.vec expression(throughput:vector)" value="Linear"/>
-        <properties name="Line.Color//home/user/omnetpp-5.0/samples/inet/.computed/computed7946895035611631857.vec expression(throughput:vector)" value="blue"/>
-        <properties name="Line.Name//home/user/omnetpp-5.0/samples/inet/.computed/computed7946895035611631857.vec expression(throughput:vector)" value="Bitrate"/>
+        <properties name="Symbols.Type//inet/showcases/wireless/ratecontrol/results/General-rateControl=-#0.vec throughput:vector" value="Dot"/>
+        <properties name="Symbols.Size//inet/showcases/wireless/ratecontrol/results/General-rateControl=-#0.vec throughput:vector" value="2"/>
+        <properties name="Line.Type//inet/showcases/wireless/ratecontrol/results/General-rateControl=-#0.vec throughput:vector" value="Linear"/>
+        <properties name="Symbols.Type//home/user/Integration/inet/.computed/computed4956508762045572804.vec expression(throughput:vector)" value="Dot"/>
+        <properties name="Symbols.Size//home/user/Integration/inet/.computed/computed4956508762045572804.vec expression(throughput:vector)" value="2"/>
+        <properties name="Line.Type//home/user/Integration/inet/.computed/computed4956508762045572804.vec expression(throughput:vector)" value="Linear"/>
+        <properties name="Line.Color//home/user/Integration/inet/.computed/computed4956508762045572804.vec expression(throughput:vector)" value="blue"/>
+        <properties name="Line.Name//home/user/Integration/inet/.computed/computed4956508762045572804.vec expression(throughput:vector)" value="Bitrate"/>
       </items>
     </datasets>
     <datasets name="Throughput">
@@ -90,7 +95,7 @@
       </items>
     </datasets>
     <datasets name="Databitrate">
-      <items xsi:type="scave:Add" filterPattern="name(datarate:vector) AND module(*.sourceHost.*)  AND module(*.dcf.*) " type="VECTOR"/>
+      <items xsi:type="scave:Add" filterPattern="name(datarateChanged:vector) AND module(*.sourceHost.*)  AND module(*.dcf.*) " type="VECTOR"/>
       <items xsi:type="scave:Compute" operation="expression">
         <params name="expression" value="54000000"/>
       </items>
@@ -123,8 +128,10 @@
       </items>
     </datasets>
     <datasets name="Packetcount">
-      <items xsi:type="scave:Add" filterPattern="module(*.sinkHost.udpApp[0]) AND name(rcvdPk:count)"/>
-      <items xsi:type="scave:BarChart"/>
+      <items xsi:type="scave:Add" filterPattern="module(*.sinkHost.app[0]) AND name(packetReceived:count)"/>
+      <items xsi:type="scave:BarChart" name="Number of received packets">
+        <properties name="Legend.Display" value="true"/>
+      </items>
     </datasets>
   </datasets>
   <chartSheets>

@@ -18,9 +18,6 @@ import inet.node.inet.AdhocHost;
 import inet.visualizer.integrated.IntegratedVisualizer;
 
 
-//
-// TODO documentation
-//
 network NetworkNodeVisualizerShowcase
 {
     @display("bgb=300,300");
@@ -29,10 +26,10 @@ network NetworkNodeVisualizerShowcase
             @display("p=50,50");
         }
         car: AdhocHost {
-            @display("p=168,117");
+            @display("p=168,117;i=misc/car2");
         }
         pedestrian: AdhocHost {
-            @display("p=113,156;i=device/cellphone2");
+            @display("p=113,156;i=misc/person");
         }
 }
 

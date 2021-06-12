@@ -1,22 +1,21 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
-//
-// This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
-// Author: Thomas Deinlein
-//
-
-#include <math.h>
+//#include <math.h>
+#include <cmath>
 #include "stack/phy/feedback/LteFeedbackComputationRealistic.h"
-#include "corenetwork/blerCurves/PhyPisaData.h"
-#include "corenetwork/binder/LteBinder.h"
+#include "common/blerCurves/PhyPisaData.h"
+#include "common/binder/Binder.h"
+
+using namespace omnetpp;
 
 LteFeedbackComputationRealistic::LteFeedbackComputationRealistic(double targetBler, std::map<MacNodeId, Lambda>* lambda,
     double lambdaMinTh, double lambdaMaxTh, double lambdaRatioTh, unsigned int numBands)
@@ -28,10 +27,8 @@ LteFeedbackComputationRealistic::LteFeedbackComputationRealistic(double targetBl
     lambdaMaxTh_ = lambdaMaxTh;
     lambdaRatioTh_ = lambdaRatioTh;
     phyPisaData_ = &(getBinder()->phyPisaData);
-    blerNR = &(getBinder()->blerNR);
 
-
-    baseMin_.resize(phyPisaData_->nMcs(), 1);
+    baseMin_.resize(phyPisaData_->nMcs(), 2);
 }
 
 LteFeedbackComputationRealistic::~LteFeedbackComputationRealistic()
@@ -42,8 +39,6 @@ LteFeedbackComputationRealistic::~LteFeedbackComputationRealistic()
 void LteFeedbackComputationRealistic::generateBaseFeedback(int numBands, int numPreferredBands, LteFeedback& fb,
     FeedbackType fbType, int cw, RbAllocationType rbAllocationType, TxMode txmode, std::vector<double> snr)
 {
-    //std::cout << "LteFeedbackComputationRealistic::generateBaseFeedback start at " << simTime().dbl() << std::endl;
-
     int layer = 1;
     std::vector<CqiVector> cqiTmp2;
     CqiVector cqiTmp;
@@ -103,14 +98,10 @@ void LteFeedbackComputationRealistic::generateBaseFeedback(int numBands, int num
     {
         //TODO
     }
-
-    //std::cout << "LteFeedbackComputationRealistic::generateBaseFeedback end at " << simTime().dbl() << std::endl;
 }
 
 unsigned int LteFeedbackComputationRealistic::computeRank(MacNodeId id)
 {
-    //std::cout << "LteFeedbackComputationRealistic::computeRank  at " << simTime().dbl() << std::endl;
-
     if (lambda_->at(id).lambdaMin < lambdaMinTh_)
         return 1;
     else
@@ -119,84 +110,29 @@ unsigned int LteFeedbackComputationRealistic::computeRank(MacNodeId id)
 
 Cqi LteFeedbackComputationRealistic::getCqi(TxMode txmode, double snr)
 {
-    //std::cout << "LteFeedbackComputationRealistic::getCqi start at " << simTime().dbl() << std::endl;
+    int newsnr = floor(snr + 0.5);
+    if (newsnr < phyPisaData_->minSnr())
+        return 0;
+    if (newsnr > phyPisaData_->maxSnr())
+        return 15;
+    unsigned int txm = txModeToIndex[txmode];
+    std::vector<double> min;
+    int found = 0;
+    double low = 2;
 
-	//from the paper Downlink SNR to CQI Mapping for Different Multiple Antenna Techniques in LTE --> Table III, (111, 3)
-	//MohammadT.Kawser et al.
-	//cqiFlag can be set in the omnetpp.ini
-	if (cqiFlag) {
-		if (snr < 4.05)
-			return 1;
-		else if (snr < 5.1)
-			return 2;
-		else if (snr < 8)
-			return 3;
-		else if (snr < 10)
-			return 4;
-		else if (snr < 11.8)
-			return 5;
-		else if (snr < 13.9)
-			return 6;
-		else if (snr < 16.1)
-			return 7;
-		else if (snr < 17.45)
-			return 8;
-		else if (snr < 19.5)
-			return 9;
-		else if (snr < 21.5)
-			return 10;
-		else if (snr < 23.1)
-			return 11;
-		else if (snr < 24.9)
-			return 12;
-		else if (snr < 27.0)
-			return 13;
-		else if (snr < 29.1)
-			return 14;
-		else
-			return 15;
-
-	} else {
-		int newsnr = floor(snr + 0.5);
-
-		if (getSimulation()->getSystemModule()->par("blerCurvesNR").boolValue()) {
-			if (newsnr < blerNR->minSnr())
-				return 0 + 1;
-			if (newsnr > blerNR->maxSnr())
-				return 15;
-		} else {
-			if (newsnr < 0)
-				return 0 + 1;
-			if (newsnr > phyPisaData_->maxSnr())
-				return 15;
-		}
-
-		unsigned int txm = txModeToIndex[txmode];
-		std::vector<double> min;
-		int found = 0;
-		double low = 1;
-
-		min = baseMin_;
-		for (int i = 0; i < phyPisaData_->nMcs(); i++) {
-			double tmp;
-			if (getSimulation()->getSystemModule()->par("blerCurvesNR").boolValue()) {
-				tmp = blerNR->getBler(txm, i, newsnr);
-			} else {
-				tmp = phyPisaData_->getBler(txm, i, newsnr);
-			}
-
-			double diff = targetBler_ - tmp;
-			min[i] = (diff > 0) ? diff : (diff * -1);
-			if (low >= min[i]) {
-				found = i;
-				low = min[i];
-			}
-		}
-		return found + 1;
-	}
-
-    //std::cout << "LteFeedbackComputationRealistic::getCqi end at " << simTime().dbl() << std::endl;
-
+    min = baseMin_;
+    for (int i = 0; i < phyPisaData_->nMcs(); i++)
+    {
+        double tmp = phyPisaData_->getBler(txm, i, newsnr);
+        double diff = targetBler_ - tmp;
+        min[i] = (diff > 0) ? diff : (diff * -1);
+        if (low >= min[i])
+        {
+            found = i;
+            low = min[i];
+        }
+    }
+    return found + 1;
 }
 
 LteFeedbackDoubleVector LteFeedbackComputationRealistic::computeFeedback(FeedbackType fbType,
@@ -204,8 +140,6 @@ LteFeedbackDoubleVector LteFeedbackComputationRealistic::computeFeedback(Feedbac
     std::map<Remote, int> antennaCws, int numPreferredBands, FeedbackGeneratorType feedbackGeneratortype, int numRus,
     std::vector<double> snr, MacNodeId id)
 {
-    //std::cout << "LteFeedbackComputationRealistic::computeFeedback start at " << simTime().dbl() << std::endl;
-
     //add enodeB to the number of antenna
     numRus++;
     // New Feedback
@@ -249,9 +183,6 @@ LteFeedbackDoubleVector LteFeedbackComputationRealistic::computeFeedback(Feedbac
             fbvv[j][z] = fb;
         }
     }
-
-    //std::cout << "LteFeedbackComputationRealistic::computeFeedback end at " << simTime().dbl() << std::endl;
-
     return fbvv;
 }
 
@@ -260,8 +191,6 @@ LteFeedbackVector LteFeedbackComputationRealistic::computeFeedback(const Remote 
     int antennaCws, int numPreferredBands, FeedbackGeneratorType feedbackGeneratortype, int numRus,
     std::vector<double> snr, MacNodeId id)
 {
-    //std::cout << "LteFeedbackComputationRealistic::computeFeedback start at " << simTime().dbl() << std::endl;
-
     // New Feedback
     LteFeedbackVector fbv;
     //resize
@@ -296,9 +225,6 @@ LteFeedbackVector LteFeedbackComputationRealistic::computeFeedback(const Remote 
         }
         fbv[z] = fb;
     }
-
-    //std::cout << "LteFeedbackComputationRealistic::computeFeedback end at " << simTime().dbl() << std::endl;
-
     return fbv;
 }
 
@@ -307,8 +233,6 @@ LteFeedback LteFeedbackComputationRealistic::computeFeedback(const Remote remote
     int antennaCws, int numPreferredBands, FeedbackGeneratorType feedbackGeneratortype, int numRus,
     std::vector<double> snr, MacNodeId id)
 {
-    //std::cout << "LteFeedbackComputationRealistic::computeFeedback start at " << simTime().dbl() << std::endl;
-
     // New Feedback
     LteFeedback fb;
     unsigned int rank = 1;
@@ -334,23 +258,15 @@ LteFeedback LteFeedbackComputationRealistic::computeFeedback(const Remote remote
         //Set PMI
         fb.setWideBandPmi(intuniform(getEnvir()->getRNG(0), 1, pow(rank, (double) 2)));
     }
-
-    //std::cout << "LteFeedbackComputationRealistic::computeFeedback end at " << simTime().dbl() << std::endl;
-
     return fb;
 }
 
 double LteFeedbackComputationRealistic::meanSnr(std::vector<double> snr)
 {
-    //std::cout << "LteFeedbackComputationRealistic::meanSnr start at " << simTime().dbl() << std::endl;
-
     double mean = 0;
     std::vector<double>::iterator it;
     for (it = snr.begin(); it != snr.end(); ++it)
         mean += *it;
     mean /= snr.size();
-
-    //std::cout << "LteFeedbackComputationRealistic::meanSnr end at " << simTime().dbl() << std::endl;
-
     return mean;
 }

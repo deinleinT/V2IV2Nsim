@@ -20,7 +20,9 @@
 namespace inet {
 namespace ieee80211 {
 
-FrameSequenceContext::FrameSequenceContext(MACAddress address, Ieee80211ModeSet *modeSet, InProgressFrames *inProgressFrames, IRtsProcedure *rtsProcedure, IRtsPolicy *rtsPolicy, NonQoSContext *nonQoSContext, QoSContext *qosContext) :
+using namespace inet::physicallayer;
+
+FrameSequenceContext::FrameSequenceContext(MacAddress address, Ieee80211ModeSet *modeSet, InProgressFrames *inProgressFrames, IRtsProcedure *rtsProcedure, IRtsPolicy *rtsPolicy, NonQoSContext *nonQoSContext, QoSContext *qosContext) :
     address(address),
     modeSet(modeSet),
     inProgressFrames(inProgressFrames),
@@ -36,28 +38,28 @@ simtime_t FrameSequenceContext::getIfs() const
     return getNumSteps() == 0 ? 0 : modeSet->getSifsTime(); // TODO: pifs
 }
 
-simtime_t FrameSequenceContext::getAckTimeout(Ieee80211DataOrMgmtFrame* dataOrMgmtframe) const
+simtime_t FrameSequenceContext::getAckTimeout(Packet *packet, const Ptr<const Ieee80211DataOrMgmtHeader>& dataOrMgmtframe) const
 {
-    return qosContext ? qosContext->ackPolicy->getAckTimeout(dataOrMgmtframe) : nonQoSContext->ackPolicy->getAckTimeout(dataOrMgmtframe);
+    return qosContext ? qosContext->ackPolicy->getAckTimeout(packet, dataOrMgmtframe) : nonQoSContext->ackPolicy->getAckTimeout(packet, dataOrMgmtframe);
 }
 
-simtime_t FrameSequenceContext::getCtsTimeout(Ieee80211RTSFrame* rtsFrame) const
+simtime_t FrameSequenceContext::getCtsTimeout(Packet *packet, const Ptr<const Ieee80211RtsFrame>& rtsFrame) const
 {
-    return rtsPolicy->getCtsTimeout(rtsFrame);
+    return rtsPolicy->getCtsTimeout(packet, rtsFrame);
 }
 
-bool FrameSequenceContext::isForUs(Ieee80211Frame *frame) const
+bool FrameSequenceContext::isForUs(const Ptr<const Ieee80211MacHeader>& header) const
 {
-    return frame->getReceiverAddress() == address || (frame->getReceiverAddress().isMulticast() && !isSentByUs(frame));
+    return header->getReceiverAddress() == address || (header->getReceiverAddress().isMulticast() && !isSentByUs(header));
 }
 
-bool FrameSequenceContext::isSentByUs(Ieee80211Frame *frame) const
+bool FrameSequenceContext::isSentByUs(const Ptr<const Ieee80211MacHeader>& header) const
 {
     // FIXME:
     // Check the roles of the Addr3 field when aggregation is applied
     // Table 8-19—Address field contents
-    if (auto dataOrMgmtFrame = dynamic_cast<Ieee80211DataOrMgmtFrame *>(frame))
-        return dataOrMgmtFrame->getAddress3() == address;
+    if (auto dataOrMgmtHeader = dynamicPtrCast<const Ieee80211DataOrMgmtHeader>(header))
+        return dataOrMgmtHeader->getAddress3() == address;
     else
         return false;
 }
@@ -71,6 +73,20 @@ FrameSequenceContext::~FrameSequenceContext()
 #if OMNETPP_BUILDNUM < 1505   //OMNETPP_VERSION < 0x0600    // 6.0 pre9
     inProgressFrames->clearDroppedFrames();
 #endif
+}
+
+Register_ResultFilter("frameSequenceDuration", FrameSequenceDurationFilter);
+
+void FrameSequenceDurationFilter::receiveSignal(cResultFilter *prev, simtime_t_cref t, cObject *object, cObject *details)
+{
+    fire(this, t, check_and_cast<FrameSequenceContext *>(object)->getDuration(), details);
+}
+
+Register_ResultFilter("frameSequenceNumPackets", FrameSequenceNumPacketsFilter);
+
+void FrameSequenceNumPacketsFilter::receiveSignal(cResultFilter *prev, simtime_t_cref t, cObject *object, cObject *details)
+{
+    fire(this, t, (intval_t)check_and_cast<FrameSequenceContext *>(object)->getNumSteps(), details);
 }
 
 } // namespace ieee80211

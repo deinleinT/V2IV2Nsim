@@ -1,9 +1,11 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
@@ -13,7 +15,6 @@
 #include <omnetpp.h>
 #include "stack/rlc/um/LteRlcUm.h"
 #include "stack/rlc/LteRlcDefs.h"
-#include "stack/rlc/packet/LteRlcDataPdu.h"
 
 class LteRlcUm;
 
@@ -40,32 +41,36 @@ class LteRlcUm;
  *
  * The size of PDUs is signalled by the lower layer
  */
-class UmTxEntity : public cSimpleModule
+class UmTxEntity : public omnetpp::cSimpleModule
 {
+    struct FragmentInfo {
+        inet::Packet * pkt= nullptr;
+        int size = 0;
+    };
+
+    FragmentInfo *fragmentInfo = nullptr;
+
+  protected:
+    std::deque<inet::Packet *> *fragments = nullptr;
+
   public:
     UmTxEntity()
     {
-        flowControlInfo_ = NULL;
-        sno_ = 0;
-        lteRlc_ = NULL;
+        flowControlInfo_ = nullptr;
+        lteRlc_ = nullptr;
     }
     virtual ~UmTxEntity()
     {
         delete flowControlInfo_;
-        sduQueue_.clear();
-    }
-    UmTxEntity(const UmTxEntity & other){
-        this->firstIsFragment_ = other.firstIsFragment_;
-        this->sduQueue_ = *(other.sduQueue_.dup());
-        this->flowControlInfo_ = other.flowControlInfo_->dup();
-        this->sno_ = other.sno_;
     }
 
     /*
      * Enqueues an upper layer packet into the SDU buffer
      * @param pkt the packet to be enqueued
+     *
+     * @return TRUE if packet was enqueued in SDU buffer
      */
-    void enque(cPacket* pkt);
+    bool enque(omnetpp::cPacket* pkt);
 
     /**
      * rlcPduMake() creates a PDU having the specified size
@@ -74,14 +79,12 @@ class UmTxEntity : public cSimpleModule
      * @param size of a pdu
      */
     void rlcPduMake(int pduSize);
-    std::pair<LteRlcUm*,LteRlcUmDataPdu*> rlcPduMake(int pduLength, bool flag);
 
     void setFlowControlInfo(FlowControlInfo* lteInfo) { flowControlInfo_ = lteInfo; }
     FlowControlInfo* getFlowControlInfo() { return flowControlInfo_; }
 
     // force the sequence number to assume the sno passed as argument
     void setNextSequenceNumber(unsigned int nextSno) { sno_ = nextSno; }
-    unsigned int getNextSequenceNumber(){return sno_;}
 
     // remove the last SDU from the queue
     void removeDataFromQueue();
@@ -96,7 +99,7 @@ class UmTxEntity : public cSimpleModule
     bool isHoldingDownstreamInPackets();
 
     // store the packet in the holding buffer
-    void enqueHoldingPackets(cPacket* pkt);
+    void enqueHoldingPackets(inet::cPacket* pkt);
 
     // resume sending packets in the downstream
     void resumeDownstreamInPackets();
@@ -104,41 +107,14 @@ class UmTxEntity : public cSimpleModule
     // return the value of notifyEmptyBuffer_
     bool isEmptyingBuffer() { return notifyEmptyBuffer_; }
 
+    // returns true if this entity is for a D2D_MULTI connection
+    bool isD2DMultiConnection() { return (flowControlInfo_->getDirection() == D2D_MULTI); }
+
     // called when a D2D mode switch is triggered
     void rlcHandleD2DModeSwitch(bool oldConnection, bool clearBuffer=true);
 
-    MacNodeId getOwnerNodeId() {
-        Enter_Method_Silent();
-        return ownerNodeId_;
-    }
-    void setNodeId(MacNodeId ownerId) {
-        Enter_Method_Silent();
-        this->ownerNodeId_ = ownerId;
-    }
-
-    bool getFirstIsFragment() {
-        Enter_Method_Silent
-        ();
-        return firstIsFragment_;
-    }
-    void setFirstIsFragment(bool flag) {
-        Enter_Method_Silent
-        ();
-        this->firstIsFragment_ = flag;
-    }
-
-    cPacketQueue & getSduQueue() {
-        Enter_Method_Silent
-        ();
-        return sduQueue_;
-    }
-    void setSduQueue(cPacketQueue sduQueue) {
-        Enter_Method_Silent
-        ();
-        this->sduQueue_ = sduQueue;
-    }
-
   protected:
+
     // reference to the parent's RLC layer
     LteRlcUm* lteRlc_;
 
@@ -151,7 +127,7 @@ class UmTxEntity : public cSimpleModule
     /*
      * The SDU enqueue buffer.
      */
-    cPacketQueue sduQueue_;
+    inet::cPacketQueue sduQueue_;
 
     /*
      * Determine whether the first item in the queue is a fragment or a whole SDU
@@ -171,13 +147,24 @@ class UmTxEntity : public cSimpleModule
     /*
      * The SDU holding buffer.
      */
-    cPacketQueue sduHoldingQueue_;
+    inet::cPacketQueue sduHoldingQueue_;
+
+    /*
+     * The maximum available queue size (in bytes)
+     * (amount of data in sduQueue_ must not exceed this value)
+     */
+    unsigned int queueSize_;
+
+    /*
+     * The currently stored amount of data in the SDU queue (in bytes)
+     */
+    unsigned int queueLength_;
 
     /**
      * Initialize fragmentSize and
      * watches
      */
-    virtual void initialize();
+    virtual void initialize() override;
 
   private:
 

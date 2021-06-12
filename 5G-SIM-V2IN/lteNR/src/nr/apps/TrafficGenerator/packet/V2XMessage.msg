@@ -20,8 +20,11 @@
 //
 // This is a part of 5G-Sim-V2I/N
 //
+import inet.common.INETDefs;
+import inet.common.packet.chunk.Chunk;
 
-packet V2XMessage {
+class V2XMessage extends inet::FieldsChunk{
+
     int senderNodeId;
     string senderName;
     string senderIpAddress;
@@ -29,8 +32,10 @@ packet V2XMessage {
     string destIpAddress;
     int destPort;
     unsigned int sequenceNumber;
-    
-    simtime_t startMeasuringExchangeDelay;
-    
+
+    simtime_t creationTime;
+    simtime_t arrivalTime;
+    string name;
+    simtime_t timestamp;
 }
 

@@ -1,3 +1,3 @@
-package nr.apps;
+package lteNR.nr.apps;
 
 @license(LGPL);

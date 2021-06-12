@@ -21,7 +21,11 @@
 // This is part of 5G-Sim-V2I/N
 //
 
-packet VideoMessage {
+import inet.common.INETDefs;
+import inet.common.packet.chunk.Chunk;
+
+class VideoMessage extends inet::FieldsChunk{
+
     int senderNodeId;
     string senderName;
     string senderIpAddress;
@@ -29,4 +33,9 @@ packet VideoMessage {
     string destIpAddress;
     int destPort;
     int sequenceNumber;
+    
+    simtime_t creationTime;
+    simtime_t arrivalTime;
+    string name;
+    simtime_t timestamp;
 }

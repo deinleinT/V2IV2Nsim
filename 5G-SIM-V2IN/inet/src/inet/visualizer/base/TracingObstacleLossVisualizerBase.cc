@@ -16,6 +16,7 @@
 //
 
 #include <algorithm>
+
 #include "inet/common/ModuleAccess.h"
 #include "inet/visualizer/base/TracingObstacleLossVisualizerBase.h"
 
@@ -23,6 +24,7 @@ namespace inet {
 
 namespace visualizer {
 
+using namespace inet::physicalenvironment;
 using namespace inet::physicallayer;
 
 TracingObstacleLossVisualizerBase::~TracingObstacleLossVisualizerBase()
@@ -79,16 +81,15 @@ void TracingObstacleLossVisualizerBase::refreshDisplay() const
 
 void TracingObstacleLossVisualizerBase::subscribe()
 {
-    auto subscriptionModule = getModuleFromPar<cModule>(par("subscriptionModule"), this);
-    subscriptionModule->subscribe(ITracingObstacleLoss::obstaclePenetratedSignal, this);
+    visualizationSubjectModule->subscribe(ITracingObstacleLoss::obstaclePenetratedSignal, this);
 }
 
 void TracingObstacleLossVisualizerBase::unsubscribe()
 {
     // NOTE: lookup the module again because it may have been deleted first
-    auto subscriptionModule = getModuleFromPar<cModule>(par("subscriptionModule"), this, false);
-    if (subscriptionModule != nullptr)
-        subscriptionModule->unsubscribe(ITracingObstacleLoss::obstaclePenetratedSignal, this);
+    auto visualizationSubjectModule = getModuleFromPar<cModule>(par("visualizationSubjectModule"), this, false);
+    if (visualizationSubjectModule != nullptr)
+        visualizationSubjectModule->unsubscribe(ITracingObstacleLoss::obstaclePenetratedSignal, this);
 }
 
 void TracingObstacleLossVisualizerBase::receiveSignal(cComponent *source, simsignal_t signal, cObject *object, cObject *details)
@@ -114,6 +115,18 @@ void TracingObstacleLossVisualizerBase::removeObstacleLossVisualization(const Ob
 {
     obstacleLossVisualizations.erase(std::remove(obstacleLossVisualizations.begin(), obstacleLossVisualizations.end(), obstacleLossVisualization), obstacleLossVisualizations.end());
 }
+
+void TracingObstacleLossVisualizerBase::removeAllObstacleLossVisualizations()
+{
+    std::vector<const ObstacleLossVisualization *> removedObstacleLossVisualizations;
+    for (auto it : obstacleLossVisualizations)
+        removedObstacleLossVisualizations.push_back(it);
+    for (auto it : removedObstacleLossVisualizations) {
+        removeObstacleLossVisualization(it);
+        delete it;
+    }
+}
+
 
 } // namespace visualizer
 

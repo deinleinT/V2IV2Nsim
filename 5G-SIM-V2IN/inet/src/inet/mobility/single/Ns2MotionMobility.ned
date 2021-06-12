@@ -20,7 +20,6 @@ package inet.mobility.single;
 
 import inet.mobility.base.MovingMobilityBase;
 
-// TODO: why does this comment refer to BonnMotion instead of NS2?
 //
 // @author Andras Varga
 //
@@ -33,3 +32,4 @@ simple Ns2MotionMobility extends MovingMobilityBase
         double scrollY @unit(m) = default(0m);
         @class(Ns2MotionMobility);
 }
+

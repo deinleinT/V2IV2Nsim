@@ -60,11 +60,12 @@ class INET_API NonQoSContext
         IOriginatorAckPolicy *ackPolicy = nullptr;
 };
 
-class INET_API FrameSequenceContext
+class INET_API FrameSequenceContext : public cObject
 {
     protected:
-        MACAddress address = MACAddress::UNSPECIFIED_ADDRESS;
-        Ieee80211ModeSet *modeSet = nullptr;
+        simtime_t startTime = simTime();
+        MacAddress address = MacAddress::UNSPECIFIED_ADDRESS;
+        physicallayer::Ieee80211ModeSet *modeSet = nullptr;
         InProgressFrames *inProgressFrames = nullptr;
         std::vector<IFrameSequenceStep *> steps;
 
@@ -75,8 +76,10 @@ class INET_API FrameSequenceContext
         QoSContext *qosContext = nullptr;
 
     public:
-        FrameSequenceContext(MACAddress address, Ieee80211ModeSet *modeSet, InProgressFrames *inProgressFrames, IRtsProcedure *rtsProcedure, IRtsPolicy *rtsPolicy, NonQoSContext *nonQosContext, QoSContext *qosContext);
+        FrameSequenceContext(MacAddress address, physicallayer::Ieee80211ModeSet *modeSet, InProgressFrames *inProgressFrames, IRtsProcedure *rtsProcedure, IRtsPolicy *rtsPolicy, NonQoSContext *nonQosContext, QoSContext *qosContext);
         virtual ~FrameSequenceContext();
+
+        virtual simtime_t getDuration() const { return simTime() - startTime; }
 
         virtual void addStep(IFrameSequenceStep *step) { steps.push_back(step); }
         virtual int getNumSteps() const { return steps.size(); }
@@ -91,12 +94,26 @@ class INET_API FrameSequenceContext
         virtual NonQoSContext *getNonQoSContext() const { return nonQoSContext; }
         virtual QoSContext *getQoSContext() const { return qosContext; }
 
-        virtual simtime_t getAckTimeout(Ieee80211DataOrMgmtFrame *dataOrMgmtframe) const;
-        virtual simtime_t getCtsTimeout(Ieee80211RTSFrame *rtsFrame) const;
+        virtual simtime_t getAckTimeout(Packet *packet, const Ptr<const Ieee80211DataOrMgmtHeader>& dataOrMgmtframe) const;
+        virtual simtime_t getCtsTimeout(Packet *packet, const Ptr<const Ieee80211RtsFrame>& rtsFrame) const;
         virtual simtime_t getIfs() const;
 
-        virtual bool isForUs(Ieee80211Frame *frame) const;
-        virtual bool isSentByUs(Ieee80211Frame *frame) const;
+        virtual bool isForUs(const Ptr<const Ieee80211MacHeader>& header) const;
+        virtual bool isSentByUs(const Ptr<const Ieee80211MacHeader>& header) const;
+};
+
+class INET_API FrameSequenceDurationFilter : public cObjectResultFilter
+{
+  public:
+    virtual void receiveSignal(cResultFilter *prev, simtime_t_cref t, cObject *object, cObject *details) override;
+    using cObjectResultFilter::receiveSignal;
+};
+
+class INET_API FrameSequenceNumPacketsFilter : public cObjectResultFilter
+{
+  public:
+    virtual void receiveSignal(cResultFilter *prev, simtime_t_cref t, cObject *object, cObject *details) override;
+    using cObjectResultFilter::receiveSignal;
 };
 
 } // namespace ieee80211

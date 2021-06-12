@@ -1,9 +1,11 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
@@ -12,24 +14,25 @@
 
 #include <string.h>
 #include <omnetpp.h>
-#include "inet/transportlayer/contract/udp/UDPSocket.h"
-#include "inet/networklayer/common/L3Address.h"
-#include "inet/networklayer/common/L3AddressResolver.h"
+#include <inet/transportlayer/contract/udp/UdpSocket.h>
+#include <inet/networklayer/common/L3Address.h>
+#include <inet/networklayer/common/L3AddressResolver.h>
 #include "apps/alert/AlertPacket_m.h"
 
-class AlertSender : public cSimpleModule
+class AlertSender : public omnetpp::cSimpleModule
 {
-    inet::UDPSocket socket;
+    inet::UdpSocket socket;
 
     //sender
     int nextSno_;
     int size_;
-    simtime_t period_;
 
-    simsignal_t alertSentMsg_;
+    omnetpp::simtime_t stopTime_;
+
+    omnetpp::simsignal_t alertSentMsg_;
     // ----------------------------
 
-    cMessage *selfSender_;
+    omnetpp::cMessage *selfSender_;
 
     int localPort_;
     int destPort_;
@@ -43,9 +46,12 @@ class AlertSender : public cSimpleModule
 
   protected:
 
-    virtual int numInitStages() const { return inet::NUM_INIT_STAGES; }
-    void initialize(int stage);
-    void handleMessage(cMessage *msg);
+    virtual int numInitStages() const override { return inet::NUM_INIT_STAGES; }
+    void initialize(int stage) override;
+    void handleMessage(omnetpp::cMessage *msg) override;
+
+    // utility: show current statistics above the icon
+    virtual void refreshDisplay() const override;
 };
 
 #endif

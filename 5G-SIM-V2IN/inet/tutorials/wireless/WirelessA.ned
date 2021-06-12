@@ -15,39 +15,34 @@
 
 package inet.tutorials.wireless;
 
-import inet.common.figures.DelegateSignalConfigurator;
-import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
+import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 import inet.node.inet.INetworkNode;
 import inet.physicallayer.contract.packetlevel.IRadioMedium;
 import inet.visualizer.contract.IIntegratedVisualizer;
 
-
 network WirelessA
 {
     parameters:
-        string hostType = default("WirelessHost");
-        string mediumType = default("IdealRadioMedium");
-
         @display("bgb=650,500;bgg=100,1,grey95");
         @figure[title](type=label; pos=0,-1; anchor=sw; color=darkblue);
 
         @figure[rcvdPkText](type=indicatorText; pos=380,20; anchor=w; font=,18; textFormat="packets received: %g"; initialValue=0);
-        @statistic[rcvdPk](source=hostB.udpApp[0].rcvdPk; record=figure(count); targetFigure=rcvdPkText);
+        @statistic[packetReceived](source=hostB.app[0].packetReceived; record=figure(count); targetFigure=rcvdPkText);
 
     submodules:
         visualizer: <default("IntegratedCanvasVisualizer")> like IIntegratedVisualizer if hasVisualizer() {
             @display("p=580,125");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=580,200");
         }
-        radioMedium: <mediumType> like IRadioMedium {
+        radioMedium: <default("UnitDiskRadioMedium")> like IRadioMedium {
             @display("p=580,275");
         }
-        hostA: <hostType> like INetworkNode {
+        hostA: <default("WirelessHost")> like INetworkNode {
             @display("p=50,325");
         }
-        hostB: <hostType> like INetworkNode {
+        hostB: <default("WirelessHost")> like INetworkNode {
             @display("p=450,325");
         }
 }

@@ -18,11 +18,12 @@
 #ifndef __INET_GENERICFRAMESEQUENCES_H
 #define __INET_GENERICFRAMESEQUENCES_H
 
+#include <algorithm>
+#include <functional>
+
 #include "inet/linklayer/ieee80211/mac/contract/IFrameSequence.h"
 #include "inet/linklayer/ieee80211/mac/framesequence/FrameSequenceContext.h"
 #include "inet/linklayer/ieee80211/mac/framesequence/FrameSequenceStep.h"
-#include <algorithm>
-#include <functional>
 
 namespace inet {
 namespace ieee80211 {
@@ -46,7 +47,7 @@ class INET_API SequentialFs : public IFrameSequence {
         virtual IFrameSequenceStep *prepareStep(FrameSequenceContext *context) override;
         virtual bool completeStep(FrameSequenceContext *context) override;
 
-        virtual std::string getHistory() override;
+        virtual std::string getHistory() const override;
 };
 
 class INET_API OptionalFs : public IFrameSequence {
@@ -68,7 +69,7 @@ class INET_API OptionalFs : public IFrameSequence {
         virtual IFrameSequenceStep *prepareStep(FrameSequenceContext *context) override;
         virtual bool completeStep(FrameSequenceContext *context) override;
 
-        virtual std::string getHistory() override;
+        virtual std::string getHistory() const override;
 };
 
 class INET_API RepeatingFs : public IFrameSequence {
@@ -93,7 +94,7 @@ class INET_API RepeatingFs : public IFrameSequence {
         virtual IFrameSequenceStep *prepareStep(FrameSequenceContext *context) override;
         virtual bool completeStep(FrameSequenceContext *context) override;
 
-        virtual std::string getHistory() override;
+        virtual std::string getHistory() const override;
 };
 
 class INET_API AlternativesFs : public IFrameSequence {
@@ -115,7 +116,7 @@ class INET_API AlternativesFs : public IFrameSequence {
         virtual IFrameSequenceStep *prepareStep(FrameSequenceContext *context) override;
         virtual bool completeStep(FrameSequenceContext *context) override;
 
-        virtual std::string getHistory() override;
+        virtual std::string getHistory() const override;
 };
 
 } // namespace ieee80211

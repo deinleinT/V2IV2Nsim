@@ -16,15 +16,15 @@
 //
 
 #include "inet/physicallayer/base/packetlevel/FlatTransmitterBase.h"
+#include "inet/physicallayer/contract/packetlevel/SignalTag_m.h"
 
 namespace inet {
-
 namespace physicallayer {
 
 FlatTransmitterBase::FlatTransmitterBase() :
     NarrowbandTransmitterBase(),
     preambleDuration(-1),
-    headerBitLength(-1),
+    headerLength(b(-1)),
     bitrate(bps(NaN)),
     power(W(NaN))
 {
@@ -35,7 +35,7 @@ void FlatTransmitterBase::initialize(int stage)
     NarrowbandTransmitterBase::initialize(stage);
     if (stage == INITSTAGE_LOCAL) {
         preambleDuration = par("preambleDuration");
-        headerBitLength = par("headerBitLength");
+        headerLength = b(par("headerLength"));
         bitrate = bps(par("bitrate"));
         power = W(par("power"));
     }
@@ -45,13 +45,36 @@ std::ostream& FlatTransmitterBase::printToStream(std::ostream& stream, int level
 {
     if (level <= PRINT_LEVEL_TRACE)
         stream << ", preambleDuration = " << preambleDuration
-               << ", headerBitLength = " << headerBitLength
+               << ", headerLength = " << headerLength
                << ", bitrate = " << bitrate
                << ", power = " << power;
     return NarrowbandTransmitterBase::printToStream(stream, level);
 }
 
-} // namespace physicallayer
+bps FlatTransmitterBase::computeTransmissionPreambleBitrate(const Packet *packet) const
+{
+    auto signalBitrateReq = const_cast<Packet *>(packet)->findTag<SignalBitrateReq>();
+    return signalBitrateReq != nullptr ? signalBitrateReq->getPreambleBitrate() : bitrate;
+}
 
+bps FlatTransmitterBase::computeTransmissionHeaderBitrate(const Packet *packet) const
+{
+    auto signalBitrateReq = const_cast<Packet *>(packet)->findTag<SignalBitrateReq>();
+    return signalBitrateReq != nullptr ? signalBitrateReq->getHeaderBitrate() : bitrate;
+}
+
+bps FlatTransmitterBase::computeTransmissionDataBitrate(const Packet *packet) const
+{
+    auto signalBitrateReq = const_cast<Packet *>(packet)->findTag<SignalBitrateReq>();
+    return signalBitrateReq != nullptr ? signalBitrateReq->getDataBitrate() : bitrate;
+}
+
+W FlatTransmitterBase::computeTransmissionPower(const Packet *packet) const
+{
+    auto signalPowerReq = const_cast<Packet *>(packet)->findTag<SignalPowerReq>();
+    return signalPowerReq != nullptr ? signalPowerReq->getPower() : power;
+}
+
+} // namespace physicallayer
 } // namespace inet
 

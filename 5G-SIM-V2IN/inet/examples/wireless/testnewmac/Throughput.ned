@@ -18,11 +18,12 @@
 
 package inet.examples.wireless.testnewmac;
 
-import inet.applications.ethernet.EtherAppCli;
-import inet.common.queue.Sink;
-import inet.linklayer.ieee80211.Ieee80211Nic;
+import inet.applications.ethernet.EtherAppClient;
+import inet.applications.ethernet.EtherAppServer;
+import inet.linklayer.ieee80211.Ieee80211Interface;
 import inet.mobility.single.CircleMobility;
 import inet.mobility.static.StationaryMobility;
+import inet.networklayer.common.InterfaceTable;
 import inet.physicallayer.ieee80211.packetlevel.Ieee80211ScalarRadioMedium;
 
 
@@ -31,25 +32,30 @@ module ThroughputClient
     parameters:
         @display("i=device/wifilaptop");
         @networkNode();
-        *.interfaceTableModule = "";
+        *.interfaceTableModule = default(absPath(".interfaceTable"));
+        wlan.radio.antenna.mobilityModule = default("^.^.^.mobility");
     gates:
         input radioIn @directIn;
 
     submodules:
-        cli: EtherAppCli {
+        interfaceTable: InterfaceTable {
             parameters:
-                registerSAP = false;
-                @display("b=40,24;p=180,60,col");
+                @display("p=100,100;is=s");
         }
-        wlan: Ieee80211Nic {
+        cli: EtherAppClient {
             parameters:
-                @display("p=112,134;q=queue");
-                mgmtType = "Ieee80211MgmtAdhoc";
-                macType = "Ieee80211CompatibleMac";
+                @display("p=300,100");
+        }
+        wlan: Ieee80211Interface {
+            parameters:
+                @display("p=250,200;q=queue");
+                mgmt.typename = "Ieee80211MgmtAdhoc";
+                agent.typename = "";
+                mac.typename = "Ieee80211Mac";
         }
         mobility: CircleMobility {
             parameters:
-                @display("p=50,141");
+                @display("p=100,200;is=s");
         }
     connections allowunconnected:
         wlan.radioIn <-- radioIn;
@@ -61,34 +67,40 @@ module ThroughputServer
     parameters:
         @display("i=device/wifilaptop");
         @networkNode();
-        *.interfaceTableModule = "";
+        *.interfaceTableModule = default(absPath(".interfaceTable"));
+        wlan.radio.antenna.mobilityModule = default("^.^.^.mobility");
     gates:
         input radioIn @directIn;
 
     submodules:
-        sink: Sink {
+        interfaceTable: InterfaceTable {
             parameters:
-                @display("p=210,68,col");
+                @display("p=100,100;is=s");
         }
-        wlan: Ieee80211Nic {
+        sink: EtherAppServer {
             parameters:
-                @display("p=120,158;q=queue");
-                mgmtType = "Ieee80211MgmtAdhoc";
+                @display("p=300,100");
+        }
+        wlan: Ieee80211Interface {
+            parameters:
+                @display("p=250,200;q=queue");
+                mgmt.typename = "Ieee80211MgmtAdhoc";
+                agent.typename = "";
         }
         mobility: StationaryMobility {
             parameters:
-                @display("p=50,141");
+                @display("p=100,200;is=s");
         }
     connections allowunconnected:
         wlan.radioIn <-- radioIn;
-        sink.in++ <-- wlan.upperLayerOut;
+        sink.in <-- wlan.upperLayerOut;
+        sink.out --> wlan.upperLayerIn;
 }
 
 network Throughput
 {
     parameters:
         int numCli;
-        @display("b=297,203");
     submodules:
         cliHost[numCli]: ThroughputClient {
             parameters:
@@ -100,7 +112,7 @@ network Throughput
         }
         radioMedium: Ieee80211ScalarRadioMedium {
             parameters:
-                @display("p=61,46");
+                @display("p=100,100;is=s");
         }
 }
 

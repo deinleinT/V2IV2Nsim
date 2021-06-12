@@ -19,12 +19,10 @@
 #define __INET_IRADIOSIGNAL_H
 
 #include "inet/common/geometry/common/Coord.h"
+#include "inet/common/math/Functions.h"
 #include "inet/physicallayer/contract/packetlevel/IPrintableObject.h"
-#include "inet/common/mapping/MappingBase.h"
-#include "inet/common/mapping/MappingUtils.h"
 
 namespace inet {
-
 namespace physicallayer {
 
 class INET_API IRadioSignal
@@ -78,7 +76,7 @@ class INET_API IRadioSignal
 class INET_API INarrowbandSignal
 {
   public:
-    virtual Hz getCarrierFrequency() const = 0;
+    virtual Hz getCenterFrequency() const = 0;
     virtual Hz getBandwidth() const = 0;
 
     virtual W computeMinPower(simtime_t startTime, simtime_t endTime) const = 0;
@@ -93,11 +91,10 @@ class INET_API IScalarSignal
 class INET_API IDimensionalSignal
 {
   public:
-    virtual const ConstMapping *getPower() const = 0;
+    virtual const Ptr<const math::IFunction<WpHz, math::Domain<simsec, Hz>>>& getPower() const = 0;
 };
 
 } // namespace physicallayer
-
 } // namespace inet
 
 #endif // ifndef __INET_IRADIOSIGNAL_H

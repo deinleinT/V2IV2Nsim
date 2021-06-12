@@ -16,7 +16,7 @@
 //
 
 #include "inet/common/ModuleAccess.h"
-#include "inet/common/OSGUtils.h"
+#include "inet/common/OsgUtils.h"
 #include "inet/visualizer/transportlayer/TransportConnectionOsgVisualizer.h"
 
 namespace inet {
@@ -34,6 +34,12 @@ TransportConnectionOsgVisualizer::TransportConnectionOsgVisualization::Transport
 {
 }
 
+TransportConnectionOsgVisualizer::~TransportConnectionOsgVisualizer()
+{
+    if (displayTransportConnections)
+        removeAllConnectionVisualizations();
+}
+
 void TransportConnectionOsgVisualizer::initialize(int stage)
 {
     TransportConnectionVisualizerBase::initialize(stage);
@@ -43,10 +49,9 @@ void TransportConnectionOsgVisualizer::initialize(int stage)
     }
 }
 
-osg::Node *TransportConnectionOsgVisualizer::createConnectionEndNode(tcp::TCPConnection *tcpConnection) const
+osg::Node *TransportConnectionOsgVisualizer::createConnectionEndNode(tcp::TcpConnection *tcpConnection) const
 {
-    auto path = resolveResourcePath((std::string(icon) + ".png").c_str());
-    auto image = inet::osg::createImage(path.c_str());
+    auto image = inet::osg::createImageFromResource(icon);
     auto texture = new osg::Texture2D();
     texture->setImage(image);
     auto geometry = osg::createTexturedQuadGeometry(osg::Vec3(-image->s() / 2, 0.0, 0.0), osg::Vec3(image->s(), 0.0, 0.0), osg::Vec3(0.0, image->t(), 0.0), 0.0, 0.0, 1.0, 1.0);
@@ -65,10 +70,18 @@ osg::Node *TransportConnectionOsgVisualizer::createConnectionEndNode(tcp::TCPCon
     return geode;
 }
 
-const TransportConnectionVisualizerBase::TransportConnectionVisualization *TransportConnectionOsgVisualizer::createConnectionVisualization(cModule *source, cModule *destination, tcp::TCPConnection *tcpConnection) const
+const TransportConnectionVisualizerBase::TransportConnectionVisualization *TransportConnectionOsgVisualizer::createConnectionVisualization(cModule *source, cModule *destination, tcp::TcpConnection *tcpConnection) const
 {
     auto sourceNode = createConnectionEndNode(tcpConnection);
     auto destinationNode = createConnectionEndNode(tcpConnection);
+    auto sourceNetworkNode = getContainingNode(source);
+    auto sourceVisualization = networkNodeVisualizer->getNetworkNodeVisualization(sourceNetworkNode);
+    if (sourceVisualization == nullptr)
+        throw cRuntimeError("Cannot create transport connection visualization for '%s', because network node visualization is not found for '%s'", source->getFullPath().c_str(), sourceNetworkNode->getFullPath().c_str());
+    auto destinationNetworkNode = getContainingNode(destination);
+    auto destinationVisualization = networkNodeVisualizer->getNetworkNodeVisualization(destinationNetworkNode);
+    if (destinationVisualization == nullptr)
+        throw cRuntimeError("Cannot create transport connection visualization for '%s', because network node visualization is not found for '%s'", source->getFullPath().c_str(), destinationNetworkNode->getFullPath().c_str());
     return new TransportConnectionOsgVisualization(sourceNode, destinationNode, source->getId(), destination->getId(), 1);
 }
 

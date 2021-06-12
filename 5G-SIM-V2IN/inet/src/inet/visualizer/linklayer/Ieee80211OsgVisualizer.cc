@@ -16,8 +16,8 @@
 //
 
 #include "inet/common/ModuleAccess.h"
-#include "inet/common/OSGScene.h"
-#include "inet/common/OSGUtils.h"
+#include "inet/common/OsgScene.h"
+#include "inet/common/OsgUtils.h"
 #include "inet/visualizer/linklayer/Ieee80211OsgVisualizer.h"
 
 #ifdef WITH_OSG
@@ -39,6 +39,12 @@ Ieee80211OsgVisualizer::Ieee80211OsgVisualization::Ieee80211OsgVisualization(Net
 {
 }
 
+Ieee80211OsgVisualizer::~Ieee80211OsgVisualizer()
+{
+    if (displayAssociations)
+        removeAllIeee80211Visualizations();
+}
+
 void Ieee80211OsgVisualizer::initialize(int stage)
 {
     Ieee80211VisualizerBase::initialize(stage);
@@ -48,16 +54,16 @@ void Ieee80211OsgVisualizer::initialize(int stage)
     }
 }
 
-Ieee80211VisualizerBase::Ieee80211Visualization *Ieee80211OsgVisualizer::createIeee80211Visualization(cModule *networkNode, InterfaceEntry *interfaceEntry, std::string ssid)
+Ieee80211VisualizerBase::Ieee80211Visualization *Ieee80211OsgVisualizer::createIeee80211Visualization(cModule *networkNode, InterfaceEntry *interfaceEntry, std::string ssid, W power)
 {
-    auto path = resolveResourcePath((std::string(icon) + ".png").c_str());
+    auto path = resolveResourcePath((getIcon(power) + ".png").c_str());
     auto image = inet::osg::createImage(path.c_str());
     auto texture = new osg::Texture2D();
     texture->setImage(image);
     auto geometry = osg::createTexturedQuadGeometry(osg::Vec3(-image->s() / 2, 0.0, 0.0), osg::Vec3(image->s(), 0.0, 0.0), osg::Vec3(0.0, image->t(), 0.0), 0.0, 0.0, 1.0, 1.0);
     auto stateSet = geometry->getOrCreateStateSet();
     stateSet->setTextureAttributeAndModes(0, texture);
-    stateSet->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
+    stateSet->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
     stateSet->setMode(GL_BLEND, osg::StateAttribute::ON);
     stateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
     stateSet->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
@@ -70,6 +76,8 @@ Ieee80211VisualizerBase::Ieee80211Visualization *Ieee80211OsgVisualizer::createI
     geode->addDrawable(geometry);
     // TODO: apply tinting
     auto networkNodeVisualization = networkNodeVisualizer->getNetworkNodeVisualization(networkNode);
+    if (networkNodeVisualization == nullptr)
+        throw cRuntimeError("Cannot create IEEE 802.11 visualization for '%s', because network node visualization is not found for '%s'", interfaceEntry->getInterfaceName(), networkNode->getFullPath().c_str());
     return new Ieee80211OsgVisualization(networkNodeVisualization, geode, networkNode->getId(), interfaceEntry->getInterfaceId());
 }
 

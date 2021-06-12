@@ -15,8 +15,8 @@
 
 package inet.showcases.visualizer.routingtable;
 
-import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
-import inet.node.aodv.AODVRouter;
+import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
+import inet.node.aodv.AodvRouter;
 import inet.node.ethernet.Eth100M;
 import inet.node.ethernet.EtherSwitch;
 import inet.node.inet.Router;
@@ -37,7 +37,7 @@ network RoutingTableVisualizationDisplayingAllShowcase
         visualizer: IntegratedVisualizer {
             @display("p=701.44,168.96");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=701.44,81.92");
         }
         router: Router {
@@ -74,7 +74,7 @@ network RoutingTableVisualizationFilteringShowcase
         visualizer: IntegratedVisualizer {
             @display("p=759.04,51.2");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=759.04,124.16");
         }
     connections:
@@ -89,28 +89,28 @@ network RoutingTableVisualizationDynamicShowcase
 {
     @display("bgb=822,636");
     submodules:
-        sourceHost: AODVRouter {
+        sourceHost: AodvRouter {
             @display("p=120,57");
         }
-        host1: AODVRouter {
+        host1: AodvRouter {
             @display("p=119.04,148.48");
         }
-        host2: AODVRouter {
+        host2: AodvRouter {
             @display("p=119.04,241.92");
         }
-        host3: AODVRouter {
+        host3: AodvRouter {
             @display("p=119.04,341.76");
         }
-        host4: AODVRouter {
+        host4: AodvRouter {
             @display("p=119.04,451.84");
         }
-        host5: AODVRouter {
+        host5: AodvRouter {
             @display("p=119.04,554.24");
         }
-        destinationHost: AODVRouter {
+        destinationHost: AodvRouter {
             @display("p=272.64,56.32");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=556,101");
         }
         visualizer: IntegratedVisualizer {

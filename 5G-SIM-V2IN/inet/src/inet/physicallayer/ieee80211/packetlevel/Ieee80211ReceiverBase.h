@@ -19,12 +19,11 @@
 #define __INET_IEEE80211RECEIVERBASE_H
 
 #include "inet/physicallayer/base/packetlevel/FlatReceiverBase.h"
-#include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
-#include "inet/physicallayer/ieee80211/mode/Ieee80211Channel.h"
 #include "inet/physicallayer/ieee80211/mode/Ieee80211Band.h"
+#include "inet/physicallayer/ieee80211/mode/Ieee80211Channel.h"
+#include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
 
 namespace inet {
-
 namespace physicallayer {
 
 class INET_API Ieee80211ReceiverBase : public FlatReceiverBase
@@ -36,12 +35,12 @@ class INET_API Ieee80211ReceiverBase : public FlatReceiverBase
 
   protected:
     virtual void initialize(int stage) override;
-    virtual ReceptionIndication *createReceptionIndication() const override;
-    virtual const ReceptionIndication *computeReceptionIndication(const ISNIR *snir) const override;
 
   public:
     Ieee80211ReceiverBase();
     virtual ~Ieee80211ReceiverBase();
+
+    virtual const IReceptionResult *computeReceptionResult(const IListening *listening, const IReception *reception, const IInterference *interference, const ISnir *snir, const std::vector<const IReceptionDecision *> *decisions) const override;
 
     virtual std::ostream& printToStream(std::ostream& stream, int level) const override;
 
@@ -52,7 +51,6 @@ class INET_API Ieee80211ReceiverBase : public FlatReceiverBase
 };
 
 } // namespace physicallayer
-
 } // namespace inet
 
 #endif // ifndef __INET_IEEE80211RECEIVERBASE_H

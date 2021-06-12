@@ -18,12 +18,11 @@
 #include "inet/physicallayer/common/bitlevel/DigitalAnalogConverter.h"
 
 namespace inet {
-
 namespace physicallayer {
 
 ScalarDigitalAnalogConverter::ScalarDigitalAnalogConverter() :
     power(W(NaN)),
-    carrierFrequency(Hz(NaN)),
+    centerFrequency(Hz(NaN)),
     bandwidth(Hz(NaN)),
     sampleRate(NaN)
 {}
@@ -31,10 +30,9 @@ ScalarDigitalAnalogConverter::ScalarDigitalAnalogConverter() :
 const ITransmissionAnalogModel *ScalarDigitalAnalogConverter::convertDigitalToAnalog(const ITransmissionSampleModel *sampleModel) const
 {
     const simtime_t duration = sampleModel->getSampleLength() / sampleModel->getSampleRate();
-    return new ScalarTransmissionSignalAnalogModel(duration, carrierFrequency, bandwidth, power);
+    return new ScalarTransmissionSignalAnalogModel(duration, centerFrequency, bandwidth, power);
 }
 
 } // namespace physicallayer
-
 } // namespace inet
 

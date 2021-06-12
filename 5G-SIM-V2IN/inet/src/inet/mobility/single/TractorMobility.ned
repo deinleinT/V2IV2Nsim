@@ -26,6 +26,7 @@ import inet.mobility.base.MovingMobilityBase;
 // the number of rows PLUS one rows. Consider the following piece of
 // ascii-art for rows=2.
 //
+// <pre>
 // >>>>>>>>>>>>>>>v
 // ^              v
 // ^              v
@@ -33,6 +34,7 @@ import inet.mobility.base.MovingMobilityBase;
 // v              ^
 // v              ^
 // >>>>>>>>>>>>>>>^
+// </pre>
 //
 // NOTE: Does not yet support 3-dimensional movement.
 // @author Peterpaul Klein Haneveld
@@ -48,3 +50,4 @@ simple TractorMobility extends MovingMobilityBase
         int rowCount; // the number of rows on the field
         @class(TractorMobility);
 }
+

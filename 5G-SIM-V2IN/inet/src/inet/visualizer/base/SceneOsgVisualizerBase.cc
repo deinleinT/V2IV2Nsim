@@ -16,8 +16,8 @@
 //
 
 #include "inet/common/ModuleAccess.h"
-#include "inet/common/OSGScene.h"
-#include "inet/common/OSGUtils.h"
+#include "inet/common/OsgScene.h"
+#include "inet/common/OsgUtils.h"
 #include "inet/visualizer/base/SceneOsgVisualizerBase.h"
 #include "inet/visualizer/scene/NetworkNodeOsgVisualizer.h"
 
@@ -36,9 +36,9 @@ namespace visualizer {
 
 void SceneOsgVisualizerBase::initializeScene()
 {
-    auto osgCanvas = visualizerTargetModule->getOsgCanvas();
+    auto osgCanvas = visualizationTargetModule->getOsgCanvas();
     if (osgCanvas->getScene() != nullptr)
-        throw cRuntimeError("OSG canvas scene at '%s' has been already initialized", visualizerTargetModule->getFullPath().c_str());
+        throw cRuntimeError("OSG canvas scene at '%s' has been already initialized", visualizationTargetModule->getFullPath().c_str());
     else {
         auto topLevelScene = new inet::osg::TopLevelScene();
         osgCanvas->setScene(topLevelScene);
@@ -74,7 +74,7 @@ void SceneOsgVisualizerBase::initializeAxis(double axisLength)
     geode->addChild(inet::osg::createLine(Coord::ZERO, Coord(0.0, 0.0, axisLength), cFigure::ARROW_NONE, cFigure::ARROW_BARBED));
     auto stateSet = inet::osg::createStateSet(cFigure::BLACK, 1.0, false);
     geode->setStateSet(stateSet);
-    auto scene = inet::osg::TopLevelScene::getSimulationScene(visualizerTargetModule);
+    auto scene = inet::osg::TopLevelScene::getSimulationScene(visualizationTargetModule);
     scene->addChild(geode);
     double spacing = 1;
     scene->addChild(inet::osg::createAutoTransform(inet::osg::createText("X", Coord::ZERO, cFigure::BLACK), osg::AutoTransform::ROTATE_TO_SCREEN, true, Coord(axisLength + spacing, 0.0, 0.0)));
@@ -82,30 +82,30 @@ void SceneOsgVisualizerBase::initializeAxis(double axisLength)
     scene->addChild(inet::osg::createAutoTransform(inet::osg::createText("Z", Coord::ZERO, cFigure::BLACK), osg::AutoTransform::ROTATE_TO_SCREEN, true, Coord(0.0, 0.0, axisLength + spacing)));
 }
 
-void SceneOsgVisualizerBase::initializePlayground()
+void SceneOsgVisualizerBase::initializeSceneFloor()
 {
-    Box playgroundBounds = getPlaygroundBounds();
-    if (playgroundBounds.getMin() != playgroundBounds.getMax()) {
-        const char *imageString = par("playgroundImage");
-        osg::Image *image = nullptr;
-        if (*imageString != '\0') {
-            std::string imagePath = resolveResourcePath(imageString);
-            image = inet::osg::createImage(imagePath.c_str());
-        }
-        double imageSize = par("playgroundImageSize");
-        auto color = cFigure::Color(par("playgroundColor"));
-        double opacity = par("playgroundOpacity");
-        bool shading = par("playgroundShading");
-        auto playground = createPlayground(playgroundBounds.getMin(), playgroundBounds.getMax(), color, image, imageSize, opacity, shading);
-        auto scene = inet::osg::TopLevelScene::getSimulationScene(visualizerTargetModule);
-        scene->addChild(playground);
+    Box sceneBounds = getSceneBounds();
+    if (sceneBounds.getMin() != sceneBounds.getMax()) {
+        const char *imageName = par("sceneImage");
+        osg::Image *image = *imageName ? inet::osg::createImageFromResource(imageName) : nullptr;
+        double imageSize = par("sceneImageSize");
+        auto color = cFigure::Color(par("sceneColor"));
+        double opacity = par("sceneOpacity");
+        bool shading = par("sceneShading");
+        auto sceneFloor = createSceneFloor(sceneBounds.getMin(), sceneBounds.getMax(), color, image, imageSize, opacity, shading);
+        auto scene = inet::osg::TopLevelScene::getSimulationScene(visualizationTargetModule);
+        scene->addChild(sceneFloor);
     }
 }
 
-osg::Geode *SceneOsgVisualizerBase::createPlayground(const Coord& min, const Coord& max, cFigure::Color& color, osg::Image *image, double imageSize, double opacity, bool shading) const
+osg::Geode *SceneOsgVisualizerBase::createSceneFloor(const Coord& min, const Coord& max, cFigure::Color& color, osg::Image *image, double imageSize, double opacity, bool shading) const
 {
     auto dx = max.x - min.x;
     auto dy = max.y - min.y;
+
+    if (!std::isfinite(dx) || !std::isfinite(dy))
+        return new osg::Geode();
+
     auto d = shading ? sqrt(dx * dx + dy * dy) : 0;
     auto width = dx + 2 * d;
     auto height = dy + 2 * d;
@@ -183,15 +183,15 @@ osg::BoundingSphere SceneOsgVisualizerBase::getNetworkBoundingSphere()
     int nodeCount = 0;
     auto nodes = new osg::Group();
     auto networkNodeVisualizer = getModuleFromPar<NetworkNodeOsgVisualizer>(par("networkNodeVisualizerModule"), this);
-    for (cModule::SubmoduleIterator it(getSystemModule()); !it.end(); it++) {
+    for (cModule::SubmoduleIterator it(visualizationSubjectModule); !it.end(); it++) {
         auto networkNode = *it;
         if (isNetworkNode(networkNode)) {
             nodeCount++;
             // NOTE: ignore network node annotations
-            auto visualRepresentation = networkNodeVisualizer->getNetworkNodeVisualization(networkNode);
-            auto mainNode = visualRepresentation->getMainPart();
+            auto networkNodeVisualization = networkNodeVisualizer->getNetworkNodeVisualization(networkNode);
+            auto mainNode = networkNodeVisualization->getMainPart();
             auto radius = std::max(0.0f, mainNode->computeBound().radius());
-            auto drawable = new osg::ShapeDrawable(new osg::Sphere(visualRepresentation->getPosition(), radius));
+            auto drawable = new osg::ShapeDrawable(new osg::Sphere(networkNodeVisualization->getPosition(), radius));
             auto geode = new osg::Geode();
             geode->addDrawable(drawable);
             nodes->addChild(geode);

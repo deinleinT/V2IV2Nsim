@@ -37,18 +37,9 @@ class NRSchedulerUeUl : public LteSchedulerUeUl
 
   public:
 
-    /* Performs the standard LCG scheduling algorithm
-     * @returns reference to scheduling list
-     */
+    virtual LteMacScheduleList* schedule();
 
-    virtual LteMacScheduleListWithSizes* schedule();
+    NRSchedulerUeUl(LteMacUe * mac, double carrierFrequency);
 
-    /*
-     * constructor
-     */
-    NRSchedulerUeUl(LteMacUe * mac);
-    /*
-     * destructor
-     */
     virtual ~NRSchedulerUeUl();
 };

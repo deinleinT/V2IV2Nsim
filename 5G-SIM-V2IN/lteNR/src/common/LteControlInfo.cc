@@ -1,30 +1,33 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
 #include "common/LteControlInfo.h"
 #include "stack/mac/amc/UserTxParams.h"
 
+using namespace inet;
+
 UserControlInfo::~UserControlInfo()
 {
-    if (userTxParams != NULL)
+    if (userTxParams != nullptr)
     {
         delete userTxParams;
-        userTxParams = NULL;
+        userTxParams = nullptr;
     }
 }
 
 UserControlInfo::UserControlInfo() :
     UserControlInfo_Base()
 {
-    userTxParams = NULL;
+    userTxParams = nullptr;
     grantedBlocks.clear();
-    bytesize = 0;
 }
 
 UserControlInfo& UserControlInfo::operator=(const UserControlInfo& other)
@@ -32,18 +35,18 @@ UserControlInfo& UserControlInfo::operator=(const UserControlInfo& other)
     if (&other == this)
         return *this;
 
-    if (other.userTxParams != NULL)
+    if (other.userTxParams != nullptr)
     {
         const UserTxParams* txParams = check_and_cast<const UserTxParams*>(other.userTxParams);
         this->userTxParams = txParams->dup();
     }
     else
     {
-        this->userTxParams = NULL;
+        this->userTxParams = nullptr;
     }
     this->grantedBlocks = other.grantedBlocks;
     this->senderCoord = other.senderCoord;
-    this->bytesize = other.bytesize;
+    this->feedbackReq = other.feedbackReq;
     UserControlInfo_Base::operator=(other);
     return *this;
 }
@@ -55,7 +58,7 @@ void UserControlInfo::setCoord(const inet::Coord& coord)
 
 void UserControlInfo::setUserTxParams(const UserTxParams *newParams)
 {
-    if(userTxParams != NULL){
+    if(userTxParams != nullptr){
         delete userTxParams;
     }
     userTxParams = newParams;
@@ -66,5 +69,3 @@ inet::Coord UserControlInfo::getCoord() const
 {
     return senderCoord;
 }
-
-

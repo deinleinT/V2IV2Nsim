@@ -17,16 +17,16 @@
 // Author: Benjamin Seregi
 //
 
-#include <set>
-#include <vector>
-#include <sstream>
 #include <queue>
+#include <set>
+#include <sstream>
+#include <vector>
 
-#include "inet/linklayer/configurator/L2NetworkConfigurator.h"
-#include "inet/networklayer/contract/IInterfaceTable.h"
-#include "inet/networklayer/common/InterfaceEntry.h"
 #include "inet/common/ModuleAccess.h"
 #include "inet/common/stlutils.h"
+#include "inet/linklayer/configurator/L2NetworkConfigurator.h"
+#include "inet/networklayer/common/InterfaceEntry.h"
+#include "inet/networklayer/contract/IInterfaceTable.h"
 
 namespace inet {
 
@@ -46,7 +46,7 @@ void L2NetworkConfigurator::initialize(int stage)
 {
     if (stage == INITSTAGE_LOCAL)
         configuration = par("config");
-    else if (stage == INITSTAGE_LINK_LAYER)
+    else if (stage == INITSTAGE_NETWORK_CONFIGURATION)
         ensureConfigurationComputed(topology);
 }
 
@@ -176,7 +176,7 @@ void L2NetworkConfigurator::readInterfaceConfiguration(Node *rootNode)
 
                         // Note: "hosts", "interfaces" and "towards" must ALL match on the interface for the rule to apply
                         if ((hostMatcher.matchesAny() || hostMatcher.matches(hostShortenedFullPath.c_str()) || hostMatcher.matches(hostFullPath.c_str()))
-                            && (interfaceMatcher.matchesAny() || interfaceMatcher.matches(ifEntry->getFullName()))
+                            && (interfaceMatcher.matchesAny() || interfaceMatcher.matches(ifEntry->getInterfaceName()))
                             && (towardsMatcher.matchesAny() || linkContainsMatchingHostExcept(currentNode->interfaceInfos[i], towardsMatcher, hostModule))
                             && (portsMatcher.matchesAny() || portsMatcher.matches(port.c_str())))
                         {
@@ -191,7 +191,7 @@ void L2NetworkConfigurator::readInterfaceConfiguration(Node *rootNode)
                             //edge
                             if (isNotEmpty(edge))
                                 currentNode->interfaceInfos[i]->portData.edge = strcmp(edge, "true") ? false : true;
-                            //EV_DEBUG << hostModule->getFullPath() << ":" << ifEntry->getFullName() << endl;
+                            //EV_DEBUG << hostModule->getFullPath() << ":" << ifEntry->getInterfaceName() << endl;
 
                             matchedBefore.insert(ifEntry);
                         }
@@ -261,7 +261,7 @@ bool L2NetworkConfigurator::linkContainsMatchingHostExcept(InterfaceInfo *curren
 void L2NetworkConfigurator::configureInterface(InterfaceEntry *interfaceEntry)
 {
     ensureConfigurationComputed(topology);
-    cModule *networkNodeModule = findContainingNode(interfaceEntry->getInterfaceModule());
+    cModule *networkNodeModule = findContainingNode(interfaceEntry);
     // TODO: avoid linear search
     for (int i = 0; i < topology.getNumNodes(); i++) {
         Node *node = (Node *)topology.getNode(i);
@@ -278,7 +278,7 @@ void L2NetworkConfigurator::configureInterface(InterfaceEntry *interfaceEntry)
 void L2NetworkConfigurator::configureInterface(InterfaceInfo *interfaceInfo)
 {
     InterfaceEntry *interfaceEntry = interfaceInfo->interfaceEntry;
-    Ieee8021dInterfaceData *interfaceData = interfaceEntry->ieee8021dData();
+    Ieee8021dInterfaceData *interfaceData = interfaceEntry->getProtocolData<Ieee8021dInterfaceData>();
 
     interfaceData->setLinkCost(interfaceInfo->portData.linkCost);
     interfaceData->setPriority(interfaceInfo->portData.priority);

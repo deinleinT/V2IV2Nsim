@@ -17,17 +17,17 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-package nr.simulationsNR.Motorway;
+package lteNR.simulationsNR.Motorway;
 
-import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
+import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 import inet.networklayer.ipv4.RoutingTableRecorder;
 import inet.node.inet.AdhocHost;
 import inet.node.inet.Router;
 import inet.node.inet.StandardHost;
 import inet.node.ethernet.Eth10G;
 
-import nr.world.radio.NRChannelControl;
-import nr.corenetwork.binder.NRBinder;
+import lteNR.nr.world.radio.NRChannelControl;
+import lteNR.nr.common.binder.NRBinder;
 
 import org.car2x.veins.subprojects.veins_inet.VeinsInetManager;
 import org.car2x.veins.modules.obstacle.ObstacleControl;
@@ -35,9 +35,11 @@ import org.car2x.veins.modules.world.annotations.AnnotationManager;
 import org.car2x.veins.base.modules.BaseWorldUtility;
 import org.car2x.veins.visualizer.roads.RoadsCanvasVisualizer;
 
-import nr.corenetwork.nodes.UPF;
-import nr.corenetwork.nodes.gNodeB;
-import nr.corenetwork.nodes.GeneralParameters;
+import lteNR.nr.common.nodes.UPF;
+import lteNR.nr.common.nodes.gnodeB;
+import lteNR.nr.common.nodes.GeneralParameters;
+
+import lteNR.common.carrierAggregation.CarrierAggregation;
 
 
 network NRFourBSHighwaySimple extends GeneralParameters
@@ -50,55 +52,60 @@ network NRFourBSHighwaySimple extends GeneralParameters
 
     submodules:
 
+        carrierAggregation: CarrierAggregation {
+            @display("p=6976.3203,182.52;is=s");
+        }
+
         world: BaseWorldUtility {
             parameters:
                 playgroundSizeX = playgroundSizeX;
                 playgroundSizeY = playgroundSizeY;
                 playgroundSizeZ = playgroundSizeZ;
-                @display("p=6853.6997,4467.1436;i=misc/globe");
+                @display("p=6966.18,4633.98;i=misc/globe");
         }
 
 		//INET
         routingRecorder: RoutingTableRecorder {
-            @display("p=6853.6997,2019.3937;is=s");
+            @display("p=6966.18,1368.9;is=s");
         }
+
         //INET
-        configurator: IPv4NetworkConfigurator {
-            @display("p=6853.6997,3353.4175");
+        configurator: Ipv4NetworkConfigurator {
+            @display("p=6215.8203,4633.98");
             config = xmldoc("demo.xml");
         }
 
         roadsCanvasVisualizer: RoadsCanvasVisualizer {
-            @display("p=6854.64,1571.7001");
+            @display("p=6966.18,801.06");
         }
 
         //# Veins manager module
         veinsManager: VeinsInetManager {
-            @display("p=6853.6997,2582.3762;is=s");
+            @display("p=6966.18,1946.88;is=s");
         }
 
         obstacles: ObstacleControl {
-            @display("p=6853.6997,4087.7424");
+            @display("p=6966.18,3985.02");
         }
 
         annotations: AnnotationManager {
-            @display("p=6853.6997,3720.5798");
+            @display("p=6966.18,3346.2002");
         }
 
         //# NR modules
         //changed
         channelControl: NRChannelControl {
-            @display("p=6853.6997,3096.4036;is=s");
+            @display("p=6966.18,2605.98;is=s");
         }
 
         //changed
         binder: NRBinder {
-            @display("p=6853.6997,2827.1511;is=s");
+            @display("p=6215.8203,3985.02;is=s");
         }
 
         //INET
         server1: StandardHost {
-            @display("p=3182.544,3432.744;is=n;i=device/server");
+            @display("p=3934.32,3031.86;is=n;i=device/server");
         }
         server2: StandardHost {
             @display("p=3032.424,4473.576;is=n;i=device/server");
@@ -116,19 +123,19 @@ network NRFourBSHighwaySimple extends GeneralParameters
             @display("p=510.408,3993.192;is=l");
         }
 
-        gNodeB1: gNodeB {
+        gNodeB1: gnodeB {
             @display("p=5911.62,182.52;is=vl");//hochhaus
         }
 
-        gNodeB2: gNodeB {
+        gNodeB2: gnodeB {
             @display("p=4279.08,182.52;is=vl");
         }
 
-        gNodeB3: gNodeB {
+        gNodeB3: gnodeB {
             @display("p=2555.28,182.52;is=vl");
         }
 
-        gNodeB4: gNodeB {
+        gNodeB4: gnodeB {
             @display("p=902.46,577.98004;is=vl");
         }
 

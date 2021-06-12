@@ -16,6 +16,7 @@
 //
 
 #include <algorithm>
+
 #include "inet/visualizer/base/InfoVisualizerBase.h"
 
 namespace inet {
@@ -27,8 +28,9 @@ InfoVisualizerBase::InfoVisualization::InfoVisualization(int moduleId) :
 {
 }
 
-const char *InfoVisualizerBase::DirectiveResolver::resolveDirective(char directive)
+const char *InfoVisualizerBase::DirectiveResolver::resolveDirective(char directive) const
 {
+    static std::string result;
     switch (directive) {
         case 'n':
             result = module->getFullName();
@@ -36,7 +38,7 @@ const char *InfoVisualizerBase::DirectiveResolver::resolveDirective(char directi
         case 'p':
             result = module->getFullPath();
             break;
-        case 'd':
+        case 't':
             result = module->getDisplayString().getTagArg("t", 0);
             break;
         case 's':
@@ -71,6 +73,7 @@ void InfoVisualizerBase::initialize(int stage)
 
 void InfoVisualizerBase::handleParameterChange(const char *name)
 {
+    if (!hasGUI()) return;
     if (name != nullptr) {
         if (!strcmp(name, "modules"))
             modules.setPattern(par("modules"));
@@ -115,7 +118,7 @@ void InfoVisualizerBase::addInfoVisualizations()
 
 void InfoVisualizerBase::removeAllInfoVisualizations()
 {
-    for (auto infoVisualization : infoVisualizations) {
+    for (auto infoVisualization : std::vector<const InfoVisualization *>(infoVisualizations)) {
         removeInfoVisualization(infoVisualization);
         delete infoVisualization;
     }

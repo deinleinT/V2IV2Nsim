@@ -21,53 +21,18 @@
 // Part of 5G-Sim-V2I/N
 //
 
-package nr.stack.phy;
+package lteNR.nr.stack.phy;
 
-import lte.stack.phy.LtePhy;
+import lteNR.stack.phy.NRPhyUe;
+import lteNR.stack.phy.LtePhyEnb;
 
-
-moduleinterface NRPhy extends LtePhy
-{
-    gates:
-        inout upperRRC;
-}
-
-simple NRPhyBase like NRPhy
+simple NRPhyUE extends NRPhyUe
 {
     parameters:
-        @display("i=block/wrxtx");
-        bool usePropagationDelay = default(true);                     // Should transmission delay be simulated?
-        //xml channelModel;
-        double ueTxPower = default(24);
-        double eNodeBTxPower = default(44);
-        double relayTxPower = default(20);
-        double microTxPower = default(30);
-        string txDirection = default("OMNI");
-        double txAngle = default(0);
-        double dasRssiThreshold = default(1.0e-5);
-//        bool exchangeBuffersOnHandover = default(false);
-
-        bool dynamicCellAssociation = default(true);
-
-        // switch for handover messages handling on UEs
-        bool enableHandover = default(true);
-        double handoverLatency @unit(s) = default(0.001s);
-        double handoverDelta @unit(s) = default(0.0001s);
+        double handoverDelta @unit(s) = default(0.001s);
+        double dasRssiThreshold = default(0.00001);
         
-        bool enableMulticastD2DRangeCheck = default(false);
-        double multicastD2DRange @unit(m) = default(1000m);
-
-    gates:
-        input upperGateIn;       // from upper layer
-        output upperGateOut;    // to upper layer
-        input radioIn;           // gate to receive message via sendDirect
-        inout upperRRC;
-}
-
-simple NRPhyUe extends NRPhyBase
-{
-    parameters:
-        @class("NRPhyUe");
+        @class("NRPhyUE");
 
         @signal[servingCell];
         @statistic[servingCell](title="ID of the serving eNodeB for the UE"; unit=""; source="servingCell"; record=vector);
@@ -103,11 +68,9 @@ simple NRPhyUe extends NRPhyBase
         @signal[speed];
         @statistic[speed](title="Speed"; unit=""; source="speed"; record=vector);
         
-        //channelModel.isNodeB = false;
-        
 }
 
-simple NRPhyGnb extends NRPhyBase
+simple NRPhyGnb extends LtePhyEnb
 {
     parameters:
         @class("NRPhyGnb");
@@ -136,12 +99,6 @@ simple NRPhyGnb extends NRPhyBase
 
         @signal[speed];
         @statistic[speed](title="Speed"; unit=""; source="speed"; record=vector);
-        
-        double targetBler = default(0.1);
-        double lambdaMinTh = default(0.02);
-        double lambdaMaxTh = default(0.2);
-        double lambdaRatioTh = default(20);
-        bool cqiFlag = default(false);
         
 }
 

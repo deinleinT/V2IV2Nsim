@@ -16,6 +16,7 @@
 //
 
 #include <algorithm>
+
 #include "inet/visualizer/base/QueueVisualizerBase.h"
 
 namespace inet {
@@ -24,12 +25,13 @@ namespace visualizer {
 
 void QueueVisualizerBase::QueueVisitor::visit(cObject *object)
 {
-    if (auto queue = dynamic_cast<PacketQueue *>(object))
+    if (auto queue = dynamic_cast<queueing::IPacketQueue *>(object))
         queues.push_back(queue);
-    object->forEachChild(this);
+    else
+        object->forEachChild(this);
 }
 
-QueueVisualizerBase::QueueVisualization::QueueVisualization(PacketQueue *queue) :
+QueueVisualizerBase::QueueVisualization::QueueVisualization(queueing::IPacketQueue *queue) :
     queue(queue)
 {
 }
@@ -56,6 +58,7 @@ void QueueVisualizerBase::initialize(int stage)
 
 void QueueVisualizerBase::handleParameterChange(const char *name)
 {
+    if (!hasGUI()) return;
     if (name != nullptr) {
         removeAllQueueVisualizations();
         addQueueVisualizations();
@@ -80,9 +83,8 @@ void QueueVisualizerBase::removeQueueVisualization(const QueueVisualization *que
 
 void QueueVisualizerBase::addQueueVisualizations()
 {
-    auto simulation = getSimulation();
     QueueVisitor queueVisitor;
-    simulation->getSystemModule()->forEachChild(&queueVisitor);
+    visualizationSubjectModule->forEachChild(&queueVisitor);
     for (auto queue : queueVisitor.queues) {
         if (queueFilter.matches(queue))
             addQueueVisualization(createQueueVisualization(queue));
@@ -91,7 +93,7 @@ void QueueVisualizerBase::addQueueVisualizations()
 
 void QueueVisualizerBase::removeAllQueueVisualizations()
 {
-    for (auto queueVisualization : queueVisualizations) {
+    for (auto queueVisualization : std::vector<const QueueVisualization *>(queueVisualizations)) {
         removeQueueVisualization(queueVisualization);
         delete queueVisualization;
     }

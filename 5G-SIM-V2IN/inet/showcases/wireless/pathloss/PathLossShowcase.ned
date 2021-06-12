@@ -16,7 +16,7 @@
 package inet.showcases.wireless.pathloss;
 
 import inet.environment.common.PhysicalEnvironment;
-import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
+import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 import inet.node.inet.AdhocHost;
 import inet.physicallayer.ieee80211.packetlevel.Ieee80211ScalarRadioMedium;
 import inet.visualizer.integrated.IntegratedVisualizer;
@@ -25,7 +25,7 @@ import inet.visualizer.integrated.IntegratedVisualizer;
 network PathLossShowcase
 {
     @display("bgb=1400,400");
-    @statistic[receptionPower](source="receptionMinSignalPower(radioMedium.receptionStarted)"; record=last);
+    @statistic[receptionPower](source="receptionMinSignalPower(radioMedium.signalArrivalStarted)"; record=last);
     submodules:
         source: AdhocHost {
             @display("p=144.37871,110.05918");
@@ -33,7 +33,7 @@ network PathLossShowcase
         destination: AdhocHost {
             @display("p=226.62724,110.05918");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=49.704147,35.502964");
         }
         radioMedium: Ieee80211ScalarRadioMedium {

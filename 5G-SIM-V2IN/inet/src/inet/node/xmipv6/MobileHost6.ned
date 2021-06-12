@@ -18,19 +18,17 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 
-
 package inet.node.xmipv6;
 
 import inet.node.ipv6.StandardHost6;
-
 
 //
 // MIPv6 host with TCP, UDP layers and applications.
 //
 module MobileHost6 extends StandardHost6
 {
-    networkLayer.xMIPv6Support = true;
-    networkLayer.mipv6support.isMobileNode = true; //is Mobile Node
-    networkLayer.mipv6support.isHomeAgent = false; //is Home Agent
+    ipv6.xMIPv6Support = true;
+    ipv6.mipv6support.isMobileNode = true; //is Mobile Node
+    ipv6.mipv6support.isHomeAgent = false; //is Home Agent
 }
 

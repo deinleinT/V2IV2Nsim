@@ -1,16 +1,227 @@
+====== inet-4.x ======
+
+2021-01-07  ------ inet-4.2.2 released ------
+
+2020-10-27  ------ inet-4.2.1 released ------
+
+2020-01-08  ------ inet-4.2.0 released ------
+
+2019-10-14  Levente Mészáros
+
+	Removed allowunconnected because queue in/out gates are loose.
+	Replaced txQueueLimit with queue.frameCapacity.
+
+2019-09-02  Zoltan Bojthe
+
+	Optimized tag usage.
+
+2019-06-03  Zoltan Bojthe
+
+	Renamed	transmissionQueue --> txQueue and popFromTransmissionQueue() --> popTxQueue().
+
+2019-05-28  Zoltan Bojthe
+
+	Moved flushQueue() and clearQueue() implementation to MacProtocolBase.
+
+2019-05-17  Zoltan Bojthe
+
+	Don't push the deleted packet to queue.
+
+2019-04-08  Zoltan Bojthe
+
+	Don't throw error in dissectors when ETH/PPP protocol field contains unknown protocol ID.
+
+2019-02-22  Levente Mészáros
+
+	Added displayStringTextFormat parameter to Ppp module.
+
+2019-02-14  Levente Mészáros
+
+	Ported to the new queueing API.
+
+2019-01-22  Levente Mészáros
+
+	Added InterfaceEntry NED base module to all interfaces.
+
+2019-01-28  ------ inet-4.1.0 released ------
+
+2019-01-08  Zoltan Bojthe
+
+	Set carrier status on start/stop/crash operations.
+
+2019-01-07  Zoltan Bojthe
+
+	Set interface status on start/stop/crash operations.
+
+2018-12-04  Zoltan Bojthe
+
+	Added wait until queue becomes empty at stop operation.
+
+2018-11-27  Zoltan Bojthe
+
+	Changed refreshDisplay to show lifecycle operational status.
+
+2018-10-08  Zoltan Bojthe
+
+	Moved registerInterface() call to MacProtocolBase::initialize().
+
+2018-09-28  Levente Mészáros
+
+	Extracted INITSTAGE_LINK_LAYER from INITSTAGE_NETWORK_INTERFACE_CONFIGURATION where applicable.
+
+2018-09-27  Levente Mészáros
+
+	Renamed INITSTAGE_LINK_LAYER to INITSTAGE_NETWORK_INTERFACE_CONFIGURATION.
+	Renamed INITSTAGE_LINK_LAYER_2 to INITSTAGE_LINK_LAYER.
+
+2018-09-24  Zoltan Bojthe
+
+	Dropped optional hooks from network interfaces.
+
+2018-08-17  Zoltan Bojthe
+
+	Added namespace qualifier to @signal type parameters.
+
+2018-07-27  Zoltan Bojthe
+
+	Refactored createInterfaceEntry() to configureInterfaceEntry().
+
+2018-06-27  ------ inet-4.0.0 released ------
+
+2018-06-05  Levente Mészáros
+
+	Replaced fooType NED parameters with foo.typename parameters.
+
+2018-05-10  Zoltan Bojthe
+
+	Moved header serializers to the corresponding protocol folders.
+
+2018-03-14  Zoltan Bojthe
+
+	Added PppProtocolPrinter.
+
+2018-03-28  Zoltan Bojthe
+
+	Moved PppProtocolDissector to separated file.
+
+2018-04-13  ------ inet-3.99.3 released ------
+
+2018-02-21  Zoltan Bojthe
+
+	Changed clearing tags when sending a packet to leave the PacketProtocolTag intact.
+
+2018-02-21  Levente Mészáros
+
+	Fixed missing PacketProtocolTag for raw packets.
+
+2018-02-16  Zoltan Bojthe
+
+	Added PppProtocolDissector.
+
+2018-02-08  Zoltan Bojthe
+
+	Renamed txStateSignal to transmissionStateChangedSignal.
+
+2018-02-05  Zoltan Bojthe
+
+	Revised signals.
+
+2018-01-18  Levente Mészáros
+
+	Replaced packet tags API calls to use the new API.
+
+2018-01-09  Zoltan Bojthe
+
+	Renamed @statistics to use camel case.
+
+2018-01-05  Zoltan Bojthe
+
+	Renamed NF_* signals to use camel case.
+	Renamed signal variables to *Signal.
+
+2018-01-02  Levente Mészáros
+
+	Replaced cPacket with Packet.
+
+2017-12-22  ------ inet-3.99.2 released ------
+
+2017-12-20  Zoltan Bojthe
+
+	Renaming:
+	    MACBase -> MacBase
+	    PPP -> Ppp
+	    PPPFrame -> PppFrame
+	    PPPInterface -> PppInterface
+	    PPPHeaderSerializer -> PppHeaderSerializer
+
+2017-12-15  Zoltan Bojthe
+
+	Removed unnecessary cPar::longValue() calls.
+
+	Motivation: rely on cast operators instead because they can detect
+	overflows (when the value is cast to a smaller integer type that can not
+	represent it). Removed unnecessary .longvalue() calls. Replaced to
+	.intValue() in comparisons.
+
+2017-12-14  Levente Mészáros
+
+	Replaced pushHeader, pushTrailer with insertHeader, insertTrailer.
+	Removed unnecessary markImmutable() calls.
+
+2017-11-16  Levente Mészáros
+
+	Moved packetSentTo*Signal and packetReceivedFrom*Signal into Simsignals.
+
+2017-11-17  Zoltan Bojthe
+
+	Added required import statements to MSG files according to new syntax.
+
+2017-11-16  ------ inet-3.99.1 released ------
+
+2017-07-12  Levente Mészáros
+
+	Added missing packet drop related statistics.
+	Replaced remaining packet drop signals with the generic one.
+
+2017-07-10  Levente Mészáros
+
+	Updated packet drop signals and statistics.
+
+2017-03-29  Levente Mészáros
+
+	Fixed peeking trailer for the case when deserializing from a BytesChunk.
+
+2017-03-16  Levente Mészáros
+
+	Added missing PacketProtocolTag.
+	Changed append/prepend to the more intentional push variants.
+
+2017-02-21  Levente Mészáros
+
+	Moved headerserializers one level up.
+2017-02-21  Levente Mészáros
+
+	Make sure the packet has the correct PacketProtocolTag before emitting.
+	Fixed ppp protocol group to use the correct one.
+	Added sendRawBytes parameter to allow sending out serialized packets.
+
+2016-10-26  Zoltan Bojthe
+
+	Removed compatibility macros required for OMNeT++ 4.x builds.
+
+2015-07-01  Zoltan Bojthe
+
+	Added @nic property to all network interfaces.
+
+2015-06-11  Levente Mészáros
+
+	Renamed gates from netwIn/netwOut to upperLayerIn/upperLayerOut be similar to other MACs.
+
+2015-05-27  Levente Mészáros
+
+	Added protocol field and added control info to packets that are sent up.
+
 ====== inet-3.x ======
-
-2020-10-20  ------ inet-3.6.8 released ------
-
-2020-10-19  Zoltan Bojthe
-
-	PPP: module deletion fix
-
-2019-11-04  ------ inet-3.6.7 released ------
-
-2019-08-16  ------ inet-3.6.6 released ------
-
-2019-04-12  ------ inet-3.6.5 released ------
 
 2018-03-21  ------ inet-3.6.4 released ------
 

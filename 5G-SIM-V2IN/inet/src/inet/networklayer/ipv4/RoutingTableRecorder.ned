@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-
 package inet.networklayer.ipv4;
 
 //
-// Records changes in the routing tables (~IPv4RoutingTable) and interface tables
+// Records changes in the routing tables (~Ipv4RoutingTable) and interface tables
 // (~InterfaceTable) of all hosts and routers. The filename has to be specified
 // in the routinglog-file configuration option that this module registers.
 //
@@ -26,6 +25,6 @@ simple RoutingTableRecorder
 {
     parameters:
         bool enabled = default(true);
-        @display("i=block/control_s");
+        @display("i=block/control");
 }
 

@@ -21,9 +21,9 @@
 // Part of 5G-Sim-V2I/N
 //
 
-package nr.world.radio;
+package lteNR.nr.world.radio;
 
-import lte.world.radio.LteChannelControl;
+import lteNR.world.radio.LteChannelControl;
 
 simple NRChannelControl extends LteChannelControl
 {

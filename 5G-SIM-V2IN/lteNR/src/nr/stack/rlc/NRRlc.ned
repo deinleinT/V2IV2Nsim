@@ -22,9 +22,9 @@
 //
 
 
-package nr.stack.rlc;
+package lteNR.nr.stack.rlc;
 
-import lte.stack.rlc.*;
+import lteNR.stack.rlc.*;
 
 // 
 // Compound module for the RLC layer of LTE Stack.
@@ -38,7 +38,6 @@ module NRRlc extends LteRlc
 
 }
 
-
 // 
 // UM Module
 //
@@ -47,6 +46,24 @@ simple NRRlcUm extends LteRlcUm like ILteRlcUm
     parameters:
         @class("NRRlcUm");
         @display("i=block/wheelbarrow");
-        
-        
 }
+
+// 
+// UM Module
+//
+//simple NRRlcAm extends LteRlcAm
+//{
+//    parameters:
+//        @class("");
+//        @display("i=block/wheelbarrow");
+//}
+
+// 
+// UM Module
+//
+//simple NRRlcTm extends LteRlcTm
+//{
+//    parameters:
+//        @class("");
+//        @display("i=block/wheelbarrow");
+//}

@@ -1,9 +1,11 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
@@ -11,6 +13,9 @@
 #include "stack/mac/layer/LteMacEnbD2D.h"
 
 Define_Module(D2DModeSelectionBase);
+
+using namespace inet;
+using namespace omnetpp;
 
 void D2DModeSelectionBase::initialize(int stage)
 {
@@ -26,15 +31,6 @@ void D2DModeSelectionBase::initialize(int stage)
 
         // get mode selection period
         modeSelectionPeriod_ = par("modeSelectionPeriod").doubleValue();
-        int TTI;
-		if (binder_->getNumerology() == 15) {
-			TTI = 0.001;
-		} else if (binder_->getNumerology() == 30) {
-			TTI = 0.0005;
-		} else if (binder_->getNumerology() == 60) {
-			TTI =  0.00025;
-		}else
-			throw cRuntimeError("Numerology not supported");
         if (modeSelectionPeriod_ < TTI)
             modeSelectionPeriod_ = TTI;
 
@@ -73,7 +69,7 @@ void D2DModeSelectionBase::handleMessage(cMessage *msg)
 
 void D2DModeSelectionBase::doModeSwitchAtHandover(MacNodeId nodeId, bool handoverCompleted)
 {
-    //EV << NOW << " D2DModeSelectionBase::doModeSwitchAtHandover - Force mode switching for UE " << nodeId << " (handover)" << endl;
+    EV << NOW << " D2DModeSelectionBase::doModeSwitchAtHandover - Force mode switching for UE " << nodeId << " (handover)" << endl;
 
     LteD2DMode newMode;
     if (handoverCompleted)
@@ -113,7 +109,7 @@ void D2DModeSelectionBase::doModeSwitchAtHandover(MacNodeId nodeId, bool handove
             // update peering map
             jt->second = newMode;
 
-            //std::cout << NOW << " D2DModeSelectionBase::doModeSwitchAtHandover - Flow: " << srcId << " --> " << dstId << " [" << d2dModeToA(newMode) << "]" << endl;
+            EV << NOW << " D2DModeSelectionBase::doModeSwitchAtHandover - Flow: " << srcId << " --> " << dstId << " [" << d2dModeToA(newMode) << "]" << endl;
         }
     }
 
@@ -134,7 +130,6 @@ void D2DModeSelectionBase::sendModeSwitchNotifications()
         LteD2DMode oldMode = it->oldMode;
         LteD2DMode newMode = it->newMode;
 
-        // TODO make check_and_cast in initialize
         check_and_cast<LteMacEnbD2D*>(mac_)->sendModeSwitchNotification(srcId, dstId, oldMode, newMode);
     }
 }

@@ -26,11 +26,12 @@
 #ifndef __INET_WISEROUTE_H
 #define __INET_WISEROUTE_H
 
-#include "inet/networklayer/contract/INetworkProtocol.h"
-#include "inet/networklayer/contract/IARP.h"
+#include "inet/common/packet/Packet.h"
 #include "inet/networklayer/base/NetworkProtocolBase.h"
 #include "inet/networklayer/common/L3Address.h"
-#include "inet/networklayer/wiseroute/WiseRouteDatagram.h"
+#include "inet/networklayer/contract/IArp.h"
+#include "inet/networklayer/contract/INetworkProtocol.h"
+#include "inet/networklayer/wiseroute/WiseRouteHeader_m.h"
 
 namespace inet {
 
@@ -69,6 +70,13 @@ class INET_API WiseRoute : public NetworkProtocolBase, public INetworkProtocol
 
     virtual ~WiseRoute();
 
+    const Protocol& getProtocol() const override { return Protocol::wiseRoute; }
+
+    // OperationalBase:
+    virtual void handleStartOperation(LifecycleOperation *operation) override {}    //TODO implementation
+    virtual void handleStopOperation(LifecycleOperation *operation) override {}    //TODO implementation
+    virtual void handleCrashOperation(LifecycleOperation *operation) override {}    //TODO implementation
+
   protected:
     enum messagesTypes {
         DATA,
@@ -95,7 +103,7 @@ class INET_API WiseRoute : public NetworkProtocolBase, public INetworkProtocol
     tRouteTable routeTable;
     tFloodTable floodTable;
 
-    IARP *arp = nullptr;
+    IArp *arp = nullptr;
 
     /**
      * @brief Length of the NetwPkt header
@@ -155,10 +163,10 @@ class INET_API WiseRoute : public NetworkProtocolBase, public INetworkProtocol
     /*@{*/
 
     /** @brief Handle messages from upper layer */
-    virtual void handleUpperPacket(cPacket *msg) override;
+    virtual void handleUpperPacket(Packet *packet) override;
 
     /** @brief Handle messages from lower layer */
-    virtual void handleLowerPacket(cPacket *msg) override;
+    virtual void handleLowerPacket(Packet *packet) override;
 
     /** @brief Handle self messages */
     virtual void handleSelfMessage(cMessage *msg) override;
@@ -170,8 +178,8 @@ class INET_API WiseRoute : public NetworkProtocolBase, public INetworkProtocol
      */
     virtual void updateRouteTable(const tRouteTable::key_type& origin, const L3Address& lastHop, double rssi, double ber);
 
-    /** @brief Decapsulate a message */
-    cMessage *decapsMsg(WiseRouteDatagram *msg);
+    /** @brief Decapsulate a message and delete original msg */
+    void decapsulate(Packet *packet);
 
     /** @brief update flood table. returns detected flood type (general or unicast flood to forward,
      *         duplicate flood to delete, unicast flood to me
@@ -194,7 +202,7 @@ class INET_API WiseRoute : public NetworkProtocolBase, public INetworkProtocol
      * @param pMsg      The message where the "control info" shall be attached.
      * @param pDestAddr The MAC address of the message receiver.
      */
-    virtual cObject *setDownControlInfo(cMessage *const pMsg, const MACAddress& pDestAddr);
+    virtual void setDownControlInfo(Packet *const pMsg, const MacAddress& pDestAddr);
 };
 
 } // namespace inet

@@ -1,8 +1,10 @@
+package inet.test.moduletest.lib;
+
 import inet.node.inet.StandardHost;
 import inet.node.inet.Router;
 import ned.DatarateChannel;
 
-network SCTPFeatureTest
+network SctpFeatureTest
 {
     parameters:
         volatile double testTimeout @unit(s);
@@ -24,8 +26,8 @@ network SCTPFeatureTest
         sctp_client: StandardHost {
             parameters:
                 forwarding = false;
-                routingTable.routingFile = "../../lib/sctp_client.mrt";
-                networkLayer.configurator.networkConfiguratorModule = "";
+                ipv4.routingTable.routingFile = "../../lib/sctp_client.mrt";
+                ipv4.configurator.networkConfiguratorModule = "";
                 @display("i=old/laptop3;p=128,317");
             gates:
                 pppg[1];
@@ -33,24 +35,24 @@ network SCTPFeatureTest
         sctp_server: StandardHost {
             parameters:
                 forwarding = false;
-                routingTable.routingFile = "../../lib/sctp_server.mrt";
-                networkLayer.configurator.networkConfiguratorModule = "";
+                ipv4.routingTable.routingFile = "../../lib/sctp_server.mrt";
+                ipv4.configurator.networkConfiguratorModule = "";
                 @display("i=old/laptop3");
             gates:
                 pppg[1];
         }
         router1: Router {
             parameters:
-                routingTable.routingFile = "../../lib/sctp_router1.mrt";
-                networkLayer.configurator.networkConfiguratorModule = "";
+                ipv4.routingTable.routingFile = "../../lib/sctp_router1.mrt";
+                ipv4.configurator.networkConfiguratorModule = "";
                 @display("i=abstract/router;p=270,293");
             gates:
                 pppg[2];
         }
         router2: Router {
             parameters:
-                routingTable.routingFile = "../../lib/sctp_router2.mrt";
-                networkLayer.configurator.networkConfiguratorModule = "";
+                ipv4.routingTable.routingFile = "../../lib/sctp_router2.mrt";
+                ipv4.configurator.networkConfiguratorModule = "";
                 @display("i=abstract/router");
             gates:
                 pppg[2];

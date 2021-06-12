@@ -1,12 +1,296 @@
+====== inet-4.x ======
+
+2021-01-07  ------ inet-4.2.2 released ------
+
+2020-10-27  ------ inet-4.2.1 released ------
+
+2020-01-08  ------ inet-4.2.0 released ------
+
+2019-12-18  Levente Mészáros
+
+	Added a bunch of new parameters to MediumVisualizerBase.
+
+2019-12-05  Levente Mészáros
+
+	Added visualization support for spectograms and power density maps.
+	Also added a ton of new parameters to control the new visualizations.
+
+2019-11-25  Zoltan Bojthe
+
+	InterfaceTableVisualizer: detects interface state and carrier changes.
+	Fixed the Gate::getDisplayString() channel creation side effect.
+
+2019-11-13  Levente Mészáros
+
+	Added %t to display string format to display interface state.
+
+2019-11-12  Zoltan Bojthe
+
+	Fixed looking up InterfaceEntry.
+
+2019-11-07  Levente Mészáros
+
+	Fixed crash during destruction of InterfaceTableCanvasVisualizer.
+
+2019-11-05  Levente Mészáros
+
+	Fixed concurrent update while iterating a vector during removing all visualizations.
+	Fixed memory leaks caused by not cleaning up after destruction.
+
+2019-10-07  Levente Mészáros
+
+	Fixed disabled radio feature.
+
+2019-09-24  Levente Mészáros
+
+	Added basic documentation to spectrum figures.
+	Added guard around mediumPowerFunction initialization.
+
+2019-09-23  Levente Mészáros
+
+	Renamed carrierFrequency to centerFrequency.
+
+	This confusion was spread all around the code. In most places we don't
+	know what kind of modulation is used (e.g. OFDM has several subcarriers),
+	so it doesn't really make sense.
+
+2019-09-20  Levente Mészáros
+
+	Added spectrumFigureInterpolationSize parameter to interpolate for the
+	logarithmic scale of spectrum figures.
+
+2019-09-16  Levente Mészáros
+
+	Added support for transmitting signals without an attached packet.
+
+2019-09-11  Levente Mészáros
+
+	Added background noise visualization to MediumCanvasVisualizer.
+
+2019-08-27  Levente Mészáros
+
+	Replaced simtime_t type with simsec in multidimensional analog domain signal representations.
+
+2019-06-07  Levente Mészáros
+
+	Added transmission medium signal power spectral density visualization.
+
+2019-06-05  Levente Mészáros
+
+	Implemented the creation and deletion of network node visualizations for dynamic modules.
+
+2019-03-18  Gyorgy Szaszko
+
+	Changed InfoVisualizer to visualize display string by default.
+
+2019-01-04  Levente Mészáros
+
+	Adapted queue visualizers to the new queueing API.
+
+2019-01-28  ------ inet-4.1.0 released ------
+
+2018-12-10  Zoltan Bojthe
+
+	Fixed feature related dependency.
+
+2018-10-19  Levente Mészáros
+
+	Added antennaLobeNormalize and antennaLobeRelativeLabels parameters.
+
+2018-10-17  Levente Mészáros
+
+	Added logarithmic mode to antenna lobe visualization.
+
+2018-10-15  Levente Mészáros
+
+	Added antennaLobeLineSmooth parameter.
+
+2018-10-05  Andras Varga
+
+	Changed %d to %t in InfoVisualizer format string.
+
+2018-09-30  Andras Varga
+
+	Renamed playground* (NED parameters, C++ variables/methods) to scene*.
+
+2018-09-28  Levente Mészáros
+
+	Fixed getPlayground when constraint area min/max is NaN.
+	Added sceneMin* and sceneMax* parameters to SceneVisualizerBase.
+
+2018-09-17  Levente Mészáros
+
+	Updated MobilityOsgVisualizer and NetworkNodeOsgVisualizer to work similarly to the canvas variants.
+
+2018-09-11  Levente Mészáros
+
+	Renamed visualizerTargetModule to visualizationTargetModule for consistency.
+	Removed visualizationSubjectModule lookup from subscribe methods.
+	Replaced subscriptionModule with visualizationSubjectModule in subscribe/unsubscribe methods.
+	Replaced subscriptionModule with visualizationSubjectModule parameter in NED files.
+	Replaced default <root> subscriptionModule with ^ parent.
+	Replaced getSystemModule() with visualizationSubjectModule to allow using visualizers
+	only on a part of the simulation.
+	Added visualizationSubjectModule parameter to all visualizers.
+
+2018-07-19  Levente Mészáros
+
+	Added hasGUI guard to handleParameterChange functions.
+
+2018-06-26  Levente Mészáros
+
+	Added antenna lobe visualization parameters to RadioVisualizerBase.
+
+2018-06-27  ------ inet-4.0.0 released ------
+
+2018-06-26  Levente Mészáros
+
+	Refactored StatisticVisualizerBase to use cStatisticBuilder.
+
+	Removed recordingMode parameter. Added statisticExpression parameter.
+
+2018-06-14  Levente Mészáros
+
+	Fixed crash caused by dynamically deleted mobility modules.
+
+2018-06-08  Gyorgy Szaszko
+
+	Added metric to RoutingTableVisualizerBase labelFormat directives.
+
+2018-06-04  Levente Mészáros
+
+	Replaced 0/0 NED parameter values with nan.
+
+2018-05-29  Levente Mészáros
+
+	Fixed bug #333.
+
+2018-04-25  Levente Mészáros
+
+	Replaced submodule based orientation figure size with parameter.
+	Changed default filter of MobilityVisualizerBase to '**.mobility'.
+	Renamed master switch in MobilityVisualizerBase.
+	Added position visualization support to MobilityVisualizerBase.
+
+2018-04-13  ------ inet-3.99.3 released ------
+
+2018-03-19  Levente Mészáros
+
+	Replaced cArcFigure with cPieSliceFigure in MobilityCanvasVisualizer.
+
+2018-03-16  TÖRÖK Attila
+
+	Fixed OSG bug: don't draw a playground of infinite size.
+
+	This fixes the flood of "CullVisitor::apply(Geode&) detected NaN" errors
+	in at least some cases (like in showcases/visualizer/osgdemo).
+
+2018-02-20  Levente Mészáros
+
+	Replaced old PacketFilter with the new one which is based on PacketDissector.
+
+2018-02-15  TÖRÖK Attila
+
+	Take zoom level into account for line shifts and contact spacings.
+	Added overlay option to OSG link visualizers.
+
+2018-02-15  Levente Mészáros
+
+	Renamed LinkVisualizerBase parameter to packetDataFilter.
+
+2018-02-14  Levente Mészáros
+
+	Switched LinkVisualizerBase to use the new PacketFilter.
+
+2018-02-08  Levente Mészáros
+
+	Separated Canvas and OSG line managers.
+
+2018-02-07  Levente Mészáros
+
+	Implemented basic support for mobility in LinkOsgVisualizerBase.
+
+2018-01-10  Levente Mészáros
+
+	Added refreshDisplay to 802.11 visualizer to update rx power icon continuously.
+	Extended Ieee80211 visualizers to indicate signal power with the wireless network icon.
+	Fixed 802.11 power icon for OSG.
+
+2018-01-04  Levente Mészáros
+
+	Replaced @editable(false) with the simpler @descriptor(readonly).
+
+2017-12-12  Levente Mészáros
+
+	Fixed missing images for reception and transmission state.
+
+2017-12-06  Levente Mészáros
+
+	Fixed refreshDisplay in LinkCanvasVisualizerBase for dynamic hosts.
+	Links were still fading while the host was removed.
+
+2017-12-22  ------ inet-3.99.2 released ------
+
+2017-12-20  Zoltan Bojthe
+
+	Renaming:
+	    APInfo -> ApInfo
+	    IIPv4RoutingTable -> IIpv4RoutingTable
+	    IPv4 -> Ipv4
+	    IPv4Address -> Ipv4Address
+	    IPv4InterfaceData -> Ipv4InterfaceData
+	    IPv4Route -> Ipv4Route
+	    IPv4RoutingTable -> Ipv4RoutingTable
+	    IPv6 -> Ipv6
+	    IPv6InterfaceData -> Ipv6InterfaceData
+	    Ieee80211MgmtAP -> Ieee80211MgmtAp
+	    Ieee80211MgmtSTA -> Ieee80211MgmtSta
+	    MACAddress -> MacAddress
+	    OSGScene -> OsgScene
+	    OSGUtils -> OsgUtils
+	    TCP -> Tcp
+	    TCPConnection -> TcpConnection
+
+2017-12-15  Zoltan Bojthe
+
+	Renamed deprecated info() to str().
+
+2017-11-27  Levente Mészáros
+
+	Added holdAnimationTime parameter to LinkVisualizerBase.
+
+2017-11-16  Levente Mészáros
+
+	Added activityLevel parameter to LinkVisualizerBase to control what activity
+	is displayed. Possible values are: service, peer, protocol.
+
+2017-11-16  Levente Mészáros
+
+	Moved packetSentTo*Signal and packetReceivedFrom*Signal into Simsignals.
+
+2017-11-14  Zoltan Bojthe
+
+	Replaced "int foo @enum(FooEnum)" to FooEnum foo.
+
+2017-11-17  Zoltan Bojthe
+
+	Added required import statements to MSG files according to new syntax.
+
+2017-11-16  ------ inet-3.99.1 released ------
+
+2017-10-09  Levente Mészáros
+
+	Added guard against visualizing paths with less than 2 elements.
+
+2017-06-21  Levente Mészáros
+
+	Simplified PacketDrop descriptor with recent omnetpp changes.
+
+2017-03-21  Levente Mészáros
+
+	Changed link and path identification to be based on chunk id instead of packet id.
+
 ====== inet-3.x ======
-
-2020-10-20  ------ inet-3.6.8 released ------
-
-2019-11-04  ------ inet-3.6.7 released ------
-
-2019-08-16  ------ inet-3.6.6 released ------
-
-2019-04-12  ------ inet-3.6.5 released ------
 
 2018-03-21  ------ inet-3.6.4 released ------
 

@@ -30,13 +30,19 @@ LinkBreakCanvasVisualizer::LinkBreakCanvasVisualization::LinkBreakCanvasVisualiz
 {
 }
 
+LinkBreakCanvasVisualizer::~LinkBreakCanvasVisualizer()
+{
+    if (displayLinkBreaks)
+        removeAllLinkBreakVisualizations();
+}
+
 void LinkBreakCanvasVisualizer::initialize(int stage)
 {
     LinkBreakVisualizerBase::initialize(stage);
     if (!hasGUI()) return;
     if (stage == INITSTAGE_LOCAL) {
         zIndex = par("zIndex");
-        auto canvas = visualizerTargetModule->getCanvas();
+        auto canvas = visualizationTargetModule->getCanvas();
         canvasProjection = CanvasProjection::getCanvasProjection(canvas);
         linkBreakGroup = new cGroupFigure("link breaks");
         linkBreakGroup->setZIndex(zIndex);
@@ -56,7 +62,7 @@ void LinkBreakCanvasVisualizer::refreshDisplay() const
         auto figure = linkBreakVisualization->figure;
         figure->setPosition((transmitterPosition + receiverPosition) / 2);
     }
-    visualizerTargetModule->getCanvas()->setAnimationSpeed(linkBreakVisualizations.empty() ? 0 : fadeOutAnimationSpeed, this);
+    visualizationTargetModule->getCanvas()->setAnimationSpeed(linkBreakVisualizations.empty() ? 0 : fadeOutAnimationSpeed, this);
 }
 
 const LinkBreakVisualizerBase::LinkBreakVisualization *LinkBreakCanvasVisualizer::createLinkBreakVisualization(cModule *transmitter, cModule *receiver) const
@@ -64,7 +70,7 @@ const LinkBreakVisualizerBase::LinkBreakVisualization *LinkBreakCanvasVisualizer
     std::string icon(this->icon);
     auto transmitterPosition = canvasProjection->computeCanvasPoint(getPosition(getContainingNode(transmitter)));
     auto receiverPosition = canvasProjection->computeCanvasPoint(getPosition(getContainingNode(receiver)));
-    auto figure = new cIconFigure("linkBreak");
+    auto figure = new cIconFigure("linkBroken");
     figure->setTags((std::string("link_break ") + tags).c_str());
     figure->setTooltip("This icon represents a link break between two network nodes");
     figure->setImageName(icon.substr(0, icon.find_first_of(".")).c_str());

@@ -1,9 +1,11 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
@@ -27,17 +29,17 @@ class LteMacBase;
  * Contained PDU may be in one of four status:
  *
  *                            IDLE    PDU                    READY
- * TXHARQ_PDU_BUFFERED:        no        present locally        ready for rtx
- * TXHARQ_PDU_WAITING:        no        copy present        not ready for tx
- * TXHARQ_PDU_EMPTY:        yes        not present            not ready for tx
- * TXHARQ_PDU_SELECTED:        no        present                will be tx
+ * TXHARQ_PDU_BUFFERED:       no      present locally        ready for rtx
+ * TXHARQ_PDU_WAITING:        no      copy present           not ready for tx
+ * TXHARQ_PDU_EMPTY:          yes     not present            not ready for tx
+ * TXHARQ_PDU_SELECTED:       no      present                will be tx
  */
 class LteHarqUnitTx
 {
   protected:
 
     /// Carried sub-burst
-    LteMacPdu *pdu_;
+    Packet *pdu_;
 
     /// Omnet ID of the pdu
     long pduId_;
@@ -57,10 +59,10 @@ class LteHarqUnitTx
     TxHarqPduStatus status_;
 
     /// TTI at which the pdu has been transmitted
-    simtime_t txTime_;
+    omnetpp::simtime_t txTime_;
 
     // reference to the eNB module
-    cModule* nodeB_;
+    omnetpp::cModule* nodeB_;
 
     LteMacBase *macOwner_;
     //used for statistics
@@ -70,22 +72,24 @@ class LteHarqUnitTx
 
     // Statistics
 
-    simsignal_t macCellPacketLoss_;
-    simsignal_t macPacketLoss_;
-    simsignal_t harqErrorRate_;
-    simsignal_t harqErrorRate_1_;
-    simsignal_t harqErrorRate_2_;
-    simsignal_t harqErrorRate_3_;
-    simsignal_t harqErrorRate_4_;
+
+    omnetpp::simsignal_t macCellPacketLoss_;
+    omnetpp::simsignal_t macPacketLoss_;
+    omnetpp::simsignal_t harqErrorRate_;
+    omnetpp::simsignal_t harqErrorRate_1_;
+    omnetpp::simsignal_t harqErrorRate_2_;
+    omnetpp::simsignal_t harqErrorRate_3_;
+    omnetpp::simsignal_t harqErrorRate_4_;
+    omnetpp::simsignal_t harqTxAttempts_;
 
     // D2D Statistics
-    simsignal_t macCellPacketLossD2D_;
-    simsignal_t macPacketLossD2D_;
-    simsignal_t harqErrorRateD2D_;
-    simsignal_t harqErrorRateD2D_1_;
-    simsignal_t harqErrorRateD2D_2_;
-    simsignal_t harqErrorRateD2D_3_;
-    simsignal_t harqErrorRateD2D_4_;
+    omnetpp::simsignal_t macCellPacketLossD2D_;
+    omnetpp::simsignal_t macPacketLossD2D_;
+    omnetpp::simsignal_t harqErrorRateD2D_;
+    omnetpp::simsignal_t harqErrorRateD2D_1_;
+    omnetpp::simsignal_t harqErrorRateD2D_2_;
+    omnetpp::simsignal_t harqErrorRateD2D_3_;
+    omnetpp::simsignal_t harqErrorRateD2D_4_;
 
   public:
     /**
@@ -96,6 +100,15 @@ class LteHarqUnitTx
     LteHarqUnitTx(unsigned char acid, Codeword cw, LteMacBase *macOwner, LteMacBase *dstMac);
 
     /**
+     * Copy constructor and operator=
+     */
+    LteHarqUnitTx(const LteHarqUnitTx& other)
+    {
+        operator=(other);
+    }
+    LteHarqUnitTx& operator=(const LteHarqUnitTx& other);
+
+    /**
      * Inserts a pdu in this harq unit.
      *
      * When a new pdu is inserted into an H-ARQ unit, its status is TX_HARQ_PDU_SELECTED,
@@ -103,7 +116,7 @@ class LteHarqUnitTx
      *
      * @param pdu MacPdu to be inserted
      */
-    virtual void insertPdu(LteMacPdu *pdu);
+    virtual void insertPdu(Packet *pdu);
 
     /**
      * Transition from BUFFERED to SELECTED status: the pdu will be extracted when the
@@ -118,7 +131,7 @@ class LteHarqUnitTx
      * to extract the pdu the Mac layer will send.
      * Before extraction, control info is updated with transmission counter and ndi.
      */
-    virtual LteMacPdu *extractPdu();
+    virtual Packet *extractPdu();
 
     /**
      * Manages ACK/NACK.
@@ -158,7 +171,7 @@ class LteHarqUnitTx
 
     virtual void forceDropUnit();
 
-    virtual LteMacPdu *getPdu();
+    virtual Packet *getPdu();
 
     virtual unsigned char getAcid()
     {
@@ -180,7 +193,7 @@ class LteHarqUnitTx
         return pduLength_;
     }
 
-    virtual simtime_t getTxTime()
+    virtual omnetpp::simtime_t getTxTime()
     {
         return txTime_;
     }

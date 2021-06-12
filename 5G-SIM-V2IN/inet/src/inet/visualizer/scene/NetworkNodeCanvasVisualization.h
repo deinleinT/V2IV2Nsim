@@ -18,14 +18,15 @@
 #ifndef __INET_NETWORKNODECANVASVISUALIZATION_H
 #define __INET_NETWORKNODECANVASVISUALIZATION_H
 
-#include "inet/common/figures/cPanelFigure.h"
+#include "inet/common/INETDefs.h"
 #include "inet/visualizer/util/Placement.h"
+#include "inet/visualizer/base/NetworkNodeVisualizerBase.h"
 
 namespace inet {
 
 namespace visualizer {
 
-class INET_API NetworkNodeCanvasVisualization : public cGroupFigure
+class INET_API NetworkNodeCanvasVisualization : public NetworkNodeVisualizerBase::NetworkNodeVisualization, public cGroupFigure
 {
   protected:
     class INET_API Annotation {
@@ -42,7 +43,6 @@ class INET_API NetworkNodeCanvasVisualization : public cGroupFigure
     };
 
   protected:
-    cModule *networkNode = nullptr;
     double annotationSpacing = NaN;
     double placementPenalty = NaN;
 

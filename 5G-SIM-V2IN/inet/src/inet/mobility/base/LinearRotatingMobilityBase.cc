@@ -19,7 +19,6 @@ namespace inet {
 
 LinearRotatingMobilityBase::LinearRotatingMobilityBase()
 {
-    targetOrientation = EulerAngles::ZERO;
 }
 
 void LinearRotatingMobilityBase::initializeOrientation()
@@ -45,13 +44,8 @@ void LinearRotatingMobilityBase::rotate()
     else if (now > lastUpdate) {
         ASSERT(nextChange == -1 || now < nextChange);
         double delta = (simTime() - lastUpdate).dbl() / (nextChange - lastUpdate).dbl();
-        lastOrientation = slerp(lastOrientation, targetOrientation, delta);
+        lastOrientation = Quaternion::slerp(lastOrientation, targetOrientation, delta);
     }
-}
-
-EulerAngles LinearRotatingMobilityBase::slerp(EulerAngles from, EulerAngles to, double delta)
-{
-    return from + (to - from) * delta;
 }
 
 } // namespace inet

@@ -16,8 +16,8 @@
 // 
 
 #include "inet/linklayer/ieee80211/mac/fragmentation/Fragmentation.h"
+#include "inet/linklayer/ieee80211/mac/originator/OriginatorMacDataService.h"
 #include "inet/linklayer/ieee80211/mac/sequencenumberassignment/NonQoSSequenceNumberAssignment.h"
-#include "OriginatorMacDataService.h"
 
 namespace inet {
 namespace ieee80211 {
@@ -31,40 +31,43 @@ void OriginatorMacDataService::initialize()
     fragmentation = new Fragmentation();
 }
 
-Ieee80211DataOrMgmtFrame* OriginatorMacDataService::assignSequenceNumber(Ieee80211DataOrMgmtFrame* frame)
+void OriginatorMacDataService::assignSequenceNumber(const Ptr<Ieee80211DataOrMgmtHeader>& header)
 {
-    sequenceNumberAssigment->assignSequenceNumber(frame);
-    return frame;
+    sequenceNumberAssigment->assignSequenceNumber(header);
 }
 
-OriginatorMacDataService::Fragments *OriginatorMacDataService::fragmentIfNeeded(Ieee80211DataOrMgmtFrame *frame)
+std::vector<Packet *> *OriginatorMacDataService::fragmentIfNeeded(Packet *frame)
 {
     auto fragmentSizes = fragmentationPolicy->computeFragmentSizes(frame);
     if (fragmentSizes.size() != 0) {
+        emit(packetFragmentedSignal, frame);
         auto fragmentFrames = fragmentation->fragmentFrame(frame, fragmentSizes);
         return fragmentFrames;
     }
     return nullptr;
 }
 
-OriginatorMacDataService::Fragments* OriginatorMacDataService::extractFramesToTransmit(PendingQueue *pendingQueue)
+std::vector<Packet *> *OriginatorMacDataService::extractFramesToTransmit(queueing::IPacketQueue *pendingQueue)
 {
-    Enter_Method("extractFramesToTransmit");
     if (pendingQueue->isEmpty())
         return nullptr;
     else {
         // if (msduRateLimiting)
         //    txRateLimitingIfNeeded();
-        Ieee80211DataOrMgmtFrame *frame = pendingQueue->pop();
-        if (sequenceNumberAssigment)
-            frame = assignSequenceNumber(frame);
+        Packet *packet = pendingQueue->popPacket();
+        take(packet);
+        if (sequenceNumberAssigment) {
+            auto frame = packet->removeAtFront<Ieee80211DataOrMgmtHeader>();
+            assignSequenceNumber(frame);
+            packet->insertAtFront(frame);
+        }
         // if (msduIntegrityAndProtection)
         //    frame = protectMsduIfNeeded(frame);
-        Fragments *fragments = nullptr;
+        std::vector<Packet *> *fragments = nullptr;
         if (fragmentationPolicy)
-            fragments = fragmentIfNeeded(frame);
+            fragments = fragmentIfNeeded(packet);
         if (!fragments)
-            fragments = new Fragments({frame});
+            fragments = new std::vector<Packet *>({packet});
         // if (mpduEncryptionAndIntegrity)
         //    fragments = encryptMpduIfNeeded(fragments);
         // if (mpduHeaderPlusCrc)

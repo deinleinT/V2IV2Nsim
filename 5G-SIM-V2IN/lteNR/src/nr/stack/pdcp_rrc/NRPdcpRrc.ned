@@ -21,18 +21,13 @@
 // Part of 5G-Sim-V2I/N
 //
 
-package nr.stack.pdcp_rrc;
+package lteNR.nr.stack.pdcp_rrc;
 
-import lte.stack.pdcp_rrc.*;
+import lteNR.stack.pdcp_rrc.*;
 
 moduleinterface NRPdcpRrc extends LtePdcpRrc{
     parameters:
         @display("i=block/fork");
-
-    gates:
-        inout upperLayerRRC; //from RRC Module
-        inout lowerLayerRRC; //from RLC Module
-
 }
 
 simple NRPdcpRrcBase extends LtePdcpRrcBase like NRPdcpRrc{
@@ -61,8 +56,8 @@ simple NRPdcpRrcBase extends LtePdcpRrcBase like NRPdcpRrc{
 
 }
 
-simple NRPdcpRrcUe extends NRPdcpRrcBase {
-        @class("NRPdcpRrcUe");
+simple NRPdcpRrcUE extends NRPdcpRrcBase {
+        @class("NRPdcpRrcUE");
 
 }
 

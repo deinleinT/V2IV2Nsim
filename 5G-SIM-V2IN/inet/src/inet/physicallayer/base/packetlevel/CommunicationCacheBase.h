@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2013 OpenSim Ltd.
+// Copyright (C) OpenSim Ltd.
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public License
@@ -33,22 +33,20 @@ class INET_API CommunicationCacheBase : public cModule, public ICommunicationCac
     class RadioCacheEntry {
       public:
         /**
+         * The corresponding radio.
+         */
+        const IRadio *radio = nullptr;
+        /**
          * Caches reception intervals for efficient interference queries.
          */
-        IntervalTree *receptionIntervals;
-        /**
-         * True means the cache entry is invalid.
-         */
-        bool stale;
-
-      private:
-        RadioCacheEntry(const RadioCacheEntry &other);
-        RadioCacheEntry &operator=(const RadioCacheEntry &other);
+        IntervalTree *receptionIntervals = nullptr;
 
       public:
-        RadioCacheEntry();
-        RadioCacheEntry(RadioCacheEntry &&other);
-        RadioCacheEntry &operator=(RadioCacheEntry &&other);
+        RadioCacheEntry() { }
+        RadioCacheEntry(const RadioCacheEntry &other);
+        RadioCacheEntry(RadioCacheEntry &&other) noexcept;
+        RadioCacheEntry &operator=(const RadioCacheEntry &other);
+        RadioCacheEntry &operator=(RadioCacheEntry &&other) noexcept;
         virtual ~RadioCacheEntry();
     };
 
@@ -59,27 +57,33 @@ class INET_API CommunicationCacheBase : public cModule, public ICommunicationCac
     {
       public:
         /**
-         * The radio frame that was sent to the receiver or nullptr if not yet sent.
+         * The corresponding transmission.
          */
-        const IRadioFrame *frame;
-        const IArrival *arrival;
-        const Interval *interval;
-        const IListening *listening;
-        const IReception *reception;
-        const IInterference *interference;
-        const INoise *noise;
-        const ISNIR *snir;
+        const ITransmission *transmission = nullptr;
+        /**
+         * The corresponding receiver radio.
+         */
+        const IRadio *receiver = nullptr;
+        /**
+         * The signal that was sent to the receiver or nullptr if not yet sent.
+         */
+        const ISignal *signal = nullptr;
+        const IArrival *arrival = nullptr;
+        const IntervalTree::Interval *interval = nullptr;
+        const IListening *listening = nullptr;
+        const IReception *reception = nullptr;
+        const IInterference *interference = nullptr;
+        const INoise *noise = nullptr;
+        const ISnir *snir = nullptr;
         std::vector<const IReceptionDecision *> receptionDecisions;
-        const IReceptionResult *receptionResult;
-
-      private:
-        ReceptionCacheEntry(const ReceptionCacheEntry &other);
-        ReceptionCacheEntry &operator=(const ReceptionCacheEntry &other);
+        const IReceptionResult *receptionResult = nullptr;
 
       public:
         ReceptionCacheEntry();
-        ReceptionCacheEntry(ReceptionCacheEntry &&other);
-        ReceptionCacheEntry &operator=(ReceptionCacheEntry &&other);
+        ReceptionCacheEntry(const ReceptionCacheEntry &other);
+        ReceptionCacheEntry(ReceptionCacheEntry &&other) noexcept;
+        ReceptionCacheEntry &operator=(const ReceptionCacheEntry &other);
+        ReceptionCacheEntry &operator=(ReceptionCacheEntry &&other) noexcept;
         virtual ~ReceptionCacheEntry();
     };
 
@@ -90,21 +94,25 @@ class INET_API CommunicationCacheBase : public cModule, public ICommunicationCac
     {
       public:
         /**
+         * The corresponding transmission.
+         */
+        const ITransmission *transmission = nullptr;
+        /**
          * The last moment when this transmission may have any effect on
          * other transmissions by interfering with them.
          */
         simtime_t interferenceEndTime;
         /**
-         * The radio frame that was created by the transmitter is never nullptr.
+         * The signal that was created by the transmitter is never nullptr.
          */
-        const IRadioFrame *frame;
-        /**
-         * The list of intermediate reception computation results.
-         */
-        void *receptionCacheEntries;
+        const ISignal *signal = nullptr;
 
       public:
-        TransmissionCacheEntry();
+        TransmissionCacheEntry() { }
+        TransmissionCacheEntry(const TransmissionCacheEntry &other);
+        TransmissionCacheEntry(TransmissionCacheEntry &&other) noexcept;
+        TransmissionCacheEntry &operator=(const TransmissionCacheEntry &other);
+        TransmissionCacheEntry &operator=(TransmissionCacheEntry &&other) noexcept;
     };
 
   protected:
@@ -116,23 +124,17 @@ class INET_API CommunicationCacheBase : public cModule, public ICommunicationCac
     //@}
 
   public:
-    CommunicationCacheBase();
-    virtual ~CommunicationCacheBase();
-
     /** @name Interference cache */
     //@{
     virtual std::vector<const ITransmission *> *computeInterferingTransmissions(const IRadio *radio, const simtime_t startTime, const simtime_t endTime) override;
-    //@}
 
-    /** @name Transmission cache */
-    //@{
     virtual const simtime_t getCachedInterferenceEndTime(const ITransmission *transmission) override;
     virtual void setCachedInterferenceEndTime(const ITransmission *transmission, const simtime_t interferenceEndTime) override;
     virtual void removeCachedInterferenceEndTime(const ITransmission *transmission) override;
 
-    virtual const IRadioFrame *getCachedFrame(const ITransmission *transmission) override;
-    virtual void setCachedFrame(const ITransmission *transmission, const IRadioFrame *frame) override;
-    virtual void removeCachedFrame(const ITransmission *transmission) override;
+    virtual const ISignal *getCachedSignal(const ITransmission *transmission) override;
+    virtual void setCachedSignal(const ITransmission *transmission, const ISignal *signal) override;
+    virtual void removeCachedSignal(const ITransmission *transmission) override;
     //@}
 
     /** @name Reception cache */
@@ -141,8 +143,8 @@ class INET_API CommunicationCacheBase : public cModule, public ICommunicationCac
     virtual void setCachedArrival(const IRadio *receiver, const ITransmission *transmission, const IArrival *arrival) override;
     virtual void removeCachedArrival(const IRadio *receiver, const ITransmission *transmission) override;
 
-    virtual const Interval *getCachedInterval(const IRadio *receiver, const ITransmission *transmission) override;
-    virtual void setCachedInterval(const IRadio *receiver, const ITransmission *transmission, const Interval *interval) override;
+    virtual const IntervalTree::Interval *getCachedInterval(const IRadio *receiver, const ITransmission *transmission) override;
+    virtual void setCachedInterval(const IRadio *receiver, const ITransmission *transmission, const IntervalTree::Interval *interval) override;
     virtual void removeCachedInterval(const IRadio *receiver, const ITransmission *transmission) override;
 
     virtual const IListening *getCachedListening(const IRadio *receiver, const ITransmission *transmission) override;
@@ -161,8 +163,8 @@ class INET_API CommunicationCacheBase : public cModule, public ICommunicationCac
     virtual void setCachedNoise(const IRadio *receiver, const ITransmission *transmission, const INoise *noise) override;
     virtual void removeCachedNoise(const IRadio *receiver, const ITransmission *transmission) override;
 
-    virtual const ISNIR *getCachedSNIR(const IRadio *receiver, const ITransmission *transmission) override;
-    virtual void setCachedSNIR(const IRadio *receiver, const ITransmission *transmission, const ISNIR *snir) override;
+    virtual const ISnir *getCachedSNIR(const IRadio *receiver, const ITransmission *transmission) override;
+    virtual void setCachedSNIR(const IRadio *receiver, const ITransmission *transmission, const ISnir *snir) override;
     virtual void removeCachedSNIR(const IRadio *receiver, const ITransmission *transmission) override;
 
     virtual const IReceptionDecision *getCachedReceptionDecision(const IRadio *receiver, const ITransmission *transmission, IRadioSignal::SignalPart part) override;
@@ -173,9 +175,9 @@ class INET_API CommunicationCacheBase : public cModule, public ICommunicationCac
     virtual void setCachedReceptionResult(const IRadio *receiver, const ITransmission *transmission, const IReceptionResult *receptionResult) override;
     virtual void removeCachedReceptionResult(const IRadio *receiver, const ITransmission *transmission) override;
 
-    virtual const IRadioFrame *getCachedFrame(const IRadio *receiver, const ITransmission *transmission) override;
-    virtual void setCachedFrame(const IRadio *receiver, const ITransmission *transmission, const IRadioFrame *frame) override;
-    virtual void removeCachedFrame(const IRadio *receiver, const ITransmission *transmission) override;
+    virtual const ISignal *getCachedSignal(const IRadio *receiver, const ITransmission *transmission) override;
+    virtual void setCachedSignal(const IRadio *receiver, const ITransmission *transmission, const ISignal *signal) override;
+    virtual void removeCachedSignal(const IRadio *receiver, const ITransmission *transmission) override;
     //@}
 };
 

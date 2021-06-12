@@ -1,14 +1,20 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
 #include <climits>
 #include "stack/mac/buffer/LteMacQueue.h"
+#include "stack/rlc/am/packet/LteRlcAmPdu.h"
+
+using namespace omnetpp;
+using namespace inet;
 
 LteMacQueue::LteMacQueue(int queueSize) :
     cPacketQueue("LteMacQueue")
@@ -37,23 +43,18 @@ LteMacQueue* LteMacQueue::dup() const
 // ENQUEUE
 bool LteMacQueue::pushBack(cPacket *pkt)
 {
-    //std::cout << "LteMacQueue::pushBack start at " << simTime().dbl() << std::endl;
-
-    if (!isEnqueueablePacket(pkt))
+    Packet * pktAux = check_and_cast<Packet*>(pkt);
+    if (!isEnqueueablePacket(pktAux))
          return false; // packet queue full or we have discarded fragments for this main packet
 
     cPacketQueue::insert(pkt);
-
-    //std::cout << "LteMacQueue::pushBack end at " << simTime().dbl() << std::endl;
-
     return true;
 }
 
 bool LteMacQueue::pushFront(cPacket *pkt)
 {
-    //std::cout << "LteMacQueue::pushFront start at " << simTime().dbl() << std::endl;
-
-    if (!isEnqueueablePacket(pkt))
+    Packet * pktAux = check_and_cast<Packet*>(pkt);
+    if (!isEnqueueablePacket(pktAux))
         return false; // packet queue full or we have discarded fragments for this main packet
 
     cPacketQueue::insertBefore(cPacketQueue::front(), pkt);
@@ -62,51 +63,50 @@ bool LteMacQueue::pushFront(cPacket *pkt)
 
 cPacket* LteMacQueue::popFront()
 {
-    //std::cout << "LteMacQueue::popFront start at " << simTime().dbl() << std::endl;
-
-    return getQueueLength() > 0 ? cPacketQueue::pop() : NULL;
+    return getQueueLength() > 0 ? cPacketQueue::pop() : nullptr;
 }
 
 cPacket* LteMacQueue::popBack()
 {
-    //std::cout << "LteMacQueue::popBack start at " << simTime().dbl() << std::endl;
-
-    return getQueueLength() > 0 ? cPacketQueue::remove(cPacketQueue::back()) : NULL;
+    return getQueueLength() > 0 ? cPacketQueue::remove(cPacketQueue::back()) : nullptr;
 }
 
 simtime_t LteMacQueue::getHolTimestamp() const
 {
-    //std::cout << "LteMacQueue::getHolTimestamp start at " << simTime().dbl() << std::endl;
-
     return getQueueLength() > 0 ? cPacketQueue::front()->getTimestamp() : 0;
 }
 
 int64_t LteMacQueue::getQueueOccupancy() const
 {
-    //std::cout << "LteMacQueue::getQueueOccupancy start at " << simTime().dbl() << std::endl;
-
     return cPacketQueue::getByteLength();
 }
 
 int64_t LteMacQueue::getQueueSize() const
 {
-    //std::cout << "LteMacQueue::getQueueSize start at " << simTime().dbl() << std::endl;
-
     return queueSize_;
 }
 
-bool LteMacQueue::isEnqueueablePacket(cPacket* pkt){
+bool LteMacQueue::isEnqueueablePacket(Packet* pkt){
 
-    //std::cout << "LteMacQueue::isEnqueueablePacket start at " << simTime().dbl() << std::endl;
+    auto chunk = pkt->peekAtFront<Chunk>();
+    auto pdu = dynamicPtrCast<const LteRlcAmPdu>(chunk);
 
-    LteRlcPdu_Base* pdu = dynamic_cast<LteRlcPdu_Base *>(pkt);
     if(queueSize_ == 0){
         // unlimited queue size -- nothing to check for
         return true;
     }
-    if(pdu != NULL){
+    /* Check:
+     *
+     * For AM: We need to check if all fragments will fit in the queue
+     * For UM: The new UM implementation introduced in commit 9ab9b71c5358a70278e2fbd51bf33a9d1d81cb86
+     *         by G. Nardini only sends SDUs upon MAC SDU request. All SDUs are
+     *         accepted as long as the MAC queue size is not exceeded.
+     * For TM: No fragments are to be checked, anyways.
+     */
+    if(pdu != nullptr){ // for AM we need to check if all fragments will fit
         if(pdu->getTotalFragments() > 1) {
-            bool allFragsWillFit = ((pdu->getTotalFragments()-pdu->getSnoFragment())*pdu->getByteLength() + getByteLength() < queueSize_);
+            int remainingFrags = (pdu->getLastSn() - pdu->getSnoFragment() + 1);
+            bool allFragsWillFit = (remainingFrags*pkt->getByteLength()) + getByteLength() < queueSize_;
             bool enqueable = (pdu->getSnoMainPacket() != lastUnenqueueableMainSno) && allFragsWillFit;
             if(allFragsWillFit && !enqueable){
                 EV_DEBUG << "PDU would fit but discarded frags before - rejecting fragment: " << pdu->getSnoMainPacket() << ":" << pdu->getSnoFragment() << std::endl;
@@ -116,11 +116,7 @@ bool LteMacQueue::isEnqueueablePacket(cPacket* pkt){
             }
             return enqueable;
         }
-    } else {
-        EV_WARN << "LteMacQueue: cannot estimate remaining fragments - unknown packet type " << pkt->getFullName() << std::endl;
     }
-
-    //std::cout << "LteMacQueue::isEnqueueablePacket end at " << simTime().dbl() << std::endl;
 
     // no fragments or unknown type -- can always be enqueued if there is enough space in the queue
     return (pkt->getByteLength() + getByteLength() < queueSize_);
@@ -128,8 +124,6 @@ bool LteMacQueue::isEnqueueablePacket(cPacket* pkt){
 
 int LteMacQueue::getQueueLength() const
 {
-    //std::cout << "LteMacQueue::getQueueLength start at " << simTime().dbl() << std::endl;
-
     return cPacketQueue::getLength();
 }
 

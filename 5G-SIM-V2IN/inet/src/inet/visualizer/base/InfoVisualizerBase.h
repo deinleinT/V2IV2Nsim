@@ -18,10 +18,10 @@
 #ifndef __INET_INFOVISUALIZERBASE_H
 #define __INET_INFOVISUALIZERBASE_H
 
+#include "inet/common/StringFormat.h"
 #include "inet/visualizer/base/VisualizerBase.h"
-#include "inet/visualizer/util/Placement.h"
 #include "inet/visualizer/util/ModuleFilter.h"
-#include "inet/visualizer/util/StringFormat.h"
+#include "inet/visualizer/util/Placement.h"
 
 namespace inet {
 
@@ -43,12 +43,11 @@ class INET_API InfoVisualizerBase : public VisualizerBase
     class DirectiveResolver : public StringFormat::IDirectiveResolver {
       protected:
         const cModule *module = nullptr;
-        std::string result;
 
       public:
         DirectiveResolver(const cModule *module) : module(module) { }
 
-        virtual const char *resolveDirective(char directive) override;
+        virtual const char *resolveDirective(char directive) const override;
     };
 
   protected:

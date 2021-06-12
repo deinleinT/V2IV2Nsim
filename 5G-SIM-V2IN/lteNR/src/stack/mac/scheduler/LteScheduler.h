@@ -1,16 +1,12 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
-//
-
-//
-// This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
-// Author: Thomas Deinlein
 //
 
 #ifndef _LTE_LTESCHEDULER_H_
@@ -39,7 +35,7 @@ struct SortedDesc
         if (score_ < y.score_)
             return true;
         if (score_ == y.score_)
-            return uniform(getEnvir()->getRNG(0),0,1) < 0.5;
+            return uniform(omnetpp::getEnvir()->getRNG(0),0,1) < 0.5;
         return false;
     }
 
@@ -66,7 +62,7 @@ class LteScheduler
     LteMacEnb *mac_;
 
     /// Reference to the LTE binder
-    LteBinder *binder_;
+    Binder *binder_;
 
     /// Associated LteSchedulerEnb (it is the one who creates the LteScheduler)
     LteSchedulerEnb* eNbScheduler_;
@@ -75,10 +71,19 @@ class LteScheduler
     Direction direction_;
 
     //! Set of active connections.
-    ActiveSet activeConnectionSet_;
+    ActiveSet* activeConnectionSet_;
 
     //! General Active set. Temporary variable used in the two phase scheduling operations
     ActiveSet activeConnectionTempSet_;
+
+    //! Per-carrier Active set. Temporary variable used for storing the set of connections allowed in this carrier
+    ActiveSet carrierActiveConnectionSet_;
+
+    //! Frequency of the carrier handled by this scheduler
+    double carrierFrequency_;
+
+    //! Set of bands available for this carrier
+    BandLimitVector* bandLimit_;
 
     /// Cid List
     typedef std::list<MacCid> CidList;
@@ -95,8 +100,12 @@ class LteScheduler
      */
     std::map<LteTrafficClass, int> grantSizeMap_;
 
-    //
-    bool variationFlag;//used for LtePf module
+    //! numerology index of the component carrier it has to schedule
+    unsigned int numerologyIndex_;
+
+    //! timers for handling scheduling period of this scheduler
+    unsigned int maxSchedulingPeriodCounter_;
+    unsigned int currentSchedulingPeriodCounter_;
 
   public:
 
@@ -106,9 +115,8 @@ class LteScheduler
     LteScheduler()
     {
         //    WATCH(activeSet_);
-        activeConnectionSet_.clear();
-        binder_ = NULL;
-        variationFlag = false;
+        activeConnectionSet_ = nullptr;
+        binder_ = nullptr;
     }
     /**
      * Destructor.
@@ -121,7 +129,32 @@ class LteScheduler
      * @param eNbScheduler eNb scheduler
      */
     virtual void setEnbScheduler(LteSchedulerEnb* eNbScheduler);
-    virtual LteSchedulerEnb* getEnbScheduler(){return eNbScheduler_;}
+
+    /**
+     * Initializes the carrier frequency for this LteScheduler.
+     * @param carrierFrequency carrier frequency
+     */
+    void setCarrierFrequency(double carrierFrequency);
+
+    /*
+     * Set the period counter
+     */
+    void initializeSchedulerPeriodCounter(NumerologyIndex maxNumerologyIndex);
+
+    /*
+     * Handle the period counter
+     */
+    unsigned int decreaseSchedulerPeriodCounter();
+
+    /**
+     * Returns the carrier frequency for this LteScheduler.
+     */
+    double getCarrierFrequency() { return carrierFrequency_; };
+
+    /**
+     * Set the numerology index for this scheduler
+     */
+    void setNumerologyIndex(unsigned int numerologyIndex) { numerologyIndex_ = numerologyIndex; }
 
     // Scheduling functions ********************************************************************
 
@@ -139,7 +172,6 @@ class LteScheduler
      */
 
     virtual void schedule();
-//    virtual void scheduleEnbDl();
 
     virtual void prepareSchedule()
     {
@@ -147,14 +179,11 @@ class LteScheduler
     virtual void commitSchedule()
     {
     }
-//    virtual void prepareScheduleEnbDl() {
-//    }
-//    virtual void commitScheduleEnbDl() {
-//    }
+
     // *****************************************************************************************
 
     /// performs request of grant to the eNbScheduler
-    virtual unsigned int requestGrant(MacCid cid, unsigned int bytes, bool& terminate, bool& active, bool& eligible , std::vector<BandLimit>* bandLim = NULL);
+    virtual unsigned int requestGrant(MacCid cid, unsigned int bytes, bool& terminate, bool& active, bool& eligible , std::vector<BandLimit>* bandLim = nullptr);
 
     /// calls eNbScheduler rtxschedule()
     virtual bool scheduleRetransmissions();
@@ -168,39 +197,27 @@ class LteScheduler
     virtual void notifyActiveConnection(MacCid activeCid)
     {
     }
-
-    virtual void removeActiveConnection(MacCid cid)
-    {
-    }
-
     virtual void updateSchedulingInfo()
     {
     }
 
-    virtual ActiveSet &  getActiveConnectionSet(){
-        return activeConnectionSet_;
-    }
-
-    ActiveSet readActiveSet()
-    {
-        ActiveSet::iterator it = activeConnectionSet_.begin();
-        ActiveSet::iterator et = activeConnectionSet_.end();
-        MacCid cid;
-        for (; it != et; ++it)
-        {
-            cid = *it;
-        }
-        return activeConnectionSet_;
-    }
-
   protected:
+
+    /*
+     * prepare the set of active connections on this carrier
+     * used by scheduling modules
+     */
+    void buildCarrierActiveConnectionSet();
+
+  private:
 
     /**
      * Utility function.
      * Initializes grantType_ and grantSize_ maps using mac NED parameters.
      * Note: mac_ amd direction_ should be initialized.
      */
-    virtual void initializeGrants();
+    void initializeGrants();
+
 };
 
 #endif // _LTE_LTESCHEDULER_H_

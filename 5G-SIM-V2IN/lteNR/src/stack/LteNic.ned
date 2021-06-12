@@ -1,59 +1,72 @@
 // 
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 // 
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself, 
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself, 
 // and cannot be removed from it.
 // 
 
 
-package lte.stack;
+package lteNR.stack;
 
-import inet.linklayer.contract.IWirelessNic;
-import lte.stack.phy.LtePhy;
-import lte.stack.mac.LteMac;
-import lte.stack.pdcp_rrc.LtePdcpRrc;
-import lte.stack.phy.feedback.LteDlFeedbackGenerator;
-import lte.stack.rlc.LteRlc;
-import lte.corenetwork.lteip.IP2lte;
-import lte.x2.LteX2Manager;
-import lte.stack.compManager.LteCompManager;
-import lte.stack.d2dModeSelection.D2DModeSelection;
-import lte.stack.handoverManager.LteHandoverManager;
-
-import lte.stack.phy.ChannelModel.LteChannelModelInterface;
+import inet.linklayer.contract.IWirelessInterface;
+import inet.networklayer.common.InterfaceEntry;
+import lteNR.stack.phy.LtePhy;
+import lteNR.stack.mac.LteMac;
+import lteNR.stack.pdcp_rrc.LtePdcpRrc;
+import lteNR.stack.phy.feedback.LteDlFeedbackGenerator;
+import lteNR.stack.rlc.LteRlc;
+import lteNR.stack.ip2nic.INetworkLayer2CellularNic;
+import lteNR.stack.ip2nic.IP2Nic;
+import lteNR.x2.LteX2Manager;
+import lteNR.stack.compManager.LteCompManager;
+import lteNR.stack.d2dModeSelection.D2DModeSelection;
+import lteNR.stack.handoverManager.LteHandoverManager;
+import lteNR.stack.dualConnectivityManager.DualConnectivityManager;
+import lteNR.stack.phy.ChannelModel.LteChannelModelInterface;
 
 // 
-// Interface for the LTE Stack.
+// Interface for the 3GPP Stack.
 //
-moduleinterface ILteNic extends IWirelessNic
+moduleinterface ICellularNic extends IWirelessInterface
 {
     string nodeType;
         //bool d2dCapable;            // inherit the value from the parent module
     gates:
         inout EUTRAN_RRC_Sap;   // Control of RRC Layer
         inout x2[] @loose;     // optional x2 manager
+        input nrRadioIn @loose;        // for NR support
 }
 
 // 
 // Base module for the LTE Stack.
 //
-// TODO: implement IWirelessNic
-module LteNicBase like ILteNic
+module LteNicBase extends InterfaceEntry like ICellularNic
 {
     parameters:
-        @display("i=block/ifcard;bgb=250,444;bgl=3");
+
+        @class(::inet::InterfaceEntry);
+        @display("i=block/ifcard;bgb=391.552,443.52;bgl=3");
         string interfaceTableModule;
         string routingTableModule;
-        string LtePdcpRrcType;      // One of: "LtePdcpRrcUe", "LtePdcpRrcEnb", "LtePdcpRrcRelayUe", "LtePdcpRrcRelayEnb"
-        string LteMacType;          // One of: "LteMacUe", "LteMacEnb", "LteMacRelayUe", "LteMacRelayEnb"
+        string LtePdcpRrcType;      // One of: "LtePdcpRrcUe", "LtePdcpRrcEnb", "LtePdcpRrcUeD2D", "LtePdcpRrcEnbD2D" 
+        string LteMacType;          // One of: "LteMacUe", "LteMacEnb", "LteMacUeD2D", "LteMacEnbD2D"
         string LtePhyType;
         string nodeType;
+        double processingDelayIn @unit(s) = default(0s);   // additional processing delay for incoming ip packets
+        double processingDelayOut @unit(s) = default(0s);   // additional processing delay for outgoing ip packets
 
         string LteChannelModelType = default("LteRealisticChannelModel");
 
         bool d2dCapable;            // inherit the value from the parent module
+
+        bool dualConnectivityEnabled = default(false);
+        int numCarriers = default(1);
+
+        string address = default("auto");
 
     gates:
         //#
@@ -64,42 +77,43 @@ module LteNicBase like ILteNic
         input upperLayerIn;
         output upperLayerOut;
         input radioIn @loose;  // to receive messages sent using sendDirect()
+        input nrRadioIn @loose;// for NR support
         inout x2[] @loose;     // optional x2 manager
 
     submodules:
-        // bridge between lte stack and network layer
-        ip2lte: IP2lte {
+        // bridge between radio nic and network layer
+        ip2nic: <default("IP2Nic")> like INetworkLayer2CellularNic {
             nodeType = nodeType;
             interfaceTableModule = interfaceTableModule;
             routingTableModule = routingTableModule;
-            @display("p=150,68");
+            @display("p=295.68,67.2");
         }
         // PDCP-RRC Layer
         pdcpRrc: <LtePdcpRrcType> like LtePdcpRrc {
-            @display("p=150,142");
+            @display("p=295.68,141.568");
         }
         // RLC Layer
         rlc: LteRlc {
-            @display("p=150,227");
+            @display("p=295.68,226.68799");
             d2dCapable = d2dCapable;
         }
         // MAC Layer
         mac: <LteMacType> like LteMac {
             interfaceTableModule = interfaceTableModule;
-            @display("p=151,315");
+            @display("p=296.576,314.496");
         }
         // LtePhy submodule
         phy: <LtePhyType> like LtePhy {
-            @display("p=151,390");
+            @display("p=296.576,389.75998");
             @class(LtePhyType);
         }
 
-        channelModel: <LteChannelModelType> like LteChannelModelInterface {
+        channelModel[numCarriers]: <LteChannelModelType> like LteChannelModelInterface {
             @display("p=44.8,389.75998");
         }
 
-    connections:
-        ip2lte.stackLte <--> pdcpRrc.DataPort;
+    connections allowunconnected:
+        ip2nic.stackNic <--> pdcpRrc.DataPort;
 
         //#
         //# Internal LTE Stack Connections 
@@ -108,9 +122,9 @@ module LteNicBase like ILteNic
         EUTRAN_RRC_Sap <--> pdcpRrc.EUTRAN_RRC_Sap;
 
         //# PDCP <-> RLC
-        pdcpRrc.UM_Sap <--> rlc.UM_Sap;
-        pdcpRrc.AM_Sap <--> rlc.AM_Sap;
-        pdcpRrc.TM_Sap <--> rlc.TM_Sap;
+        pdcpRrc.UM_Sap++ <--> rlc.UM_Sap;
+        pdcpRrc.AM_Sap++ <--> rlc.AM_Sap;
+        pdcpRrc.TM_Sap++ <--> rlc.TM_Sap;
 
         //# RLC <-> MAC
         rlc.RLC_to_MAC --> mac.RLC_to_MAC;
@@ -124,8 +138,8 @@ module LteNicBase like ILteNic
 
         //# external: lower connection
         radioIn --> phy.radioIn;
-        ip2lte.upperLayerOut --> upperLayerOut;
-        upperLayerIn --> ip2lte.upperLayerIn;
+        ip2nic.upperLayerOut --> {  delay = processingDelayOut; } --> upperLayerOut;
+        upperLayerIn --> {  delay = processingDelayIn; } --> ip2nic.upperLayerIn;
 }
 
 //
@@ -177,17 +191,20 @@ module LteNicEnb extends LteNicBase
         //# X2 manager
         //#       
         x2Manager: LteX2Manager {
-            @display("p=60,227,row");
+            @display("p=79.743996,226.68799,row");
         }
 
         //#
         //# Modules exploiting X2 interface
         //#
         compManager: <LteCompManagerType> like LteCompManager if compEnabled {
-            @display("p=60,315,row");
+            @display("p=172.928,314.496,row");
         }
         handoverManager: LteHandoverManager {
-            @display("p=60,142,row");
+            @display("p=172.928,226.68799,row");
+        }
+        dualConnectivityManager: DualConnectivityManager if dualConnectivityEnabled {
+            @display("p=172.928,141.568,row");
         }
 
     connections:
@@ -196,6 +213,8 @@ module LteNicEnb extends LteNicBase
         compManager.x2ManagerOut --> x2Manager.dataPort$i++ if compEnabled;
         handoverManager.x2ManagerIn <-- x2Manager.dataPort$o++;
         handoverManager.x2ManagerOut --> x2Manager.dataPort$i++;
+        dualConnectivityManager.x2ManagerIn <-- x2Manager.dataPort$o++ if dualConnectivityEnabled;
+        dualConnectivityManager.x2ManagerOut --> x2Manager.dataPort$i++ if dualConnectivityEnabled;
 
         if ( sizeof(x2) > 0 ) {
             //# connections between X2 Manager and GTP (for handover)
@@ -225,25 +244,4 @@ module LteNicEnbD2D extends LteNicEnb
         d2dModeSelection: <d2dModeSelectionType> like D2DModeSelection {
             @display("p=60,68,row");
         }
-}
-
-//
-// Relay of LTE stack
-//
-module LteNicRelay extends LteNicBase
-{
-    parameters:
-        LtePhyType = "LtePhyRelay";
-        d2dCapable = false;
-
-    submodules:
-        // Feedback generator submodule
-        dlFbGen: LteDlFeedbackGenerator {
-            @display("p=50,50;is=s");
-        }
-
-        // TODO Feedback generator submodule
-        // ulFbGen: LteUlFeedbackGenerator {
-        //     @display("p=200,150;is=s");
-        // }
 }

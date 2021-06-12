@@ -18,10 +18,9 @@
 #ifndef __INET_CONVOLUTIONALCODE_H
 #define __INET_CONVOLUTIONALCODE_H
 
-#include "inet/physicallayer/contract/bitlevel/IFECCoder.h"
+#include "inet/physicallayer/contract/bitlevel/IFecCoder.h"
 
 namespace inet {
-
 namespace physicallayer {
 
 class INET_API ConvolutionalCode : public IForwardErrorCorrection
@@ -50,6 +49,7 @@ class INET_API ConvolutionalCode : public IForwardErrorCorrection
     virtual int getDecodedLength(int encodedLength) const override;
     virtual double computeNetBitErrorRate(double grossBitErrorRate) const override;
 };
+
 } /* namespace physicallayer */
 } /* namespace inet */
 

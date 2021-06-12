@@ -19,7 +19,6 @@
 #define __INET_DIMENSIONALANALOGMODEL_H
 
 #include "inet/physicallayer/base/packetlevel/DimensionalAnalogModelBase.h"
-#include "inet/common/mapping/MappingBase.h"
 
 namespace inet {
 

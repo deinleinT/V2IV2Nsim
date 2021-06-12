@@ -19,15 +19,14 @@
 #define __INET_IEEE80211RADIO_H
 
 #include "inet/physicallayer/base/packetlevel/FlatRadioBase.h"
-#include "inet/physicallayer/ieee80211/mode/IIeee80211Mode.h"
-#include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
 #include "inet/physicallayer/ieee80211/mode/Ieee80211Band.h"
 #include "inet/physicallayer/ieee80211/mode/Ieee80211Channel.h"
-#include "inet/physicallayer/ieee80211/packetlevel/Ieee80211TransmitterBase.h"
+#include "inet/physicallayer/ieee80211/mode/Ieee80211ModeSet.h"
+#include "inet/physicallayer/ieee80211/mode/IIeee80211Mode.h"
 #include "inet/physicallayer/ieee80211/packetlevel/Ieee80211ReceiverBase.h"
+#include "inet/physicallayer/ieee80211/packetlevel/Ieee80211TransmitterBase.h"
 
 namespace inet {
-
 namespace physicallayer {
 
 class INET_API Ieee80211Radio : public FlatRadioBase
@@ -38,11 +37,22 @@ class INET_API Ieee80211Radio : public FlatRadioBase
      * The signal value is the new radio channel.
      */
     static simsignal_t radioChannelChangedSignal;
+    static const Ptr<const Ieee80211PhyHeader> popIeee80211PhyHeaderAtFront(Packet *packet, b length = b(-1), int flags = 0);
+    static const Ptr<const Ieee80211PhyHeader> peekIeee80211PhyHeaderAtFront(const Packet *packet, b length = b(-1), int flags = 0);
+
+  protected:
+    CrcMode crcMode = CRC_MODE_UNDEFINED;
 
   protected:
     virtual void initialize(int stage) override;
 
     virtual void handleUpperCommand(cMessage *message) override;
+
+    virtual void insertCrc(const Ptr<Ieee80211PhyHeader>& phyHeader) const;
+    virtual bool verifyCrc(const Ptr<const Ieee80211PhyHeader>& phyHeader) const;
+
+    virtual void encapsulate(Packet *packet) const override;
+    virtual void decapsulate(Packet *packet) const override;
 
   public:
     Ieee80211Radio();
@@ -55,7 +65,6 @@ class INET_API Ieee80211Radio : public FlatRadioBase
 };
 
 } // namespace physicallayer
-
 } // namespace inet
 
 #endif // ifndef __INET_IEEE80211RADIO_H

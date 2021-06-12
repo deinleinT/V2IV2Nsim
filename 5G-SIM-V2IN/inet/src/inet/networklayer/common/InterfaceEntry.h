@@ -21,25 +21,18 @@
 #include <vector>
 
 #include "inet/common/INETDefs.h"
-
-#include "inet/networklayer/common/L3Address.h"
-#include "inet/linklayer/common/MACAddress.h"
+#include "inet/common/packet/tag/TagSet.h"
+#include "inet/common/Simsignals.h"
+#include "inet/linklayer/common/MacAddress.h"
 #include "inet/networklayer/common/InterfaceToken.h"
-#include "inet/common/NotifierConsts.h"
+#include "inet/networklayer/common/L3Address.h"
 
 namespace inet {
 
 // Forward declarations. Do NOT #include the corresponding header files
-// since that would create dependence on IPv4 and IPv6 stuff!
+// since that would create dependence on Ipv4 and Ipv6 stuff!
 class InterfaceEntry;
 class IInterfaceTable;
-class InterfaceProtocolData;
-class GenericNetworkProtocolInterfaceData;
-class IPv4InterfaceData;
-class IPv6InterfaceData;
-class TRILLInterfaceData;
-class ISISInterfaceData;
-class Ieee8021dInterfaceData;
 
 enum McastSourceFilterMode { MCAST_INCLUDE_SOURCES, MCAST_EXCLUDE_SOURCES };
 
@@ -47,15 +40,15 @@ class INET_API MacEstimateCostProcess
 {
   public:
     virtual ~MacEstimateCostProcess() {};
-    virtual double getCost(int, MACAddress&) = 0;
+    virtual double getCost(int, MacAddress&) = 0;
     virtual double getNumCost() = 0;
     virtual int getNumNeighbors() = 0;
-    virtual int getNeighbors(MACAddress[]) = 0;
+    virtual int getNeighbors(MacAddress[]) = 0;
 };
 
 /**
  * Base class for protocol-specific data on an interface.
- * Notable subclasses are IPv4InterfaceData and IPv6InterfaceData.
+ * Notable subclasses are Ipv4InterfaceData and Ipv6InterfaceData.
  */
 class INET_API InterfaceProtocolData : public cObject
 {
@@ -63,13 +56,14 @@ class INET_API InterfaceProtocolData : public cObject
 
   protected:
     InterfaceEntry *ownerp = nullptr;    // the interface entry this object belongs to
+    int id;
 
   protected:
     // fires notification with the given signalID, and the interface entry as obj
     virtual void changed(simsignal_t signalID, int fieldId);
 
   public:
-    InterfaceProtocolData() { }
+    InterfaceProtocolData(int id) : id(id) { }
 
     /**
      * Returns the InterfaceEntry that contains this data object, or nullptr
@@ -94,7 +88,7 @@ class INET_API InterfaceEntryChangeDetails : public cObject
  *
  * @see IInterfaceTable
  */
-class INET_API InterfaceEntry : public cNamedObject
+class INET_API InterfaceEntry : public cModule
 {
     friend class InterfaceProtocolData;    // to call protocolDataChanged()
 
@@ -103,9 +97,8 @@ class INET_API InterfaceEntry : public cNamedObject
 
   protected:
     IInterfaceTable *ownerp = nullptr;    ///< IInterfaceTable that contains this interface, or nullptr
-    cModule *interfaceModule = nullptr;    ///< interface module, or nullptr
     int interfaceId = -1;    ///< identifies the interface in the IInterfaceTable
-    int nwLayerGateIndex = -1;    ///< index of ifIn[],ifOut[] gates to that interface (or -1 if virtual interface)
+    std::string interfaceName;
     int nodeOutputGateId = -1;    ///< id of the output gate of this host/router (or -1 if this is a virtual interface)
     int nodeInputGateId = -1;    ///< id of the input gate of this host/router (or -1 if this is a virtual interface)
     int mtu = 0;    ///< Maximum Transmission Unit (e.g. 1500 on Ethernet); 0 means infinite (i.e. never fragment)
@@ -116,15 +109,10 @@ class INET_API InterfaceEntry : public cNamedObject
     bool pointToPoint = false;    ///< interface is point-to-point link
     bool loopback = false;    ///< interface is loopback interface
     double datarate = 0;    ///< data rate in bit/s
-    MACAddress macAddr;    ///< link-layer address (for now, only IEEE 802 MAC addresses are supported)
-    InterfaceToken token;    ///< for IPv6 stateless autoconfig (RFC 1971), interface identifier (RFC 2462)
+    MacAddress macAddr;    ///< link-layer address (for now, only IEEE 802 MAC addresses are supported)
+    InterfaceToken token;    ///< for Ipv6 stateless autoconfig (RFC 1971), interface identifier (RFC 2462)
 
-    IPv4InterfaceData *ipv4data = nullptr;    ///< IPv4-specific interface info (IPv4 address, etc)
-    IPv6InterfaceData *ipv6data = nullptr;    ///< IPv6-specific interface info (IPv6 addresses, etc)
-    GenericNetworkProtocolInterfaceData *genericNetworkProtocolData = nullptr;    ///< GenericNetworkProtocol-specific interface info (Address, etc)
-    ISISInterfaceData *isisdata = nullptr;    ///< ISIS-specific interface info
-    TRILLInterfaceData *trilldata = nullptr;    ///< TRILL-specific interface info
-    Ieee8021dInterfaceData *ieee8021ddata = nullptr;
+    TagSet protocolDataSet;
     std::vector<MacEstimateCostProcess *> estimateCostProcessArray;
 
   private:
@@ -139,14 +127,19 @@ class INET_API InterfaceEntry : public cNamedObject
         F_NAME, F_NODE_IN_GATEID, F_NODE_OUT_GATEID, F_NETW_GATEIDX,
         F_LOOPBACK, F_BROADCAST, F_MULTICAST, F_POINTTOPOINT,
         F_DATARATE, F_MTU, F_MACADDRESS, F_TOKEN,
-        F_IPV4_DATA, F_IPV6_DATA, F_GENERIC_DATA, F_ISIS_DATA, F_TRILL_DATA, F_IEEE8021D_DATA
+        F_IPV4_DATA, F_IPV6_DATA, F_NEXTHOP_DATA, F_ISIS_DATA, F_TRILL_DATA, F_IEEE8021D_DATA, F_CLNS_DATA
     };
 
   protected:
     // change notifications
-    virtual void configChanged(int fieldId) { changed(NF_INTERFACE_CONFIG_CHANGED, fieldId); }
-    virtual void stateChanged(int fieldId) { changed(NF_INTERFACE_STATE_CHANGED, fieldId); }
+    virtual void configChanged(int fieldId) { changed(interfaceConfigChangedSignal, fieldId); }
+    virtual void stateChanged(int fieldId) { changed(interfaceStateChangedSignal, fieldId); }
     virtual void changed(simsignal_t signalID, int fieldId);
+
+    virtual int numInitStages() const override { return NUM_INIT_STAGES; }
+    virtual void initialize(int stage) override;
+    virtual void refreshDisplay() const override;
+    virtual void updateDisplayString() const;
 
   public:
     // internal: to be invoked from InterfaceTable only!
@@ -154,11 +147,15 @@ class INET_API InterfaceEntry : public cNamedObject
     virtual void setInterfaceId(int id) { interfaceId = id; }
     virtual void resetInterface();
 
+  protected:
+    virtual std::string getFullPath() const override { return cModule::getFullPath(); }
+    virtual const char *getName() const override { return cModule::getName(); }
+
   public:
-    InterfaceEntry(cModule *module);
+    InterfaceEntry();
     virtual ~InterfaceEntry();
     virtual std::string str() const override;
-    virtual std::string getFullPath() const override;
+    virtual std::string getInterfaceFullPath() const;
 
     /**
      * Returns the IInterfaceTable this interface is in, or nullptr
@@ -169,76 +166,133 @@ class INET_API InterfaceEntry : public cNamedObject
      * Returns the requested state of this interface.
      */
     State getState() const { return state; }
+
     /**
      * Returns the combined state of the carrier and the interface requested state.
      */
     bool isUp() const { return getState() == UP && hasCarrier(); }
 
-    const ModuleIdAddress getModuleIdAddress() const { return ModuleIdAddress(getInterfaceModule()->getId()); }
-    const ModulePathAddress getModulePathAddress() const { return ModulePathAddress(getInterfaceModule()->getId()); }
+    const ModuleIdAddress getModuleIdAddress() const { return ModuleIdAddress(getId()); }
+    const ModulePathAddress getModulePathAddress() const { return ModulePathAddress(getId()); }
     const L3Address getNetworkAddress() const;
+    virtual bool hasNetworkAddress(const L3Address& address) const;
 
     /** @name Field getters. Note they are non-virtual and inline, for performance reasons. */
     //@{
     int getInterfaceId() const { return interfaceId; }
-    cModule *getInterfaceModule() const { return interfaceModule; }
-    int getNetworkLayerGateIndex() const { return nwLayerGateIndex; }
+    const char *getInterfaceName() const { return interfaceName.c_str(); }
     int getNodeOutputGateId() const { return nodeOutputGateId; }
     int getNodeInputGateId() const { return nodeInputGateId; }
-    int getMTU() const { return mtu; }
+    int getMtu() const { return mtu; }
     bool hasCarrier() const { return carrier; }
     bool isBroadcast() const { return broadcast; }
     bool isMulticast() const { return multicast; }
     bool isPointToPoint() const { return pointToPoint; }
     bool isLoopback() const { return loopback; }
     double getDatarate() const { return datarate; }
-    const MACAddress& getMacAddress() const { return macAddr; }
+    const MacAddress& getMacAddress() const { return macAddr; }
     const InterfaceToken& getInterfaceToken() const { return token; }
     //@}
 
     /** @name Field setters */
     //@{
-    virtual void setName(const char *s) override { cNamedObject::setName(s); configChanged(F_NAME); }
-    virtual void setNetworkLayerGateIndex(int i) { if (nwLayerGateIndex != i) { nwLayerGateIndex = i; configChanged(F_NETW_GATEIDX); } }
+    virtual void setInterfaceName(const char *s) { interfaceName = s; configChanged(F_NAME); }
     virtual void setNodeOutputGateId(int i) { if (nodeOutputGateId != i) { nodeOutputGateId = i; configChanged(F_NODE_OUT_GATEID); } }
     virtual void setNodeInputGateId(int i) { if (nodeInputGateId != i) { nodeInputGateId = i; configChanged(F_NODE_IN_GATEID); } }
     virtual void setMtu(int m) { if (mtu != m) { mtu = m; configChanged(F_MTU); } }
-    virtual void setState(State s) { if (state != s) { state = s; stateChanged(F_STATE); } }
-    virtual void setCarrier(bool b) { if (carrier != b) { carrier = b; stateChanged(F_CARRIER); } }
+    virtual void setState(State s);
+    virtual void setCarrier(bool b);
     virtual void setBroadcast(bool b) { if (broadcast != b) { broadcast = b; configChanged(F_BROADCAST); } }
     virtual void setMulticast(bool b) { if (multicast != b) { multicast = b; configChanged(F_MULTICAST); } }
     virtual void setPointToPoint(bool b) { if (pointToPoint != b) { pointToPoint = b; configChanged(F_POINTTOPOINT); } }
     virtual void setLoopback(bool b) { if (loopback != b) { loopback = b; configChanged(F_LOOPBACK); } }
     virtual void setDatarate(double d) { if (datarate != d) { datarate = d; configChanged(F_DATARATE); } }
-    virtual void setMACAddress(const MACAddress& addr) { if (macAddr != addr) { macAddr = addr; configChanged(F_MACADDRESS); } }
+    virtual void setMacAddress(const MacAddress& addr) { if (macAddr != addr) { macAddr = addr; configChanged(F_MACADDRESS); } }
     virtual void setInterfaceToken(const InterfaceToken& t) { token = t; configChanged(F_TOKEN); }
+    //@}
+
+    /** @name Tag related functions */
+    //@{
+    /**
+     * Returns the message tag at the given index.
+     */
+    cObject *getProtocolData(int index) const {
+        return protocolDataSet.getTag(index);
+    }
+
+    /**
+     * Clears the set of message tags.
+     */
+    void clearProtocolDataSet();
+
+    /**
+     * Returns the message tag for the provided type or returns nullptr if no such message tag is found.
+     */
+    template<typename T> T *findProtocolData() const {
+        return protocolDataSet.findTag<T>();
+    }
+
+    /**
+     * Returns the message tag for the provided type or throws an exception if no such message tag is found.
+     */
+    template<typename T> T *getProtocolData() const {
+        return protocolDataSet.getTag<T>();
+    }
+
+    /**
+     * Returns a newly added message tag for the provided type, or throws an exception if such a message tag is already present.
+     */
+    template<typename T> T *addProtocolData() {
+        auto t = protocolDataSet.addTag<T>();
+        auto ipd = check_and_cast<InterfaceProtocolData *>(t);
+        ipd->ownerp = this;
+        changed(interfaceConfigChangedSignal, ipd->id);
+        return t;
+    }
+
+    /**
+     * Returns a newly added message tag for the provided type if absent, or returns the message tag that is already present.
+     */
+    template<typename T> T *addProtocolDataIfAbsent() {
+        auto t = protocolDataSet.findTag<T>();
+        if (t == nullptr)
+            t = protocolDataSet.addTag<T>();
+        return t;
+    }
+
+    /**
+     * Removes the message tag for the provided type, or throws an exception if no such message tag is found.
+     */
+    template<typename T> T *removeProtocolData() {
+        auto t = protocolDataSet.removeTag<T>();
+        check_and_cast<InterfaceProtocolData *>(t)->ownerp = nullptr;
+        changed(interfaceConfigChangedSignal, t->id);
+        return t;
+    }
+
+    /**
+     * Removes the message tag for the provided type if present, or returns nullptr if no such message tag is found.
+     */
+    template<typename T> T *removeProtocolDataIfPresent() {
+        auto t = protocolDataSet.removeTagIfPresent<T>();
+        if (t != nullptr) {
+            check_and_cast<InterfaceProtocolData *>(t)->ownerp = nullptr;
+            changed(interfaceConfigChangedSignal, t->id);
+        }
+        return t;
+    }
     //@}
 
     /** @name Accessing protocol-specific interface data. Note methods are non-virtual, for performance reasons. */
     //@{
-    IPv4InterfaceData *ipv4Data() const { return ipv4data; }
-    IPv4Address getIPv4Address() const;
-    IPv6InterfaceData *ipv6Data() const { return ipv6data; }
-    GenericNetworkProtocolInterfaceData *getGenericNetworkProtocolData() const { return genericNetworkProtocolData; }
-    TRILLInterfaceData *trillData() const { return trilldata; }
-    ISISInterfaceData *isisData() const { return isisdata; }
-    Ieee8021dInterfaceData *ieee8021dData() const { return ieee8021ddata; }
+    Ipv4Address getIpv4Address() const;
+    Ipv4Address getIpv4Netmask() const;
     //@}
 
     virtual void joinMulticastGroup(const L3Address& address) const;    // XXX why const method?
     virtual void changeMulticastGroupMembership(const L3Address& multicastAddress,
             McastSourceFilterMode oldFilterMode, const std::vector<L3Address>& oldSourceList,
             McastSourceFilterMode newFilterMode, const std::vector<L3Address>& newSourceList);
-
-    /** @name Installing protocol-specific interface data */
-    //@{
-    virtual void setIPv4Data(IPv4InterfaceData *p);
-    virtual void setIPv6Data(IPv6InterfaceData *p);
-    virtual void setGenericNetworkProtocolData(GenericNetworkProtocolInterfaceData *p);
-    virtual void setTRILLInterfaceData(TRILLInterfaceData *p);
-    virtual void setISISInterfaceData(ISISInterfaceData *p);
-    virtual void setIeee8021dInterfaceData(Ieee8021dInterfaceData *p);
-    //@}
 
     /** @name access to the cost process estimation  */
     //@{

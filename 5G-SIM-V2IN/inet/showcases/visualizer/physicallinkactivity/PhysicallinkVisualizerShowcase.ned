@@ -15,7 +15,7 @@
 
 package inet.showcases.visualizer.physicallinkactivity;
 
-import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
+import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 import inet.node.inet.AdhocHost;
 import inet.node.inet.WirelessHost;
 import inet.node.wireless.AccessPoint;
@@ -24,9 +24,6 @@ import inet.visualizer.integrated.IntegratedVisualizer;
 import inet.visualizer.physicallayer.PhysicalLinkVisualizer;
 
 
-//
-// TODO documentation
-//
 network PhysicalLinkVisualizerEnablingShowcase
 {
     @display("bgb=600,300");
@@ -35,7 +32,7 @@ network PhysicalLinkVisualizerEnablingShowcase
             parameters:
                 @display("p=100,50");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             parameters:
                 @display("p=100,150");
         }
@@ -52,9 +49,6 @@ network PhysicalLinkVisualizerEnablingShowcase
 }
 
 
-//
-// TODO documentation
-//
 network PhysicalLinkVisualizerFilteringShowcase
 {
     @display("bgb=780,330");
@@ -63,7 +57,7 @@ network PhysicalLinkVisualizerFilteringShowcase
             parameters:
                 @display("p=100,50");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             parameters:
                 @display("p=100,150");
         }
@@ -85,9 +79,6 @@ network PhysicalLinkVisualizerFilteringShowcase
         }
 }
 
-//
-// TODO documentation
-//
 network PhysicalLinkVisualizerMobileShowcase
 {
     @display("bgb=660,630");
@@ -95,7 +86,7 @@ network PhysicalLinkVisualizerMobileShowcase
         visualizer: IntegratedVisualizer {
             @display("p=100,50");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=100,150");
         }
         radioMedium: Ieee80211ScalarRadioMedium {

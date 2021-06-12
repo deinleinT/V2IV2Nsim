@@ -1,3 +1,2 @@
-package nr.simulationsNR;
+package lteNR.simulationsNR;
 
-@license(LGPL);

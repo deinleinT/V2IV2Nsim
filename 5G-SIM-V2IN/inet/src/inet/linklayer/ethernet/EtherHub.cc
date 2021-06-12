@@ -15,13 +15,12 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "inet/common/Simsignals.h"
 #include "inet/linklayer/ethernet/EtherHub.h"
 
 namespace inet {
 
 Define_Module(EtherHub);
-
-simsignal_t EtherHub::pkSignal = registerSignal("pk");
 
 inline std::ostream& operator<<(std::ostream& os, cMessage *msg)
 {
@@ -153,12 +152,14 @@ void EtherHub::handleMessage(cMessage *msg)
     if (dataratesDiffer)
         checkConnections(true);
 
+    PK(msg);    // only packets accepted
+
     // Handle frame sent down from the network entity: send out on every other port
     int arrivalPort = msg->getArrivalGate()->getIndex();
     //EV << "Frame " << msg << " arrived on port " << arrivalPort << ", broadcasting on all other ports\n";
 
     numMessages++;
-    emit(pkSignal, msg);
+    emit(packetReceivedSignal, msg);
 
     if (numPorts <= 1) {
         delete msg;

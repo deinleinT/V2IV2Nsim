@@ -1,9 +1,11 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
@@ -33,7 +35,7 @@ class AmcPilotD2D : public AmcPilot
         name_ = "D2D";
         mode_ = MIN_CQI;
         usePreconfiguredTxParams_ = false;
-        preconfiguredTxParams_ = NULL;
+        preconfiguredTxParams_ = nullptr;
     }
     /**
      * Assign logical bands for given nodeId and direction
@@ -41,7 +43,7 @@ class AmcPilotD2D : public AmcPilot
      * @param dir The link direction.
      * @return The user transmission parameters computed.
      */
-    const UserTxParams& computeTxParams(MacNodeId id, const Direction dir);
+    const UserTxParams& computeTxParams(MacNodeId id, const Direction dir, double carrierFrequency);
     //Used with TMS pilot
     void updateActiveUsers(ActiveSet aUser, Direction dir)
     {
@@ -51,9 +53,9 @@ class AmcPilotD2D : public AmcPilot
     void setPreconfiguredTxParams(Cqi cqi);
 
     // TODO reimplement these functions
-    virtual std::vector<Cqi>  getMultiBandCqi(MacNodeId id, const Direction dir) {};
-    virtual void setUsableBands(MacNodeId id , UsableBands usableBands) {}
-    virtual bool getUsableBands(MacNodeId id, UsableBands*& uBands) { return false; }
+    virtual std::vector<Cqi>  getMultiBandCqi(MacNodeId id, const Direction dir, double carrierFrequency){ std::vector<Cqi> result; return result; }
+    virtual void setUsableBands(MacNodeId id , UsableBands usableBands){}
+    virtual bool getUsableBands(MacNodeId id, UsableBands*& uBands){ return false; }
 };
 
 #endif

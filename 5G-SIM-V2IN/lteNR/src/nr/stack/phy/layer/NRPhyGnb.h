@@ -51,6 +51,16 @@ public:
     virtual void recordSpeed(const double & speedVal);
     virtual void errorDetected();
 
+    int parseInt(const char *s, int defaultValue)
+    {
+        if (!s || !*s)
+            return defaultValue;
+
+        char *endptr;
+        int value = strtol(s, &endptr, 10);
+        return *endptr == '\0' ? value : defaultValue;
+    }
+
 
 protected:
 
@@ -68,6 +78,6 @@ protected:
     int errorCount;
 
     virtual void initialize(int stage) override;
-    virtual void handleMessage(cMessage *msg);
+    virtual void initializeChannelModel() override;
     virtual void finish();
 };

@@ -33,7 +33,7 @@ void NetworkConnectionVisualizerBase::initialize(int stage)
         lineWidth = par("lineWidth");
     }
     else if (stage == INITSTAGE_LAST) {
-        for (cModule::SubmoduleIterator it(getSystemModule()); !it.end(); it++) {
+        for (cModule::SubmoduleIterator it(visualizationSubjectModule); !it.end(); it++) {
             auto networkNode = *it;
             if (isNetworkNode(networkNode) && nodeFilter.matches(networkNode)) {
                 for (cModule::GateIterator gt(networkNode); !gt.end(); gt++) {
@@ -49,6 +49,7 @@ void NetworkConnectionVisualizerBase::initialize(int stage)
 
 void NetworkConnectionVisualizerBase::handleParameterChange(const char *name)
 {
+    if (!hasGUI()) return;
     if (name != nullptr) {
         if (!strcmp(name, "nodeFilter"))
             nodeFilter.setPattern(par("nodeFilter"));

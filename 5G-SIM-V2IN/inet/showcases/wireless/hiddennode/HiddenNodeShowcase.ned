@@ -18,11 +18,10 @@
 
 package inet.showcases.wireless.hiddennode;
 
-import inet.common.figures.DelegateSignalConfigurator;
 import inet.environment.common.PhysicalEnvironment;
-import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
+import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 import inet.node.inet.WirelessHost;
-import inet.physicallayer.idealradio.IdealRadioMedium;
+import inet.physicallayer.unitdisk.UnitDiskRadioMedium;
 import inet.visualizer.integrated.IntegratedCanvasVisualizer;
 
 
@@ -31,7 +30,7 @@ network HiddenNodeShowcase
     parameters:
         @display("b=297,203;bgb=736.6,557.784");
         @figure[rcvdPkText](type=indicatorText; pos=420,20; anchor=w; font=,20; textFormat="packets received: %g"; initialValue=0);
-        @statistic[rcvdPk](source=hostB.udp.rcvdPk; record=figure(count); targetFigure=rcvdPkText);
+        @statistic[packetReceived](source=hostB.udp.packetReceived; record=figure(count); targetFigure=rcvdPkText);
     submodules:
 
         hostA: WirelessHost {
@@ -43,10 +42,10 @@ network HiddenNodeShowcase
         hostC: WirelessHost {
             @display("p=600,272");
         }
-        radioMedium: IdealRadioMedium {
+        radioMedium: UnitDiskRadioMedium {
             @display("p=100,100");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=100,200");
         }
         visualizer: IntegratedCanvasVisualizer {

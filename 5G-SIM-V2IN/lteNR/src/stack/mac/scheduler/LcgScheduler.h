@@ -1,18 +1,19 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
 //
 // This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
+// Date: 2021
 // Author: Thomas Deinlein
 //
-
 #pragma once
 
 #include "common/LteCommon.h"
@@ -27,9 +28,6 @@ class LteMacPdu;
 typedef std::map<MacCid, unsigned int> ScheduleList;
 typedef std::map<MacCid, std::pair<unsigned int,unsigned int>> ScheduleListSizes;
 
-/**
- * @class LcgScheduler
- */
 class LcgScheduler
 {
 
@@ -68,7 +66,7 @@ class LcgScheduler
     };
 
     // last execution time
-    simtime_t lastExecutionTime_;
+    omnetpp::simtime_t lastExecutionTime_;
 
     /// MAC module, used to get parameters from NED
     LteMacUe *mac_;
@@ -77,7 +75,7 @@ class LcgScheduler
     LteSchedulerUeUl* ueScheduler_;
 
     // schedule List - returned by reference on scheduler invocation
-    ScheduleListSizes scheduleListSizes_; //cid.first -> numSdus, cid.second -> dateinbytes
+    ScheduleList scheduleList_;
 
     // scheduled bytes list
     ScheduleList scheduledBytesList_;
@@ -94,7 +92,8 @@ class LcgScheduler
      * Default constructor.
      */
     LcgScheduler(LteMacUe * mac);
-
+    LcgScheduler(const LcgScheduler& other) { operator=(other); }
+    LcgScheduler& operator=(const LcgScheduler& other);
     /**
      * Destructor.
      */
@@ -113,14 +112,26 @@ class LcgScheduler
      * @param availableBytes
      * @return # of scheduled sdus per cid
      */
-//    virtual ScheduleList& schedule(unsigned int availableBytes, Direction grantDir = UL);
-    virtual ScheduleListSizes& schedule(unsigned int availableBytes, Direction grantDir = UL);
+    virtual ScheduleList& schedule(unsigned int availableBytes, Direction grantDir = UL);
 
     /* After the scheduling, returns the amount of bytes
      * scheduled for each connection
      */
     virtual ScheduleList& getScheduledBytesList();
 
+    // *****************************************************************************************
+
+//        /// performs request of grant to the eNbScheduler
+//        virtual unsigned int grant(MacCid cid,unsigned int bytes, bool& terminate,bool& active,bool& eligible);
+//
+//        /// calls eNbScheduler rtxschedule()
+//        virtual bool rtxschedule();
+//
+//        virtual void notify( MacCid activeCid ) {;}
+//
+//        virtual void remove( MacCid cid ) {;}
+//
+//        virtual void update() {;}
 };
 
 

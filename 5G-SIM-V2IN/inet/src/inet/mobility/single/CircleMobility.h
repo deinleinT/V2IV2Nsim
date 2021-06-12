@@ -19,7 +19,6 @@
 #define __INET_CIRCLEMOBILITY_H
 
 #include "inet/common/INETDefs.h"
-
 #include "inet/mobility/base/MovingMobilityBase.h"
 
 namespace inet {
@@ -37,13 +36,13 @@ class INET_API CircleMobility : public MovingMobilityBase
     double cy;
     double cz;
     double r;
-    double startAngle;
+    rad startAngle;
     double speed;
     /** @brief angular velocity [rad/s], derived from speed and radius. */
     double omega;
 
     /** @brief Direction from the center of the circle. */
-    double angle;
+    rad angle;
 
   protected:
     virtual int numInitStages() const override { return NUM_INIT_STAGES; }
@@ -60,6 +59,9 @@ class INET_API CircleMobility : public MovingMobilityBase
   public:
     virtual double getMaxSpeed() const override { return speed; }
     CircleMobility();
+
+    virtual Quaternion getCurrentAngularVelocity() override { return Quaternion(EulerAngles(rad(omega), rad(0), rad(0))); }
+    virtual Quaternion getCurrentAngularAcceleration() override { return Quaternion(); }
 };
 
 } // namespace inet

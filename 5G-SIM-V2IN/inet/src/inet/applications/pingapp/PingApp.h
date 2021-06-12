@@ -21,14 +21,17 @@
 
 #include "inet/common/INETDefs.h"
 
-#include "inet/networklayer/common/L3Address.h"
-#include "inet/common/lifecycle/ILifecycle.h"
+#include "inet/applications/base/ApplicationBase.h"
+#include "inet/common/Protocol.h"
 #include "inet/common/lifecycle/LifecycleOperation.h"
 #include "inet/common/lifecycle/NodeStatus.h"
+#include "inet/common/packet/Packet.h"
+#include "inet/common/socket/SocketMap.h"
+#include "inet/networklayer/common/L3Address.h"
+#include "inet/networklayer/contract/INetworkSocket.h"
+#include "inet/transportlayer/common/CrcMode_m.h"
 
 namespace inet {
-
-class PingPayload;
 
 // how many ping request's send time is stored
 #define PING_HISTORY_SIZE    100
@@ -39,7 +42,7 @@ class PingPayload;
  *
  * See NED file for detailed description of operation.
  */
-class INET_API PingApp : public cSimpleModule, public ILifecycle
+class INET_API PingApp : public ApplicationBase, public INetworkSocket::ICallback
 {
   protected:
     // parameters: for more details, see the corresponding NED parameters' documentation
@@ -54,10 +57,13 @@ class INET_API PingApp : public cSimpleModule, public ILifecycle
     int destAddrIdx = -1;
     simtime_t startTime;
     simtime_t stopTime;
+    CrcMode crcMode = CRC_MODE_UNDEFINED;
     bool printPing = false;
     bool continuous = false;
 
     // state
+    SocketMap socketMap;
+    INetworkSocket *currentSocket = nullptr;   // current socket stored in socketMap, too
     int pid = 0;    // to determine which hosts are associated with the responses
     cMessage *timer = nullptr;    // to schedule the next Ping request
     NodeStatus *nodeStatus = nullptr;    // lifecycle
@@ -65,6 +71,9 @@ class INET_API PingApp : public cSimpleModule, public ILifecycle
     long sendSeqNo = 0;    // to match the response with the request that caused the response
     long expectedReplySeqNo = 0;
     simtime_t sendTimeHistory[PING_HISTORY_SIZE];    // times of when the requests were sent
+    bool pongReceived[PING_HISTORY_SIZE];
+
+    static const std::map<const Protocol *, const Protocol *> l3Echo;
 
     // statistics
     cStdDev rttStat;
@@ -77,31 +86,38 @@ class INET_API PingApp : public cSimpleModule, public ILifecycle
     long lossCount = 0;    // number of lost requests
     long outOfOrderArrivalCount = 0;    // number of responses which arrived too late
     long numPongs = 0;    // number of received Ping requests
+    long numDuplicatedPongs = 0;    // number of duplicated Ping responses
 
   protected:
     virtual void initialize(int stage) override;
     virtual int numInitStages() const override { return NUM_INIT_STAGES; }
-    virtual void handleMessage(cMessage *msg) override;
+    virtual void handleMessageWhenUp(cMessage *msg) override;
+    virtual void handleSelfMessage(cMessage *msg);
     virtual void finish() override;
     virtual void refreshDisplay() const override;
 
     virtual void parseDestAddressesPar();
     virtual void startSendingPingRequests();
-    virtual void stopSendingPingRequests();
     virtual void scheduleNextPingRequest(simtime_t previous, bool withSleep);
     virtual void cancelNextPingRequest();
-    virtual bool isNodeUp();
     virtual bool isEnabled();
     virtual std::vector<L3Address> getAllAddresses();
-    virtual void sendPing();
-    virtual void processPingResponse(PingPayload *msg);
-    virtual void countPingResponse(int bytes, long seqNo, simtime_t rtt);
+    virtual void sendPingRequest();
+    virtual void processPingResponse(int identifier, int seqNumber, Packet *packet);
+    virtual void countPingResponse(int bytes, long seqNo, simtime_t rtt, bool isDup);
 
-    virtual bool handleOperationStage(LifecycleOperation *operation, int stage, IDoneCallback *doneCallback) override;
+    // Lifecycle methods
+    virtual void handleStartOperation(LifecycleOperation *operation) override;
+    virtual void handleStopOperation(LifecycleOperation *operation) override;
+    virtual void handleCrashOperation(LifecycleOperation *operation) override;
 
+    //INetworkSocket::ICallback:
+    virtual void socketDataArrived(INetworkSocket *socket, Packet *packet) override;
+    virtual void socketClosed(INetworkSocket *socket) override;
   public:
     PingApp();
     virtual ~PingApp();
+    int getPid() const { return pid; }
 };
 
 } // namespace inet

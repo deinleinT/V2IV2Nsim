@@ -20,6 +20,8 @@
 namespace inet {
 namespace ieee80211 {
 
+using namespace inet::physicallayer;
+
 Define_Module(OnoeRateControl);
 
 void OnoeRateControl::initialize(int stage)
@@ -53,7 +55,7 @@ void OnoeRateControl::handleMessage(cMessage* msg)
     throw cRuntimeError("This module doesn't handle self messages");
 }
 
-void OnoeRateControl::frameTransmitted(const Ieee80211Frame* frame, int retryCount, bool isSuccessful, bool isGivenUp)
+void OnoeRateControl::frameTransmitted(Packet *frame, int retryCount, bool isSuccessful, bool isGivenUp)
 {
     computeModeIfTimerIsExpired();
     if (isSuccessful)
@@ -73,7 +75,7 @@ void OnoeRateControl::computeModeIfTimerIsExpired()
     }
 }
 
-void OnoeRateControl::frameReceived(const Ieee80211Frame* frame, const Ieee80211ReceptionIndication* receptionIndication)
+void OnoeRateControl::frameReceived(Packet *frame)
 {
 }
 
@@ -87,7 +89,7 @@ void OnoeRateControl::computeMode()
         if (numOfFrameTransmitted >= 10 && avgRetriesPerFrame > 1)
         {
             currentMode = decreaseRateIfPossible(currentMode);
-            emitDatarateSignal();
+            emitDatarateChangedSignal();
             updateDisplayString();
             //EV_DETAIL << "Decreased rate to " << *currentMode << endl;
             credit = 0;
@@ -100,7 +102,7 @@ void OnoeRateControl::computeMode()
         if (credit >= 10)
         {
             currentMode = increaseRateIfPossible(currentMode);
-            emitDatarateSignal();
+            emitDatarateChangedSignal();
             updateDisplayString();
             //EV_DETAIL << "Increased rate to " << *currentMode << endl;
             credit = 0;
@@ -112,7 +114,7 @@ void OnoeRateControl::computeMode()
 
 const IIeee80211Mode* OnoeRateControl::getRate()
 {
-    Enter_Method_Silent("getRate()");
+    Enter_Method_Silent("getRate");
     computeModeIfTimerIsExpired();
     //EV_INFO << "The current mode is " << currentMode << " the net bitrate is " << currentMode->getDataMode()->getNetBitrate() << std::endl;
     return currentMode;

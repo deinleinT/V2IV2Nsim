@@ -15,11 +15,10 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "inet/networklayer/common/ModulePathAddress.h"
-
-#include "inet/networklayer/contract/IInterfaceTable.h"
 #include "inet/common/ModuleAccess.h"
 #include "inet/networklayer/common/L3AddressResolver.h"
+#include "inet/networklayer/common/ModulePathAddress.h"
+#include "inet/networklayer/contract/IInterfaceTable.h"
 
 namespace inet {
 
@@ -59,7 +58,7 @@ bool ModulePathAddress::tryParse(const char *addr)
         IInterfaceTable *ift = L3AddressResolver().findInterfaceTableOf(findContainingNode(module));
         if (ift == nullptr)
             return false;
-        if (ift->getInterfaceByInterfaceModule(module) == nullptr)
+        if (ift->findInterfaceByInterfaceModule(module) == nullptr)
             return false;
         id = module->getId();
         return true;

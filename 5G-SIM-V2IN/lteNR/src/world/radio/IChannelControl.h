@@ -1,17 +1,13 @@
-/* -*- mode:c++ -*- ********************************************************
- * file:        IChannelControl.h
- *
- * copyright:   (C) Rudolf Hornig
- *
- *              This program is free software; you can redistribute it
- *              and/or modify it under the terms of the GNU General Public
- *              License as published by the Free Software Foundation; either
- *              version 2 of the License, or (at your option) any later
- *              version.
- *              For further information see file COPYING
- *              in the top level directory
- *
- **************************************************************************/
+//
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
+//
+// This file is part of a software released under the license included in file
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
+// and cannot be removed from it.
+//
 
 #ifndef ICHANNELCONTROL_H
 #define ICHANNELCONTROL_H
@@ -20,11 +16,9 @@
 #include <list>
 #include <set>
 
-#include "inet/common/INETDefs.h"
-#include "inet/common/geometry/common/Coord.h"
+#include <inet/common/INETDefs.h>
+#include <inet/common/geometry/common/Coord.h>
 #include "stack/phy/packet/AirFrame_m.h"
-
-using namespace inet;
 
 // Forward declarations
 class AirFrame;
@@ -45,16 +39,16 @@ class IChannelControl
     virtual ~IChannelControl() {}
 
     /** Registers the given radio. If radioInGate==NULL, the "radioIn" gate is assumed */
-    virtual RadioRef registerRadio(cModule *radioModule, cGate *radioInGate = NULL) = 0;
+    virtual RadioRef registerRadio(omnetpp::cModule *radioModule, omnetpp::cGate *radioInGate = nullptr) = 0;
 
     /** Unregisters the given radio */
     virtual void unregisterRadio(RadioRef r) = 0;
 
     /** Returns the host module that contains the given radio */
-    virtual cModule *getRadioModule(RadioRef r) const = 0;
+    virtual omnetpp::cModule *getRadioModule(RadioRef r) const = 0;
 
     /** Returns the input gate of the host for receiving AirFrames */
-    virtual cGate *getRadioGate(RadioRef r) const = 0;
+    virtual omnetpp::cGate *getRadioGate(RadioRef r) const = 0;
 
     /** Returns the channel the given radio listens on */
     virtual int getRadioChannel(RadioRef r) const = 0;

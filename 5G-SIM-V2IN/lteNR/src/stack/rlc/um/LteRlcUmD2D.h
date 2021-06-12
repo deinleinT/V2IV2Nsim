@@ -1,9 +1,11 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
@@ -22,21 +24,17 @@
 class LteRlcUmD2D : public LteRlcUm
 {
   public:
-    LteRlcUmD2D()
-    {
-    }
     virtual ~LteRlcUmD2D()
     {
     }
-    virtual void resumeDownstreamInPackets(MacNodeId peerId);
-    virtual bool isEmptyingTxBuffer(MacNodeId peerId);
+    virtual void resumeDownstreamInPackets(MacNodeId peerId) override;
+    virtual bool isEmptyingTxBuffer(MacNodeId peerId) override;
 
   protected:
 
-    LteNodeType nodeType_;
+    RanNodeType nodeType_;
 
-    virtual int numInitStages() const { return inet::NUM_INIT_STAGES; }
-    virtual void initialize(int stage);
+    virtual int numInitStages() const override { return inet::NUM_INIT_STAGES; }
 
     /**
      * getTxBuffer() is used by the sender to gather the TXBuffer
@@ -48,7 +46,7 @@ class LteRlcUmD2D : public LteRlcUm
      * @return pointer to the TXBuffer for the CID of the flow
      *
      */
-    virtual UmTxEntity* getTxBuffer(FlowControlInfo* lteInfo);
+    virtual UmTxEntity* getTxBuffer(FlowControlInfo* lteInfo) override;
 
     /**
      * UM Mode
@@ -65,7 +63,15 @@ class LteRlcUmD2D : public LteRlcUm
      *
      * @param pkt packet to process
      */
-    virtual void handleLowerMessage(cPacket *pkt);
+    virtual void handleLowerMessage(omnetpp::cPacket *pkt) override;
+
+    /**
+     * deleteQueues() must be called on handover
+     * to delete queues for a given user
+     *
+     * @param nodeId Id of the node whose queues are deleted
+     */
+    virtual void deleteQueues(MacNodeId nodeId) override;
 
   private:
 

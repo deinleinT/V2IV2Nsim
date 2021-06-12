@@ -16,11 +16,10 @@
 //
 //
 
-#include "LinearGaugeFigure.h"
 #include "inet/common/INETUtils.h"
+#include "inet/common/figures/LinearGaugeFigure.h"
 
-//TODO namespace inet { -- for the moment commented out, as OMNeT++ 5.0 cannot instantiate a figure from a namespace
-using namespace inet;
+namespace inet {
 
 Register_Figure("linearGauge", LinearGaugeFigure);
 
@@ -60,9 +59,9 @@ LinearGaugeFigure::LinearGaugeFigure(const char *name) : cGroupFigure(name)
 LinearGaugeFigure::~LinearGaugeFigure()
 {
     // delete figures which is not in canvas
-    for (uint32_t i = numTicks; i < tickFigures.size(); ++i) {
-        dropAndDelete(tickFigures[i]);
-        dropAndDelete(numberFigures[i]);
+    for (uint32 i = numTicks; i < tickFigures.size(); ++i) {
+        delete tickFigures[i];
+        delete numberFigures[i];
     }
 }
 
@@ -107,7 +106,7 @@ void LinearGaugeFigure::setLabel(const char *text)
     labelFigure->setText(text);
 }
 
-const int LinearGaugeFigure::getLabelOffset() const
+int LinearGaugeFigure::getLabelOffset() const
 {
     return labelOffset;
 }
@@ -333,12 +332,10 @@ void LinearGaugeFigure::redrawTicks()
     numTicks = std::max(0.0, std::abs(max - min - shifting) / tickSize + 1);
 
     // Allocate ticks and numbers if needed
-    if (numTicks > tickFigures.size())
-        while (numTicks > tickFigures.size()) {
+    if ((size_t)numTicks > tickFigures.size())
+        while ((size_t)numTicks > tickFigures.size()) {
             cLineFigure *tick = new cLineFigure();
             cTextFigure *number = new cTextFigure();
-            take(tick);
-            take(number);
 
             number->setAnchor(cFigure::ANCHOR_N);
 
@@ -350,12 +347,8 @@ void LinearGaugeFigure::redrawTicks()
     for (int i = numTicks; i < prevNumTicks; ++i) {
         removeFigure(tickFigures[i]);
         removeFigure(numberFigures[i]);
-        take(tickFigures[i]);
-        take(numberFigures[i]);
     }
     for (int i = prevNumTicks; i < numTicks; ++i) {
-        drop(tickFigures[i]);
-        drop(numberFigures[i]);
         tickFigures[i]->insertBelow(needle);
         numberFigures[i]->insertBelow(needle);
     }
@@ -397,5 +390,5 @@ void LinearGaugeFigure::refresh()
     setNeedleGeometry();
 }
 
-// } // namespace inet
+} // namespace inet
 

@@ -1,16 +1,12 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
-//
-
-//
-// This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
-// Author: Thomas Deinlein
 //
 
 #ifndef _LTE_LTE_SCHEDULER_ENB_DL_H_
@@ -30,7 +26,6 @@ class LteSchedulerEnbDl : public LteSchedulerEnb
 {
     // XXX debug: to call grant from mac
     friend class LteMacEnb;
-    friend class NRMacGnb;
 
   protected:
 
@@ -41,48 +36,16 @@ class LteSchedulerEnbDl : public LteSchedulerEnb
      *
      * @param id
      * @param cw
+     * @param carrierFreq
      * @return
      */
-    bool checkEligibility(MacNodeId id, Codeword& cw);
+    virtual bool checkEligibility(MacNodeId id, Codeword& cw, double carrierFrequency);
 
-  public:
-
-    /**
-     * Default Constructor.
-     */
-    LteSchedulerEnbDl()
-    {
-    }
-
-
-    /**
-     * Schedules capacity for a given connection without effectively perform the operation on the
-     * real downlink/uplink buffer: instead, it performs the operation on a virtual buffer,
-     * which is used during the finalize() operation in order to commit the decision performed
-     * by the grant function.
-     * Each band has also assigned a band limit amount of bytes: no more than the
-     * specified amount will be served on the given band for the cid
-     *
-     * @param cid Identifier of the connection that is granted capacity
-     * @param antenna the DAS remote antenna
-     * @param bands The set of logical bands with their related limits
-     * @param bytes Grant size, in bytes
-     * @param terminate Set to true if scheduling has to stop now
-     * @param active Set to false if the current queue becomes inactive
-     * @param eligible Set to false if the current queue becomes ineligible
-     * @param limitBl if true bandLim vector express the limit of allocation for each band in block
-     * @return The number of bytes that have been actually granted.
-     */
-    virtual unsigned int scheduleGrant(MacCid cid, unsigned int bytes, bool& terminate, bool& active, bool& eligible,
-        std::vector<BandLimit>* bandLim = NULL, Remote antenna = MACRO, bool limitBl = false);
-
-
-  protected:
     /**
      * Updates current schedule list with HARQ retransmissions.
      * @return TRUE if OFDM space is exhausted.
      */
-    virtual bool rtxschedule();
+    virtual bool rtxschedule(double carrierFrequency, BandLimitVector* bandLim = NULL);
 
     /**
      * Schedules retransmission for the Harq Process of the given UE on a set of logical bands.
@@ -95,10 +58,11 @@ class LteSchedulerEnbDl : public LteSchedulerEnb
      * @param acid The ACID
      * @return The allocated bytes. 0 if retransmission was not possible
      */
-    virtual unsigned int schedulePerAcidRtx(MacNodeId nodeId, Codeword cw, unsigned char acid,
-        std::vector<BandLimit>* bandLim = NULL, Remote antenna = MACRO, bool limitBl = false);
+    virtual unsigned int schedulePerAcidRtx(MacNodeId nodeId, double carrierFrequency, Codeword cw, unsigned char acid,
+        std::vector<BandLimit>* bandLim = nullptr, Remote antenna = MACRO, bool limitBl = false);
 
-    virtual bool getBandLimit(std::vector<BandLimit>* bandLimit, MacNodeId ueId);
+
+    bool getBandLimit(std::vector<BandLimit>* bandLimit, MacNodeId ueId);
 
 };
 

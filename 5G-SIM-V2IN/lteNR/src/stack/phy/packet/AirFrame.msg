@@ -1,24 +1,13 @@
-// TODO: This file needs to be removed - it is not conformant with INET 3 Framework
-// (This is a copy of the AirFrame.msg of the old INET 2.3.0 Framwork)
 //
-//**************************************************************************
-// * file:        AirFrame.msg
-// *
-// * author:      Marc Loebbers
-// *
-// * copyright:   (C) 2004 Telecommunication Networks Group (TKN) at
-// *              Technische Universitaet Berlin, Germany.
-// *
-// *              This program is free software; you can redistribute it
-// *              and/or modify it under the terms of the GNU General Public
-// *              License as published by the Free Software Foundation; either
-// *              version 2 of the License, or (at your option) any later
-// *              version.
-// *              For further information see file COPYING
-// *              in the top level directory
-// ***************************************************************************
-// * part of:     framework implementation developed by tkn
-// **************************************************************************/
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
+//
+// This file is part of a software released under the license included in file
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
+// and cannot be removed from it.
+//
 
 cplusplus {{
 #include "inet/common/INETDefs.h"
@@ -27,30 +16,15 @@ cplusplus {{
 }}
 
 
-class noncobject inet::Coord;
-class noncobject ModulationType;
+class inet::Coord {@existingClass;}
+class ModulationType {@existingClass;};
 
 //
 // Format of the messages that are sent to the channel
 //
 // subclass if you want to create your own ~AirFrame message class
 //
-// This message format is used to send a packet from a snrEval module
-// to the channel. All other snrEval modules that can 'hear' this
-// message can evaluate noise, interference etc. from the information
-// contained in this message:
-//
-// If you need more fields for whatever reason, please do NOT create
-// your own message! Just extend (subclass) this message format (see Omnet
-// manual,chapter Messages - Inheritance among message classes).
-//
-// This component has been taken over from Mobility Framework 1.0a5.
-//
-// @todo As soon as opp_msgc also supports pointers we should replace
-// the id with a pointer to the nodes coordinates itself.
-// @author Marc Loebbers
-//
-packet AirFrame
+packet AirFrame extends cPacket
 {
     double pSend; // Power with which this packet is transmitted
     int channelNumber; // Channel on which the packet is sent
@@ -60,22 +34,7 @@ packet AirFrame
     double lossRate;
     double powRec; // Power in the receiver
     inet::Coord senderPos;
-    // multi gate support
-    double carrierFrequency; //
+    double carrierFrequency;
     double bandwidth;
     ModulationType modulationType;
-    bool delay;
-    
-    unsigned short msgCat;
-    unsigned short qfi;
-    unsigned short radioBearerId;
 }
-//
-// Support of multiples gates
-//
-//packet AirFrameExtended extends AirFrame
-//{
-//   double carrierFrequency; //
-//   double bandwidth;
-//   ModulationType modulationType;
-//}

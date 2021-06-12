@@ -18,8 +18,8 @@
 #ifndef __INET_IDEALOBSTACLELOSS_H
 #define __INET_IDEALOBSTACLELOSS_H
 
-#include "inet/common/figures/TrailFigure.h"
 #include "inet/common/IVisitor.h"
+#include "inet/common/figures/TrailFigure.h"
 #include "inet/environment/contract/IPhysicalEnvironment.h"
 #include "inet/physicallayer/base/packetlevel/TracingObstacleLossBase.h"
 #include "inet/physicallayer/contract/packetlevel/IRadioMedium.h"
@@ -54,13 +54,13 @@ class INET_API IdealObstacleLoss : public TracingObstacleLossBase
     /**
      * The physical environment that provides to obstacles.
      */
-    IPhysicalEnvironment *physicalEnvironment = nullptr;
+    physicalenvironment::IPhysicalEnvironment *physicalEnvironment = nullptr;
     //@}
 
   protected:
     virtual void initialize(int stage) override;
 
-    virtual bool isObstacle(const IPhysicalObject *object, const Coord& transmissionPosition, const Coord& receptionPosition) const;
+    virtual bool isObstacle(const physicalenvironment::IPhysicalObject *object, const Coord& transmissionPosition, const Coord& receptionPosition) const;
 
   public:
     IdealObstacleLoss();

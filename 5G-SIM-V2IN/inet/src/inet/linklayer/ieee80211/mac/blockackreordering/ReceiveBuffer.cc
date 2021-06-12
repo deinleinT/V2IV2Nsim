@@ -15,12 +15,12 @@
 // along with this program; if not, see http://www.gnu.org/licenses/.
 // 
 
-#include "ReceiveBuffer.h"
+#include "inet/linklayer/ieee80211/mac/blockackreordering/ReceiveBuffer.h"
 
 namespace inet {
 namespace ieee80211 {
 
-ReceiveBuffer::ReceiveBuffer(int bufferSize, int nextExpectedSequenceNumber) :
+ReceiveBuffer::ReceiveBuffer(int bufferSize, SequenceNumber nextExpectedSequenceNumber) :
         bufferSize(bufferSize),
         nextExpectedSequenceNumber(nextExpectedSequenceNumber)
 {
@@ -32,19 +32,26 @@ ReceiveBuffer::ReceiveBuffer(int bufferSize, int nextExpectedSequenceNumber) :
 // data frame, unless the sequence number of the frame is older than the NextExpectedSequenceNumber for that
 // Block Ack agreement, in which case the frame is discarded because it is either old or a duplicate.
 //
-bool ReceiveBuffer::insertFrame(Ieee80211DataFrame* dataFrame)
+bool ReceiveBuffer::insertFrame(Packet *dataPacket, const Ptr<const Ieee80211DataHeader>& dataHeader)
 {
-    int sequenceNumber = dataFrame->getSequenceNumber();
+    auto sequenceNumber = dataHeader->getSequenceNumber();
+    auto fragmentNumber = dataHeader->getFragmentNumber();
     // The total number of MPDUs in these MSDUs may not
     // exceed the reorder buffer size in the receiver.
-    if (length < bufferSize && !isSequenceNumberTooOld(sequenceNumber, nextExpectedSequenceNumber, bufferSize)) {
+    if (length < bufferSize && nextExpectedSequenceNumber <= sequenceNumber && sequenceNumber < nextExpectedSequenceNumber + bufferSize) {
         auto it = buffer.find(sequenceNumber);
         if (it != buffer.end()) {
             auto &fragments = it->second;
-            fragments.push_back(dataFrame);
+            // TODO: efficiency
+            for (auto fragment : fragments) {
+                const auto& fragmentHeader = fragment->peekAtFront<Ieee80211DataHeader>();
+                if (fragmentHeader->getSequenceNumber() == sequenceNumber && fragmentHeader->getFragmentNumber() == fragmentNumber)
+                    return false;
+            }
+            fragments.push_back(dataPacket);
         }
         else {
-            buffer[sequenceNumber].push_back(dataFrame);
+            buffer[sequenceNumber].push_back(dataPacket);
         }
         // The total number of frames that can be sent depends on the total
         // number of MPDUs in all the outstanding MSDUs.
@@ -54,7 +61,22 @@ bool ReceiveBuffer::insertFrame(Ieee80211DataFrame* dataFrame)
     return false;
 }
 
-void ReceiveBuffer::remove(int sequenceNumber)
+void ReceiveBuffer::dropFramesUntil(SequenceNumber sequenceNumber)
+{
+    auto it = buffer.begin();
+    while (it != buffer.end()) {
+        if (it->first < sequenceNumber) {
+            length -= it->second.size();
+            for (auto fragment : it->second)
+                delete fragment;
+            it = buffer.erase(it);
+        }
+        else
+            it++;
+    }
+}
+
+void ReceiveBuffer::removeFrame(SequenceNumber sequenceNumber)
 {
     auto it = buffer.find(sequenceNumber);
     if (it != buffer.end()) {
@@ -62,7 +84,7 @@ void ReceiveBuffer::remove(int sequenceNumber)
         buffer.erase(sequenceNumber);
     }
     else
-        throw cRuntimeError("Unknown sequence number = %d", sequenceNumber);
+        throw cRuntimeError("Unknown sequence number: %d", sequenceNumber.getRaw());
 }
 
 ReceiveBuffer::~ReceiveBuffer()

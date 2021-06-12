@@ -44,14 +44,12 @@ public:
 	NRSchedulerGnbDl();
     virtual ~NRSchedulerGnbDl();
 
-    virtual unsigned int scheduleGrant(MacCid cid, unsigned int bytes, bool& terminate, bool& active, bool& eligible,
-        std::vector<BandLimit>* bandLim = NULL, Remote antenna = MACRO, bool limitBl = false);
+    virtual unsigned int scheduleGrant(MacCid cid, unsigned int bytes, bool& terminate, bool& active, bool& eligible, double carrierFrequency,
+            BandLimitVector* bandLim = nullptr, Remote antenna = MACRO, bool limitBl = false);
+    virtual std::map<double, LteMacScheduleList>* schedule();
+    virtual bool rtxschedule(double carrierFrequency, BandLimitVector* bandLim = NULL);
 
-    virtual LteMacScheduleListWithSizes* schedule();
-
-    virtual bool rtxschedule();
-
-    virtual unsigned int schedulePerAcidRtx(MacNodeId nodeId, Codeword cw, unsigned char acid,
-        std::vector<BandLimit>* bandLim = NULL, Remote antenna = MACRO, bool limitBl = false);
+    virtual unsigned int schedulePerAcidRtx(MacNodeId nodeId, double carrierFrequency, Codeword cw, unsigned char acid,
+            std::vector<BandLimit>* bandLim = nullptr, Remote antenna = MACRO, bool limitBl = false);
 
 };

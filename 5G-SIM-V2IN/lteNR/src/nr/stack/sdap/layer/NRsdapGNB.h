@@ -32,6 +32,7 @@
 #include "common/LteControlInfo.h"
 #include "nr/stack/sdap/packet/SdapPdu_m.h"
 #include "nr/stack/sdap/utils/QosHandler.h"
+#include "inet/common/INETDefs.h"
 
 using namespace omnetpp;
 
@@ -40,7 +41,6 @@ class NRsdapGNB: public NRsdap {
 protected:
     virtual void initialize(int stage);
     virtual void handleMessage(cMessage *msg);
-    virtual void handleSelfMessage(cMessage *msg);
     virtual void fromLowerToUpper(cMessage * msg);
     virtual void fromUpperToLower(cMessage * msg);
 

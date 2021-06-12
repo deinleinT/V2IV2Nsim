@@ -1,15 +1,16 @@
 //
 // This program is property of its copyright holder. All rights reserved.
 //
+
 package inet.common.misc;
 
 //
-// This channels adds suport for thruput meternig to the datarate channel
+// This channels adds support for thruput metering to the datarate channel.
 // A cDatarateChannel extended with throughput calculation. Values
-// get displayed on the link, using the connection's "t=" display
+// are displayed on the link, using the connection's "t=" or "tt=" display
 // string tag.
 //
-// The display can be customized with the "format" attribute.
+// The display can be customized with the "thruputDisplayFormat" parameter.
 // In the format string, the following characters will get expanded:
 //   - 'N': number of packets
 //   - 'V': volume (in bytes)
@@ -19,6 +20,7 @@ package inet.common.misc;
 //   - 'P': average packet/sec on [0,now)
 //   - 'B': average bandwidth on [0,now)
 //   - 'U': average channel utilization (%) on [0,now)
+//
 // Other characters are copied verbatim.
 //
 // "Current" actually means the last measurement interval, which is
@@ -27,5 +29,7 @@ package inet.common.misc;
 channel ThruputMeteringChannel extends ned.DatarateChannel
 {
     @class(ThruputMeteringChannel);
+    bool displayAsTooltip = default(false);
     string thruputDisplayFormat = default("");  // the format string for display on the link. Leave empty to disable display
 }
+

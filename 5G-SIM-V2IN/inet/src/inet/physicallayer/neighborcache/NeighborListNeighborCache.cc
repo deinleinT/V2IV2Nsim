@@ -15,11 +15,10 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "inet/physicallayer/neighborcache/NeighborListNeighborCache.h"
 #include "inet/common/ModuleAccess.h"
+#include "inet/physicallayer/neighborcache/NeighborListNeighborCache.h"
 
 namespace inet {
-
 namespace physicallayer {
 
 Define_Module(NeighborListNeighborCache);
@@ -41,7 +40,7 @@ void NeighborListNeighborCache::initialize(int stage)
         range = par("range");
         updateNeighborListsTimer = new cMessage("updateNeighborListsTimer");
     }
-    else if (stage == INITSTAGE_LINK_LAYER_2) {
+    else if (stage == INITSTAGE_PHYSICAL_LAYER_NEIGHBOR_CACHE) {
         maxSpeed = radioMedium->getMediumLimitCache()->getMaxSpeed().get();
         updateNeighborLists();
         scheduleAt(simTime() + refillPeriod, updateNeighborListsTimer);
@@ -58,7 +57,7 @@ std::ostream& NeighborListNeighborCache::printToStream(std::ostream& stream, int
     return stream;
 }
 
-void NeighborListNeighborCache::sendToNeighbors(IRadio *transmitter, const IRadioFrame *frame, double range) const
+void NeighborListNeighborCache::sendToNeighbors(IRadio *transmitter, const ISignal *signal, double range) const
 {
     if (this->range < range)
         throw cRuntimeError("The transmitter's (id: %d) range is bigger then the cache range", transmitter->getId());
@@ -71,7 +70,7 @@ void NeighborListNeighborCache::sendToNeighbors(IRadio *transmitter, const IRadi
     Radios& neighborVector = radioEntry->neighborVector;
 
     for (auto & elem : neighborVector)
-        radioMedium->sendToRadio(transmitter, elem, frame);
+        radioMedium->sendToRadio(transmitter, elem, signal);
 }
 
 void NeighborListNeighborCache::handleMessage(cMessage *msg)
@@ -153,6 +152,5 @@ NeighborListNeighborCache::~NeighborListNeighborCache()
 }
 
 } // namespace physicallayer
-
 } // namespace inet
 

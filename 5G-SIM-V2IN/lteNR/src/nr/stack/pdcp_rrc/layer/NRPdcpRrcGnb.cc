@@ -22,226 +22,288 @@
  * Part of 5G-Sim-V2I/N
  *
  *
-*/
+ */
 
 #include "nr/stack/pdcp_rrc/layer/NRPdcpRrcGnb.h"
+
+#include "inet/transportlayer/common/L4Tools.h"
+#include "nr/stack/pdcp_rrc/ConnectionsTableMod.h"
 
 Define_Module(NRPdcpRrcGnb);
 
 void NRPdcpRrcGnb::initialize(int stage) {
-    LtePdcpRrcBase::initialize(stage);
-    if (stage == inet::INITSTAGE_LOCAL) {
-        qosHandler = check_and_cast<QosHandlerGNB*>(
-                getParentModule()->getSubmodule("qosHandler"));
-    }
-    nodeId_ = getAncestorPar("macNodeId");
-}
 
-void NRPdcpRrcGnb::handleMessage(cMessage *msg) {
+	if (stage == inet::INITSTAGE_LOCAL) {
+		dualConnectivityEnabled_ = getAncestorPar("dualConnectivityEnabled").boolValue();
+		if (!dualConnectivityEnabled_)
+			dualConnectivityManager_ = NULL;
+		else
+			dualConnectivityManager_ = check_and_cast<DualConnectivityManager*>(getParentModule()->getSubmodule("dualConnectivityManager"));
 
-    //std::cout << "NRPdcpRrcGnb::handleMessage start at " << simTime().dbl() << std::endl;
-
-    LtePdcpRrcEnb::handleMessage(msg);
-
-    //std::cout << "NRPdcpRrcGnb::handleMessage end at " << simTime().dbl() << std::endl;
-}
-
-void NRPdcpRrcGnb::toDataPort(cPacket *pkt) {
-
-    //std::cout << "NRPdcpRrcGnb::toDataPort start at " << simTime().dbl() << std::endl;
-
-    if (strcmp(pkt->getName(), "RRC") == 0) {
-        cGate * tmpGate = gate("upperLayerRRC$o");
-        send(pkt, tmpGate);
-
-        return;
-    }
-
-    emit(receivedPacketFromLowerLayer, pkt);
-    LtePdcpPdu* pdcpPkt = check_and_cast<LtePdcpPdu*>(pkt);
-    FlowControlInfo* lteInfo = check_and_cast<FlowControlInfo*>(
-            pdcpPkt->removeControlInfo());
-
-    //EV << "NRPdcpRrcGnb : Received packet with CID " << lteInfo->getLcid() << "\n";
-    //EV << "NRPdcpRrcGnb : Packet size " << pdcpPkt->getByteLength() << " Bytes\n";
-
-    cPacket* upPkt = pdcpPkt->decapsulate(); // Decapsulate packet
-    delete pdcpPkt;
-
-    headerDecompress(upPkt, lteInfo->getHeaderSize()); // Decompress packet header
-    //handleControlInfo(upPkt, lteInfo);
-
-    //EV << "NRPdcpRrcGnb : Sending packet " << upPkt->getName() << " on port DataPort$o\n";
-
-    upPkt->setControlInfo(lteInfo);
-
-	if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
-		sendDelayed(upPkt, uniform(0, upPkt->getByteLength() / 10e5), dataPort_[OUT]);
-	} else {
-		// Send message
-		send(upPkt, dataPort_[OUT]);
+		nodeId_ = getAncestorPar("macNodeId");
 	}
 
-    emit(sentPacketToUpperLayer, upPkt);
+	//LtePdcpRrcBase::initialize(stage);
+	if (stage == inet::INITSTAGE_LOCAL) {
+		dataPort_[IN_GATE] = gate("DataPort$i");
+		dataPort_[OUT_GATE] = gate("DataPort$o");
+		eutranRrcSap_[IN_GATE] = gate("EUTRAN_RRC_Sap$i");
+		eutranRrcSap_[OUT_GATE] = gate("EUTRAN_RRC_Sap$o");
+		tmSap_[IN_GATE] = gate("TM_Sap$i", 0);
+		tmSap_[OUT_GATE] = gate("TM_Sap$o", 0);
+		umSap_[IN_GATE] = gate("UM_Sap$i", 0);
+		umSap_[OUT_GATE] = gate("UM_Sap$o", 0);
+		amSap_[IN_GATE] = gate("AM_Sap$i", 0);
+		amSap_[OUT_GATE] = gate("AM_Sap$o", 0);
 
-    //std::cout << "NRPdcpRrcGnb::toDataPort end at " << simTime().dbl() << std::endl;
-}
+		binder_ = getNRBinder();
+		headerCompressedSize_ = B(par("headerCompressedSize"));
+		if (headerCompressedSize_ != LTE_PDCP_HEADER_COMPRESSION_DISABLED && headerCompressedSize_ < MIN_COMPRESSED_HEADER_SIZE) {
+			throw cRuntimeError("Size of compressed header must not be less than %i", MIN_COMPRESSED_HEADER_SIZE.get());
+		}
 
-void NRPdcpRrcGnb::fromDataPort(cPacket *pkt) {
+		nodeId_ = getAncestorPar("macNodeId");
 
-    //std::cout << "NRPdcpRrcGnb::fromDataPort start at " << simTime().dbl() << std::endl;
+		// statistics
+		receivedPacketFromUpperLayer = registerSignal("receivedPacketFromUpperLayer");
+		receivedPacketFromLowerLayer = registerSignal("receivedPacketFromLowerLayer");
+		sentPacketToUpperLayer = registerSignal("sentPacketToUpperLayer");
+		sentPacketToLowerLayer = registerSignal("sentPacketToLowerLayer");
 
-    if (strcmp(pkt->getName(), "RRC") == 0) {
-        cGate * tmpGate = gate("lowerLayerRRC$o");
-        send(pkt, tmpGate);
-        return;
-    }
-
-    emit(receivedPacketFromUpperLayer, pkt);
-
-    // Control Informations
-    FlowControlInfo* lteInfo = check_and_cast<FlowControlInfo*>(
-            pkt->removeControlInfo());
-
-    setTrafficInformation(pkt, lteInfo);
-    lteInfo->setDestId(getDestId(lteInfo));
-    headerCompress(pkt, lteInfo->getHeaderSize()); // header compression
-
-    LogicalCid mylcid;
-    if ((mylcid = ht_->find_entry(lteInfo->getSrcAddr(), lteInfo->getDstAddr(),
-            lteInfo->getSrcPort(), lteInfo->getDstPort(),
-            lteInfo->getDirection(), lteInfo->getApplication())) == 0xFFFF) {
-
-        mylcid = lcid_++;
-
-        ht_->create_entry(lteInfo->getSrcAddr(), lteInfo->getDstAddr(),
-                lteInfo->getSrcPort(), lteInfo->getDstPort(),
-                lteInfo->getDirection(), mylcid, lteInfo->getApplication());
-
-        unsigned int key = idToMacCid(lteInfo->getDestId(), mylcid);
-
-        if (qosHandler->getQosInfo().find(key)
-                == qosHandler->getQosInfo().end()) {
-            QosInfo qosinfo;
-            qosinfo.destNodeId = lteInfo->getDestId();
-            qosinfo.destAddress = IPv4Address(lteInfo->getDstAddr());
-            qosinfo.appType = (ApplicationType) lteInfo->getApplication();
-            qosinfo.qfi = lteInfo->getQfi();
-            qosinfo.rlcType = lteInfo->getRlcType();
-            qosinfo.radioBearerId = lteInfo->getRadioBearerId();
-            qosinfo.senderAddress = IPv4Address(lteInfo->getSrcAddr());
-            qosinfo.senderNodeId = lteInfo->getSourceId();
-            qosinfo.lcid = mylcid;
-            qosinfo.cid = key;
-            qosinfo.trafficClass = (LteTrafficClass) lteInfo->getTraffic();
-            qosHandler->getQosInfo()[key] = qosinfo;
-        }
-    }
-
-    //EV << "LteRrc : Assigned Lcid: " << mylcid << "\n";
-    //EV << "LteRrc : Assigned Node ID: " << nodeId_ << "\n";
-
-    // get the PDCP entity for this LCID
-    LtePdcpEntity* entity = getEntity(mylcid,lteInfo->getDestId());
-
-    // get the sequence number for this PDCP SDU.
-    // Note that the numbering depends on the entity the packet is associated to.
-    unsigned int sno = entity->nextSequenceNumber();
-
-    // set sequence number
-    lteInfo->setSequenceNumber(sno);
-    // NOTE setLcid and setSourceId have been anticipated for using in "ctrlInfoToMacCid" function
-    lteInfo->setLcid(mylcid);
-    lteInfo->setSourceId(nodeId_);
-    lteInfo->setCid(idToMacCid(lteInfo->getDestId(), mylcid));
-    lteInfo->setContainsSeveralCids(false);
-
-    // PDCP Packet creation
-    LtePdcpPdu* pdcpPkt = new LtePdcpPdu("LtePdcpPdu");
-    pdcpPkt->setByteLength(
-            lteInfo->getRlcType() == UM ? PDCP_HEADER_UM : PDCP_HEADER_AM);
-    //pdcpPkt->setByteLength(PDCP_HEADER_UM);
-    pdcpPkt->setKind(lteInfo->getApplication());
-    pdcpPkt->encapsulate(pkt);
-
-    //EV << "NRPdcpRrcGnb : Preparing to send " << lteTrafficClassToA((LteTrafficClass) lteInfo->getTraffic()) << " traffic\n";
-    //EV << "NRPdcpRrcGnb : Packet size " << pdcpPkt->getByteLength() << " Bytes\n";
-
-    pdcpPkt->setControlInfo(lteInfo);
-
-    //EV << "NRPdcpRrcGnb : Sending packet " << pdcpPkt->getName() << " on port " << (lteInfo->getRlcType() == UM ? "UM_Sap$o\n" : "AM_Sap$o\n");
-
-	if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
-		sendDelayed(pdcpPkt, uniform(0, pdcpPkt->getByteLength() / 10e5), (lteInfo->getRlcType() == UM ? umSap_[OUT] : amSap_[OUT]));
-	} else {
-		// Send message
-		send(pdcpPkt, (lteInfo->getRlcType() == UM ? umSap_[OUT] : amSap_[OUT]));
+		WATCH(headerCompressedSize_);
+		WATCH(nodeId_);
+		WATCH(lcid_);
 	}
 
-    emit(sentPacketToLowerLayer, pdcpPkt);
+	//LtePdcpRrcEnbD2D::initialize(stage);
 
-    //std::cout << "NRPdcpRrcGnb::fromDataPort end at " << simTime().dbl() << std::endl;
+	//local
+	if (stage == inet::INITSTAGE_LOCAL) {
+		qosHandler = check_and_cast<QosHandlerGNB*>(getParentModule()->getSubmodule("qosHandler"));
+		nodeId_ = getAncestorPar("macNodeId");
+	}
+	if (stage == inet::INITSTAGE_LAST) {
+		ht_ = new ConnectionsTableMod();
+	}
+}
+
+void NRPdcpRrcGnb::handleMessage(cMessage * msg) {
+
+	//std::cout << "NRPdcpRrcGnb::handleMessage start at " << simTime().dbl() << std::endl;
+
+	NRPdcpRrcEnb::handleMessage(msg);
+
+	//std::cout << "NRPdcpRrcGnb::handleMessage end at " << simTime().dbl() << std::endl;
+}
+
+void NRPdcpRrcGnb::toDataPort(cPacket * pktIn) {
+
+	//std::cout << "NRPdcpRrcGnb::toDataPort start at " << simTime().dbl() << std::endl;
+
+	Enter_Method_Silent
+	("NRPdcpRrcGnb::toDataPort");
+
+	emit(receivedPacketFromLowerLayer, pktIn);
+
+	auto pkt = check_and_cast<Packet*>(pktIn);
+	take(pkt);
+
+	headerDecompress(pkt); // Decompress packet header
+
+	pkt->addTagIfAbsent<PacketProtocolTag>()->setProtocol(&Protocol::ipv4);
+
+	if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
+		sendDelayed(pkt, uniform(0, pkt->getByteLength() / 10e5), dataPort_[OUT_GATE]);
+	}
+	else {
+		// Send message
+		send(pkt, dataPort_[OUT_GATE]);
+	}
+
+	emit(sentPacketToUpperLayer, pkt);
+
+	//std::cout << "NRPdcpRrcGnb::toDataPort end at " << simTime().dbl() << std::endl;
+}
+
+void NRPdcpRrcGnb::setTrafficInformation(cPacket * pkt, FlowControlInfo * lteInfo) {
+	//std::cout << "LtePdcpRrcBase::setTrafficInformation start at " << simTime().dbl() << std::endl;
+
+	std::string applName = std::string(pkt->getName());
+	if ((strcmp(pkt->getName(), "VoIP") == 0) || (applName.find("VoIP") != std::string::npos) || (applName.find("voip") != std::string::npos)) {
+		lteInfo->setApplication(VOIP);
+		lteInfo->setTraffic(CONVERSATIONAL);
+		lteInfo->setRlcType((int) par("conversationalRlc"));
+	}
+	else if ((strcmp(pkt->getName(), "gaming")) == 0) {
+		lteInfo->setApplication(GAMING);
+		lteInfo->setTraffic(INTERACTIVE);
+		lteInfo->setRlcType((int) par("interactiveRlc"));
+	}
+	else if ((strcmp(pkt->getName(), "VoDPacket") == 0) || (strcmp(pkt->getName(), "VoDFinishPacket") == 0) || (strcmp(pkt->getName(), "Video") == 0)
+			|| (applName.find("Video") != std::string::npos) || (applName.find("video") != std::string::npos)) {
+		lteInfo->setApplication(VOD);
+		lteInfo->setTraffic(STREAMING);
+		lteInfo->setRlcType((int) par("streamingRlc"));
+	}
+	else if (strcmp(pkt->getName(), "V2X") == 0 || (applName.find("V2X") != std::string::npos) || (applName.find("v2x") != std::string::npos)) {
+		lteInfo->setApplication(V2X);
+		lteInfo->setTraffic(V2X_TRAFFIC);
+		lteInfo->setRlcType((int) par("conversationalRlc"));
+	}
+	else if (strcmp(pkt->getName(), "Data") == 0 || strcmp(pkt->getName(), "Data-frag") == 0 || (applName.find("Data") != std::string::npos)
+			|| (applName.find("data") != std::string::npos)) {
+		lteInfo->setApplication(DATA_FLOW);
+		lteInfo->setTraffic(BACKGROUND);
+		lteInfo->setRlcType((int) par("backgroundRlc"));
+	}
+	else {
+		lteInfo->setApplication(CBR);
+		lteInfo->setTraffic(BACKGROUND);
+		lteInfo->setRlcType((int) par("backgroundRlc"));
+	}
+
+	lteInfo->setDirection(getDirection());
+
+	//std::cout << "LtePdcpRrcBase::setTrafficInformation end at " << simTime().dbl() << std::endl;
+}
+
+void NRPdcpRrcGnb::fromDataPort(cPacket * pktIn) {
+
+	//std::cout << "NRPdcpRrcGnb::fromDataPort start at " << simTime().dbl() << std::endl;
+
+	emit(receivedPacketFromUpperLayer, pktIn);
+
+	auto pkt = check_and_cast<inet::Packet*>(pktIn);
+	auto lteInfo = pkt->getTag<FlowControlInfo>();
+
+	setTrafficInformation(pkt, lteInfo);
+
+	// get source info
+	//Ipv4Address srcAddr = Ipv4Address(lteInfo->getSrcAddr());
+	// get destination info
+	Ipv4Address destAddr = Ipv4Address(lteInfo->getDstAddr());
+	MacNodeId srcId, destId;
+
+	// set direction based on the destination Id. If the destination can be reached
+	// using D2D, set D2D direction. Otherwise, set UL direction
+	//srcId = (lteInfo->getUseNR()) ? binder_->getNrMacNodeId(srcAddr) : binder_->getMacNodeId(srcAddr);
+	//destId = (lteInfo->getUseNR()) ? binder_->getNrMacNodeId(destAddr) : binder_->getMacNodeId(destAddr);   // get final destination
+
+	srcId = lteInfo->getSourceId();
+	destId = lteInfo->getDestId();
+
+	pkt->addTagIfAbsent<FlowControlInfo>()->setDirection(getDirection());
+	pkt->addTagIfAbsent<FlowControlInfo>()->setDestId(destId);
+
+	//headerCompress(pkt); // header compression
+
+	LogicalCid mylcid;
+	if ((mylcid = ht_->find_entry(lteInfo->getSrcAddr(), lteInfo->getDstAddr(), lteInfo->getApplication(), lteInfo->getDirection())) == 0xFFFF) {
+
+		mylcid = lcid_++;
+
+		ht_->create_entry(lteInfo->getSrcAddr(), lteInfo->getDstAddr(), lteInfo->getApplication(), lteInfo->getDirection(), mylcid);
+
+		pkt->addTagIfAbsent<FlowControlInfo>()->setLcid(mylcid);
+		unsigned int key = ctrlInfoToMacCid(lteInfo);
+
+		if (qosHandler->getQosInfo().find(key) == qosHandler->getQosInfo().end()) {
+			QosInfo qosinfo;
+			qosinfo.destNodeId = lteInfo->getDestId();
+			qosinfo.destAddress = Ipv4Address(lteInfo->getDstAddr());
+			qosinfo.appType = (ApplicationType) lteInfo->getApplication();
+			qosinfo.qfi = lteInfo->getQfi();
+			qosinfo.rlcType = lteInfo->getRlcType();
+			qosinfo.radioBearerId = lteInfo->getRadioBearerId();
+			qosinfo.senderAddress = Ipv4Address(lteInfo->getSrcAddr());
+			qosinfo.senderNodeId = lteInfo->getSourceId();
+			qosinfo.lcid = mylcid;
+			qosinfo.cid = key;
+			qosinfo.trafficClass = (LteTrafficClass) lteInfo->getTraffic();
+			qosHandler->getQosInfo()[key] = qosinfo;
+		}
+	}
+
+	// obtain CID
+	MacCid cid = ctrlInfoToMacCid(lteInfo);
+
+	pkt->addTagIfAbsent<FlowControlInfo>()->setSourceId(srcId);
+	pkt->addTagIfAbsent<FlowControlInfo>()->setCid(cid);
+	pkt->addTagIfAbsent<FlowControlInfo>()->setContainsSeveralCids(false);
+
+	LteTxPdcpEntity *entity = getTxEntity(cid);
+
+	entity->handlePacketFromUpperLayer(pkt);
+	//std::cout << "NRPdcpRrcGnb::fromDataPort end at " << simTime().dbl() << std::endl;
+}
+
+void NRPdcpRrcGnb::sendToLowerLayer(Packet * pkt) {
+	auto lteInfo = pkt->getTag<FlowControlInfo>();
+
+	std::string portName;
+	omnetpp::cGate *gate;
+	switch (lteInfo->getRlcType()) {
+	case UM:
+		portName = "UM_Sap$o";
+		gate = umSap_[OUT_GATE];
+		break;
+	case AM:
+		portName = "AM_Sap$o";
+		gate = amSap_[OUT_GATE];
+		break;
+	case TM:
+		portName = "TM_Sap$o";
+		gate = tmSap_[OUT_GATE];
+		break;
+	default:
+		throw cRuntimeError("NRPdcpRrcGnb::sendToLowerLayer(): invalid RlcType %d", lteInfo->getRlcType());
+	}
+
+	// consider processing delay
+	if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
+		sendDelayed(pkt, uniform(0, pkt->getByteLength() / 10e5), gate);
+	}
+	else {
+		send(pkt, gate);
+	}
+
+	emit(sentPacketToLowerLayer, pkt);
+
 }
 
 void NRPdcpRrcGnb::resetConnectionTable(MacNodeId masterId, MacNodeId nodeId) {
 
-    //std::cout << "NRPdcpRrcGnb::resetConnectionTable start at " << simTime().dbl() << std::endl;
+	//std::cout << "NRPdcpRrcGnb::resetConnectionTable start at " << simTime().dbl() << std::endl;
 
-    IPv4Address adress = binder_->getIPAddressByMacNodeId(nodeId);
+	//dir --> UL: UE is source, gNB is dest
+	//    --> DL: UE is dest, gNB is source
 
-    if (adress.isUnspecified())
-        return;
+	PdcpTxEntities::const_iterator it;
+	for (it = txEntities_.begin(); it != txEntities_.end();) {
+		MacNodeId id = MacCidToNodeId(it->first);
+	    if (nodeId == id) {
+			it->second->deleteModule();
+			it = txEntities_.erase(it);
+		}
+		else {
+			++it;
+		}
+	}
 
-    //dir --> UL: UE is source, gNB is dest
-    //    --> DL: UD is dest, gNB is
-
-    PdcpEntities::const_iterator it;
-    for(it = entities_.begin();it != entities_.end();){
-        if (nodeId == it->second->getUeId()) {
-            delete it->second;
-            it = entities_.erase(it);
-        } else {
-            ++it;
+    PdcpRxEntities::const_iterator its;
+    for (its = rxEntities_.begin(); its != rxEntities_.end();) {
+        MacNodeId id = MacCidToNodeId(its->first);
+        if (nodeId == id) {
+            its->second->deleteModule();
+            its = rxEntities_.erase(its);
+        }
+        else {
+            ++its;
         }
     }
 
+	ht_->erase_entry(nodeId);
 
-    ht_->erase_entry(adress.getInt());
-
-    //std::cout << "NRPdcpRrcGnb::resetConnectionTable end at " << simTime().dbl() << std::endl;
+	//std::cout << "NRPdcpRrcGnb::resetConnectionTable end at " << simTime().dbl() << std::endl;
 }
 
-void NRPdcpRrcGnb::exchangeConnection(MacNodeId nodeId, MacNodeId oldMasterId, MacNodeId newMasterId,NRPdcpRrcGnb *oldMasterPdcp, NRPdcpRrcGnb *newMasterPdcp){
-
-    //nodeId is ue
-    //oldMasterId is this
-    //newMasterId is newNodeB
-
-    IPv4Address adress = binder_->getIPAddressByMacNodeId(nodeId);
-
-    //pdcp entities
-    PdcpEntities oldEntities = oldMasterPdcp->getEntities();
-
-    for(auto & var: oldEntities){
-        if(var.second->getUeId() == nodeId){
-            // copy this entry to new Master
-            LtePdcpEntity * tmp = new LtePdcpEntity(*(var.second));
-            newMasterPdcp->getEntities().insert(std::make_pair(var.first,tmp));
-
-        }
-    }
-
-    //connection Table
-        ConnectionsTable * oldCN = oldMasterPdcp->getCNTable();;
-
-    for (auto & varOld : oldCN->getEntries()) {
-        if (varOld.dstAddr_ == adress.getInt()
-                || varOld.srcAddr_ == adress.getInt()) {
-            //copy this entry to new master
-            newMasterPdcp->getCNTable()->getEntries().push_back(varOld);
-            //            if(varOld.lcid_ > newMasterPdcp->getLcid()){
-            //                newMasterPdcp->setLcid(++varOld.lcid_);
-            //            }
-        }
-    }
-}

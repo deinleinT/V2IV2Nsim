@@ -1,25 +1,15 @@
 //
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-// 
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program.  If not, see http://www.gnu.org/licenses/.
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
+//
+// This file is part of a software released under the license included in file
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
+// and cannot be removed from it.
 // 
 
-//
-// This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
-// Author: Thomas Deinlein
-//
-
-package lte.stack.phy.ChannelModel;
+package lteNR.stack.phy.ChannelModel;
 
 
 moduleinterface LteChannelModelInterface
@@ -30,10 +20,14 @@ moduleinterface LteChannelModelInterface
 simple LteChannelModel like LteChannelModelInterface
 {
     parameters:
+    @display("i=block/classifier2");
     @class("LteChannelModel");
+    
+    // component carrier for this channel model
+    int componentCarrierIndex = default(0);
 }
 
-simple LteRealisticChannelModel like LteChannelModelInterface
+simple LteRealisticChannelModel extends LteChannelModel
 {
     parameters:
     @class("LteRealisticChannelModel");
@@ -48,6 +42,8 @@ simple LteRealisticChannelModel like LteChannelModelInterface
     double nodeb_height = default(25);
     // Building height -->
     double building_height = default(20);
+    // determines if the UE is inside a building
+    bool inside_building = default(false);
 
     double street_wide = default(20);
     double ue_height = default(1.5);
@@ -56,11 +52,8 @@ simple LteRealisticChannelModel like LteChannelModelInterface
 
     double correlation_distance = default(50);
 
-    // Carrier Frequency (GHz) -->
-    double carrierFrequency = default(2);
-
     // Target bler used to compute feedback -->
-    double targetBler = default(0.001);
+    double targetBler = default(0.01);
     // HARQ reduction -->
     double harqReduction = default(0.2);
 
@@ -98,27 +91,47 @@ simple LteRealisticChannelModel like LteChannelModelInterface
     double delay_rms = default(363e-9);
 
     // if true, enables the inter-cell interference computation for DL connections from external cells -->  
-    bool extCell_interference = default(false);
+    bool extCell_interference = default(true);
     // if true, enables the inter-cell interference computation for DL connections -->  
     bool downlink_interference = default(false);
     // if true, enables the interference computation for UL connections -->
     bool uplink_interference = default(false);
 	// if true, enables the interference computation for D2D connections -->  
-    bool d2d_interference = default(false);
+    bool d2d_interference = default(true);
+    
+    bool enable_extCell_los = default(true);
+    
+    // read channel information from log file
+    bool useRsrqFromLog = default(false);
+    int rsrqShift = default(22);
+    double rsrqScale = default(1.0);
     
     // statistics
     @signal[rcvdSinr];
     @statistic[rcvdSinr](title="SINR measured at packet reception"; unit="dB"; source="rcvdSinr"; record=mean,vector);
+    
+    // statistics
+    @signal[measuredSinr];
+    @statistic[measuredSinr](title="SINR measured at feedback computation"; unit="dB"; source="measuredSinr"; record=mean,vector);
+    
+    @signal[distance];
+    @statistic[distance](title="distance between UE and serving eNB"; unit="meters"; source="distance"; record=mean,vector);
 }
 
-simple LteMagicChannelModel like LteChannelModelInterface
+simple LteMagicChannelModel extends LteChannelModel
 {
     parameters:
     @class("LteMagicChannelModel");
 }
 
-simple LteCrazyChannelModel like LteChannelModelInterface
+simple LteCrazyChannelModel extends LteChannelModel
 {
     parameters:
     @class("LteCrazyChannelModel");
+}
+
+simple NRChannelModel extends LteRealisticChannelModel
+{
+    parameters:
+    @class("NRChannelModel");
 }

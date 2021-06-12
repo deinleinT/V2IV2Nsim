@@ -42,7 +42,7 @@ void EtherBus::initialize()
     numMessages = 0;
     WATCH(numMessages);
 
-    propagationSpeed = par("propagationSpeed").doubleValue();
+    propagationSpeed = par("propagationSpeed");  //TODO there is a hardcoded propagation speed in EtherMACBase.cc -- use that?
 
     // initialize the positions where the hosts connects to the bus
     numTaps = gateSize("ethg");
@@ -50,11 +50,11 @@ void EtherBus::initialize()
     outputGateBaseId = gateBaseId("ethg$o");
 
     // read positions and check if positions are defined in order (we're lazy to sort...)
-    std::vector<double> pos = cStringTokenizer(par("positions").stringValue()).asDoubleVector();
+    std::vector<double> pos = cStringTokenizer(par("positions")).asDoubleVector();
     int numPos = pos.size();
 
     if (numPos > numTaps){
-        //EV << "Note: `positions' parameter contains more values (" << numPos << ") than "                                                         "the number of taps (" << numTaps << "), ignoring excess values.\n";
+        //EV << "Note: `positions' parameter contains more values (" << numPos << ") than "                                                                                "the number of taps (" << numTaps << "), ignoring excess values.\n";
     }
     else if (numPos < numTaps && numPos >= 2){
         //EV << "Note: `positions' parameter contains less values (" << numPos << ") than "                                                                                "the number of taps (" << numTaps << "), repeating distance between last 2 positions.\n";
@@ -224,6 +224,7 @@ void EtherBus::handleMessage(cMessage *msg)
         int direction = msg->getKind();
         BusTap *thistap = (BusTap *)msg->getContextPointer();
         int tapPoint = thistap->id;
+        msg->setContextPointer(nullptr);
 
         //EV << "Event " << msg << " on tap " << tapPoint << ", sending out frame\n";
 

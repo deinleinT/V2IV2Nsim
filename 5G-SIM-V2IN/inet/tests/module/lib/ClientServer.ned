@@ -16,10 +16,12 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 
+package inet.test.moduletest.lib;
+
 import ned.DatarateChannel;
 import inet.util.NetAnimTrace;
 import inet.node.inet.StandardHost;
-import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
+import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 
 
 network ClientServer
@@ -43,7 +45,7 @@ network ClientServer
             parameters:
                 @display("p=181,67;i=device/pc2");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             parameters:
                 @display("p=53,134");
         }

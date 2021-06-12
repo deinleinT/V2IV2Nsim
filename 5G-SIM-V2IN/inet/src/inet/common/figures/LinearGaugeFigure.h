@@ -18,12 +18,11 @@
 #ifndef __INET_LINEARGAUGEFIGURE_H
 #define __INET_LINEARGAUGEFIGURE_H
 
-#include "IIndicatorFigure.h"
 #include "inet/common/INETDefs.h"
 #include "inet/common/INETMath.h"
+#include "inet/common/figures/IIndicatorFigure.h"
 
-// for the moment commented out as omnet cannot instatiate it from a namespace
-//namespace inet {
+namespace inet {
 
 class INET_API LinearGaugeFigure : public cGroupFigure, public inet::IIndicatorFigure
 {
@@ -58,6 +57,7 @@ class INET_API LinearGaugeFigure : public cGroupFigure, public inet::IIndicatorF
     LinearGaugeFigure(const char *name = nullptr);
     virtual ~LinearGaugeFigure();
 
+    virtual const Point getSize() const override { return getBounds().getSize(); }
     virtual void setValue(int series, simtime_t timestamp, double value) override;
 
     const Rectangle& getBounds() const;
@@ -72,7 +72,7 @@ class INET_API LinearGaugeFigure : public cGroupFigure, public inet::IIndicatorF
     const char *getLabel() const;
     void setLabel(const char *text);
 
-    const int getLabelOffset() const;
+    int getLabelOffset() const;
     void setLabelOffset(int offset);
 
     const Font& getLabelFont() const;
@@ -94,7 +94,7 @@ class INET_API LinearGaugeFigure : public cGroupFigure, public inet::IIndicatorF
     void setCornerRadius(double radius);
 };
 
-// } // namespace inet
+} // namespace inet
 
 #endif // ifndef __INET_LinearGaugeFigure_H
 

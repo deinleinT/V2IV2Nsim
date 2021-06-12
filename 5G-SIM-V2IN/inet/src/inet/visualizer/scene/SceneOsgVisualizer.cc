@@ -16,8 +16,8 @@
 //
 
 #include "inet/common/ModuleAccess.h"
-#include "inet/common/OSGScene.h"
-#include "inet/common/OSGUtils.h"
+#include "inet/common/OsgScene.h"
+#include "inet/common/OsgUtils.h"
 #include "inet/visualizer/scene/SceneOsgVisualizer.h"
 
 #ifdef WITH_OSG
@@ -40,8 +40,8 @@ void SceneOsgVisualizer::initialize(int stage)
     if (stage == INITSTAGE_LOCAL)
         initializeScene();
     else if (stage == INITSTAGE_LAST) {
-        if (par("displayPlayground"))
-            initializePlayground();
+        if (par("displayScene"))
+            initializeSceneFloor();
         double axisLength = par("axisLength");
         if (!std::isnan(axisLength))
             initializeAxis(axisLength);
@@ -52,7 +52,7 @@ void SceneOsgVisualizer::initialize(int stage)
 void SceneOsgVisualizer::initializeScene()
 {
     SceneOsgVisualizerBase::initializeScene();
-    auto topLevelScene = check_and_cast<inet::osg::TopLevelScene *>(visualizerTargetModule->getOsgCanvas()->getScene());
+    auto topLevelScene = check_and_cast<inet::osg::TopLevelScene *>(visualizationTargetModule->getOsgCanvas()->getScene());
     topLevelScene->addChild(new inet::osg::SimulationScene());
 }
 
@@ -64,7 +64,7 @@ void SceneOsgVisualizer::initializeViewpoint()
     double cameraDistanceFactor = par("cameraDistanceFactor");
     auto eye = cOsgCanvas::Vec3d(center.x() + cameraDistanceFactor * radius, center.y() + cameraDistanceFactor * radius, center.z() + cameraDistanceFactor * radius);
     auto viewpointCenter = cOsgCanvas::Vec3d(center.x(), center.y(), center.z());
-    auto osgCanvas = visualizerTargetModule->getOsgCanvas();
+    auto osgCanvas = visualizationTargetModule->getOsgCanvas();
     osgCanvas->setGenericViewpoint(cOsgCanvas::Viewpoint(eye, viewpointCenter, cOsgCanvas::Vec3d(0, 0, 1)));
 }
 

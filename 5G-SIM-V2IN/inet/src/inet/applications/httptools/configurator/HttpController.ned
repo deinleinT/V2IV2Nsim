@@ -18,7 +18,7 @@
 package inet.applications.httptools.configurator;
 
 //
-// A controller object for OMNeT++ simulations which use the HttpTools browser and
+// Controller for simulations which use the HttpTools browser and
 // server components. A single controller must exist at the scenario level in each
 // simulation.
 //
@@ -53,5 +53,6 @@ simple HttpController
         string events = default("");          // Popularity modification events defintion file.
         string eventsSection = default("");   // Section within the popularity modification file, if one is defined.
         xml config;                           // XML configuration file.
+        @lifecycleSupport;
 }
 

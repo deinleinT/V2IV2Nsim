@@ -25,8 +25,8 @@
 #include <fstream>
 
 #include "inet/common/INETDefs.h"
-#include "inet/common/lifecycle/ILifecycle.h"
-#include "inet/common/lifecycle/LifecycleOperation.h"
+#include "inet/common/lifecycle/LifecycleUnsupported.h"
+#include "inet/common/packet/Packet.h"
 #include "inet/applications/httptools/configurator/HttpController.h"
 #include "inet/applications/httptools/common/HttpMessages_m.h"
 #include "inet/applications/httptools/common/HttpRandom.h"
@@ -41,7 +41,7 @@ namespace httptools {
 #define HTTPT_RESPONSE_MESSAGE            10010
 #define HTTPT_DELAYED_RESPONSE_MESSAGE    10011
 
-enum LOG_FORMAT { lf_short, lf_long };
+enum LogFormat { lf_short, lf_long };
 
 /**
  * The base class for browser and server nodes.
@@ -53,14 +53,14 @@ enum LOG_FORMAT { lf_short, lf_long };
  *
  * @author Kristjan V. Jonsson (kristjanvj@gmail.com)
  */
-class INET_API HttpNodeBase : public cSimpleModule, public ILifecycle
+class INET_API HttpNodeBase : public cSimpleModule, public LifecycleUnsupported
 {
   protected:
     double linkSpeed = 0;    // the link speed in bits per second. Only needed for direct message passing transmission delay calculations
     int httpProtocol = 0;    // the http protocol. http/1.0: 10 ; http/1.1: 11
     std::string logFileName;    // the log file name for message generation events
     bool enableLogging = true;    // enable/disable of logging message generation events to file
-    LOG_FORMAT outputFormat = lf_short;    // The format used to log message events to the log file (if enabled)
+    LogFormat outputFormat = lf_short;    // The format used to log message events to the log file (if enabled)
     bool m_bDisplayMessage = true;    // enable/disable logging of message events to the console
     bool m_bDisplayResponseContent = true;    // enable/disable of logging message contents (body) to the console. Only if m_bDisplayMessage is set
     cModule *host = nullptr;
@@ -74,25 +74,23 @@ class INET_API HttpNodeBase : public cSimpleModule, public ILifecycle
      * a random delay object may be specified. Those delays add to the total used to submit the message to the
      * OMNeT++ direct message passing mechanism.
      */
-    void sendDirectToModule(HttpNodeBase *receiver, cPacket *packet, simtime_t constdelay = 0.0, rdObject *rd = nullptr);
+    void sendDirectToModule(HttpNodeBase *receiver, Packet *packet, simtime_t constdelay = 0.0, rdObject *rd = nullptr);
 
     /*
      * Calculate the transmission delay for the packet
      */
-    double transmissionDelay(cPacket *packet);
+    double transmissionDelay(Packet *packet);
 
     /*
      * Methods for logging and formatting messages
      */
-    void logRequest(const HttpRequestMessage *httpRequest);
-    void logResponse(const HttpReplyMessage *httpResponse);
+    void logRequest(const Ptr<const HttpRequestMessage>& httpRequest);
+    void logResponse(const Ptr<const HttpReplyMessage>& httpResponse);
     void logEntry(std::string line);
-    std::string formatHttpRequestShort(const HttpRequestMessage *httpRequest);
-    std::string formatHttpResponseShort(const HttpReplyMessage *httpResponse);
-    std::string formatHttpRequestLong(const HttpRequestMessage *httpRequest);
-    std::string formatHttpResponseLong(const HttpReplyMessage *httpResponse);
-    virtual bool handleOperationStage(LifecycleOperation *operation, int stage, IDoneCallback *doneCallback) override
-    { Enter_Method_Silent(); throw cRuntimeError("Unsupported lifecycle operation '%s'", operation->getClassName()); return true; }
+    std::string formatHttpRequestShort(const Ptr<const HttpRequestMessage>& httpRequest);
+    std::string formatHttpRequestLong(const Ptr<const HttpRequestMessage>& httpRequest);
+    std::string formatHttpResponseShort(const Ptr<const HttpReplyMessage>& httpResponse);
+    std::string formatHttpResponseLong(const Ptr<const HttpReplyMessage>& httpResponse);
 
   public:
     HttpNodeBase();

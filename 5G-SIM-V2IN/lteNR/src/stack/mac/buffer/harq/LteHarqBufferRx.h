@@ -1,9 +1,11 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
@@ -37,7 +39,7 @@ class LteHarqBufferRx
     unsigned int numHarqProcesses_;
 
     MacNodeId nodeId_; // UE nodeId for which this buffer has been created
-    LteMacBase *macUe_;
+
 
     /// processes vector
     std::vector<LteHarqProcessRx *> processes_;
@@ -48,41 +50,21 @@ class LteHarqBufferRx
     //Statistics
     static unsigned int totalCellRcvdBytes_;
     unsigned int totalRcvdBytes_ = 0;
-    simsignal_t macDelay_;
-    simsignal_t macCellThroughput_;
-    simsignal_t macThroughput_;
+    omnetpp::simsignal_t macDelay_;
+    omnetpp::simsignal_t macCellThroughput_;
+    omnetpp::simsignal_t macThroughput_;
 
     // reference to the eNB module
-    cModule* nodeB_;
+    omnetpp::cModule* nodeB_;
+
+  private:
+    // LteMacBase* for source with nodeId.
+    // Only access via methods. This can be NULL if node is removed from simulation
+    LteMacBase *macUe_;
 
   public:
     LteHarqBufferRx() {}
     LteHarqBufferRx(unsigned int num, LteMacBase *owner, MacNodeId nodeId);
-
-    virtual std::vector<LteHarqProcessRx *> getProcessesRx(){
-        return processes_;
-    }
-    virtual void setProcessesRx(std::vector<LteHarqProcessRx *> procs){
-        this->processes_ = procs;
-    }
-
-    virtual unsigned int getTotalRcvdBytes(){
-        return totalRcvdBytes_;
-    }
-    virtual void setTotalRcvdBytes(unsigned int bytes){
-        this->totalRcvdBytes_ = bytes;
-    }
-
-    virtual unsigned int getNumHarqProcesses() {
-        return numHarqProcesses_;
-    }
-    virtual void setNumHarqProcesses(unsigned int procs) {
-        this->numHarqProcesses_ = procs;
-    }
-
-    virtual void setIsMulticast(unsigned int bytes) {
-        this->totalRcvdBytes_ = bytes;
-    }
 
     /**
      * Insertion of a new pdu coming from phy layer into
@@ -90,7 +72,7 @@ class LteHarqBufferRx
      *
      * @param pdu to be inserted
      */
-    virtual void insertPdu(Codeword cw, LteMacPdu *pdu);
+    virtual void insertPdu(Codeword cw, inet::Packet *pkt);
 
     /**
      * Sends feedback for all processes which are older than
@@ -98,7 +80,7 @@ class LteHarqBufferRx
      *
      * @return uncorrupted pdus or empty list if none
      */
-    virtual std::list<LteMacPdu*> extractCorrectPdus();
+    virtual std::list<inet::Packet*> extractCorrectPdus();
 
     /**
      * Purges PDUs in corrupted state (if any)
@@ -132,9 +114,21 @@ class LteHarqBufferRx
     UnitList firstAvailable();
 
     /*
+     * Returns a pair with the specified h-arq process id and a list of its empty units to be used for reception.
+     */
+    UnitList getEmptyUnits(unsigned char acid);
+
+    /*
      * returns true if the corresponding flow is a multicast one
      */
     bool isMulticast() { return isMulticast_; }
+
+    /*
+     *  Corresponding cModule node will be removed from simulation.
+     */
+    virtual void unregister_macUe(){
+        macUe_ = nullptr;
+    }
 
     virtual ~LteHarqBufferRx();
 
@@ -144,6 +138,22 @@ class LteHarqBufferRx
      * feedback if affirmative.
      */
     virtual void sendFeedback();
+
+    /**
+     *  Only emit signals from macUe_ if the node still exists.
+     *  It is possible that the UE left the simulation but the
+     *  Packets form the node still reside in the simulation.
+     */
+    virtual void macUe_emit(omnetpp::simsignal_t signal, double val)
+    {
+        if (macUe_){
+            macUe_->emit(signal, val);
+        }
+    }
+
+    void initMacUe(){
+        macUe_ = omnetpp::check_and_cast<LteMacBase*>(getMacByMacNodeId(nodeId_));
+    }
 };
 
 #endif

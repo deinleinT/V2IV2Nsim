@@ -16,13 +16,15 @@
 //
 
 #include <algorithm>
+
 #include "inet/power/contract/ICcEnergyStorage.h"
 #include "inet/power/contract/IEpEnergyStorage.h"
 #include "inet/visualizer/base/EnergyStorageVisualizerBase.h"
 
 namespace inet {
-
 namespace visualizer {
+
+using namespace inet::power;
 
 EnergyStorageVisualizerBase::EnergyStorageVisualization::EnergyStorageVisualization(const IEnergyStorage *energyStorage) :
     energyStorage(energyStorage)
@@ -51,6 +53,7 @@ void EnergyStorageVisualizerBase::initialize(int stage)
 
 void EnergyStorageVisualizerBase::handleParameterChange(const char *name)
 {
+    if (!hasGUI()) return;
     if (name != nullptr) {
         removeAllEnergyStorageVisualizations();
         addEnergyStorageVisualizations();
@@ -107,13 +110,12 @@ void EnergyStorageVisualizerBase::addEnergyStorageVisualizations()
 
 void EnergyStorageVisualizerBase::removeAllEnergyStorageVisualizations()
 {
-    for (auto energyStorageVisualization : energyStorageVisualizations) {
+    for (auto energyStorageVisualization : std::vector<const EnergyStorageVisualization *>(energyStorageVisualizations)) {
         removeEnergyStorageVisualization(energyStorageVisualization);
         delete energyStorageVisualization;
     }
 }
 
 } // namespace visualizer
-
 } // namespace inet
 

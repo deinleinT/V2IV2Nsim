@@ -1,14 +1,14 @@
 package inet.showcases.visualizer.interfacetable;
 
 import inet.node.inet.AdhocHost;
-import inet.node.aodv.AODVRouter;
+import inet.node.aodv.AodvRouter;
 import inet.node.ethernet.EtherSwitch;
 import inet.node.inet.Router;
 import inet.node.inet.WirelessHost;
 import inet.node.wireless.AccessPoint;
 import inet.physicallayer.ieee80211.packetlevel.Ieee80211ScalarRadioMedium;
 import inet.visualizer.integrated.IntegratedVisualizer;
-import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
+import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 import inet.node.ethernet.Eth100M;
 import inet.node.inet.StandardHost;
 import inet.visualizer.linklayer.InterfaceTableVisualizer;
@@ -27,7 +27,7 @@ network InterfaceTableVisualizationEnablingVisualizationShowcase
         visualizer: IntegratedVisualizer {
             @display("p=328,38");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=328,93");
         }
     connections:
@@ -59,7 +59,7 @@ network InterfaceTableVisualizationAdvancedFeaturesShowcase
         mobileHost: AdhocHost {
             @display("p=468,313");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=631,50");
         }
         visualizer: IntegratedVisualizer {

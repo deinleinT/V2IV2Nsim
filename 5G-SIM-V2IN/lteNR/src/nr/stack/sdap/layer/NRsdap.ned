@@ -21,7 +21,7 @@
 // Part of 5G-Sim-V2I/N
 //
 
-package nr.stack.sdap.layer;
+package lteNR.nr.stack.sdap.layer;
 
 
 moduleinterface INRsdap

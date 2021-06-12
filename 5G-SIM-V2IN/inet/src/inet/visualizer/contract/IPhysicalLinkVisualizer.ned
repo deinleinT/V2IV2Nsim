@@ -22,10 +22,11 @@ package inet.visualizer.contract;
 // submodules from INI files. Such a visualizer displays the active physical
 // layer links in a network.
 //
-// @see ~PhysicaLinkCanvasVisualizer, ~PhysicaLinkOsgVisualizer, ~PhysicaLinkVisualizer, ~PhysicalLinkVisualizerBase
+// @see ~PhysicalLinkCanvasVisualizer, ~PhysicalLinkOsgVisualizer, ~PhysicalLinkVisualizer, ~PhysicalLinkVisualizerBase
 //
 moduleinterface IPhysicalLinkVisualizer
 {
     parameters:
-        @display("i=block/app_s");
+        @display("i=block/app");
 }
+

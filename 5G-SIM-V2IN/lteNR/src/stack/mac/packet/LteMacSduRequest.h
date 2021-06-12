@@ -1,16 +1,17 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
 #ifndef _LTE_LTEMACSDUREQUEST_H_
 #define _LTE_LTEMACSDUREQUEST_H_
 
-#include <vector>
 #include "stack/mac/packet/LteMacSduRequest_m.h"
 #include "common/LteCommon.h"
 
@@ -23,6 +24,11 @@
  */
 class LteMacSduRequest : public LteMacSduRequest_Base
 {
+  private:
+    void copy(const LteMacSduRequest& other) {
+        ueId_ = other.ueId_;
+        lcid_ = other.lcid_;
+    }
   protected:
     /// ID of the destination UE associated with the request
     MacNodeId ueId_;
@@ -30,29 +36,14 @@ class LteMacSduRequest : public LteMacSduRequest_Base
     /// Logical Connection identifier associated with the request
     LogicalCid lcid_;
 
-    bool flag;
-    std::vector<LteMacSduRequest*> requests;
-
   public:
-    void setContainsFlag(bool flag){
-        this->flag = flag;
-    }
-
-    bool containsSeveralCids(){
-        return flag;
-    }
-
-    std::vector<LteMacSduRequest*> & getRequest(){
-        return requests;
-    }
 
     /**
      * Constructor
      */
-    LteMacSduRequest(const char* name = NULL, int kind = 0) :
-        LteMacSduRequest_Base(name, kind)
+    LteMacSduRequest() :
+        LteMacSduRequest_Base()
     {
-        flag = false;
     }
 
     /**
@@ -60,15 +51,12 @@ class LteMacSduRequest : public LteMacSduRequest_Base
      */
     virtual ~LteMacSduRequest()
     {
-        for(auto var : requests)
-            delete var;
-        requests.clear();
     }
 
     LteMacSduRequest(const LteMacSduRequest& other) :
-        LteMacSduRequest_Base()
+        LteMacSduRequest_Base(other)
     {
-        operator=(other);
+        copy(other);
     }
 
     LteMacSduRequest& operator=(const LteMacSduRequest& other)
@@ -76,6 +64,7 @@ class LteMacSduRequest : public LteMacSduRequest_Base
         if (&other == this)
             return *this;
         LteMacSduRequest_Base::operator=(other);
+        copy(other);
         return *this;
     }
 

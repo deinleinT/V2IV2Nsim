@@ -13,10 +13,10 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-#include "inet/linklayer/configurator/L2NodeConfigurator.h"
 #include "inet/common/ModuleAccess.h"
+#include "inet/common/lifecycle/ModuleOperations.h"
 #include "inet/common/lifecycle/NodeStatus.h"
-#include "inet/common/lifecycle/NodeOperations.h"
+#include "inet/linklayer/configurator/L2NodeConfigurator.h"
 
 namespace inet {
 
@@ -36,22 +36,22 @@ void L2NodeConfigurator::initialize(int stage)
         nodeStatus = dynamic_cast<NodeStatus *>(host->getSubmodule("status"));
         interfaceTable = getModuleFromPar<IInterfaceTable>(par("interfaceTableModule"), this);
         networkConfigurator = findModuleFromPar<L2NetworkConfigurator>(par("l2ConfiguratorModule"), this);
-        host->subscribe(NF_INTERFACE_CREATED, this);
+        host->subscribe(interfaceCreatedSignal, this);
     }
 }
 
-bool L2NodeConfigurator::handleOperationStage(LifecycleOperation *operation, int stage, IDoneCallback *doneCallback)
+bool L2NodeConfigurator::handleOperationStage(LifecycleOperation *operation, IDoneCallback *doneCallback)
 {
     Enter_Method_Silent();
-    if (dynamic_cast<NodeStartOperation *>(operation)) {
-        if ((NodeStartOperation::Stage)stage == NodeStartOperation::STAGE_LINK_LAYER) {
+    if (dynamic_cast<ModuleStartOperation *>(operation)) {
+        if (static_cast<ModuleStartOperation::Stage>(operation->getCurrentStage()) == ModuleStartOperation::STAGE_LINK_LAYER) {
             prepareNode();
             configureNode();
         }
     }
-    else if (dynamic_cast<NodeShutdownOperation *>(operation))
+    else if (dynamic_cast<ModuleStopOperation *>(operation))
         /*nothing to do*/;
-    else if (dynamic_cast<NodeCrashOperation *>(operation))
+    else if (dynamic_cast<ModuleCrashOperation *>(operation))
         /*nothing to do*/;
     else
         throw cRuntimeError("Unsupported lifecycle operation '%s'", operation->getClassName());
@@ -66,9 +66,8 @@ void L2NodeConfigurator::prepareNode()
 
 void L2NodeConfigurator::prepareInterface(InterfaceEntry *interfaceEntry)
 {
-    ASSERT(!interfaceEntry->ieee8021dData());
-    Ieee8021dInterfaceData *ieee8021dInterfaceData = new Ieee8021dInterfaceData();
-    interfaceEntry->setIeee8021dInterfaceData(ieee8021dInterfaceData);
+    // ASSERT(!interfaceEntry->getProtocolData<Ieee8021dInterfaceData>());
+    interfaceEntry->addProtocolData<Ieee8021dInterfaceData>();
 }
 
 void L2NodeConfigurator::configureNode()
@@ -84,7 +83,7 @@ void L2NodeConfigurator::receiveSignal(cComponent *source, simsignal_t signalID,
     if (nodeStatus && nodeStatus->getState() != NodeStatus::UP)
         return;
 
-    if (signalID == NF_INTERFACE_CREATED) {
+    if (signalID == interfaceCreatedSignal) {
         InterfaceEntry *ie = check_and_cast<InterfaceEntry *>(obj);
         prepareInterface(ie);
         if (networkConfigurator)

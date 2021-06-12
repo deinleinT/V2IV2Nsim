@@ -1,18 +1,141 @@
+====== inet-4.x ======
+
+2021-01-07  ------ inet-4.2.2 released ------
+
+2020-10-27  ------ inet-4.2.1 released ------
+
+2020-01-08  ------ inet-4.2.0 released ------
+
+2019-08-28  Zoltan Bojthe
+
+	Added debug output for setting initial start position.
+
+2019-08-26  Levente Mészáros
+
+	Refactored updating subject module display string from mobility state and vice versa.
+
+2019-08-02  Zoltan Bojthe
+
+	Fixed setting displayString to initialized position.
+
+2019-06-14  Levente Mészáros
+
+	Extracted a StationaryMobilityBase to prevent dragging and rotation in static group mobilities.
+
+2019-06-07  Levente Mészáros
+
+	Extended MobilityBase::refreshDisplay() with 2D rotation angle.
+	The angle is computed from the current angular position.
+
+2019-01-28  ------ inet-4.1.0 released ------
+
+2018-10-02  Levente Mészáros
+
+	Added INITSTAGE_GROUP_MOBILITY.
+
+2018-09-30  Andras Varga
+
+	Renamed playground* (NED parameters, C++ variables/methods) to scene*.
+
+2018-09-27  Levente Mészáros
+
+	Split INITSTAGE_PHYSICAL_ENVIRONMENT_2 into INITSTAGE_PHYSICAL_OBJECT_CACHE and INITSTAGE_MOBILITY.
+
+2018-09-26  Andras Varga
+
+	Added support for 3D movement to TurtleMobility.
+
+2018-09-20  Andras Varga
+
+	Added several different reflectIfOutside variants.
+	Added heading, elevation and direction as quaternion handling.
+
+2018-09-18  Levente Mészáros
+
+	Switched to Quaternion::slerp.
+
+2018-09-17  Levente Mészáros
+
+	Replaced EulerAngles with Quaternion in angular position, velocity and acceleration.
+	Added guard agains updating lastOrientation with NaN.
+
+2018-08-17  Zoltan Bojthe
+
+	Added namespace qualifier to @signal type parameters.
+
+2018-06-27  ------ inet-4.0.0 released ------
+
+2018-06-11  Levente Mészáros
+
+	Added usage of canvas projection when initializing from display string.
+	Added updateDisplayString parameter which allows disabling position updates.
+	Dropped obsolete visualizeMobility, renamed visualRepresentation parameter to subjectModule.
+
+2018-06-04  Levente Mészáros
+
+	Replaced +-1/0 NED parameter value with +-inf.
+
+2018-05-22  Levente Mészáros
+
+	Changed annoying mobility position log statement to TRACE.
+
+2018-05-02  Levente Mészáros
+
+	Moved StringFormat class under common to remove Mobility feature dependency
+	on the visualizer feature.
+
+2018-04-25  Levente Mészáros
+
+	Allowed changing displayStringTextFormat parameter from the GUI.
+	Added formatted display string text to refreshDisplay.
+	Moved code from updateVisualRepresentation into the standard refreshDisplay module function.
+
+2018-04-06  Gyorgy Szaszko
+
+	Added position and velocity to display string of mobility modules by default.
+	Added displayStringTextFormat parameter to control display string format.
+
+2018-04-13  ------ inet-3.99.3 released ------
+
+2018-03-22  Levente Mészáros
+
+	Replaced type of angle member variables with rad and added degree around parameters.
+
+2018-03-20  Levente Mészáros
+
+	Renamed speed to velocity where appropriate. Speed is a scalar, velocity is a vector quantity.
+
+2018-03-15  Levente Mészáros
+
+	Moved getting the canvas projection into INITSTAGE_LOCAL.
+	Fixed finding visual representation, it is optional.
+	Added a missing WATCH for orientation.
+	Added faceForward bool parameter to allow disabling automatic forward orientation.
+
+2018-02-13  TÖRÖK Attila
+
+	Factor out MovingMobilityBase::orient() to allow overriding.
+
+2018-02-06  Levente Mészáros
+
+	Added implementations for all missing IMobility functions to MovingMobilityBase.
+	Removed useless default implementations from MobilityBase for some IMobility functions.
+	Fixed default orientation computation according to the new documentation.
+	Renamed initial orientation parameters to be more specific.
+
+2017-12-22  ------ inet-3.99.2 released ------
+
+2017-12-15  Zoltan Bojthe
+
+	Removed unnecessary cPar::doubleValue(), cPar::boolValue() calls.
+
+2017-11-16  ------ inet-3.99.1 released ------
+
+2015-05-26  Levente Mészáros
+
+	Added status text to mobility submodule.
+
 ====== inet-3.x ======
-
-2020-10-20  ------ inet-3.6.8 released ------
-
-2019-11-04  ------ inet-3.6.7 released ------
-
-2019-08-16  ------ inet-3.6.6 released ------
-
-2019-04-12  ------ inet-3.6.5 released ------
-
-
-
-2018-09-12  Zoltan Bojthe
-
-	NED is now using full qualified type names
 
 2018-03-21  ------ inet-3.6.4 released ------
 

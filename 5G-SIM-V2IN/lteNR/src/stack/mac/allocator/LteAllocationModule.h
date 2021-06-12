@@ -1,17 +1,14 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
-//
-// This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
-// Author: Thomas Deinlein
-//
 #ifndef _LTE_LTEALLOCATIONMODULE_H_
 #define _LTE_LTEALLOCATIONMODULE_H_
 
@@ -28,7 +25,7 @@ class LteAllocationModule
 
   protected:
 
-    /// Owner MAC module (can be LteMacEnb on eNB or LteMacRelayEnb on Relays)
+    /// Owner MAC module
     LteMacEnb *mac_;
 
     /// Number of bands
@@ -301,7 +298,7 @@ class LteAllocationModule
      */
 
     // Store the Allocation based on passed parameters
-    virtual void storeAllocation( std::vector<std::vector<AllocatedRbsPerBandMapA> > allocatedRbsPerBand,std::set<Band>* untouchableBands = NULL)
+    virtual void storeAllocation( std::vector<std::vector<AllocatedRbsPerBandMapA> > allocatedRbsPerBand,std::set<Band>* untouchableBands = nullptr)
     {
         return;
     }

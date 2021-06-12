@@ -54,7 +54,7 @@ public:
 protected:
     simsignal_t rlcThroughput_;
     QosHandler * qosHandler;
-    LteNodeType nodeType;
+    RanNodeType nodeType;
     cGate *upperLayer;
     cGate *lowerLayer;
     cGate *upperLayerIn;
@@ -70,11 +70,10 @@ protected:
 
 protected:
     virtual void initialize(int stage) = 0;
-    virtual void handleMessage(cMessage *msg);
-    virtual void handleSelfMessage(cMessage *msg);
-    virtual void fromLowerToUpper(cMessage * msg);
-    virtual void fromUpperToLower(cMessage * msg);
-    virtual void setTrafficInformation(cPacket* pkt, FlowControlInfo* lteInfo);
+    virtual void handleMessage(cMessage *msg) = 0;
+    virtual void fromLowerToUpper(cMessage * msg) = 0;
+    virtual void fromUpperToLower(cMessage * msg) = 0;
+    virtual void setTrafficInformation(std::string appName, inet::Packet * pkt);
     virtual int numInitStages() const { return inet::INITSTAGE_NETWORK_LAYER+1; }
     virtual NRSdapEntity * getEntity(MacNodeId sender, MacNodeId dest, ApplicationType appType);
     virtual void finish();

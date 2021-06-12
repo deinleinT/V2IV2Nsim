@@ -1,12 +1,119 @@
+====== inet-4.x ======
+
+2021-01-07  ------ inet-4.2.2 released ------
+
+2020-10-27  ------ inet-4.2.1 released ------
+
+2020-01-08  ------ inet-4.2.0 released ------
+
+2019-09-02  Zoltan Bojthe
+
+	Optimized Tag usage.
+
+2019-03-19  Levente Mészáros
+
+	Added EtherAppPacketSerializer.
+
+2019-01-22  Levente Mészáros
+
+	Added missing CreationTimeTag to application packets for end-to-end delay measurements.
+
+2019-01-28  ------ inet-4.1.0 released ------
+
+2018-11-14  Zoltan Bojthe
+
+	Removed unused obsolete EthernetApplication.
+
+2018-11-12  Zoltan Bojthe
+
+	Call socket->destroy() when the operation root module is not the containing node module.
+
+2018-11-09  Zoltan Bojthe
+
+	Switched to socket.destroy() in handleCrashOperation().
+
+2018-11-05  Zoltan Bojthe
+
+	Close/abort socket at module crash operation.
+
+2018-10-26  Zoltan Bojthe
+
+	Added missing socket close calls for stop/crash handling.
+
+2018-10-03  Zoltan Bojthe
+
+	Changed ethernet application base classes to ApplicationBase.
+
+2018-10-01  Zoltan Bojthe
+
+	Removed obsolete registerDSAP from EtherAppClient.
+
+2018-09-25  Zoltan Bojthe
+
+	Ethernet applications use LlcSocket instead of registerDSAP.
+
+2018-08-17  Zoltan Bojthe
+
+	Added namespace qualifier to @signal type parameters.
+
+2018-07-20  Zoltan Bojthe
+
+	Changed ethernet applications to use L3AddressResolver to get destination addresses.
+
+2018-07-12  Zoltan Bojthe
+
+	Ethernet applications connect to an EthernetInterface instead of the MAC module.
+
+2018-06-27  ------ inet-4.0.0 released ------
+
+2018-04-13  ------ inet-3.99.3 released ------
+
+2018-01-02  Levente Mészáros
+
+	Replaced cPacket with Packet.
+
+2018-01-18  Levente Mészáros
+
+	Replaced packet tags API calls to use the new API.
+
+2017-12-22  ------ inet-3.99.2 released ------
+
+2017-12-20  Zoltan Bojthe
+
+	Renaming:
+	    EtherAppCli -> EtherAppClient
+	    EtherAppSrv -> EtherAppServer
+	    EtherLLC -> EtherLlc
+	    MACAddress -> MacAddress
+
+2017-12-15  Zoltan Bojthe
+
+	Removed unnecessary cPar::doubleValue(), cPar::longValue() calls.
+
+	Motivation: rely on cast operators instead because they can detect
+	overflows (when the value is cast to a smaller integer type that can not
+	represent it). Removed unnecessary .longvalue() calls. Replaced to
+	.intValue() in comparisons.
+
+2017-12-14  Levente Mészáros
+
+	Removed unnecessary markImmutable() calls.
+
+2017-11-16  Levente Mészáros
+
+	Moved rcvdPkSignal and sentPkSignal into Simsignals.
+
+2017-11-21  Levente Mészáros
+
+	Eliminated all #define statements from MSG files.
+
+2017-11-17  Zoltan Bojthe
+
+	Added required import statements to MSG files according to new syntax.
+
+2017-11-16  ------ inet-3.99.1 released ------
+
 ====== inet-3.x ======
-
-2020-10-20  ------ inet-3.6.8 released ------
-
-2019-11-04  ------ inet-3.6.7 released ------
-
-2019-08-16  ------ inet-3.6.6 released ------
-
-2019-04-12  ------ inet-3.6.5 released ------
 
 2018-03-21  ------ inet-3.6.4 released ------
 

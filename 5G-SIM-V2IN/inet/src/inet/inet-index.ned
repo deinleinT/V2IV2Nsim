@@ -18,62 +18,38 @@
 //
 // @titlepage
 //
-// <center><h1>INET Framework for OMNeT++/OMNEST</h1></center>
-// <center>release 3.7.0-cbd2095364</center>
+// <center><h1>INET Framework</h1></center>
+// <center>release ##BUILDID##</center>
 //
-// INET Framework contains IPv4, IPv6, TCP, SCTP, UDP protocol implementations,
-// and several application models. The framework also includes an MPLS model
-// with RSVP-TE and LDP signalling. Link-layer models are PPP, Ethernet and 802.11.
-// Static routing can be set up using network autoconfigurators, or one can use
-// routing protocol implementations.
+// INET Framework is an open-source model library for the OMNeT++ simulation
+// environment. It provides protocols, agents and other models for researchers
+// and students working with communication networks. INET is especially useful
+// when designing and validating new protocols, or exploring new or exotic
+// scenarios.
 //
-// The INET Framework supports wireless and mobile simulations as well.
+// INET supports a wide class of communication networks, including wired,
+// wireless, mobile, ad hoc and sensor networks. It contains models for the
+// Internet stack (TCP, UDP, IPv4, IPv6, OSPF, BGP, etc.), link layer
+// protocols (Ethernet, PPP, IEEE 802.11, various sensor MAC protocols, etc),
+// refined support for the wireless physical layer, MANET routing protocols,
+// DiffServ, MPLS with LDP and RSVP-TE signalling, several application models,
+// and many other protocols and components. It also provides support for node
+// mobility, advanced visualization, network emulation and more.
+//
+// Several other simulation frameworks take INET as a base, and extend it into
+// specific directions, such as vehicular networks, overlay/peer-to-peer
+// networks, or LTE.
 //
 // See the <tt><a href="whatsnew.html">WHATSNEW</a></tt> file in the distribution
 // for the list of recent changes.
 //
-// Introductory material:
-//  - <a href="inet-architecture.html">INET Framework architecture</a>
-//  - <a href="../inet-manual-draft.pdf">INET Framework Manual (draft) (pdf)</a>
-//
-// A few useful starting points for browsing the documentation:
-//  - hosts, routers, switches and other network level modules:
-//    ~StandardHost, ~Router, ~EtherSwitch, ~EtherHub, ~InternetCloud etc.
-//  - network interfaces: ~EthernetInterface, ~PPPInterface, ~Ieee80211Nic
-//  - <a href="ieee80211.html">IEEE 802.11 models</a>, both ad-hoc and infrastructure
-//    mode are supported
-//  - IPv4 layer: ~IPv4, ~ARP and ~ICMP; ~IPv4RoutingTable
-//  - IPv6 support: ~IPv6, ~IPv6NeighbourDiscovery, ~ICMPv6, ~IPv6RoutingTable;
-//    see <a href="ipv6overview.html">IPv6 model overview</a>
-//  - transport layer: ~TCP, ~UDP, ~SCTP
-//  - ~InterfaceTable and ~IPv4RoutingTable can be found in every
-//    host and router model
-//  - queues in router network interfaces: ~DropTailQueue, ~DiffservQueue.
-//  - ~IPv4NetworkConfigurator automatically assigns IPv4 addresses and
-//    sets up static routes;
-//  - ~ScenarioManager lets you change things in the model in the middle
-//    of the simulation to study transient behaviour
-//  - message classes: ~IPv4Datagram, ~TCPSegment, ~UDPPacket, ~EthernetIIFrame,
-//    ~ARPPacket, ~PPPFrame, ~GenericAppMsg, ~EtherAppReq, etc.
-//  - control info classes (used in communication between protocol layers):
-//    ~IPv4ControlInfo, ~TCPCommand, ~UDPControlInfo, ~Ieee802Ctrl, etc.
-//  - application models: ~UDPVideoStreamSvr, ~UDPVideoStreamCli, ~UDPBasicApp, ~UDPEchoApp,
-//    ~TCPSessionApp, ~TCPBasicClientApp, ~TCPGenericSrvApp, ~TCPSinkApp,
-//    ~TCPSrvHostApp, ~EtherAppCli, ~EtherAppSrv, ~PingApp, ~SimpleVoIPSender,
-//    ~SimpleVoIPReceiver etc.
-//  - wireless support: ~IRadioMedium, ~Ieee80211Nic
-//  - Mobility models: ~TurtleMobility,
-//    ~BonnMotionMobility, ~ANSimMobility, ~RandomWPMobility, ~MassMobility
-//  - MPLS models: the core modules are ~MPLS, ~LIBTable, ~LDP, ~RSVP, ~TED,
-//    ~LinkStateRouting; MPLS-enabled routers are ~LDP_LSR, ~RSVP_LSR;
-//    see also the list of <a href="standards.html">implemented standards</a>
-//  - dynamic routing is provided by the Daemon module (the Quagga routing
-//    daemon ported into the INET Framework, currently in a different project)
-//    used inside QuaggaRouter; alternatively one can run ~OSPFRouter which relies
-//    on the ~OSPFRouting module;
-//
 // Related documentation:
-//   - <a href="../doxy/index.html" target="_top">C++ source documentation (Doxygen)</a>
+//   - <a href="https://inet.omnetpp.org/docs/users-guide/index.html" target="_top">INET User's Guide</a>
+//   - <a href="https://inet.omnetpp.org/docs/developers-guide/index.html" target="_top">INET Developer's Guide</a>
+//   - <a href="https://inet.omnetpp.org/docs/showcases/index.html" target="_top">INET Showcases</a> and
+//     <a href="https://inet.omnetpp.org/docs/tutorials/index.html" target="_top">INET Tutorials</a>
+//   - <a href="https://omnetpp.org/doc/omnetpp/manual" target="_top">OMNeT++ Simulation Manual</a>
+//   - <a href="https://omnetpp.org/documentation" target="_top">Further OMNeT++ documentation</a>
 //
 // <a href="history.html">History and contributors</a>.
 //
@@ -146,5 +122,12 @@
 // feedback, reporting bugs, suggesting features and contributing patches;
 // I'd like to acknowledge their help here as well.
 //
+// @page whatsnew.html, What's New
+//
+// <pre>
+// <nohtml>
+// @include ../../WHATSNEW
+// </nohtml>
+// </pre>
 
 package inet;

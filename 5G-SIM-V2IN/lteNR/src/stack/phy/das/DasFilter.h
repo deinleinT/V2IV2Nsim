@@ -1,9 +1,11 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
@@ -14,7 +16,7 @@
 #include "stack/phy/das/RemoteAntennaSet.h"
 #include "stack/phy/packet/LteAirFrame.h"
 #include "common/LteControlInfo.h"
-#include "corenetwork/binder/LteBinder.h"
+#include "common/binder/Binder.h"
 #include "common/LteCommon.h"
 #include "stack/phy/layer/LtePhyBase.h"
 #include "stack/phy/layer/LtePhyEnb.h"
@@ -47,7 +49,7 @@ class DasFilter
 {
   public:
     /// Constructor: Initializes the Remote Antenna Set
-    DasFilter(LtePhyBase* ltePhy, LteBinder* binder,
+    DasFilter(LtePhyBase* ltePhy, Binder* binder,
         RemoteAntennaSet* ruSet, double rssiThreshold);
 
     /// Destructor: deallocates the Remote Antenna Set
@@ -129,10 +131,7 @@ class DasFilter
      */
     friend std::ostream &operator << (std::ostream &stream, const DasFilter* das_);
 
-    //REMARK
-    //Changed to protected
-    //AUTHOR: Thomas Deinlein
-  protected:
+  private:
 
     /**
      * Class storing the physical properties of
@@ -147,7 +146,7 @@ class DasFilter
     double rssiThreshold_;
 
     /// Pointer to the Lte Binder
-    LteBinder* binder_;
+    Binder* binder_;
 
     /// Pointer to the Das filter of the master (used on UEs binded to eNBs)
     DasFilter* das_;

@@ -47,11 +47,14 @@ class INET_API TransportConnectionCanvasVisualizer : public TransportConnectionV
   protected:
     virtual void initialize(int stage) override;
 
-    virtual LabeledIconFigure *createConnectionEndFigure(tcp::TCPConnection *connectionVisualization) const;
-    virtual const TransportConnectionVisualization *createConnectionVisualization(cModule *source, cModule *destination, tcp::TCPConnection *tcpConnection) const override;
+    virtual LabeledIconFigure *createConnectionEndFigure(tcp::TcpConnection *connectionVisualization) const;
+    virtual const TransportConnectionVisualization *createConnectionVisualization(cModule *source, cModule *destination, tcp::TcpConnection *tcpConnection) const override;
     virtual void addConnectionVisualization(const TransportConnectionVisualization *connectionVisualization) override;
     virtual void removeConnectionVisualization(const TransportConnectionVisualization *connectionVisualization) override;
     virtual void setConnectionLabelsVisible(bool visible);
+
+  public:
+    virtual ~TransportConnectionCanvasVisualizer();
 };
 
 } // namespace visualizer

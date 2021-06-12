@@ -18,16 +18,15 @@
 #ifndef __INET_LAYEREDRECEPTIONRESULT_H
 #define __INET_LAYEREDRECEPTIONRESULT_H
 
-#include "inet/physicallayer/contract/packetlevel/IReceptionResult.h"
 #include "inet/physicallayer/common/packetlevel/ReceptionResult.h"
-#include "inet/physicallayer/contract/bitlevel/ISignalPacketModel.h"
-#include "inet/physicallayer/contract/bitlevel/ISignalBitModel.h"
-#include "inet/physicallayer/contract/bitlevel/ISignalSymbolModel.h"
-#include "inet/physicallayer/contract/bitlevel/ISignalSampleModel.h"
 #include "inet/physicallayer/contract/bitlevel/ISignalAnalogModel.h"
+#include "inet/physicallayer/contract/bitlevel/ISignalBitModel.h"
+#include "inet/physicallayer/contract/bitlevel/ISignalPacketModel.h"
+#include "inet/physicallayer/contract/bitlevel/ISignalSampleModel.h"
+#include "inet/physicallayer/contract/bitlevel/ISignalSymbolModel.h"
+#include "inet/physicallayer/contract/packetlevel/IReceptionResult.h"
 
 namespace inet {
-
 namespace physicallayer {
 
 class INET_API LayeredReceptionResult : public ReceptionResult
@@ -40,7 +39,7 @@ class INET_API LayeredReceptionResult : public ReceptionResult
     const IReceptionAnalogModel *analogModel;
 
   public:
-    LayeredReceptionResult(const IReception *reception, const std::vector<const IReceptionDecision *> *decisions, const ReceptionIndication *indication, const IReceptionPacketModel *packetModel, const IReceptionBitModel *bitModel, const IReceptionSymbolModel *symbolModel, const IReceptionSampleModel *sampleModel, const IReceptionAnalogModel *analogModel);
+    LayeredReceptionResult(const IReception *reception, const std::vector<const IReceptionDecision *> *decisions, const IReceptionPacketModel *packetModel, const IReceptionBitModel *bitModel, const IReceptionSymbolModel *symbolModel, const IReceptionSampleModel *sampleModel, const IReceptionAnalogModel *analogModel);
     virtual ~LayeredReceptionResult();
 
     virtual std::ostream& printToStream(std::ostream& stream, int level) const override;
@@ -51,12 +50,10 @@ class INET_API LayeredReceptionResult : public ReceptionResult
     virtual const IReceptionSampleModel *getSampleModel() const { return sampleModel; }
     virtual const IReceptionAnalogModel *getAnalogModel() const { return analogModel; }
 
-    virtual const cPacket *getPhyFrame() const override;
-    virtual const cPacket *getMacFrame() const override;
+    virtual const Packet *getPacket() const override;
 };
 
 } // namespace physicallayer
-
 } // namespace inet
 
 #endif // ifndef __INET_LAYEREDRECEPTIONRESULT_H

@@ -1,9 +1,11 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
@@ -11,8 +13,8 @@
 #define _LTE_LTERLCDEFS_H_
 
 #include "common/LteControlInfo.h"
-#include "stack/rlc/packet/LteRlcPdu.h"
-#include "stack/rlc/packet/LteRlcSdu.h"
+#include "stack/rlc/packet/LteRlcPdu_m.h"
+#include "stack/rlc/packet/LteRlcSdu_m.h"
 
 /*!
  * LTE RLC AM Types
@@ -182,20 +184,12 @@ struct RlcUmRxWindowDesc
         firstSnoForReordering_ = i;
         reorderingSno_ = i;
         highestReceivedSno_ = i;
-        windowSize_ = i;  // the window size must not be cleared
     }
 
     RlcUmRxWindowDesc()
     {
         windowSize_ = 0;  // the window size must not be cleared
         clear();
-    }
-    RlcUmRxWindowDesc(const RlcUmRxWindowDesc & other){
-        this->firstSno_ = other.firstSno_;
-        this->firstSnoForReordering_ = other.firstSnoForReordering_;
-        this->reorderingSno_ = other.reorderingSno_;
-        this->highestReceivedSno_ = other.highestReceivedSno_;
-        this->windowSize_ = other.windowSize_;
     }
 
 };

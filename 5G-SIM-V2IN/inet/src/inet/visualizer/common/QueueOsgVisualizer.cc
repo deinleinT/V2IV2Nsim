@@ -26,11 +26,17 @@ Define_Module(QueueOsgVisualizer);
 
 #ifdef WITH_OSG
 
-QueueOsgVisualizer::QueueOsgVisualization::QueueOsgVisualization(NetworkNodeOsgVisualization *networkNodeVisualization, osg::Geode *node, PacketQueue *queue) :
+QueueOsgVisualizer::QueueOsgVisualization::QueueOsgVisualization(NetworkNodeOsgVisualization *networkNodeVisualization, osg::Geode *node, queueing::IPacketQueue *queue) :
     QueueVisualization(queue),
     networkNodeVisualization(networkNodeVisualization),
     node(node)
 {
+}
+
+QueueOsgVisualizer::~QueueOsgVisualizer()
+{
+    if (displayQueues)
+        removeAllQueueVisualizations();
 }
 
 void QueueOsgVisualizer::initialize(int stage)
@@ -49,19 +55,24 @@ void QueueOsgVisualizer::initialize(int stage)
     }
 }
 
-QueueVisualizerBase::QueueVisualization *QueueOsgVisualizer::createQueueVisualization(PacketQueue *queue) const
+QueueVisualizerBase::QueueVisualization *QueueOsgVisualizer::createQueueVisualization(queueing::IPacketQueue *queue) const
 {
-    auto module = check_and_cast<cModule *>(queue->getOwner());
+    auto ownedObject = check_and_cast<cOwnedObject *>(queue);
+    auto module = check_and_cast<cModule *>(ownedObject->getOwner());
     auto geode = new osg::Geode();
     geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
-    auto visualization = networkNodeVisualizer->getNetworkNodeVisualization(getContainingNode(module));
-    return new QueueOsgVisualization(visualization, geode, queue);
+    auto networkNode = getContainingNode(module);
+    auto networkNodeVisualization = networkNodeVisualizer->getNetworkNodeVisualization(networkNode);
+    if (networkNodeVisualization == nullptr)
+        throw cRuntimeError("Cannot create queue visualization for '%s', because network node visualization is not found for '%s'", ownedObject->getFullPath().c_str(), networkNode->getFullPath().c_str());
+    return new QueueOsgVisualization(networkNodeVisualization, geode, queue);
 }
 
 void QueueOsgVisualizer::refreshQueueVisualization(const QueueVisualization *queueVisualization) const
 {
-    auto infoOsgVisualization = static_cast<const QueueOsgVisualization *>(queueVisualization);
-    auto node = infoOsgVisualization->node;
+    // TODO:
+    // auto infoOsgVisualization = static_cast<const QueueOsgVisualization *>(queueVisualization);
+    // auto node = infoOsgVisualization->node;
 }
 
 #endif // ifdef WITH_OSG

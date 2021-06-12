@@ -1,15 +1,17 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
 //
 // This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
+// Date: 2021
 // Author: Thomas Deinlein
 //
 
@@ -17,14 +19,22 @@
 #define _LTE_LTEPDCPRRC_H_
 
 #include <omnetpp.h>
-#include "corenetwork/binder/LteBinder.h"
+#include "common/binder/Binder.h"
 #include "common/LteCommon.h"
 #include "stack/pdcp_rrc/ConnectionsTable.h"
-#include "inet/networklayer/ipv4/IPv4Datagram.h"
-#include "corenetwork/lteip/LteIp.h"
 #include "common/LteControlInfo.h"
+#include "stack/pdcp_rrc/layer/entity/LteTxPdcpEntity.h"
+#include "stack/pdcp_rrc/layer/entity/LteRxPdcpEntity.h"
 #include "stack/pdcp_rrc/packet/LtePdcpPdu_m.h"
-#include "stack/pdcp_rrc/layer/entity/LtePdcpEntity.h"
+
+class LteTxPdcpEntity;
+class LteRxPdcpEntity;
+
+
+#define LTE_PDCP_HEADER_COMPRESSION_DISABLED B(-1)
+// We require a minimum length of 1 Byte for each header even in compressed state
+// (transport, network and ROHC header, i.e. minimum is 3 Bytes)
+#define MIN_COMPRESSED_HEADER_SIZE B(3)
 
 /**
  * @class LtePdcp
@@ -52,10 +62,14 @@
  * that uniquely identifies a connection in the whole network.
  *
  */
-typedef std::map<LogicalCid, LtePdcpEntity*> PdcpEntities;
-
-class LtePdcpRrcBase : public cSimpleModule
+class LtePdcpRrcBase : public omnetpp::cSimpleModule
 {
+    friend class LteTxPdcpEntity;
+    friend class LteRxPdcpEntity;
+    friend class NRTxPdcpEntity;
+    friend class NRRxPdcpEntity;
+    friend class DualConnectivityManager;
+
   public:
     /**
      * Initializes the connection table
@@ -67,34 +81,10 @@ class LtePdcpRrcBase : public cSimpleModule
      */
     virtual ~LtePdcpRrcBase();
 
-    //added for 5G-SIM-V2I/N
-    ConnectionsTable *& getCNTable() {
-        Enter_Method_Silent("getCNTable");
-        return ht_;
-    }
-    ;
-    //at UE --> delete connectionTable
-    //at ENB --> delete just the entry
-    virtual void resetConnectionTable(MacNodeId masterId, MacNodeId nodeId) {
-        Enter_Method_Silent
-        ("resetConnectionTable");
-        delete ht_;
-        ht_ = new ConnectionsTable();
-
-    }
-    ;
-
-    virtual PdcpEntities & getEntities(){
-        return entities_;
-    }
-
-    virtual LogicalCid getLcid(){
-        return lcid_;
-    }
-
-    virtual void setLcid(LogicalCid lcid){
-        this->lcid_ = lcid;
-    }
+    /*
+     * Delete TX/RX entities (redefine this function)
+     */
+    virtual void deleteEntities(MacNodeId nodeId) {}
 
   protected:
 
@@ -103,23 +93,33 @@ class LtePdcpRrcBase : public cSimpleModule
      * gates, delay, compression
      * and watches
      */
-    virtual void initialize(int stage);
-    virtual int numInitStages() const { return inet::NUM_INIT_STAGES; }
+    virtual void initialize(int stage) override;
+    virtual int numInitStages() const override { return inet::NUM_INIT_STAGES; }
 
     /**
      * Analyze gate of incoming packet
      * and call proper handler
      */
-    virtual void handleMessage(cMessage *msg);
+    virtual void handleMessage(omnetpp::cMessage *msg) override;
 
     /**
      * Statistics recording
      */
-    virtual void finish();
+    virtual void finish() override;
 
     /*
      * Internal functions
      */
+
+    /**
+     * getNodeId(): returns the ID of this node
+     */
+    MacNodeId getNodeId() { return nodeId_; }
+
+    /**
+     * getNrNodeId(): returns the ID of this node
+     */
+    virtual MacNodeId getNrNodeId() { return nodeId_; }
 
     /**
      * headerCompress(): Performs header compression.
@@ -127,31 +127,22 @@ class LtePdcpRrcBase : public cSimpleModule
      * simply decrements the HEADER size by the configured
      * number of bytes
      *
-     * @param cPacket packet to compress
+     * @param Packet packet to compress
      */
-    void headerCompress(cPacket* pkt, int headerSize);
+    void headerCompress(inet::Packet* pkt);
 
     /**
      * headerDecompress(): Performs header decompression.
      * At the moment, if header compression is enabled,
      * simply restores original packet size
      *
-     * @param cPacket packet to decompress
+     * @param Packet packet to decompress
      */
-    void headerDecompress(cPacket* pkt, int headerSize);
+    void headerDecompress(inet::Packet* pkt);
 
     /*
      * Functions to be implemented from derived classes
      */
-
-    /**
-     * handleControlInfo() determines whether the controlInfo must
-     * be detached from packet (ENODEB or RELAY) or left unchanged (RELAY)
-     *
-     * @param pkt packet
-     * @param lteInfo Control Info
-     */
-    virtual void handleControlInfo(cPacket* pkt, FlowControlInfo* lteInfo) = 0;
 
     /**
      * getDestId() retrieves the id of destination node according
@@ -159,10 +150,6 @@ class LtePdcpRrcBase : public cSimpleModule
      * - On UE use masterId
      * - On ENODEB:
      *   - Use source Ip for directly attached UEs
-     *   - Use relay Id for UEs attahce to relays
-     * - On RELAY:
-     *   - Use masterId for packets destined to ENODEB
-     *   - Use source Ip for packets destined to UEs
      *
      * @param lteInfo Control Info
      */
@@ -176,7 +163,9 @@ class LtePdcpRrcBase : public cSimpleModule
      * @return Direction of traffic
      */
     virtual Direction getDirection() = 0;
-    void setTrafficInformation(cPacket* pkt, FlowControlInfo* lteInfo);
+    virtual void setTrafficInformation(omnetpp::cPacket* pkt, FlowControlInfo* lteInfo);
+
+    bool isCompressionEnabled();
 
     /*
      * Upper Layer Handlers
@@ -197,7 +186,7 @@ class LtePdcpRrcBase : public cSimpleModule
      *
      * @param pkt incoming packet
      */
-    virtual void fromDataPort(cPacket *pkt);
+    virtual void fromDataPort(omnetpp::cPacket *pkt);
 
     /**
      * handler for eutran port
@@ -207,7 +196,7 @@ class LtePdcpRrcBase : public cSimpleModule
      *
      * @param pkt incoming packet
      */
-    void fromEutranRrcSap(cPacket *pkt);
+    void fromEutranRrcSap(omnetpp::cPacket *pkt);
 
     /*
      * Lower Layer Handlers
@@ -223,7 +212,17 @@ class LtePdcpRrcBase : public cSimpleModule
      *
      * @param pkt incoming packet
      */
-    virtual void toDataPort(cPacket *pkt);
+    virtual void fromLowerLayer(omnetpp::cPacket *pkt);
+
+    /**
+     * toDataPort() performs the following steps:
+     * - decompresses the header, restoring original packet
+     * - decapsulates the packet
+     * - sends the PDCP SDU to the IP layer
+     *
+     * @param pkt incoming packet
+     */
+    virtual void toDataPort(omnetpp::cPacket *pkt);
 
     /**
      * handler for tm sap
@@ -233,17 +232,31 @@ class LtePdcpRrcBase : public cSimpleModule
      *
      * @param pkt incoming packet
      */
-    void toEutranRrcSap(cPacket *pkt);
+    void toEutranRrcSap(omnetpp::cPacket *pkt);
+
+    /*
+     * Forwarding Handlers
+     */
+
+    /*
+     * sendToLowerLayer() forwards a PDCP PDU to the RLC layer
+     */
+    virtual void sendToLowerLayer(inet::Packet *pkt);
+
+    /*
+     * sendToUpperLayer() forwards a PDCP SDU to the IP layer
+     */
+    void sendToUpperLayer(omnetpp::cPacket *pkt);
 
     /*
      * Data structures
      */
 
     /// Header size after ROHC (RObust Header Compression)
-    int headerCompressedSize_;
+    inet::B headerCompressedSize_;
 
     /// Binder reference
-    LteBinder *binder_;
+    Binder *binder_;
 
     /// Connection Identifier
     LogicalCid lcid_;
@@ -254,49 +267,53 @@ class LtePdcpRrcBase : public cSimpleModule
     /// Identifier for this node
     MacNodeId nodeId_;
 
-    cGate* dataPort_[2];
-    cGate* eutranRrcSap_[2];
-    cGate* tmSap_[2];
-    cGate* umSap_[2];
-    cGate* amSap_[2];
+    omnetpp::cGate* dataPort_[2];
+    omnetpp::cGate* eutranRrcSap_[2];
+    omnetpp::cGate* tmSap_[2];
+    omnetpp::cGate* umSap_[2];
+    omnetpp::cGate* amSap_[2];
 
     /**
-     * The entities map associate each LCID with a PDCP Entity, identified by its ID
+     * The entities map associate each CID with a PDCP Entity, identified by its ID
      */
-
-    PdcpEntities entities_;
+    typedef std::map<MacCid, LteTxPdcpEntity*> PdcpTxEntities;
+    typedef std::map<MacCid, LteRxPdcpEntity*> PdcpRxEntities;
+    PdcpTxEntities txEntities_;
+    PdcpRxEntities rxEntities_;
 
     /**
-     * getEntity() is used to gather the PDCP entity
+     * getTxEntity() and getRxEntity() are used to gather the PDCP entity
      * for that LCID. If entity was already present, a reference
      * is returned, otherwise a new entity is created,
      * added to the entities map and a reference is returned as well.
      *
      * @param lcid Logical CID
-     * @return pointer to the PDCP entity for the LCID of the flow
+     * @return pointer to the PDCP entity for the CID of the flow
      *
      */
-    LtePdcpEntity* getEntity(LogicalCid lcid, MacNodeId ueId);
+    virtual LteTxPdcpEntity* getTxEntity(MacCid cid);
+
+    virtual LteRxPdcpEntity* getRxEntity(MacCid cid);
+
+    /*
+     * Dual Connectivity support
+     */
+    virtual bool isDualConnectivityEnabled() { return false; }
+
+    virtual void forwardDataToTargetNode(inet::Packet* pkt, MacNodeId targetNode) {}
+
+    virtual void receiveDataFromSourceNode(inet::Packet* pkt, MacNodeId sourceNode) {}
 
     // statistics
-    simsignal_t receivedPacketFromUpperLayer;
-    simsignal_t receivedPacketFromLowerLayer;
-    simsignal_t sentPacketToUpperLayer;
-    simsignal_t sentPacketToLowerLayer;
-
-  public:
-
-    void setDrop(MacCid cid, unsigned int layer, double probability);
-    void clearDrop(MacCid cid);
+    omnetpp::simsignal_t receivedPacketFromUpperLayer;
+    omnetpp::simsignal_t receivedPacketFromLowerLayer;
+    omnetpp::simsignal_t sentPacketToUpperLayer;
+    omnetpp::simsignal_t sentPacketToLowerLayer;
 };
 
 class LtePdcpRrcUe : public LtePdcpRrcBase
 {
   protected:
-    void handleControlInfo(cPacket* upPkt, FlowControlInfo* lteInfo)
-    {
-        delete lteInfo;
-    }
 
     MacNodeId getDestId(FlowControlInfo* lteInfo)
     {
@@ -304,7 +321,7 @@ class LtePdcpRrcUe : public LtePdcpRrcBase
         return binder_->getNextHop(nodeId_);
     }
 
-    Direction getDirection()
+    virtual Direction getDirection()
     {
         // Data coming from Dataport on UE are always Uplink
         return UL;
@@ -312,26 +329,37 @@ class LtePdcpRrcUe : public LtePdcpRrcBase
 
   public:
     virtual void initialize(int stage);
+    virtual void deleteEntities(MacNodeId nodeId);
 };
 
 class LtePdcpRrcEnb : public LtePdcpRrcBase
 {
   protected:
-    void handleControlInfo(cPacket* upPkt, FlowControlInfo* lteInfo)
+   void handleControlInfo(omnetpp::cPacket* upPkt, FlowControlInfo* lteInfo)
     {
         delete lteInfo;
     }
 
-    MacNodeId getDestId(FlowControlInfo* lteInfo)
+    virtual MacNodeId getDestId(FlowControlInfo* lteInfo)
     {
         // dest id
-        MacNodeId destId = binder_->getMacNodeId(IPv4Address(lteInfo->getDstAddr()));
-        // master of this ue (myself or a relay)
+        MacNodeId destId = binder_->getMacNodeId(inet::Ipv4Address(lteInfo->getDstAddr()));
+        // master of this ue (myself)
         MacNodeId master = binder_->getNextHop(destId);
         if (master != nodeId_)
-        { // ue is relayed, dest must be the relay
+        {
             destId = master;
-        } // else ue is directly attached
+        }
+        else
+        {
+            // for dual connectivity
+            master = binder_->getMasterNode(master);
+            if (master != nodeId_)
+            {
+                destId = master;
+            }
+        }
+        // else ue is directly attached
         return destId;
     }
 
@@ -342,68 +370,7 @@ class LtePdcpRrcEnb : public LtePdcpRrcBase
     }
   public:
     virtual void initialize(int stage);
-};
-
-class LtePdcpRrcRelayEnb : public LtePdcpRrcBase
-{
-  protected:
-    void handleControlInfo(cPacket* upPkt, FlowControlInfo* lteInfo)
-    {
-        upPkt->setControlInfo(lteInfo);
-    }
-
-    MacNodeId getDestId(FlowControlInfo* lteInfo)
-    {
-        // packet arriving from eNB, send to UE given the IP address
-        return getBinder()->getMacNodeId(IPv4Address(lteInfo->getDstAddr()));
-    }
-
-    // Relay doesn't set Traffic Information
-    void setTrafficInformation(FlowControlInfo* lteInfo)
-    {
-    }
-
-    Direction getDirection()
-    {
-        // Error: Relay doesn't set direction!
-        return UNKNOWN_DIRECTION;
-    }
-};
-
-class LtePdcpRrcRelayUe : public LtePdcpRrcBase
-{
-  protected:
-    /// Node id
-    MacNodeId destId_;
-
-    virtual void initialize(int stage)
-    {
-        LtePdcpRrcBase::initialize(stage);
-        destId_ = getAncestorPar("masterId");
-        WATCH(destId_);
-    }
-
-    void handleControlInfo(cPacket* upPkt, FlowControlInfo* lteInfo)
-    {
-        upPkt->setControlInfo(lteInfo);
-    }
-
-    MacNodeId getDestId(FlowControlInfo* lteInfo)
-    {
-        // packet arriving from UE, send to master
-        return destId_;
-    }
-
-    // Relay doesn't set Traffic Information
-    void setTrafficInformation(FlowControlInfo* lteInfo)
-    {
-    }
-
-    Direction getDirection()
-    {
-        // Error: Relay doesn't set direction!
-        return UNKNOWN_DIRECTION;
-    }
+    virtual void deleteEntities(MacNodeId nodeId);
 };
 
 #endif

@@ -23,6 +23,7 @@ Register_Class(ThruputMeteringChannel);
 
 ThruputMeteringChannel::ThruputMeteringChannel(const char *name) : cDatarateChannel(name)
 {
+    displayAsTooltip = false;
     fmt = nullptr;
     batchSize = 10;    // packets
     maxInterval = 0.1;    // seconds
@@ -53,6 +54,7 @@ ThruputMeteringChannel::~ThruputMeteringChannel()
 void ThruputMeteringChannel::initialize()
 {
     cDatarateChannel::initialize();
+    displayAsTooltip = par("displayAsTooltip");
     fmt = par("thruputDisplayFormat");
 }
 
@@ -164,7 +166,9 @@ void ThruputMeteringChannel::refreshDisplay() const
     *p = '\0';
 
     // display label
-    getSourceGate()->getDisplayString().setTagArg("t", 0, buf);
+    auto srcGate = getSourceGate();
+    if (srcGate && srcGate->getChannel())
+        srcGate->getDisplayString().setTagArg(displayAsTooltip ? "tt" : "t", 0, buf);
 }
 
 } // namespace inet

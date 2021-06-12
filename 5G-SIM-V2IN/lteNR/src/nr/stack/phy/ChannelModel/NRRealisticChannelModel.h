@@ -30,25 +30,25 @@
 
 #include <omnetpp.h>
 #include "nr/common/NRCommon.h"
-#include "stack/phy/ChannelModel/LteRealisticChannelModel.h"
+#include "stack/phy/ChannelModel/NRChannelModel.h"
 #include "stack/phy/layer/LtePhyBase.h"
-#include "nr/stack/phy/layer/NRPhyUe.h"
+#include "../layer/NRPhyUE.h"
 #include "nr/stack/phy/layer/NRPhyGnb.h"
-#include "../../mac/layer/NRMacGnb.h"
+#include "../../mac/layer/NRMacGNB.h"
 #include "nr/world/radio/NRChannelControl.h"
 
 /*
  * Realistic Channel Model taken from
- * "--- Guidelines for evaluation of radio interface technologies for IMT-2020"
+ * "--- Guidelines for evaluation of radio interface technologies for IMT-2020 and 38.901"
  *
  * see inherit class for method description
  */
-class NRRealisticChannelModel: public LteRealisticChannelModel {
+class NRRealisticChannelModel: public NRChannelModel {
 public:
 	virtual void initialize(int stage);
 
 	virtual int numInitStages() const {
-		return INITSTAGE_LAST + 1;
+		return INITSTAGE_LAST + 2;
 	}
 	virtual void resetOnHandover(MacNodeId nodeId, MacNodeId oldMasterId) {
 		positionHistory_.erase(nodeId);
@@ -65,15 +65,20 @@ public:
 	bool isNodeB() {
 		return isNodeB_;
 	}
+	virtual std::vector<double> getSINR(LteAirFrame *frame, UserControlInfo *lteInfo, bool flag = false);
+
+	virtual double getAttenuationNR(const MacNodeId &nodeId, const Direction &dir, const inet::Coord &uecoord, const inet::Coord &enodebcoord, bool recordStats);
+
 protected:
 	simtime_t lastStatisticRecord;
 
 	DeploymentScenarioNR scenarioNR_;
-	NRChannelModel channelModelType_;
+	NRChannelModels channelModelType_;
 	bool isNodeB_;
 	//bool dynamic_los_;
 	bool veinsObstacleShadowing;
 	inet::Coord myCoord3d;
+	inet::Coord myCoord_;
 
 	bool dynamicNlos_; //using obstacleControl
 	bool NlosEvaluationIn3D; // evaluate the Nlos/Los in 3D
@@ -89,13 +94,7 @@ protected:
 	double ceilingHeight; // height of factory ceiling
 	//
 
-	virtual std::vector<double> getSINR(LteAirFrame *frame, UserControlInfo *lteInfo, bool recordStats);
-
-	virtual double getAttenuationNR(const MacNodeId &nodeId, const Direction &dir, const inet::Coord &uecoord, const inet::Coord &enodebcoord, bool recordStats);
-
-	virtual double getAttenuation_D2D(MacNodeId nodeId, Direction dir, inet::Coord coord, MacNodeId node2_Id, inet::Coord coord_2);
-
-	virtual double computeIndoorHotspot(const double &d3ddistance, double &d2ddistance, const MacNodeId &nodeId);
+    virtual double computeIndoorHotspot(const double &d3ddistance, double &d2ddistance, const MacNodeId &nodeId);
 
 	virtual double computeDenseUrbanEmbb(double &d3ddistance, double &d2ddistance, const MacNodeId &nodeId);
 
@@ -114,10 +113,6 @@ protected:
 	void checkIndoorFactoryParameters();
 
 	virtual bool isCorrupted(LteAirFrame *frame, UserControlInfo *lteInfo);
-
-	virtual bool error_D2D(LteAirFrame *frame, UserControlInfo *lteI, std::vector<double> rsrpVector);
-
-	virtual std::vector<double> getRSRP_D2D(LteAirFrame *frame, UserControlInfo *lteInfo_1, MacNodeId destId, inet::Coord destCoord);
 
 	virtual double getStdDevNR(const double &d3ddistance, const double &d2ddistance, const MacNodeId &nodeId);
 
@@ -151,22 +146,10 @@ protected:
 
 	double calcDistanceBreakPointRMa(const double &d2ddistance);
 
-	double computeExtCellPathLossNR(double &d3ddistance, double &d2ddistance, const MacNodeId &nodeId);
-
-	bool computeMultiCellInterferenceNR(const MacNodeId &eNbId, const MacNodeId &ueId, const inet::Coord &uecoord, bool isCqi, std::vector<double> &interference, Direction dir,
-			const Coord &enodebcoord);
-
 	void considerCodeBlockGroups(LteControlInfo *& info, unsigned char & nTx, double & totalPer, LteAirFrame *& frame);
 
-	 /* compute speed (m/s) for a given node
-	   * @param nodeid mac node id of UE
-	   * @return the speed in m/s
-	   */
-	virtual double computeSpeed(const MacNodeId nodeId, const inet::Coord coord, double & mov) override;
+	virtual bool computeUplinkInterference(MacNodeId eNbId, MacNodeId senderId, bool isCqi, double carrierFrequency, RbMap rbmap, std::vector<double> *interference);
 
-	virtual bool computeUplinkInterference(MacNodeId eNbId, MacNodeId senderId, bool isCqi, RbMap rbmap, std::vector<double> *interference);
-	virtual bool computeDownlinkInterference(MacNodeId eNbId, MacNodeId ueId, inet::Coord ueCoord, bool isCqi, RbMap rbmap, std::vector<double> *interference);
-
-	bool computeExtCellInterferenceNR(const MacNodeId &eNbId, const MacNodeId &nodeId, const Coord &uecoord, bool isCqi, std::vector<double> &interference, const Coord &enodebcoord);
+	virtual bool computeDownlinkInterference(MacNodeId eNbId, MacNodeId ueId, inet::Coord ueCoord, bool isCqi, double carrierFrequency, RbMap rbmap, std::vector<double> *interference);
 };
 

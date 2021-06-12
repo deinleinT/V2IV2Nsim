@@ -1,31 +1,51 @@
 //
-//                           SimuLTE
+//                  Simu5G
+//
+// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
 //
 // This file is part of a software released under the license included in file
-// "license.pdf". This license can be also found at http://www.ltesimulator.com/
-// The above file and the present reference are part of the software itself,
+// "license.pdf". Please read LICENSE and README files before using it.
+// The above files and the present reference are part of the software itself,
 // and cannot be removed from it.
 //
 
 //
 // This file has been modified/enhanced for 5G-SIM-V2I/N.
-// Date: 2020
+// Date: 2021
 // Author: Thomas Deinlein
 //
+
+#include <inet/common/ProtocolTag_m.h>
 
 #include "stack/rlc/um/LteRlcUm.h"
 #include "stack/mac/packet/LteMacSduRequest.h"
 
 Define_Module(LteRlcUm);
 
-double LteRlcUm::totalCellRcvdBytesUl = 0;
-double LteRlcUm::totalCellRcvdBytesDl = 0;
+using namespace omnetpp;
 
 UmTxEntity* LteRlcUm::getTxBuffer(FlowControlInfo* lteInfo)
 {
-    //std::cout << "LteRlcUm::getTxBuffer start at " << simTime().dbl() << std::endl;
-    MacNodeId nodeId = ctrlInfoToUeId(lteInfo);
-    LogicalCid lcid = lteInfo->getLcid();
+    MacNodeId nodeId = 0;
+    LogicalCid lcid = 0;
+    if (lteInfo != NULL)
+    {
+        nodeId = ctrlInfoToUeId(lteInfo);
+
+        /**
+         * Note: Simu5G currently determines the LCID based
+         * on the src/dst ip addresses and TOS field and uses separate
+         * RLC entities for each of them. In order to evaluate the effect of using
+         * only a single UM LCID and a single bearer, this parameter allows to
+         * use only a single UM TxEntity, as it would be with a single bearer.
+         *
+         * Otherwise (i.e. if mapAllLcidsToSingleBearer_ is false), separate
+         * entities are used for each LCID.
+         */
+        lcid = mapAllLcidsToSingleBearer_ ? 1 : lteInfo->getLcid();
+    }
+    else
+        throw cRuntimeError("LteRlcUm::getTxBuffer - lteInfo is NULL pointer. Aborting.");
 
     // Find TXBuffer for this CID
     MacCid cid = idToMacCid(nodeId, lcid);
@@ -34,38 +54,36 @@ UmTxEntity* LteRlcUm::getTxBuffer(FlowControlInfo* lteInfo)
     {
         // Not found: create
         std::stringstream buf;
-        // FIXME HERE
 
         buf << "UmTxEntity Lcid: " << lcid;
-        cModuleType* moduleType = cModuleType::get("lte.stack.rlc.UmTxEntity");
+        cModuleType* moduleType = cModuleType::get("lteNR.stack.rlc.UmTxEntity");
         UmTxEntity* txEnt = check_and_cast<UmTxEntity *>(moduleType->createScheduleInit(buf.str().c_str(), getParentModule()));
         txEntities_[cid] = txEnt;    // Add to tx_entities map
 
-        if (lteInfo != NULL)
+        if (lteInfo != nullptr)
         {
             // store control info for this flow
             txEnt->setFlowControlInfo(lteInfo->dup());
         }
 
-        //EV << "LteRlcUm : Added new UmTxEntity: " << txEnt->getId() <<     " for node: " << nodeId << " for Lcid: " << lcid << "\n";
+        EV << "LteRlcUm : Added new UmTxEntity: " << txEnt->getId() <<
+        " for node: " << nodeId << " for Lcid: " << lcid << "\n";
 
         return txEnt;
     }
     else
     {
         // Found
-        //EV << "LteRlcUm : Using old UmTxBuffer: " << it->second->getId() << " for node: " << nodeId << " for Lcid: " << lcid << "\n";
+        EV << "LteRlcUm : Using old UmTxBuffer: " << it->second->getId() <<
+        " for node: " << nodeId << " for Lcid: " << lcid << "\n";
 
         return it->second;
     }
-
-    //std::cout << "LteRlcUm::getTxBuffer end at " << simTime().dbl() << std::endl;
 }
 
 
 UmRxEntity* LteRlcUm::getRxBuffer(FlowControlInfo* lteInfo)
 {
-    //std::cout << "LteRlcUm::getRxBuffer start at " << simTime().dbl() << std::endl;
     MacNodeId nodeId;
     if (lteInfo->getDirection() == DL)
         nodeId = lteInfo->getDestId();
@@ -80,117 +98,139 @@ UmRxEntity* LteRlcUm::getRxBuffer(FlowControlInfo* lteInfo)
     if (it == rxEntities_.end())
     {
         // Not found: create
-		std::stringstream buf;
-		buf << "UmRxEntity Lcid: " << lcid;
-		cModuleType* moduleType = cModuleType::get("lte.stack.rlc.UmRxEntity");
-		UmRxEntity* rxEnt = check_and_cast<UmRxEntity *>(moduleType->createScheduleInit(buf.str().c_str(), getParentModule()));
-		rxEntities_[cid] = rxEnt;    // Add to rx_entities map
+        std::stringstream buf;
+        buf << "UmRxEntity Lcid: " << lcid;
+        cModuleType* moduleType = cModuleType::get("lteNR.stack.rlc.UmRxEntity");
+        UmRxEntity* rxEnt = check_and_cast<UmRxEntity *>(
+            moduleType->createScheduleInit(buf.str().c_str(), getParentModule()));
+        rxEntities_[cid] = rxEnt;    // Add to rx_entities map
 
         // store control info for this flow
         rxEnt->setFlowControlInfo(lteInfo->dup());
 
-//		EV << "LteRlcUm : Added new UmRxEntity: " << rxEnt->getId() << " for node: " << nodeId << " for Lcid: " << lcid << "\n";
+        EV << "LteRlcUm : Added new UmRxEntity: " << rxEnt->getId() <<
+        " for node: " << nodeId << " for Lcid: " << lcid << "\n";
 
         return rxEnt;
     }
     else
     {
         // Found
-        //EV << "LteRlcUm : Using old UmRxBuffer: " << it->second->getId() << " for node: " << nodeId << " for Lcid: " << lcid << "\n";
+        EV << "LteRlcUm : Using old UmRxEntity: " << it->second->getId() <<
+        " for node: " << nodeId << " for Lcid: " << lcid << "\n";
 
         return it->second;
     }
-
-    //std::cout << "LteRlcUm::getRxBuffer end at " << simTime().dbl() << std::endl;
 }
 
 void LteRlcUm::sendDefragmented(cPacket *pkt)
 {
-    //std::cout << "LteRlcUm::sendDefragmented start at " << simTime().dbl() << std::endl;
-
-    Enter_Method_Silent("sendDefragmented");                             // Direct Method Call
+    Enter_Method_Silent("sendDefragmented()");                    // Direct Method Call
     take(pkt);                                                    // Take ownership
 
-    //EV << "LteRlcUm : Sending packet " << pkt->getName() << " to port UM_Sap_up$o\n";
-    send(pkt, up_[OUT]);
+    EV << "LteRlcUm : Sending packet " << pkt->getName() << " to port UM_Sap_up$o\n";
+    send(pkt, up_[OUT_GATE]);
 
     emit(sentPacketToUpperLayer, pkt);
-
-    //std::cout << "LteRlcUm::sendDefragmented end at " << simTime().dbl() << std::endl;
 }
 
-void LteRlcUm::sendToLowerLayer(cPacket *pkt)
+void LteRlcUm::sendToLowerLayer(cPacket *pktAux)
 {
-    //std::cout << "LteRlcUm::sendToLowerLayer start at " << simTime().dbl() << std::endl;
+    Enter_Method_Silent("sendToLowerLayer()");                    // Direct Method Call
+    take(pktAux);                                                    // Take ownership
+    auto pkt = check_and_cast<inet::Packet *> (pktAux);
+    pkt->addTagIfAbsent<inet::PacketProtocolTag>()->setProtocol(&LteProtocol::rlc);
+    EV << "LteRlcUm : Sending packet " << pktAux->getName() << " to port UM_Sap_down$o\n";
+    send(pktAux, down_[OUT_GATE]);
 
-    Enter_Method_Silent("sendToLowerLayer()");                            // Direct Method Call
-    take(pkt);                                                    // Take ownership
-    //EV << "LteRlcUm : Sending packet " << pkt->getName() << " to port UM_Sap_down$o\n";
-    send(pkt, down_[OUT]);
+    auto  lteInfo = pkt->getTag<FlowControlInfo>();
+
+    if (lteInfo->getDirection()==DL)
+        emit(rlcPacketLossDl, 0.0);
+    else
+        emit(rlcPacketLossUl, 0.0);
 
     emit(sentPacketToLowerLayer, pkt);
-
-    //std::cout << "LteRlcUm::sendToLowerLayer end at " << simTime().dbl() << std::endl;
 }
 
-void LteRlcUm::handleUpperMessage(cPacket *pkt)
+void LteRlcUm::dropBufferOverflow(cPacket *pktAux)
 {
-    //std::cout << "LteRlcUm::handleUpperMessage start at " << simTime().dbl() << std::endl;
+    Enter_Method_Silent("dropBufferOverflow()");                  // Direct Method Call
+    take(pktAux);                                                    // Take ownership
 
-    FlowControlInfo* lteInfo = check_and_cast<FlowControlInfo*>(pkt->removeControlInfo());
+    EV << "LteRlcUm : Dropping packet " << pktAux->getName() << " (queue full) \n";
+
+    auto pkt = check_and_cast<inet::Packet *> (pktAux);
+    auto lteInfo = pkt->getTag<FlowControlInfo>();
+
+   if (lteInfo->getDirection()==DL)
+       emit(rlcPacketLossDl, 1.0);
+   else
+       emit(rlcPacketLossUl, 1.0);
+
+   delete pkt;
+}
+
+void LteRlcUm::handleUpperMessage(cPacket *pktAux)
+{
+    emit(receivedPacketFromUpperLayer, pktAux);
+
+    auto pkt = check_and_cast<inet::Packet *> (pktAux);
+    auto lteInfo = pkt->getTag<FlowControlInfo>();
+
+    auto chunk = pkt->peekAtFront<inet::Chunk>();
+    EV << "LteRlcUm::handleUpperMessage - Received packet " << chunk->getClassName() << " from upper layer, size " << pktAux->getByteLength() << "\n";
 
     UmTxEntity* txbuf = getTxBuffer(lteInfo);
 
     // Create a new RLC packet
-    LteRlcSdu* rlcPkt = new LteRlcSdu("rlcUmPkt");
+    auto rlcPkt = inet::makeShared<LteRlcSdu>();
     rlcPkt->setSnoMainPacket(lteInfo->getSequenceNumber());
     rlcPkt->setLengthMainPacket(pkt->getByteLength());
-    rlcPkt->encapsulate(pkt);
-    rlcPkt->setControlInfo(lteInfo);
-    rlcPkt->setKind(lteInfo->getApplication());
-    drop(rlcPkt);
+    pkt->insertAtFront(rlcPkt);
+
+    drop(pkt);
 
     if (txbuf->isHoldingDownstreamInPackets())
     {
         // do not store in the TX buffer and do not signal the MAC layer
-        EV << "LteRlcUm::handleUpperMessage - Enque packet " << rlcPkt->getName() << " into the Holding Buffer\n";
-        txbuf->enqueHoldingPackets(rlcPkt);
+        EV << "LteRlcUm::handleUpperMessage - Enque packet " << rlcPkt->getClassName() << " into the Holding Buffer\n";
+        txbuf->enqueHoldingPackets(pkt);
     }
     else
     {
-        // create a message so as to notify the MAC layer that the queue contains new data
-        LteRlcPdu* newDataPkt = new LteRlcPdu("newDataPkt");
-        // make a copy of the RLC SDU
-        LteRlcSdu* rlcPktDup = rlcPkt->dup();
-        // the MAC will only be interested in the size of this packet
-        newDataPkt->encapsulate(rlcPktDup);
-        newDataPkt->setControlInfo(lteInfo->dup());
+        if(txbuf->enque(pkt)){
+            EV << "LteRlcUm::handleUpperMessage - Enque packet " << rlcPkt->getClassName() << " into the Tx Buffer\n";
 
-        //EV << "LteRlcUm::handleUpperMessage - Sending message " << newDataPkt->getName() << " to port UM_Sap_down$o\n";
-        send(newDataPkt, down_[OUT]);
+            // create a message so as to notify the MAC layer that the queue contains new data
+            auto newDataPkt = inet::makeShared<LteRlcPduNewData>();
+            // make a copy of the RLC SDU
+            auto pktDup = pkt->dup();
+            pktDup->insertAtFront(newDataPkt);
+            // the MAC will only be interested in the size of this packet
 
-        // Bufferize RLC SDU
-        EV << "LteRlcUm::handleUpperMessage - Enque packet " << rlcPkt->getName() << " into the Tx Buffer\n";
-        txbuf->enque(rlcPkt);
-
+            EV << "LteRlcUm::handleUpperMessage - Sending message " << newDataPkt->getClassName() << " to port UM_Sap_down$o\n";
+            send(pktDup, down_[OUT_GATE]);
+        } else {
+            // Queue is full - drop SDU
+            dropBufferOverflow(pkt);
+        }
     }
-
-    emit(receivedPacketFromUpperLayer, pkt);
-    //std::cout << "LteRlcUm::handleUpperMessage end at " << simTime().dbl() << std::endl;
 }
 
-void LteRlcUm::handleLowerMessage(cPacket *pkt)
+void LteRlcUm::handleLowerMessage(cPacket *pktAux)
 {
-    //std::cout << "LteRlcUm::handleLowerMessage start at " << simTime().dbl() << std::endl;
+    auto pkt = check_and_cast<inet::Packet *>(pktAux);
+    EV << "LteRlcUm::handleLowerMessage - Received packet " << pkt->getName() << " from lower layer\n";
+    auto lteInfo = pkt->getTag<FlowControlInfo>();
+    auto chunk = pkt->peekAtFront<inet::Chunk>();
 
-    FlowControlInfo* lteInfo = check_and_cast<FlowControlInfo*>(pkt->getControlInfo());
-
-    if (strcmp(pkt->getName(), "LteMacSduRequest") == 0)
+    if (inet::dynamicPtrCast<const LteMacSduRequest>(chunk) != nullptr)
     {
         // get the corresponding Tx buffer
         UmTxEntity* txbuf = getTxBuffer(lteInfo);
 
-        LteMacSduRequest* macSduRequest = check_and_cast<LteMacSduRequest*>(pkt);
+        auto macSduRequest = pkt->peekAtFront<LteMacSduRequest>();
         unsigned int size = macSduRequest->getSduSize();
 
         drop(pkt);
@@ -198,7 +238,7 @@ void LteRlcUm::handleLowerMessage(cPacket *pkt)
         // do segmentation/concatenation and send a pdu to the lower layer
         txbuf->rlcPduMake(size);
 
-        delete macSduRequest;
+        delete pkt;
     }
     else
     {
@@ -212,78 +252,19 @@ void LteRlcUm::handleLowerMessage(cPacket *pkt)
         EV << "LteRlcUm::handleLowerMessage - Enque packet " << pkt->getName() << " into the Rx Buffer\n";
         rxbuf->enque(pkt);
     }
-
-    //std::cout << "LteRlcUm::handleLowerMessage end at " << simTime().dbl() << std::endl;
-}
-
-/*
- * Main functions
- */
-
-void LteRlcUm::initialize()
-{
-    up_[IN] = gate("UM_Sap_up$i");
-    up_[OUT] = gate("UM_Sap_up$o");
-    down_[IN] = gate("UM_Sap_down$i");
-    down_[OUT] = gate("UM_Sap_down$o");
-
-    // statistics
-    receivedPacketFromUpperLayer = registerSignal("receivedPacketFromUpperLayer");
-    receivedPacketFromLowerLayer = registerSignal("receivedPacketFromLowerLayer");
-    sentPacketToUpperLayer = registerSignal("sentPacketToUpperLayer");
-    sentPacketToLowerLayer = registerSignal("sentPacketToLowerLayer");
-
-	totalRlcThroughputUl.setName("UEtotalRlcThroughputUl");
-	totalRlcThroughputDl.setName("UEtotalRlcThroughputUl");
-	totalRcvdBytesUl = 0;
-	totalRcvdBytesDl = 0;
-
-	totalCellRlcThroughputUl.setName("CELLtotalRlcThroughputUl");
-	totalCellRlcThroughputDl.setName("CELLtotalRlcThroughputUl");
-	totalCellRcvdBytesUl = 0;
-	totalCellRcvdBytesDl = 0;
-
-	numberOfConnectedUes=0;
-	cellConnectedUes.setName("cellConnectedUes");
-	WATCH_MAP(txEntities_);
-	WATCH_MAP(rxEntities_);
-}
-
-void LteRlcUm::handleMessage(cMessage* msg)
-{
-    //std::cout << "LteRlcUm::handleMessage start at " << simTime().dbl() << std::endl;
-
-    cPacket* pkt = check_and_cast<cPacket *>(msg);
-    //EV << "LteRlcUm : Received packet " << pkt->getName() << " from port " << pkt->getArrivalGate()->getName() << endl;
-
-    cGate* incoming = pkt->getArrivalGate();
-    if (incoming == up_[IN])
-    {
-        handleUpperMessage(pkt);
-    }
-    else if (incoming == down_[IN])
-    {
-        handleLowerMessage(pkt);
-    }
-
-    //std::cout << "LteRlcUm::handleMessage end at " << simTime().dbl() << std::endl;
-
-//    return;
 }
 
 void LteRlcUm::deleteQueues(MacNodeId nodeId)
 {
-    //std::cout << "LteRlcUmRealistic::deleteQueues start at " << simTime().dbl() << std::endl;
-
-    Enter_Method_Silent("deleteQueues");
-
     UmTxEntities::iterator tit;
     UmRxEntities::iterator rit;
 
-    LteNodeType nodeType;
+    RanNodeType nodeType;
     std::string nodeTypePar = getAncestorPar("nodeType").stdstringValue();
-    if (strcmp(nodeTypePar.c_str(), "ENODEB") == 0 || strcmp(nodeTypePar.c_str(), "GNODEB") == 0)
+    if (strcmp(nodeTypePar.c_str(), "ENODEB") == 0)
         nodeType = ENODEB;
+    else if (strcmp(nodeTypePar.c_str(), "GNODEB") == 0)
+        nodeType = GNODEB;
     else
         nodeType = UE;
 
@@ -291,9 +272,9 @@ void LteRlcUm::deleteQueues(MacNodeId nodeId)
     // at the eNB, delete connections related to the given UE
     for (tit = txEntities_.begin(); tit != txEntities_.end(); )
     {
-        if (nodeType == UE || (nodeType == ENODEB && MacCidToNodeId(tit->first) == nodeId))
+        if (nodeType == UE || ((nodeType == ENODEB || nodeType == GNODEB) && MacCidToNodeId(tit->first) == nodeId))
         {
-            tit->second->deleteModule();        // Delete Entity
+            tit->second->deleteModule(); // Delete Entity
             txEntities_.erase(tit++);    // Delete Elem
         }
         else
@@ -303,9 +284,9 @@ void LteRlcUm::deleteQueues(MacNodeId nodeId)
     }
     for (rit = rxEntities_.begin(); rit != rxEntities_.end(); )
     {
-        if (nodeType == UE || (nodeType == ENODEB && MacCidToNodeId(rit->first) == nodeId))
+        if (nodeType == UE || ((nodeType == ENODEB || nodeType == GNODEB) && MacCidToNodeId(rit->first) == nodeId))
         {
-            rit->second->deleteModule();        // Delete Entity
+            rit->second->deleteModule(); // Delete Entity
             rxEntities_.erase(rit++);    // Delete Elem
         }
         else
@@ -313,155 +294,50 @@ void LteRlcUm::deleteQueues(MacNodeId nodeId)
             ++rit;
         }
     }
-
-    //std::cout << "LteRlcUmRealistic::deleteQueues end at " << simTime().dbl() << std::endl;
 }
 
-//nodeB only
-void LteRlcUm::exchangeEntities(MacNodeId nodeId, LteRlcUm * newMasterRlcUmRealistic, MacNodeId newMasterId, MacNodeId oldMasterId){
+/*
+ * Main functions
+ */
 
-    //std::cout << "LteRlcUm::exchangeEntities start at " << simTime().dbl() << std::endl;
+void LteRlcUm::initialize(int stage)
+{
+    if (stage == inet::INITSTAGE_LOCAL)
+    {
+        up_[IN_GATE] = gate("UM_Sap_up$i");
+        up_[OUT_GATE] = gate("UM_Sap_up$o");
+        down_[IN_GATE] = gate("UM_Sap_down$i");
+        down_[OUT_GATE] = gate("UM_Sap_down$o");
 
-    UmTxEntities::iterator tit;
-    UmRxEntities::iterator rit;
+        // parameters
+        mapAllLcidsToSingleBearer_ = par("mapAllLcidsToSingleBearer");
 
-//    Enter_Method_Silent();
+        // statistics
+        receivedPacketFromUpperLayer = registerSignal("receivedPacketFromUpperLayer");
+        receivedPacketFromLowerLayer = registerSignal("receivedPacketFromLowerLayer");
+        sentPacketToUpperLayer = registerSignal("sentPacketToUpperLayer");
+        sentPacketToLowerLayer = registerSignal("sentPacketToLowerLayer");
+        rlcPacketLossDl = registerSignal("rlcPacketLossDl");
+        rlcPacketLossUl = registerSignal("rlcPacketLossUl");
 
-    LteNodeType nodeType;
-        std::string nodeTypePar = getAncestorPar("nodeType").stdstringValue();
-        if (strcmp(nodeTypePar.c_str(), "ENODEB") == 0
-                || strcmp(nodeTypePar.c_str(), "GNODEB") == 0)
-            nodeType = ENODEB;
-        else
-            nodeType = UE;
-
-        if(nodeType == UE){
-            throw cRuntimeError("LteRlcUmRealistic exchangeEntities failed - should never called in UE!");
-        }
-
-    for (tit = txEntities_.begin(); tit != txEntities_.end();) { //in DL
-        if (MacCidToNodeId(tit->first) == nodeId) {
-
-            FlowControlInfo * lteInfo = tit->second->getFlowControlInfo()->dup();
-
-            if (lteInfo->getDestId() == oldMasterId){
-                lteInfo->setDestId(newMasterId);
-            }else if (lteInfo->getSourceId() == oldMasterId){
-                lteInfo->setSourceId(newMasterId);
-            }
-            UmTxEntity* txbufNewMaster = newMasterRlcUmRealistic->getTxBuffer(lteInfo);
-            txbufNewMaster->setFirstIsFragment(tit->second->getFirstIsFragment());
-            txbufNewMaster->setSduQueue(*(tit->second->getSduQueue().dup()));
-            txbufNewMaster->setNextSequenceNumber(tit->second->getNextSequenceNumber());
-            txbufNewMaster->setNodeId(newMasterId);
-
-            delete tit->second;        // Delete Entity
-            txEntities_.erase(tit++);    // Delete Elem
-        } else {
-            ++tit;
-        }
+        WATCH_MAP(txEntities_);
+        WATCH_MAP(rxEntities_);
     }
-    for (rit = rxEntities_.begin(); rit != rxEntities_.end();) { //in UL
-        if (MacCidToNodeId(rit->first) == nodeId) {
-
-            FlowControlInfo * lteInfo = rit->second->getFlowControlInfo()->dup();
-
-            if (lteInfo->getDestId() == oldMasterId) {
-                lteInfo->setDestId(newMasterId);
-            } else if (lteInfo->getSourceId() == oldMasterId) {
-                lteInfo->setSourceId(newMasterId);
-            }
-
-            UmRxEntity* rxbufNewMaster = newMasterRlcUmRealistic->getRxBuffer(lteInfo);
-            rxbufNewMaster->setNodeB(newMasterRlcUmRealistic);
-            rxbufNewMaster->setOwnerNodeId(newMasterId);
-            rxbufNewMaster->setLastSnoDelivered(rit->second->getLastSnoDelivered());
-            if(rit->second->getBuffered() != NULL)
-                rxbufNewMaster->setBuffered(rit->second->getBufferedCopy());
-            rxbufNewMaster->setPduBuffer(rit->second->getPduBuffer());
-            rxbufNewMaster->setRxWindowDesc(rit->second->getRxWindowDesc());
-            rxbufNewMaster->setTimeout(rit->second->getTimeout());
-            rxbufNewMaster->setTTimer(rit->second->getTTimer(), rxbufNewMaster);
-            rxbufNewMaster->setReceived(rit->second->getReceived());
-            rxbufNewMaster->setBinderPtr(rit->second->getBinderPtr());
-            rxbufNewMaster->setLastPduReassembled(rit->second->getLastPduReassembled());
-            rxbufNewMaster->setInit(rit->second->getInit());
-            rxbufNewMaster->setResetFlag(rit->second->getResetFlag());
-            rxbufNewMaster->setTotalCellPduRcvdBytes(rit->second->getTotalCellPduRcvdBytes());
-            rxbufNewMaster->setTotalCellRcvdBytes(rit->second->getTotalCellRcvdBytes());
-            rxbufNewMaster->setTotalPduRcvdBytes(rit->second->getTotalPduRcvdBytes());
-            rxbufNewMaster->setTotalRcvdBytes(rit->second->getTotalRcvdBytes());
-
-            delete rit->second;        // Delete Entity
-            rxEntities_.erase(rit++);    // Delete Elem
-        } else {
-            ++rit;
-        }
-    }
-
-    //std::cout << "LteRlcUm::exchangeEntities end at " << simTime().dbl() << std::endl;
-
 }
 
-//UE only
-void LteRlcUm::modifyEntitiesUe(MacNodeId nodeId, LteRlcUm * newMasterRlcUmRealistic, MacNodeId newMasterId, MacNodeId oldMasterId){
+void LteRlcUm::handleMessage(cMessage* msg)
+{
+    cPacket* pkt = check_and_cast<cPacket *>(msg);
+    EV << "LteRlcUm : Received packet " << pkt->getName() << " from port " << pkt->getArrivalGate()->getName() << endl;
 
-    //std::cout << "LteRlcUm::modifyEntitiesUe start at " << simTime().dbl() << std::endl;
-
-    UmTxEntities::iterator tit;
-    UmRxEntities::iterator rit;
-
-//    Enter_Method_Silent("modifyEntitiesUe");
-
-    LteNodeType nodeType;
-    std::string nodeTypePar = getAncestorPar("nodeType").stdstringValue();
-    if (strcmp(nodeTypePar.c_str(), "ENODEB") == 0
-            || strcmp(nodeTypePar.c_str(), "GNODEB") == 0)
-        nodeType = ENODEB;
-    else
-        nodeType = UE;
-
-    if (nodeType == ENODEB || nodeType == GNODEB) {
-        throw cRuntimeError(
-                "LteRlcUmRealistic modifyEntities failed - should never called in NodeB!");
+    cGate* incoming = pkt->getArrivalGate();
+    if (incoming == up_[IN_GATE])
+    {
+        handleUpperMessage(pkt);
     }
-
-    for (tit = txEntities_.begin(); tit != txEntities_.end();) {
-        if (MacCidToNodeId(tit->first) == nodeId) {
-
-            FlowControlInfo * lteInfo = tit->second->getFlowControlInfo();
-
-            if (lteInfo->getDestId() == oldMasterId) {
-                lteInfo->setDestId(newMasterId);
-            } else if (lteInfo->getSourceId() == oldMasterId) {
-                lteInfo->setSourceId(newMasterId);
-            }
-            ++tit;
-        } else {
-            ++tit;
-        }
+    else if (incoming == down_[IN_GATE])
+    {
+        handleLowerMessage(pkt);
     }
-
-    for (rit = rxEntities_.begin(); rit != rxEntities_.end();) {
-        if (MacCidToNodeId(rit->first) == nodeId) {
-
-            FlowControlInfo * lteInfo = rit->second->getFlowControlInfo();
-
-            if (lteInfo->getDestId() == oldMasterId) {
-                lteInfo->setDestId(newMasterId);
-            } else if (lteInfo->getSourceId() == oldMasterId) {
-                lteInfo->setSourceId(newMasterId);
-            }
-
-            rit->second->setNodeB(newMasterRlcUmRealistic);
-
-            ++rit;
-        } else {
-            ++rit;
-        }
-    }
-
-    //std::cout << "LteRlcUm::modifyEntitiesUe end at " << simTime().dbl() << std::endl;
-
+    return;
 }
-

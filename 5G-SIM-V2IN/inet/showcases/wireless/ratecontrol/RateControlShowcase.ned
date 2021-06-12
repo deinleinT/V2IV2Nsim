@@ -19,7 +19,7 @@
 package inet.showcases.wireless.ratecontrol;
 
 import inet.environment.common.PhysicalEnvironment;
-import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
+import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 import inet.node.inet.WirelessHost;
 import inet.physicallayer.ieee80211.packetlevel.Ieee80211ScalarRadioMedium;
 import inet.visualizer.integrated.IntegratedCanvasVisualizer;
@@ -46,7 +46,7 @@ network RateControlShowcase
             parameters:
                 @display("p=130.76924,168.46155");
         }
-        configurator: IPv4NetworkConfigurator {
+        configurator: Ipv4NetworkConfigurator {
             @display("p=131.53847,253.84616");
         }
         visualizer: IntegratedCanvasVisualizer {

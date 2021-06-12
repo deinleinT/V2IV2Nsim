@@ -16,8 +16,8 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "inet/mobility/single/LinearMobility.h"
 #include "inet/common/INETMath.h"
+#include "inet/mobility/single/LinearMobility.h"
 
 namespace inet {
 
@@ -26,8 +26,6 @@ Define_Module(LinearMobility);
 LinearMobility::LinearMobility()
 {
     speed = 0;
-    angle = 0;
-    acceleration = 0;
 }
 
 void LinearMobility::initialize(int stage)
@@ -37,30 +35,23 @@ void LinearMobility::initialize(int stage)
     //EV_TRACE << "initializing LinearMobility stage " << stage << endl;
     if (stage == INITSTAGE_LOCAL) {
         speed = par("speed");
-        angle = fmod((double)par("angle"), 360);
-        acceleration = par("acceleration");
-        stationary = (speed == 0) && (acceleration == 0.0);
+        stationary = (speed == 0);
+        rad heading = deg(fmod(par("initialMovementHeading").doubleValue(), 360));
+        rad elevation = deg(fmod(par("initialMovementElevation").doubleValue(), 360));
+        Coord direction = Quaternion(EulerAngles(heading, -elevation, rad(0))).rotate(Coord::X_AXIS);
+
+        lastVelocity = direction * speed;
     }
 }
 
 void LinearMobility::move()
 {
-    double rad = M_PI * angle / 180;
-    Coord direction(cos(rad), sin(rad));
-    lastSpeed = direction * speed;
     double elapsedTime = (simTime() - lastUpdate).dbl();
-    lastPosition += lastSpeed * elapsedTime;
+    lastPosition += lastVelocity * elapsedTime;
 
     // do something if we reach the wall
-    Coord dummy;
-    handleIfOutside(REFLECT, dummy, dummy, angle);
-
-    // accelerate
-    speed += acceleration * elapsedTime;
-    if (speed <= 0) {
-        speed = 0;
-        stationary = true;
-    }
+    Coord dummyCoord;
+    handleIfOutside(REFLECT, dummyCoord, lastVelocity);
 }
 
 } // namespace inet

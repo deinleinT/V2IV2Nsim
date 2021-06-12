@@ -19,33 +19,30 @@
 #define __INET_CSMAMAC_H
 
 #include "inet/common/FSMA.h"
-#include "inet/common/queue/IPassiveQueue.h"
-#include "inet/common/queue/PacketQueue.h"
-#include "inet/linklayer/base/MACProtocolBase.h"
+#include "inet/common/packet/Packet.h"
+#include "inet/queueing/contract/IPacketQueue.h"
+#include "inet/linklayer/base/MacProtocolBase.h"
+#include "inet/linklayer/csmaca/CsmaCaMacHeader_m.h"
 #include "inet/physicallayer/contract/packetlevel/IRadio.h"
-#include "inet/linklayer/csmaca/CsmaCaMacFrame_m.h"
 
 namespace inet {
 
-using namespace inet::physicallayer;
-
-class INET_API CsmaCaMac : public MACProtocolBase
+class INET_API CsmaCaMac : public MacProtocolBase
 {
   protected:
     /**
      * @name Configuration parameters
      */
     //@{
-    MACAddress address;
+    FcsMode fcsMode;
     bool useAck = true;
     double bitrate = NaN;
-    int headerLength = -1;
-    int ackLength = -1;
+    B headerLength = B(-1);
+    B ackLength = B(-1);
     simtime_t ackTimeout = -1;
     simtime_t slotTime = -1;
     simtime_t sifsTime = -1;
     simtime_t difsTime = -1;
-    int maxQueueSize = -1;
     int retryLimit = -1;
     int cwMin = -1;
     int cwMax = -1;
@@ -68,8 +65,8 @@ class INET_API CsmaCaMac : public MACProtocolBase
         WAITSIFS,
     };
 
-    IRadio *radio = nullptr;
-    IRadio::TransmissionState transmissionState = IRadio::TRANSMISSION_STATE_UNDEFINED;
+    physicallayer::IRadio *radio = nullptr;
+    physicallayer::IRadio::TransmissionState transmissionState = physicallayer::IRadio::TRANSMISSION_STATE_UNDEFINED;
 
     cFSM fsm;
 
@@ -78,12 +75,6 @@ class INET_API CsmaCaMac : public MACProtocolBase
 
     /** Number of frame retransmission attempts. */
     int retryCounter = -1;
-
-    /** Messages received from upper layer and to be transmitted later */
-    PacketQueue transmissionQueue;
-
-    /** Passive queue module to request messages from */
-    IPassiveQueue *queueModule = nullptr;
     //@}
 
     /** @name Timer messages */
@@ -134,9 +125,8 @@ class INET_API CsmaCaMac : public MACProtocolBase
     //@{
     /** @brief Initialization of the module and its variables */
     virtual void initialize(int stage) override;
-    virtual void initializeQueueModule();
     virtual void finish() override;
-    virtual InterfaceEntry *createInterfaceEntry() override;
+    virtual void configureInterfaceEntry() override;
     //@}
 
     /**
@@ -145,14 +135,14 @@ class INET_API CsmaCaMac : public MACProtocolBase
      */
     //@{
     virtual void handleSelfMessage(cMessage *msg) override;
-    virtual void handleUpperPacket(cPacket *msg) override;
-    virtual void handleLowerPacket(cPacket *msg) override;
+    virtual void handleUpperPacket(Packet *packet) override;
+    virtual void handleLowerPacket(Packet *packet) override;
     virtual void handleWithFsm(cMessage *msg);
 
     virtual void receiveSignal(cComponent *source, simsignal_t signalID, intval_t value, cObject *details) override;
 
-    virtual CsmaCaMacDataFrame *encapsulate(cPacket *msg);
-    virtual cPacket *decapsulate(CsmaCaMacDataFrame *frame);
+    virtual void encapsulate(Packet *frame);
+    virtual void decapsulate(Packet *frame);
     //@}
 
     /**
@@ -160,12 +150,12 @@ class INET_API CsmaCaMac : public MACProtocolBase
      * @brief These functions have the side effect of starting the corresponding timers.
      */
     //@{
-    virtual void scheduleSifsTimer(CsmaCaMacFrame *frame);
+    virtual void scheduleSifsTimer(Packet *frame);
 
     virtual void scheduleDifsTimer();
     virtual void cancelDifsTimer();
 
-    virtual void scheduleAckTimeout(CsmaCaMacDataFrame *frame);
+    virtual void scheduleAckTimeout(Packet *frame);
     virtual void cancelAckTimer();
 
     virtual void invalidateBackoffPeriod();
@@ -180,7 +170,7 @@ class INET_API CsmaCaMac : public MACProtocolBase
      * @name Frame transmission functions
      */
     //@{
-    virtual void sendDataFrame(CsmaCaMacDataFrame *frameToSend);
+    virtual void sendDataFrame(Packet *frameToSend);
     virtual void sendAckFrame();
     //@}
 
@@ -191,16 +181,23 @@ class INET_API CsmaCaMac : public MACProtocolBase
     virtual void finishCurrentTransmission();
     virtual void giveUpCurrentTransmission();
     virtual void retryCurrentTransmission();
-    virtual CsmaCaMacDataFrame *getCurrentTransmission();
-    virtual void popTransmissionQueue();
-    virtual void resetStateVariables();
+    virtual Packet *getCurrentTransmission();
+    virtual void resetTransmissionVariables();
+    virtual void emitPacketDropSignal(Packet *frame, PacketDropReason reason, int limit = -1);
 
     virtual bool isMediumFree();
     virtual bool isReceiving();
-    virtual bool isAck(CsmaCaMacFrame *frame);
-    virtual bool isBroadcast(CsmaCaMacFrame *msg);
-    virtual bool isForUs(CsmaCaMacFrame *msg);
+    virtual bool isAck(Packet *frame);
+    virtual bool isBroadcast(Packet *frame);
+    virtual bool isForUs(Packet *frame);
+    virtual bool isFcsOk(Packet *frame);
+
+    virtual uint32_t computeFcs(const Ptr<const BytesChunk>& bytes);
     //@}
+
+    // OperationalBase:
+    virtual void handleStopOperation(LifecycleOperation *operation) override;
+    virtual void handleCrashOperation(LifecycleOperation *operation) override;
 };
 
 } // namespace inet

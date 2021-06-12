@@ -1,6 +1,6 @@
 %description:
 Testing Ethernet communication between host pairs.
-All hosts use EtherMAC implementation with half duplex mode.
+All hosts use EtherMac implementation with half duplex mode.
 Both hosts in pair have same ethernet configurations.
 Both hosts in pair are source and sink, too.
 
@@ -24,7 +24,7 @@ module EtherHostQ extends EtherHost
 {
     parameters:
         queueType = "DropTailQueue";
-        macType = "EtherMAC";
+        macType = "EtherMac";
         mac.duplexMode = false;
 }
 
@@ -83,7 +83,6 @@ network SpeedTest
 [General]
 sim-time-limit = 10s
 
-
 #record-eventlog = true
 **.vector-recording = false
 
@@ -109,7 +108,7 @@ network = SpeedTest
 *.host_10_H_*.cli.sendInterval   = 1.0ms            # 10.000 / speed [ / 2 when halfduplex]
 
 **.mac.address = "auto"
-**.queue.dataQueue.frameCapacity = 1000
+**.queue.dataQueue.packetCapacity = 1000
 
 %#--------------------------------------------------------------------------------------------------------------
 %postrun-command: Rscript check.r

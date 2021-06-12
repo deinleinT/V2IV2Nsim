@@ -23,17 +23,17 @@
 
 namespace inet {
 
-namespace ospf {
+namespace ospfv2 {
 
 class INET_API HelloHandler : public IMessageHandler
 {
   public:
     HelloHandler(Router *containingRouter);
 
-    void processPacket(OSPFPacket *packet, Interface *intf, Neighbor *unused = nullptr) override;
+    void processPacket(Packet *packet, Ospfv2Interface *intf, Neighbor *unused = nullptr) override;
 };
 
-} // namespace ospf
+} // namespace ospfv2
 
 } // namespace inet
 

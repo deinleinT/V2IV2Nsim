@@ -15,17 +15,19 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-
 package inet.linklayer.ieee80211;
 
-import inet.linklayer.contract.IMACProtocol;
-
+import inet.linklayer.contract.IMacProtocol;
 
 //
 // Module interface for all ieee802.11 mac modul
 //
-moduleinterface IIeee80211Mac extends IMACProtocol
+moduleinterface IIeee80211Mac extends IMacProtocol
 {
     parameters:
         @display("i=block/layer");
+    gates:
+        input mgmtIn;
+        output mgmtOut;
 }
+

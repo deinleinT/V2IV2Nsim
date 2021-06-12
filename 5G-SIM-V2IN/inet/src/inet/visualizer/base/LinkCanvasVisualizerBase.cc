@@ -36,13 +36,20 @@ LinkCanvasVisualizerBase::LinkCanvasVisualization::~LinkCanvasVisualization()
     delete figure;
 }
 
+LinkCanvasVisualizerBase::~LinkCanvasVisualizerBase()
+{
+    if (displayLinks)
+        removeAllLinkVisualizations();
+}
+
 void LinkCanvasVisualizerBase::initialize(int stage)
 {
     LinkVisualizerBase::initialize(stage);
     if (!hasGUI()) return;
     if (stage == INITSTAGE_LOCAL) {
         zIndex = par("zIndex");
-        auto canvas = visualizerTargetModule->getCanvas();
+        auto canvas = visualizationTargetModule->getCanvas();
+        lineManager = LineManager::getCanvasLineManager(canvas);
         canvasProjection = CanvasProjection::getCanvasProjection(canvas);
         linkGroup = new cGroupFigure("links");
         linkGroup->setZIndex(zIndex);
@@ -60,13 +67,15 @@ void LinkCanvasVisualizerBase::refreshDisplay() const
         auto figure = linkCanvasVisualization->figure;
         auto sourceModule = simulation->getModule(linkVisualization->sourceModuleId);
         auto destinationModule = simulation->getModule(linkVisualization->destinationModuleId);
-        auto sourcePosition = getContactPosition(sourceModule, getPosition(destinationModule), lineContactMode, lineContactSpacing);
-        auto destinationPosition = getContactPosition(destinationModule, getPosition(sourceModule), lineContactMode, lineContactSpacing);
-        auto shift = lineManager->getLineShift(linkVisualization->sourceModuleId, linkVisualization->destinationModuleId, sourcePosition, destinationPosition, lineShiftMode, linkVisualization->shiftOffset) * lineShift;
-        figure->setStart(canvasProjection->computeCanvasPoint(sourcePosition + shift));
-        figure->setEnd(canvasProjection->computeCanvasPoint(destinationPosition + shift));
+        if (sourceModule != nullptr && destinationModule != nullptr) {
+            auto sourcePosition = getContactPosition(sourceModule, getPosition(destinationModule), lineContactMode, lineContactSpacing);
+            auto destinationPosition = getContactPosition(destinationModule, getPosition(sourceModule), lineContactMode, lineContactSpacing);
+            auto shift = lineManager->getLineShift(linkVisualization->sourceModuleId, linkVisualization->destinationModuleId, sourcePosition, destinationPosition, lineShiftMode, linkVisualization->shiftOffset) * lineShift;
+            figure->setStart(canvasProjection->computeCanvasPoint(sourcePosition + shift));
+            figure->setEnd(canvasProjection->computeCanvasPoint(destinationPosition + shift));
+        }
     }
-    visualizerTargetModule->getCanvas()->setAnimationSpeed(linkVisualizations.empty() ? 0 : fadeOutAnimationSpeed, this);
+    visualizationTargetModule->getCanvas()->setAnimationSpeed(linkVisualizations.empty() ? 0 : fadeOutAnimationSpeed, this);
 }
 
 const LinkVisualizerBase::LinkVisualization *LinkCanvasVisualizerBase::createLinkVisualization(cModule *source, cModule *destination, cPacket *packet) const
