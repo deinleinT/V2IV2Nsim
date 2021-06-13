@@ -40,6 +40,8 @@ class LteMacEnb;
  */
 class LteAmc
 {
+public:
+	void printTBS();
 
   protected:
     AmcPilot *getAmcPilot(const cPar& amcMode);
@@ -60,9 +62,9 @@ class LteAmc
     MacCellId cellId_;
 
     //CHANGED
-    McsTableNROne dlMcsTable_;
-    McsTableNRTwo ulMcsTable_;
-    McsTableNROne d2dMcsTable_;
+    McsTableNR dlMcsTable_;
+    McsTableNR ulMcsTable_;
+    McsTableNR d2dMcsTable_;
     //
 
     double mcsScaleDl_;

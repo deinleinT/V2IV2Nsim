@@ -1,4 +1,3 @@
-
 //
 // SPDX-FileCopyrightText: 2020 Friedrich-Alexander University Erlangen-Nuernberg (FAU), Computer Science 7 - Computer Networks and Communication Systems
 //
@@ -42,14 +41,14 @@ class NRSchedulerGnbDl : public LteSchedulerEnbDl
 
 public:
 	NRSchedulerGnbDl();
-    virtual ~NRSchedulerGnbDl();
+	virtual ~NRSchedulerGnbDl();
 
-    virtual unsigned int scheduleGrant(MacCid cid, unsigned int bytes, bool& terminate, bool& active, bool& eligible,
-        std::vector<BandLimit>* bandLim = NULL, Remote antenna = MACRO, bool limitBl = false);
+	virtual unsigned int scheduleGrant(MacCid cid, unsigned int bytes, bool &terminate, bool &active, bool &eligible, std::vector<BandLimit> *bandLim = NULL, Remote antenna = MACRO, bool limitBl =
+			false);
 
-    virtual LteMacScheduleListWithSizes* schedule();
+	virtual LteMacScheduleListWithSizes* schedule();
 
-    virtual bool rtxschedule();
+	virtual bool rtxschedule();
 
     virtual unsigned int schedulePerAcidRtx(MacNodeId nodeId, Codeword cw, unsigned char acid,
         std::vector<BandLimit>* bandLim = NULL, Remote antenna = MACRO, bool limitBl = false);

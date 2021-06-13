@@ -901,7 +901,7 @@ void NRRealisticChannelModel::computeLosProbabilityNR(const double &d2d, const M
 		break;
 	case InFSH:
 	case InFDH:
-		k_subsce = -(d_clutter / log(1 - clutter_density_r)) * ((hNodeB_ - hUe_)/(hClutter - hUe_));
+		k_subsce = -(d_clutter / log(1 - clutter_density_r)) * ((hNodeB_ - hUe_) / (hClutter - hUe_));
 		p = exp(-(d2d / k_subsce));
 		break;
 	case InFHH:
@@ -1377,7 +1377,7 @@ double NRRealisticChannelModel::computeUMiA(double &d3d, double &d2d, const MacN
 		d3d = 10;
 	if (d2d > 5000) {
 		if (tolerateMaxDistViolation_)
-			return ATT_MAXDISTVIOLATED;
+			d2d = 5000;
 		else
 			throw cRuntimeError("Error LOS UMiA path loss model is valid for d<5000 m");
 	}
@@ -1397,7 +1397,7 @@ double NRRealisticChannelModel::computeUMiA(double &d3d, double &d2d, const MacN
 		if (0.5 <= carrierFrequency_ && carrierFrequency_ <= 6) {
 			if (d2d > 2000) {
 				if (tolerateMaxDistViolation_)
-					return ATT_MAXDISTVIOLATED;
+					d2d = 2000;
 				else
 					throw cRuntimeError("Error LOS UMiA path loss model is valid for d<5000 m");
 			}

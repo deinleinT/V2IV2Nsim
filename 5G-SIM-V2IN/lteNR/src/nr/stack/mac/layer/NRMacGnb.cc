@@ -55,6 +55,10 @@ void NRMacGnb::initialize(int stage) {
 		if (getSystemModule()->par("nrHarq").boolValue()) {
 			harqProcesses_ = harqProcessesNR_;
 		}
+	}else
+
+	if(stage == INITSTAGE_LAST){
+		amc_->printTBS();
 	}
 
 }

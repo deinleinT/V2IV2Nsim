@@ -35,7 +35,6 @@ module NRRlc extends LteRlc
         @display("i=block/transport");
         string NRRlcUmType = default("NRRlcUm");
         LteRlcUmType = default("NRRlcUm");     // One of: "LteRlcUm", "LteRlcUmRealistic", "LteRlcUmRealisticD2D"      
-
 }
 
 
@@ -46,7 +45,5 @@ simple NRRlcUm extends LteRlcUm like ILteRlcUm
 {
     parameters:
         @class("NRRlcUm");
-        @display("i=block/wheelbarrow");
-        
-        
+        @display("i=block/wheelbarrow");   
 }

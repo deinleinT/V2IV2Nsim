@@ -344,6 +344,34 @@ void LteAmc::initialize() {
     //printFbhb(UL);
     //printTxParams(DL);
     //printTxParams(UL);
+
+
+}
+
+void LteAmc::printTBS(){
+	if (getSimulation()->getSystemModule()->hasPar("printTBS")) {
+		if (getSimulation()->getSystemModule()->par("printTBS").boolValue()) {
+			if (getSimulation()->getSystemModule()->hasPar("useExtendedMcsTable")) {
+				unsigned int max = 28;
+				if (getSimulation()->getSystemModule()->par("useExtendedMcsTable").boolValue()) {
+					std::cout << "Print the calculated TBS for Table 38.214-5.1.3.1-2" << std::endl;
+					for (unsigned int k = 0; k <= 27; ++k) {
+						for (unsigned int i = 1; i <= 273; ++i) {
+							std::cout << "Number of Resource Blocks: " << i << " | MCS Index Table 1: " << k << " | Layer: " << 1 << " || Calculated TBS: " << calcTBS(1, i, k, 1) << std::endl;
+						}
+					}
+				} else {
+					std::cout << "Print the calculated TBS for Table 38.214-5.1.3.1-1" << std::endl;
+					for (unsigned int k = 0; k <= max; ++k) {
+						for (unsigned int i = 1; i <= 273; ++i) {
+							std::cout << "Number of Resource Blocks: " << i << " | MCS Index Table 1: " << k << " | Layer: " << 1 << " || Calculated TBS: " << calcTBS(1, i, k, 1) << std::endl;
+						}
+					}
+				}
+			}
+			throw cRuntimeError("End Simulation after printing all TBS results!");
+		}
+	}
 }
 
 void LteAmc::rescaleMcs(double rePerRb, Direction dir)
@@ -887,16 +915,35 @@ unsigned int LteAmc::getMcsIndexCqi(Cqi cqi, const Direction dir) {
     double rate = entry.rate_;
 
     // Select the ranges for searching in the McsTable.
-    unsigned int min = 0; // _QPSK
-    unsigned int max = 9; // _QPSK
-    if (mod == _16QAM) {
-        min = 10;
-        max = 16;
-    }
-    if (mod == _64QAM) {
-        min = 17;
-        max = 28;
-    }
+    unsigned int min = 0;
+    unsigned int max = 9;
+	if (getSimulation()->getSystemModule()->hasPar("useExtendedMcsTable")) {
+		if (getSimulation()->getSystemModule()->par("useExtendedMcsTable")) {
+			min = 0; // _QPSK
+			max = 4; // _QPSK
+			if (mod == _16QAM) {
+				min = 5;
+				max = 10;
+			}
+			if (mod == _64QAM) {
+				min = 11;
+				max = 19;
+			}
+			if (mod == _256QAM) {
+				min = 20;
+				max = 27;
+			}
+		} else {
+			if (mod == _16QAM) {
+				min = 10;
+				max = 16;
+			}
+			if (mod == _64QAM) {
+				min = 17;
+				max = 28;
+			}
+		}
+	}
 
     // Initialize the working variables at the minimum value.
     MCSelemNR elem;

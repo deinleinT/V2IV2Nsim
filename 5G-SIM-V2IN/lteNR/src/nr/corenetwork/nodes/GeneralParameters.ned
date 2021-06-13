@@ -79,5 +79,11 @@ network GeneralParameters{
         bool blerCurvesNR = default(true);
         //TU --> range from SINR -14.5 - 38
         //AWGN --> rangr from SINR -14.5 - 22.5
-        string blerVersion = default("AWGN");
+        string blerVersion = default("TU");
+
+	//for testing
+        bool printTBS = default(false);
+        
+        //extendedMCSTable
+        bool useExtendedMcsTable = default(false);
 }

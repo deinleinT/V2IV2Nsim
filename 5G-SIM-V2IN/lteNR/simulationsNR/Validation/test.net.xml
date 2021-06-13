@@ -41,14 +41,14 @@
     <location netOffset="0.00,0.00" convBoundary="0.00,3000.00,5000.00,3000.00" origBoundary="0.00,0.00,5000.00,5000.00" projParameter="!"/>
 
     <edge id=":1/1_0" function="internal">
-        <lane id=":1/1_0_0" index="0" speed="50.00" length="0.10" shape="2000.00,1998.40 2000.00,1998.40"/>
+        <lane id=":1/1_0_0" index="0" speed="25.00" length="0.10" shape="2000.00,1998.40 2000.00,1998.40"/>
     </edge>
 
     <edge id="0/1to1/1" from="0/1" to="1/1" priority="-1">
-        <lane id="0/1to1/1_0" index="0" speed="50.00" length="2000.00" shape="0.00,1998.40 2000.00,1998.40"/>
+        <lane id="0/1to1/1_0" index="0" speed="25.00" length="2000.00" shape="0.00,1998.40 2000.00,1998.40"/>
     </edge>
     <edge id="1/1to2/1" from="1/1" to="2/1" priority="-1">
-        <lane id="1/1to2/1_0" index="0" speed="50.00" length="2000.00" shape="2000.00,1998.40 4000.00,1998.40"/>
+        <lane id="1/1to2/1_0" index="0" speed="25.00" length="2000.00" shape="2000.00,1998.40 4000.00,1998.40"/>
     </edge>
 
     <junction id="0/1" type="dead_end" x="0.00" y="2000.00" incLanes="" intLanes="" shape="0.00,2000.00 0.00,1996.80"/>

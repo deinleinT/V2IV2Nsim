@@ -76,8 +76,9 @@ std::vector<unsigned char> cwMapping(const TxMode& txMode, const Rank& ri,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //see 3GPP 38.214, Table 5.2.2.1-2
-const CQIelem cqiTable[] = {
-        CQIelem(_QPSK, 0.0),
+// default table
+CQIelem cqiTable[] = {
+	CQIelem(_QPSK, 0.0),
         CQIelem(_QPSK, 78.0),
         CQIelem(_QPSK, 120.0),
         CQIelem(_QPSK, 193.0),
@@ -95,71 +96,90 @@ const CQIelem cqiTable[] = {
         CQIelem(_64QAM, 948.0),
 };
 
-//Table from 38.214, 5.1.3.1-1
-//used as default table
-McsTableNROne::McsTableNROne() {
-    table[0] = MCSelemNR(_QPSK, 120.0);
-    table[1] = MCSelemNR(_QPSK, 157.0);
-    table[2] = MCSelemNR(_QPSK, 193.0);
-    table[3] = MCSelemNR(_QPSK, 251.0);
-    table[4] = MCSelemNR(_QPSK, 308.0);
-    table[5] = MCSelemNR(_QPSK, 379.0);
-    table[6] = MCSelemNR(_QPSK, 449.0);
-    table[7] = MCSelemNR(_QPSK, 526.0);
-    table[8] = MCSelemNR(_QPSK, 602.0);
-    table[9] = MCSelemNR(_QPSK, 679.0);
-    table[10] = MCSelemNR(_16QAM, 340.0);
-    table[11] = MCSelemNR(_16QAM, 378.0);
-    table[12] = MCSelemNR(_16QAM, 434.0);
-    table[13] = MCSelemNR(_16QAM, 490.0);
-    table[14] = MCSelemNR(_16QAM, 553.0);
-    table[15] = MCSelemNR(_16QAM, 616.0);
-    table[16] = MCSelemNR(_16QAM, 658.0);
-    table[17] = MCSelemNR(_64QAM, 438.0);
-    table[18] = MCSelemNR(_64QAM, 466.0);
-    table[19] = MCSelemNR(_64QAM, 517.0);
-    table[20] = MCSelemNR(_64QAM, 567.0);
-    table[21] = MCSelemNR(_64QAM, 616.0);
-    table[22] = MCSelemNR(_64QAM, 666.0);
-    table[23] = MCSelemNR(_64QAM, 719.0);
-    table[24] = MCSelemNR(_64QAM, 772.0);
-    table[25] = MCSelemNR(_64QAM, 822.0);
-    table[26] = MCSelemNR(_64QAM, 873.0);
-    table[27] = MCSelemNR(_64QAM, 910.0);
-    table[28] = MCSelemNR(_64QAM, 948.0);
-}
 
-//Table from 38.214, 6.1.
-McsTableNRTwo::McsTableNRTwo() {
-    table[0] = MCSelemNR(_QPSK, 120.0 );
-    table[1] = MCSelemNR(_QPSK, 157.0);
-    table[2] = MCSelemNR(_QPSK, 193.0);
-    table[3] = MCSelemNR(_QPSK, 251.0);
-    table[4] = MCSelemNR(_QPSK, 308.0);
-    table[5] = MCSelemNR(_QPSK, 379.0);
-    table[6] = MCSelemNR(_QPSK, 449.0);
-    table[7] = MCSelemNR(_QPSK, 526.0);
-    table[8] = MCSelemNR(_QPSK, 602.0);
-    table[9] = MCSelemNR(_QPSK, 679.0);
-    table[10] = MCSelemNR(_16QAM, 340.0);
-    table[11] = MCSelemNR(_16QAM, 378.0);
-    table[12] = MCSelemNR(_16QAM, 434.0);
-    table[13] = MCSelemNR(_16QAM, 490.0);
-    table[14] = MCSelemNR(_16QAM, 553.0);
-    table[15] = MCSelemNR(_16QAM, 616.0);
-    table[16] = MCSelemNR(_16QAM, 658.0);
-    table[17] = MCSelemNR(_16QAM, 466.0);
-    table[18] = MCSelemNR(_64QAM, 517.0);
-    table[19] = MCSelemNR(_64QAM, 567.0);
-    table[20] = MCSelemNR(_64QAM, 616.5);
-    table[21] = MCSelemNR(_64QAM, 666.0);
-    table[22] = MCSelemNR(_64QAM, 719.0);
-    table[23] = MCSelemNR(_64QAM, 772.0);
-    table[24] = MCSelemNR(_64QAM, 822.0);
-    table[25] = MCSelemNR(_64QAM, 873.0);
-    table[26] = MCSelemNR(_64QAM, 910.0);
-    table[27] = MCSelemNR(_64QAM, 948.0);
-    table[28] = MCSelemNR(_64QAM, 948.0);//changed
+McsTableNR::McsTableNR() {
+
+	if (getSimulation()->getSystemModule()->hasPar("useExtendedMcsTable")) {
+		if (getSimulation()->getSystemModule()->par("useExtendedMcsTable")) {
+			cqiTable[0] = CQIelem(_QPSK, 0.0);
+			cqiTable[1] = CQIelem(_QPSK, 78.0);
+			cqiTable[2] = CQIelem(_QPSK, 193.0);
+			cqiTable[3] = CQIelem(_QPSK, 449.0);
+			cqiTable[4] = CQIelem(_16QAM, 378.0);
+			cqiTable[5] = CQIelem(_16QAM, 490.0);
+			cqiTable[6] = CQIelem(_16QAM, 616.0);
+			cqiTable[7] = CQIelem(_64QAM, 466.0);
+			cqiTable[8] = CQIelem(_64QAM, 567.0);
+			cqiTable[9] = CQIelem(_64QAM, 666.0);
+			cqiTable[10] = CQIelem(_64QAM, 772.0);
+			cqiTable[11] = CQIelem(_64QAM, 873.0);
+			cqiTable[12] = CQIelem(_256QAM, 711.0);
+			cqiTable[13] = CQIelem(_256QAM, 797.0);
+			cqiTable[14] = CQIelem(_256QAM, 885.0);
+			cqiTable[15] = CQIelem(_256QAM, 948.0);
+
+			table[0] = MCSelemNR(_QPSK, 120.0);
+			table[1] = MCSelemNR(_QPSK, 193.0);
+			table[2] = MCSelemNR(_QPSK, 308.0);
+			table[3] = MCSelemNR(_QPSK, 449.0);
+			table[4] = MCSelemNR(_QPSK, 602.0);
+			table[5] = MCSelemNR(_16QAM, 378.0);
+			table[6] = MCSelemNR(_16QAM, 434.0);
+			table[7] = MCSelemNR(_16QAM, 490.0);
+			table[8] = MCSelemNR(_16QAM, 553.0);
+			table[9] = MCSelemNR(_16QAM, 616.0);
+			table[10] = MCSelemNR(_16QAM, 658.0);
+			table[11] = MCSelemNR(_64QAM, 466.0);
+			table[12] = MCSelemNR(_64QAM, 517.0);
+			table[13] = MCSelemNR(_64QAM, 567.0);
+			table[14] = MCSelemNR(_64QAM, 616.0);
+			table[15] = MCSelemNR(_64QAM, 666.0);
+			table[16] = MCSelemNR(_64QAM, 719.0);
+			table[17] = MCSelemNR(_64QAM, 772.0);
+			table[18] = MCSelemNR(_64QAM, 822.0);
+			table[19] = MCSelemNR(_64QAM, 873.0);
+			table[20] = MCSelemNR(_256QAM, 682.5);
+			table[21] = MCSelemNR(_256QAM, 711.0);
+			table[22] = MCSelemNR(_256QAM, 754.0);
+			table[23] = MCSelemNR(_256QAM, 797.0);
+			table[24] = MCSelemNR(_256QAM, 841.0);
+			table[25] = MCSelemNR(_256QAM, 885.0);
+			table[26] = MCSelemNR(_256QAM, 916.5);
+			table[27] = MCSelemNR(_256QAM, 948.0);
+		} else {
+			//Table from 38.214, 5.1.3.1-1
+			//used as default table
+			table[0] = MCSelemNR(_QPSK, 120.0);
+			table[1] = MCSelemNR(_QPSK, 157.0);
+			table[2] = MCSelemNR(_QPSK, 193.0);
+			table[3] = MCSelemNR(_QPSK, 251.0);
+			table[4] = MCSelemNR(_QPSK, 308.0);
+			table[5] = MCSelemNR(_QPSK, 379.0);
+			table[6] = MCSelemNR(_QPSK, 449.0);
+			table[7] = MCSelemNR(_QPSK, 526.0);
+			table[8] = MCSelemNR(_QPSK, 602.0);
+			table[9] = MCSelemNR(_QPSK, 679.0);
+			table[10] = MCSelemNR(_16QAM, 340.0);
+			table[11] = MCSelemNR(_16QAM, 378.0);
+			table[12] = MCSelemNR(_16QAM, 434.0);
+			table[13] = MCSelemNR(_16QAM, 490.0);
+			table[14] = MCSelemNR(_16QAM, 553.0);
+			table[15] = MCSelemNR(_16QAM, 616.0);
+			table[16] = MCSelemNR(_16QAM, 658.0);
+			table[17] = MCSelemNR(_64QAM, 438.0);
+			table[18] = MCSelemNR(_64QAM, 466.0);
+			table[19] = MCSelemNR(_64QAM, 517.0);
+			table[20] = MCSelemNR(_64QAM, 567.0);
+			table[21] = MCSelemNR(_64QAM, 616.0);
+			table[22] = MCSelemNR(_64QAM, 666.0);
+			table[23] = MCSelemNR(_64QAM, 719.0);
+			table[24] = MCSelemNR(_64QAM, 772.0);
+			table[25] = MCSelemNR(_64QAM, 822.0);
+			table[26] = MCSelemNR(_64QAM, 873.0);
+			table[27] = MCSelemNR(_64QAM, 910.0);
+			table[28] = MCSelemNR(_64QAM, 948.0);
+		}
+	}
 }
 
 //TABLE 5.1.3.2-1, 38.214
@@ -279,8 +299,9 @@ unsigned short getQm(LteMod mod){
     return qM;
 }
 
-//38.214, 5.1.3.2, UL 6.1.4.2
-//table 38.214-5.1.3.1-1 is used
+//38.214, 5.1.3.1
+//table 38.214-5.1.3.1-1 as default table
+//set useExtendedMcsTable to true to use 38.214-5.1.3.1-2
 //calculates the TBS in bits for 5G
 //tested with https://5g-tools.com/5g-nr-tbs-transport-block-size-calculator/
 unsigned int calcTBS(MacNodeId nodeId, unsigned int numPRB, unsigned short mcsIndex,
@@ -289,7 +310,7 @@ unsigned int calcTBS(MacNodeId nodeId, unsigned int numPRB, unsigned short mcsIn
     //std::cout << "LteMcs::calcTBS start at " << simTime().dbl() << std::endl;
 
     Tbs tbs = 0.0;
-    McsTableNROne table;
+    McsTableNR table;
 
     double coderate = table.at(mcsIndex).coderate_ / 1024; // coderate in table is multiplied with 1024
     LteMod mod = table.at(mcsIndex).mod_;
