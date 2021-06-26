@@ -67,9 +67,7 @@ public:
 
     MCSelemNR table[CQI2ITBSSIZE];
 
-    McsTableNR() {
-    }
-    ;
+    McsTableNR();
     ~McsTableNR() {
     }
 
@@ -90,22 +88,10 @@ public:
     }
     ;
 };
-class McsTableNROne: public McsTableNR {
-public:
-    McsTableNROne();
-    ~McsTableNROne(){
-    };
-};
 
-class McsTableNRTwo: public McsTableNR {
-public:
-    McsTableNRTwo();
-    ~McsTableNRTwo(){
-    };
-};
 
 extern const std::vector<Tbs> tbsNRTable;
-extern const CQIelem cqiTable[];
+extern CQIelem cqiTable[];
 
 unsigned int calcTBS(MacNodeId nodeId, unsigned int numPRB, unsigned short mcsIndex,
         unsigned short numLayers);
