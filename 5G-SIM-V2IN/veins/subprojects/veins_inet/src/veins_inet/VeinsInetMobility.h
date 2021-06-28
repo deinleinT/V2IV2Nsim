@@ -71,6 +71,8 @@ protected:
     /** @brief The last velocity that was set by nextPosition(). */
     inet::Coord lastVelocity;
 
+    double speed; //set by nextPosition()
+
     /** @brief The last angular velocity that was set by nextPosition(). */
     inet::Quaternion lastAngularVelocity;
 

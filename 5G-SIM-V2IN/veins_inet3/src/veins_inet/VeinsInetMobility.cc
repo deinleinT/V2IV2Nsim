@@ -25,6 +25,12 @@
 // Based on inet::MobilityBase of INET Framework v3.4.0
 //
 
+//
+// This file has been modified/enhanced for 5G-SIM-V2I/N.
+// Date: 2021
+// Author: Thomas Deinlein
+//
+
 #undef INET_IMPORT
 #include "inet/common/INETMath.h"
 #include "veins_inet/VeinsInetMobility.h"
@@ -46,6 +52,7 @@ VeinsInetMobility::VeinsInetMobility()
     , lastSpeed(inet::Coord::ZERO)
     , lastOrientation(inet::EulerAngles::ZERO)
 {
+    this->speed = 0;
 }
 
 //
@@ -67,6 +74,7 @@ void VeinsInetMobility::nextPosition(const inet::Coord& position, std::string ro
     lastPosition = position;
     lastSpeed = inet::Coord(cos(angle), -sin(angle)) * speed;
     lastOrientation.alpha = -angle;
+    this->speed = speed;
 
     // Update display string to show node is getting updates
     auto hostMod = getParentModule();

@@ -40,7 +40,7 @@ NRMacGnb::~NRMacGnb() {
 void NRMacGnb::initialize(int stage) {
 	LteMacEnb::initialize(stage);
 	if (stage == 0) {
-
+		qosHandler = check_and_cast<QosHandlerGNB*>(getParentModule()->getSubmodule("qosHandler"));
 		/* Create and initialize MAC Downlink scheduler */
 		delete enbSchedulerDl_;
 		enbSchedulerDl_ = check_and_cast<LteSchedulerEnbDl*>(new NRSchedulerGnbDl());
@@ -189,7 +189,8 @@ void NRMacGnb::sendGrants(LteMacScheduleListWithSizes *scheduleList) {
 		Codeword otherCw = MAX_CODEWORDS - cw;
 
 		MacCid cid = it->first.first;
-		LogicalCid lcid = MacCidToLcid(cid);
+		LogicalCid lcid = MacCidToLcid(cid);// 10 because of BSR
+
 		MacNodeId nodeId = MacCidToNodeId(cid);
 
 		unsigned int granted = it->second.first;        //blocks
@@ -331,7 +332,6 @@ void NRMacGnb::fromPhy(cPacket *pkt) {
 			tmp.trafficClass = (LteTrafficClass) userInfo->getTraffic();
 			qosHandler->getQosInfo()[userInfo->getCid()] = tmp;
 		}
-
 	}
 
 	LteMacBase::fromPhy(pkt);

@@ -57,7 +57,7 @@ network GeneralParameters{
         //
         bool useSINRThreshold = default(true); //checks if the SINR of a UE is lower than SINRThreshold in UL
         string thresholdDirection = default("DL");
-        int SINRThreshold = default(-15); // if useSINRThreshold true, the SINR is used to check, whether a UE is in coverage or not, if the SINR to all Base stations is lower than this value, the UE is not connected to any base station
+        int SINRThreshold = default(-20); // if useSINRThreshold true, the SINR is used to check, whether a UE is in coverage or not, if the SINR to all Base stations is lower than this value, the UE is not connected to any base station
         double checkConnectionInterval @unit(s) = default(0.1s);
         **.dasRssiThreshold = SINRThreshold; 
         

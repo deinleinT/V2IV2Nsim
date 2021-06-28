@@ -117,9 +117,7 @@ void NRRealisticChannelModel::initialize(int stage) {
 		rcvdSinr_ = registerSignal("rcvdSinr");
 		//
 		scenarioNR_ = aToDeploymentScenarioNR(par("scenarioNR").stringValue());
-
 		channelModelType_ = aToNRChannelModel(par("channelModelType").stringValue());
-
 		isNodeB_ = par("isNodeB").boolValue(); //OK in NRNic
 
 		checkScenarioAndChannelModel();
@@ -1567,7 +1565,7 @@ double NRRealisticChannelModel::computeUMaA(double &d3d, double &d2d, const MacN
 				throw cRuntimeError("Error LOS UMaA path loss model --> d2d, wStreet or hBuidling not valid");
 			plumaLos = computePLumaLos(d3d, d2d);
 			plumaNlos = 161.04 - 7.1 * log10(wStreet_) + 7.5 * log10(hBuilding_) - (24.37 - 3.7 * pow(hBuilding_ / hNodeB_, 2.0)) * log10(hNodeB_) + (43.42 - 3.1 * log10(hNodeB_)) * (log10(d3d) - 3.0)
-					+ 20.0 * log10(carrierFrequency_) - (3.2 * pow(log10(17.625), 2) - 4.97) - 0.6 * (hUe_ - 1.5);
+					+ 20.0 * log10(carrierFrequency_) - (3.2 * pow(log10(17.625), 2.0) - 4.97) - 0.6 * (hUe_ - 1.5);
 
 		} else if (6 < carrierFrequency_ && carrierFrequency_ <= 100) {
 			plumaLos = computePLumaLos(d3d, d2d);

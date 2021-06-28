@@ -86,8 +86,9 @@ public:
 //            table[i].threshold_ *= (168.0 / scale);
 //        }
     }
-    ;
+
 };
+
 
 
 extern const std::vector<Tbs> tbsNRTable;

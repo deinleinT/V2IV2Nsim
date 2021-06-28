@@ -25,6 +25,12 @@
 // Based on inet::MobilityBase of INET Framework v3.4.0
 //
 
+//
+// This file has been modified/enhanced for 5G-SIM-V2I/N.
+// Date: 2021
+// Author: Thomas Deinlein
+//
+
 #pragma once
 
 #undef INET_IMPORT
@@ -51,6 +57,7 @@ public:
 
 public:
     virtual double getMaxSpeed() const override;
+    virtual double getSpeed() { return speed; }
 
     virtual inet::Coord getCurrentPosition() override;
     virtual inet::Coord getCurrentSpeed() override;
@@ -78,6 +85,8 @@ protected:
     inet::Coord lastPosition;
     inet::Coord lastSpeed;
     inet::EulerAngles lastOrientation;
+
+    double speed;
 
 protected:
     virtual int numInitStages() const override
