@@ -53,6 +53,7 @@ public:
 
     /** @brief called by class VeinsInetManager */
     virtual void nextPosition(const inet::Coord& position, std::string road_id, double speed, double angle);
+    virtual double getSpeed() { return speed; }
 
     virtual inet::Coord getCurrentPosition() override;
     virtual inet::Coord getCurrentVelocity() override;
@@ -79,6 +80,8 @@ protected:
     mutable TraCICommandInterface::Vehicle* vehicleCommandInterface = nullptr; /**< cached value */
 
     std::string external_id; /**< identifier used by TraCI server to refer to this node */
+
+    double speed;
 
 protected:
     virtual void setInitialPosition() override;

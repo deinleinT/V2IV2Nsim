@@ -39,6 +39,7 @@ Register_Class(VeinsInetMobility);
 
 VeinsInetMobility::VeinsInetMobility()
 {
+    this->speed = 0;
 }
 
 VeinsInetMobility::~VeinsInetMobility()

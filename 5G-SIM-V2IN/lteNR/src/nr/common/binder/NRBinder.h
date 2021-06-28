@@ -102,7 +102,7 @@ public:
             LteMacBase *mac = getMacFromMacNodeId(ueId);
             cModule * car = mac->getParentModule()->getParentModule();
             veins::VeinsInetMobility *mobility = check_and_cast<veins::VeinsInetMobility*>(car->getSubmodule("mobility"));
-            double speed = mobility->getVehicleCommandInterface()->getSpeed();
+            double speed = mobility->getSpeed();
             vehiclesSpeedMap[key] = speed;
             return speed;
         }
