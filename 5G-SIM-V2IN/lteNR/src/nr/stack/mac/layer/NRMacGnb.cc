@@ -97,15 +97,6 @@ void NRMacGnb::handleSelfMessage() {
 	/***************
 	 *  MAIN LOOP  *
 	 ***************/
-	EnbType nodeType = cellInfo_->getEnbType();
-
-	//EV << "-----" << ((nodeType==MACRO_ENB)?"MACRO":"MICRO") << " ENB MAIN LOOP -----" << endl;
-
-	/*************
-	 * END DEBUG
-	 *************/
-
-	/* Reception */
 
 	// extract pdus from all harqrxbuffers and pass them to unmaker
 	HarqRxBuffers::iterator hit = harqRxBuffers_.begin();
@@ -240,6 +231,8 @@ void NRMacGnb::sendGrants(LteMacScheduleListWithSizes *scheduleList) {
 		uinfo->setLcid(lcid);
 
 		grant->setControlInfo(uinfo);
+
+		//
 		if (rtxMap[nodeId].size() == 1) {
 			//one rtx scheduled
 			auto temp = rtxMap[nodeId];
@@ -268,6 +261,7 @@ void NRMacGnb::sendGrants(LteMacScheduleListWithSizes *scheduleList) {
 			rtxMap[nodeId].erase(temp.erase(order));
 			//rtxMap.erase(nodeId);
 		}
+		//
 
 		// get and set the user's UserTxParams
 		const UserTxParams &ui = getAmc()->computeTxParams(nodeId, UL);
@@ -788,7 +782,7 @@ bool NRMacGnb::bufferizePacket(cPacket *pkt) {
 		// update the virtual buffer for this connection
 
 		// build the virtual packet corresponding to this incoming packet
-		PacketInfo vpkt(pkt->getByteLength(), pkt->getTimestamp());
+		PacketInfo vpkt(pkt->getByteLength(), pkt->getCreationTime());
 
 		LteMacBufferMap::iterator it = macBuffers_.find(cid);
 		if (it == macBuffers_.end()) {

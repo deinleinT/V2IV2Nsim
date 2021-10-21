@@ -69,7 +69,7 @@ void UmTxEntity::rlcPduMake(int pduLength)
         cPacket* pkt = sduQueue_.front();
         LteRlcSdu* rlcSdu = check_and_cast<LteRlcSdu*>(pkt);
 
-        unsigned int sduSequenceNumber = rlcSdu->getSnoMainPacket();
+        //unsigned int sduSequenceNumber = rlcSdu->getSnoMainPacket();
         int sduLength = rlcSdu->getByteLength();
 
         //EV << NOW << " UmTxEntity::rlcPduMake - Next data chunk from the queue, sduSno[" << sduSequenceNumber << "], length[" << sduLength << "]"<< endl;

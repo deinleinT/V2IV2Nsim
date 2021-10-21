@@ -44,6 +44,7 @@ UserControlInfo& UserControlInfo::operator=(const UserControlInfo& other)
     this->grantedBlocks = other.grantedBlocks;
     this->senderCoord = other.senderCoord;
     this->bytesize = other.bytesize;
+    this->creationTimeOfQueueFront = other.creationTimeOfQueueFront;
     UserControlInfo_Base::operator=(other);
     return *this;
 }

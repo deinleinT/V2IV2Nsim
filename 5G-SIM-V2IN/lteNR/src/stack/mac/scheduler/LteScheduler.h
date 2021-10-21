@@ -95,9 +95,6 @@ class LteScheduler
      */
     std::map<LteTrafficClass, int> grantSizeMap_;
 
-    //
-    bool variationFlag;//used for LtePf module
-
   public:
 
     /**
@@ -108,7 +105,6 @@ class LteScheduler
         //    WATCH(activeSet_);
         activeConnectionSet_.clear();
         binder_ = NULL;
-        variationFlag = false;
     }
     /**
      * Destructor.
@@ -147,10 +143,7 @@ class LteScheduler
     virtual void commitSchedule()
     {
     }
-//    virtual void prepareScheduleEnbDl() {
-//    }
-//    virtual void commitScheduleEnbDl() {
-//    }
+
     // *****************************************************************************************
 
     /// performs request of grant to the eNbScheduler
@@ -185,7 +178,7 @@ class LteScheduler
     {
         ActiveSet::iterator it = activeConnectionSet_.begin();
         ActiveSet::iterator et = activeConnectionSet_.end();
-        MacCid cid;
+        MacCid cid = 0;
         for (; it != et; ++it)
         {
             cid = *it;

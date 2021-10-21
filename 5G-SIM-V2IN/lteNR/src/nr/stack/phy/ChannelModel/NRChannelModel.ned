@@ -73,7 +73,7 @@ simple NRRealisticChannelModel extends LteRealisticChannelModel
     uplink_interference = default(false);
     
 	tolerateMaxDistViolation = default(false);
-	// If true enable the possibility to switch dinamically the LOS/NLOS pathloss computation -->
+    // If true enable the possibility to switch dynamically the LOS/NLOS pathloss computation -->
     dynamic_los = default(true);
     // If dynamic-los is false this parameter, if true, compute LOS pathloss otherwise compute NLOS pathloss -->
     fixed_los = default(false);
@@ -97,7 +97,7 @@ simple NRRealisticChannelModel extends LteRealisticChannelModel
 	//bool cqiFlag = default(false);
 	
 	//for Indoor Factory channel models from 38.901, table 7.2-4
-	double d_clutter = default(0); //typical clutter size (10m, 2m or above)
+	double d_clutter = default(10); //typical clutter size (10m, 2m or above)
 	double clutter_density_r = default(0); //percentage of surface area occupied by clutter, about 40 %
 	double hClutter = default(0); // hc, effective clutter heigth, 0-10m
 	double ceilingHeight = default(15); // height of factory ceiling

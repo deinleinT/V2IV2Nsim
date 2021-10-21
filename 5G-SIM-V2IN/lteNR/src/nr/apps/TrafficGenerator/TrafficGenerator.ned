@@ -42,16 +42,7 @@ simple TrafficGenerator extends UDPBasicApp
         
         //delay for following packets
         double resendingDelay @unit(s)= default(0.001s);
-        double startTimeDL @unit(s)= default(15.0s);
-              
-        double delayBudget10ms = default(0.01);
-        double delayBudget20ms = default(0.02);
-        double delayBudget50ms = default(0.05);
-        double delayBudget100ms = default(0.1);
-        double delayBudget200ms = default(0.2);
-        double delayBudget500ms = default(0.5);
-        double delayBudget1s = default(1.0);
-             
+        double startTimeDL @unit(s)= default(15.0s);           
         
         @signal[delayVoip];
         @statistic[delayVoip](title="delayVoip"; unit=""; source="delayVoip"; record=vector);

@@ -55,26 +55,26 @@ network NRFourBSHighwaySimple extends GeneralParameters
                 playgroundSizeX = playgroundSizeX;
                 playgroundSizeY = playgroundSizeY;
                 playgroundSizeZ = playgroundSizeZ;
-                @display("p=6853.6997,4467.1436;i=misc/globe");
+                @display("p=6844.5,4674.54;i=misc/globe");
         }
 
 		//INET
         routingRecorder: RoutingTableRecorder {
-            @display("p=6853.6997,2019.3937;is=s");
+            @display("p=6844.5,1196.52;is=s");
         }
         //INET
         configurator: IPv4NetworkConfigurator {
-            @display("p=6853.6997,3353.4175");
+            @display("p=6844.5,3001.4402");
             config = xmldoc("demo.xml");
         }
 
         roadsCanvasVisualizer: RoadsCanvasVisualizer {
-            @display("p=6854.64,1571.7001");
+            @display("p=6844.5,699.66003");
         }
 
         //# Veins manager module
         veinsManager: VeinsInetManager {
-            @display("p=6853.6997,2582.3762;is=s");
+            @display("p=6844.5,1622.4;is=s");
         }
 
         obstacles: ObstacleControl {
@@ -82,30 +82,30 @@ network NRFourBSHighwaySimple extends GeneralParameters
         }
 
         annotations: AnnotationManager {
-            @display("p=6853.6997,3720.5798");
+            @display("p=6844.5,3498.3");
         }
 
         //# NR modules
         //changed
         channelControl: NRChannelControl {
-            @display("p=6853.6997,3096.4036;is=s");
+            @display("p=6834.3604,2535;is=s");
         }
 
         //changed
         binder: NRBinder {
-            @display("p=6853.6997,2827.1511;is=s");
+            @display("p=6844.5,2078.7;is=s");
         }
 
         //INET
         server1: StandardHost {
-            @display("p=3182.544,3432.744;is=n;i=device/server");
+            @display("p=3964.74,3985.02;is=n;i=device/server");
         }
-        server2: StandardHost {
-            @display("p=3032.424,4473.576;is=n;i=device/server");
-        }
-        server3: StandardHost {
-            @display("p=3943.152,3993.192;is=n;i=device/server");
-        }
+//        server2: StandardHost {
+//            @display("p=3032.424,4473.576;is=n;i=device/server");
+//        }
+//        server3: StandardHost {
+//            @display("p=3943.152,3993.192;is=n;i=device/server");
+//        }
 
         //INET
         router: Router {
@@ -134,8 +134,8 @@ network NRFourBSHighwaySimple extends GeneralParameters
 
     connections allowunconnected:
         server1.pppg++ <--> Eth10G <--> router.pppg++;
-        server2.pppg++ <--> Eth10G <--> router.pppg++;
-        server3.pppg++ <--> Eth10G <--> router.pppg++;
+//        server2.pppg++ <--> Eth10G <--> router.pppg++;
+//        server3.pppg++ <--> Eth10G <--> router.pppg++;
 
         router.pppg++ <--> Eth10G <--> upf.filterGate;
         upf.pppg++ <--> Eth10G <--> gNodeB1.ppp;

@@ -148,7 +148,7 @@ void GtpUserNR::handleFromUdp(GtpUserMsg * gtpMsg) {
 
 			if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
 				//add processing delay
-				sendDelayed(datagram, uniform(0,datagram->getTotalLengthField()/10e6), "pppGate");
+				sendDelayed(datagram, uniform(0,datagram->getTotalLengthField()/10e5), "pppGate");
 			} else {
 				send(datagram, "pppGate");
 			}

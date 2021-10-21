@@ -34,7 +34,6 @@
 #include "nr/apps/TrafficGenerator/packet/VideoMessage_m.h"
 #include "nr/apps/TrafficGenerator/packet/VoIPMessage_m.h"
 #include "nr/apps/TrafficGenerator/packet/DataMessage_m.h"
-#include "veins/modules/mobility/traci/TraCIScenarioManager.h"
 #include "nr/stack/phy/layer/NRPhyUe.h"
 
 using namespace omnetpp;
@@ -87,6 +86,8 @@ struct StatReport {
 	double recPacketsDataOutBudget200ms = 0;
 	double recPacketsDataOutBudget500ms = 0;
 	double recPacketsDataOutBudget1s = 0;
+	double recPacketsDataOutBudget30ms = 0;
+	double recPacketsDataOutBudget300ms = 0;
 
 	double recPacketsV2XOutBudget10ms = 0;
 	double recPacketsV2XOutBudget20ms = 0;
@@ -95,6 +96,8 @@ struct StatReport {
 	double recPacketsV2XOutBudget200ms = 0;
 	double recPacketsV2XOutBudget500ms = 0;
 	double recPacketsV2XOutBudget1s = 0;
+	double recPacketsV2XOutBudget30ms = 0;
+	double recPacketsV2XOutBudget300ms = 0;
 
 	double recPacketsVoipOutBudget10ms = 0;
 	double recPacketsVoipOutBudget20ms = 0;
@@ -103,6 +106,8 @@ struct StatReport {
 	double recPacketsVoipOutBudget200ms = 0;
 	double recPacketsVoipOutBudget500ms = 0;
 	double recPacketsVoipOutBudget1s = 0;
+	double recPacketsVoipOutBudget30ms = 0;
+	double recPacketsVoipOutBudget300ms = 0;
 
 	double recPacketsVideoOutBudget10ms = 0;
 	double recPacketsVideoOutBudget20ms = 0;
@@ -111,6 +116,8 @@ struct StatReport {
 	double recPacketsVideoOutBudget200ms = 0;
 	double recPacketsVideoOutBudget500ms = 0;
 	double recPacketsVideoOutBudget1s = 0;
+	double recPacketsVideoOutBudget30ms = 0;
+	double recPacketsVideoOutBudget300ms = 0;
 
 };
 
@@ -227,6 +234,9 @@ protected:
 	simtime_t delayBudget500ms;
 	simtime_t delayBudget1s;
 
+	simtime_t delayBudget30ms;
+	simtime_t delayBudget300ms;
+
 	bool considerDatasizeAndMessages;
 
 	unsigned int lastSentStatusUpdateSN;
@@ -244,25 +254,7 @@ protected:
 	 */
 	virtual bool isRemoteCar(unsigned short ueId, unsigned int remoteCarFactor) {
 
-		if (getSystemModule()->par("remoteCarByColour")) {
-			veins::TraCIScenarioManager *vinetmanager = check_and_cast<veins::TraCIScenarioManager*>(getSimulation()->getModuleByPath("veinsManager"));
-			return vinetmanager->isRemoteVehicle(getBinder()->getMacFromMacNodeId(ueId)->getParentModule()->getParentModule()->getFullName());
-		}
-
-		//if remoteCarJustOne is true, only one remote vehicle is added to the simulation
-		//its id is determined by the remoteCarFactor (e.g., remoteCarFactor=0 --> the remote car is the one with the ueId 1025)
-		if (getSystemModule()->par("remoteCarJustOne").boolValue()) {
-			if ((UE_MIN_ID + remoteCarFactor) == ueId) {
-				return true;
-			}
-			return false;
-		}
-
-		//several remote cars are added to the simulation
-		if (ueId % remoteCarFactor == 0) {
-			return true;
-		}
-		return false;
+		return getNRBinder()->isRemoteCar(ueId, remoteCarFactor);
 	}
 
 	virtual int numInitStages() const override {
@@ -280,25 +272,19 @@ protected:
 
 	virtual void recordReliability();
 
-	/*
-	 * records the position of the vehicle when a packet loss was detected at application layer
-	 */
-	virtual void recordVehiclePositionAndLostPackets(MacNodeId nodeId, Direction direction, unsigned int lostPackets) {
+	virtual inet::Coord getVehiclePositon(MacNodeId nodeId, Direction direction) {
 
-		Enter_Method_Silent("recordVehiclePositionAndLostPackets");
-
-		if(!(getSystemModule()->par("recordPositionAndPacketLoss"))){
-			return;
-		}
+		Enter_Method_Silent
+		("getVehiclePositon");
 
 		if (direction == DL) {
 			//server sends to car, this is called on UE side, get access to its physical layer
-			check_and_cast<NRPhyUe*>(getParentModule()->getSubmodule("lteNic")->getSubmodule("phy"))->recordPositionAndLostPackets(lostPackets, direction);
+			return check_and_cast<NRPhyUe*>(getParentModule()->getSubmodule("lteNic")->getSubmodule("phy"))->getCoord();
 			//
 		} else {
 			//car sends to server, this is called on server side, but the value is recorded in the corresponding car!
-			cModule * module = getMacUe(nodeId);
-			check_and_cast<NRPhyUe*>(module->getParentModule()->getSubmodule("phy"))->recordPositionAndLostPackets(lostPackets, direction);
+			cModule *module = getMacUe(nodeId);
+			return check_and_cast<NRPhyUe*>(module->getParentModule()->getSubmodule("phy"))->getCoord();
 			//
 		}
 	}

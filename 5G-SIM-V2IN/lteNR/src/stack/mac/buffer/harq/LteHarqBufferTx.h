@@ -151,6 +151,8 @@ class LteHarqBufferTx
      */
     void insertPdu(unsigned char acid, Codeword cw, LteMacPdu *pdu);
 
+    bool isCompletelyEmpty(unsigned char acid, Codeword cw, LteMacPdu *pdu);
+
     /**
      * Returns a pair with h-arq process id and a list of its empty units to be used for transmission.
      * If a process has already been selected (e.g. for rtx), then the same

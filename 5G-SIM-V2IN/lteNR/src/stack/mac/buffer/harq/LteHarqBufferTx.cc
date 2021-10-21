@@ -115,6 +115,17 @@ void LteHarqBufferTx::markSelected(UnitList unitIds, unsigned char availableTbs)
 	//std::cout << "LteHarqBufferRx::markSelected end at " << simTime().dbl() << std::endl;
 }
 
+bool LteHarqBufferTx::isCompletelyEmpty(unsigned char acid, Codeword cw, LteMacPdu *pdu) {
+
+	if (!(*processes_)[acid]->isEmpty()){
+		return false;
+		//throw cRuntimeError("H-ARQ TX buffer: new process selected for tx is not completely empty");
+	}else {
+		return true;
+	}
+
+}
+
 void LteHarqBufferTx::insertPdu(unsigned char acid, Codeword cw, LteMacPdu *pdu) {
 	//std::cout << "LteHarqBufferRx::insertPdu start at " << simTime().dbl() << std::endl;
 

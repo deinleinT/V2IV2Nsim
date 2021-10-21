@@ -41,7 +41,6 @@ public:
   protected:
     QosHandler * qosHandler;
 
-
     // false if currentHarq_ counter needs to be initialized
     bool firstTx;
 

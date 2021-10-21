@@ -27,6 +27,8 @@ packet LteSchedulingGrant
     bool newTx;
     
     unsigned int processId;
+    
+    unsigned int macCid;
 
     //#  in LteSchedulingGrant.h
     //# const UserTxParams* userTxParams;

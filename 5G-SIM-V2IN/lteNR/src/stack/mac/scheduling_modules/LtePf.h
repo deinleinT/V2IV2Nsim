@@ -78,13 +78,6 @@ class LtePf : public LteScheduler
         pfRate_.clear();
         nodeCounter = 0;
     }
-	LtePf(double pfAlpha, bool variationFlag) :
-			scoreEpsilon_(0.000001) {
-		pfAlpha_ = pfAlpha;
-		pfRate_.clear();
-		nodeCounter = 0;
-		this->variationFlag = variationFlag;
-	}
 };
 
 #endif // _LTE_LTEPF_H_

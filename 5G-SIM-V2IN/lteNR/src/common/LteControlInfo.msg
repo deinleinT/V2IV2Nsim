@@ -67,6 +67,11 @@ class LteControlInfo {
     bool containsSeveralCids;
     
     unsigned int bytesize; 
+    
+    unsigned int numberOfPacketsInQueue;
+    unsigned int bytesizeOfOnePacket;
+    
+    
 
     //# Traffic Control Information
 

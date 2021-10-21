@@ -23,6 +23,7 @@ protected:
     unsigned int tft_;
     unsigned short msgCategory;
     unsigned short qfi;
+    unsigned short _5Qi;
     unsigned short radioBearerId;
 
 public:
@@ -43,12 +44,21 @@ public:
         return msgCategory;
     }
 
-    void setQfi(unsigned short qfi) {
-        this->qfi = qfi;
-    }
-    unsigned short getQfi() {
-        return qfi;
-    }
+	void setQfi(unsigned short qfi) {
+		this->qfi = qfi;
+	}
+
+	unsigned short getQfi() {
+		return qfi;
+	}
+
+	void set5Qi(unsigned short value) {
+		this->_5Qi = value;
+	}
+
+	unsigned short get5Qi() {
+		return _5Qi;
+	}
 
     void setRadioBearerId(unsigned short rbId) {
         this->radioBearerId = rbId;

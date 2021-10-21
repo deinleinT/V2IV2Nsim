@@ -25,7 +25,6 @@
  */
 
 #include "nr/stack/phy/ChannelModel/NRRealisticChannelModel.h"
-#include "stack/phy/layer/LtePhyBase.h"
 
 /*
  * ChannelModels --> see
@@ -922,9 +921,7 @@ void NRRealisticChannelModel::computeLosProbabilityNR(const double &d2d, const M
 
 	//std::cout << "NRRealisticChannelModel::computeLosProbabilityNR end at " << simTime().dbl() << std::endl;
 }
-/*
- *
- */
+
 double NRRealisticChannelModel::getAttenuationNR(const MacNodeId &nodeId, const Direction &dir, const Coord &uecoord, const Coord &enodebcoord, bool recordStats) {
 	//std::cout << "NRRealisticChannelModel::getAttenuationNR start at " << simTime().dbl() << std::endl;
 
@@ -945,6 +942,7 @@ double NRRealisticChannelModel::getAttenuationNR(const MacNodeId &nodeId, const 
 
 	//If traveled distance is greater than correlation distance UE could have changed its state and
 	// its visibility from eNodeb, hence it is correct to recompute the los probability
+	double attenuation = 0.0;
 	if (dynamicNlos_ && (correlationDist >= correlationDistance_ || losMap_.find(nodeId) == losMap_.end())) {
 		bool nlos;
 
@@ -965,7 +963,6 @@ double NRRealisticChannelModel::getAttenuationNR(const MacNodeId &nodeId, const 
 		computeLosProbabilityNR(d2ddistance, nodeId, recordStats);
 	}
 
-	double attenuation = 0.0;
 	if (!dynamicNlos_ || (dynamicNlos_ && !veinsObstacleShadowing)) {
 		switch (scenarioNR_) {
 		case INDOOR_HOTSPOT_EMBB:
@@ -1256,7 +1253,7 @@ double NRRealisticChannelModel::computeRMaA(double &d3ddistance, double &d2ddist
 		d3ddistance = 10.0001;
 	if (d2ddistance > 21000) {
 		if (tolerateMaxDistViolation_)
-			return ATT_MAXDISTVIOLATED;
+			return 21000;
 		else
 			throw cRuntimeError("Error LOS RMaA path loss model is valid for d<5000 m");
 	}
@@ -1641,7 +1638,7 @@ double NRRealisticChannelModel::computeIndoorFactory(double &d3ddistance, double
 		return computeInFSL(d3ddistance, d2ddistance, nodeId);
 	} else if (channelModelType_ == InFDL) {
 		double pathlossLOS = computeInFLOS(d3ddistance, d2ddistance, nodeId);
-		double pathlossNLOS = 33.0 + 25.5 * log10(d3ddistance) + 20.0 * log10(carrierFrequency_);
+		double pathlossNLOS = 18.6 + 35.7 * log10(d3ddistance) + 20 * log10(carrierFrequency_);
 		double pathlossInFSL = computeInFSL(d3ddistance, d2ddistance, nodeId);
 		pathloss = max(pathlossLOS, max(pathlossNLOS, pathlossInFSL));
 	} else if (channelModelType_ == InFSH) {
@@ -1653,7 +1650,6 @@ double NRRealisticChannelModel::computeIndoorFactory(double &d3ddistance, double
 		double pathlossNLOS = 33.63 + 21.9 * log10(d3ddistance) + 20.0 * log10(carrierFrequency_);
 		pathloss = max(pathlossLOS, pathlossNLOS);
 	}
-	return pathloss;
 	throw cRuntimeError("Error LOS Indoor Factory path loss model is not valid --> invalid channelModel");
 }
 

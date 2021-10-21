@@ -181,7 +181,7 @@ unsigned int LteSchedulerEnb::scheduleGrant(MacCid cid, unsigned int bytes, bool
         tempBandLim = emptyBandLim_;
         bandLim = &tempBandLim;
     }
-    EV << "LteSchedulerEnb::grant(" << cid << "," << bytes << "," << terminate << "," << active << "," << eligible << "," << bands_msg << "," << dasToA(antenna) << ")" << endl;
+    //EV << "LteSchedulerEnb::grant(" << cid << "," << bytes << "," << terminate << "," << active << "," << eligible << "," << bands_msg << "," << dasToA(antenna) << ")" << endl;
 
     unsigned int totalAllocatedBytes = 0;  // total allocated data (in bytes)
     unsigned int totalAllocatedBlocks = 0; // total allocated data (in blocks)
@@ -283,6 +283,7 @@ unsigned int LteSchedulerEnb::scheduleGrant(MacCid cid, unsigned int bytes, bool
 
     // get the buffer size
     unsigned int queueLength = conn->getQueueOccupancy(); // in bytes
+
     if (queueLength == 0)
     {
         active = false;
@@ -373,7 +374,7 @@ unsigned int LteSchedulerEnb::scheduleGrant(MacCid cid, unsigned int bytes, bool
             EV << "LteSchedulerEnb::grant Available Bytes: " << bandAvailableBytes << " available blocks " << bandAvailableBlocks << endl;
 
             unsigned int uBytes = (bandAvailableBytes > queueLength) ? queueLength : bandAvailableBytes;
-            unsigned int uBlocks = mac_->getAmc()->computeReqRbs(nodeId, b, cw, uBytes, dir,bandAvailableBlocks)+1;
+            unsigned int uBlocks = mac_->getAmc()->computeReqRbs(nodeId, b, cw, uBytes, dir,bandAvailableBlocks);
 
             // allocate resources on this band
             if(allocatedCws == 0)
@@ -617,8 +618,7 @@ LteScheduler* LteSchedulerEnb::getScheduler(SchedDiscipline discipline)
     case DRR:
         return new LteDrr();
     case PF:
-//        return new LtePf(mac_->par("pfAlpha").doubleValue());
-        return new LtePf(mac_->par("pfAlpha").doubleValue(),mac_->par("variationFlag").boolValue());
+        return new LtePf(mac_->par("pfAlpha").doubleValue());
     case MAXCI:
         return new LteMaxCi();
     case MAXCI_MB:

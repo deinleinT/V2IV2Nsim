@@ -266,8 +266,8 @@ void LtePhyEnb::requestFeedback(UserControlInfo* lteinfo, LteAirFrame* frame,
     //get UE Position
     Coord sendersPos = lteinfo->getCoord();
     cellInfo_->setUePosition(lteinfo->getSourceId(), sendersPos);
-    lteinfo->setTxPower(txPower_);
-    lteinfo->setDirection(DL);
+//    lteinfo->setTxPower(txPower_);
+//    lteinfo->setDirection(DL);
     lteinfo->setFrameType(FEEDBACKPKT);
 
     //Apply analog model (pathloss)

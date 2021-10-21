@@ -113,7 +113,7 @@ void TrafficFlowFilterNR::handleMessage(cMessage *msg) {
 			if (connectedUPF_ == destinationName) {
 				if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
 					//add processing delay
-					sendDelayed(datagram, uniform(0,datagram->getTotalLengthField()/10e6), "fromToN9Interface$o", i);
+					sendDelayed(datagram, uniform(0,datagram->getTotalLengthField()/10e5), "fromToN9Interface$o", i);
 				} else {
 					send(datagram, "fromToN9Interface$o", i);
 				}
@@ -123,7 +123,7 @@ void TrafficFlowFilterNR::handleMessage(cMessage *msg) {
 		}
 		if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
 			//add processing delay
-			sendDelayed(datagram, uniform(0,datagram->getTotalLengthField()/10e6), "fromToN9Interface$o", gateIndex);
+			sendDelayed(datagram, uniform(0,datagram->getTotalLengthField()/10e5), "fromToN9Interface$o", gateIndex);
 		} else {
 			send(datagram, "fromToN9Interface$o", gateIndex);
 		}
@@ -166,7 +166,7 @@ void TrafficFlowFilterNR::handleMessage(cMessage *msg) {
 
 		if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
 			//add processing delay
-			sendDelayed(datagram, uniform(0,datagram->getTotalLengthField()/10e6),"gtpUserGateOut");
+			sendDelayed(datagram, uniform(0,datagram->getTotalLengthField()/10e5),"gtpUserGateOut");
 		} else {
 			// send the datagram to the GTP-U module
 			send(datagram, "gtpUserGateOut");

@@ -31,7 +31,7 @@ simple NRBinder extends LteBinder
 {
     parameters:
         @class(NRBinder);
-        //Qos Characteristics, TS 23.501, V 16.0.2
+        //Qos Characteristics, TS 23.501, V 16.0.2, Chapter 5.7
         string qiValue = "1 2 3 4 65 66 67 75 71 72 73 74 75 5 6 7 8 9 69 70 79 80 82 83 84 85"; //
         string resourceType = "GBR GBR GBR GBR GBR GBR GBR GBR GBR GBR GBR GBR GBR NGBR NGBR NGBR NGBR NGBR NGBR NGBR NGBR NGBR DCGBR DCGBR DCGBR DCGBR ";
         string priorityLevel = "20 40 30 50 7 20 15 0 56 56 56 56 56 10 60 70 80 90 5 55 65 68 19 22 24 21";

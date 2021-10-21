@@ -158,7 +158,7 @@ protected:
 
 	void considerCodeBlockGroups(LteControlInfo *& info, unsigned char & nTx, double & totalPer, LteAirFrame *& frame);
 
-	 /* compute speed (m/s) for a given node
+	 /* computes speed (m/s) for a given node
 	   * @param nodeid mac node id of UE
 	   * @return the speed in m/s
 	   */

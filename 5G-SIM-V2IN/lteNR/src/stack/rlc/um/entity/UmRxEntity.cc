@@ -216,11 +216,13 @@ void UmRxEntity::moveRxWindow(const int pos)
 
     //EV << NOW << " UmRxEntity::moveRxWindow moving forth of " << pos << " locations" << endl;
 
-    if (pos <= 0)
+    if (pos <= 0){
         return;  // ignore the shift , it is uneffective.
+    }
 
-    if (pos>rxWindowDesc_.windowSize_)
+    if (pos > rxWindowDesc_.windowSize_){
         throw cRuntimeError("UmRxQueue::moveRxWindow(): positions %d win size %d ",pos,rxWindowDesc_.windowSize_);
+    }
 
     for (unsigned int i = pos; i < rxWindowDesc_.windowSize_; ++i) {
         if (pduBuffer_.get(i) != NULL) {

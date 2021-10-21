@@ -33,6 +33,7 @@ class UserControlInfo : public UserControlInfo_Base
     //Move senderMovement;
     /** @brief The playground position of the sending host.*/
     inet::Coord senderCoord;
+    simtime_t creationTimeOfQueueFront;
 
   public:
 
@@ -101,6 +102,14 @@ class UserControlInfo : public UserControlInfo_Base
     FeedbackRequest feedbackReq;
     void setCoord(const inet::Coord& coord);
     inet::Coord getCoord() const;
+
+    void setCreationTimeOfQueueFront(simtime_t timestamp){
+    	this->creationTimeOfQueueFront = timestamp;
+    }
+
+    simtime_t getCreationTimeOfQueueFront(){
+    	return creationTimeOfQueueFront;
+    }
 
 };
 
