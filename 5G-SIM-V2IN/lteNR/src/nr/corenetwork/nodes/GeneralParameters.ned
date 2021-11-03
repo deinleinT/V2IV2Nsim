@@ -29,13 +29,14 @@ package nr.corenetwork.nodes;
 network GeneralParameters
 {
     parameters:
+        //for V2VCoopPerception
         bool v2vMulticastFlag = default(false);
         double v2vMulticastDistance = default(300.0);
 
 		//TRANSMIT_DIVERSITY, OL_SPATIAL_MULTIPLEXING,MULTI_USER,SINGLE_ANTENNA_PORT0
         string initialTxMode = default("SINGLE_ANTENNA_PORT0");
         bool remoteDrivingUL = default(false); //use case remote driving in UL activated
-        bool remoteDrivingDL = default(false); //use case remote driving in UL activated
+        bool remoteDrivingDL = default(false); //use case remote driving in DL activated
         int remoteCarFactor = default(10); // controls the remote car penetration rate (e.g., set to 10 --> each 10th car is a remote vehicle)
         bool remoteCarJustOne = default(false); // if true, just one car is a remote vehicle --> the car identity can set via the parameter remoteCarFactor, e.g., this flag is true and remoteCarFactor = 10 --> the car with MacNodeId 1035 (or car[9]) is a remoteVehicle
         bool remoteCarByColour = default(false);// if true, only red cars are remote vehicles
@@ -87,9 +88,9 @@ network GeneralParameters
         bool printTBS = default(false);
 
         //extendedMCSTable
-        bool useExtendedMcsTable = default(false);
+        bool useExtendedMcsTable = default(true);
 
-        bool fairRacScheduleInUL = default(false); //used in NRSchedulerGnbUl::racschedule (by default set to false)
+        bool fairRacScheduleInUL = default(true); //used in NRSchedulerGnbUl::racschedule (by default set to false)
         bool newTxbeforeRtx = default(false); //used in NRSchedulerGnbUl and NRMacUe (if true, a new transmission is scheduled before a retransmission, by default set to false)
 
 }

@@ -68,7 +68,7 @@ bool NRSchedulerGnbUl::racschedule() {
 
 	RacStatus::iterator it = racStatus_.begin(), et = racStatus_.end();
 
-	bool fairSchedule = getSimulation()->getSystemModule()->par("fairRacScheduleInUL").boolValue();
+	bool fairSchedule = getSimulation()->getSystemModule()->par("fairRacScheduleInUL").boolValue();		//see GeneralParameters.ned
 	for (; it != et; ++it) {
 
 		// get current nodeId
@@ -88,21 +88,21 @@ bool NRSchedulerGnbUl::racschedule() {
 		unsigned int bytesize = racStatusInfo_[nodeId]->getBytesize();    //bytes UE want to send
 		int restBytes = bytesize;
 
-//					//default behavior from simuLTE
-//					blocks = 1;
-//					for (Band b = 0; b < numBands; ++b) {
-//						if (allocator_->availableBlocks(nodeId, MACRO, b) > 0) {
-//							unsigned int bytes = mac_->getAmc()->computeBytesOnNRbs(nodeId, b, cw, blocks, UL);
-//							if (bytes > 0) {
-//								allocator_->addBlocks(MACRO, b, nodeId, 1, bytes);
-//								sumReqBlocks = 1;
-//								sumBytes = bytes;
-//
-//								allocation = true;
-//								break;
-//							}
-//						}
-//					}
+		//					//default behavior from simuLTE
+		//					blocks = 1;
+		//					for (Band b = 0; b < numBands; ++b) {
+		//						if (allocator_->availableBlocks(nodeId, MACRO, b) > 0) {
+		//							unsigned int bytes = mac_->getAmc()->computeBytesOnNRbs(nodeId, b, cw, blocks, UL);
+		//							if (bytes > 0) {
+		//								allocator_->addBlocks(MACRO, b, nodeId, 1, bytes);
+		//								sumReqBlocks = 1;
+		//								sumBytes = bytes;
+		//
+		//								allocation = true;
+		//								break;
+		//							}
+		//						}
+		//					}
 
 		if (!fairSchedule) {
 			for (Band b = 0; b < numBands; ++b) {
@@ -158,7 +158,6 @@ bool NRSchedulerGnbUl::racschedule() {
 
 		if (allocation) {
 			// create scList id for current cid/codeword
-			//MacCid cid = racStatusInfo_[nodeId]->getCid();
 			MacCid cid = idToMacCid(nodeId, SHORT_BSR);  // build the cid. Since this grant will be used for a BSR,
 			// we use the LCID corresponding to the SHORT_BSR
 			std::pair<unsigned int, Codeword> scListId = std::pair<unsigned int, Codeword>(cid, cw);
@@ -185,7 +184,7 @@ bool NRSchedulerGnbUl::racschedule() {
 }
 
 /**
- * changed the behaviour
+ * changed the behavior
  * racschedule is called after checking whether a rtx is needed
  */
 bool NRSchedulerGnbUl::rtxschedule() {
@@ -194,7 +193,6 @@ bool NRSchedulerGnbUl::rtxschedule() {
 
 	if (getSimulation()->getSystemModule()->par("nrHarq").boolValue()) {
 		return rtxscheduleWithNRHarq();
-
 	}
 
 	// try to handle RAC requests first and abort rtx scheduling if no OFDMA space is left after
@@ -298,11 +296,11 @@ bool NRSchedulerGnbUl::rtxscheduleWithNRHarq() {
 	//std::cout << "NRSchedulerGnbUl::rtxscheduleWithNRHarq start at " << simTime().dbl() << std::endl;
 
 	if (getSimulation()->getSystemModule()->par("newTxbeforeRtx").boolValue()) {
-		if (racschedule())//racschedule() returns true if no resource blocks are available
+		if (racschedule())        //racschedule() returns true if no resource blocks are available
 			return true;
 	}
 
-	try { // TODO Check behaviour with more than one active Process
+	try {
 		//EV << NOW << " NRSchedulerGnbUl::rtxscheduleWithNRHarq --------------------::[ START RTX-SCHEDULE ]::--------------------" << endl;
 		//EV << NOW << " NRSchedulerGnbUl::rtxscheduleWithNRHarq eNodeB: " << mac_->getMacCellId() << endl;
 		//EV << NOW << " NRSchedulerGnbUl::rtxscheduleWithNRHarq Direction: " << (direction_ == UL ? "UL" : "DL") << endl;
@@ -348,7 +346,6 @@ bool NRSchedulerGnbUl::rtxscheduleWithNRHarq() {
 					std::pair<unsigned short, simtime_t> processRxTime = make_pair(process, timestamp);
 					macNodeProcessRxTime[nodeIdCw] = processRxTime;
 				}
-
 			}
 			//
 		}
@@ -377,17 +374,10 @@ bool NRSchedulerGnbUl::rtxscheduleWithNRHarq() {
 			} else {
 				break;
 			}
-
 		}
 		//
 
 		int availableBlocks = allocator_->computeTotalRbs();
-
-		//EV << NOW << " NRSchedulerGnbUl::rtxscheduleWithNRHarq residual OFDM Space: " << availableBlocks << endl;
-
-		//EV << NOW << " NRSchedulerGnbUl::rtxscheduleWithNRHarq --------------------::[  END RTX-SCHEDULE  ]::--------------------" << endl;
-
-		//std::cout << "NRSchedulerGnbUl::rtxscheduleWithNRHarq end at " << simTime().dbl() << std::endl;
 
 		if (!getSimulation()->getSystemModule()->par("newTxbeforeRtx").boolValue()) {
 			racschedule();
@@ -433,7 +423,7 @@ unsigned int NRSchedulerGnbUl::schedulePerAcidRtx(MacNodeId nodeId, Codeword cw,
 		//EV << NOW << "NRSchedulerGnbUl::rtxAcid - Node[" << mac_->getMacNodeId() << ", User[" << nodeId << ", Codeword[ " << cw << "], ACID[" << (unsigned int)acid << "] " << endl;
 
 		// Get the current active HARQ process
-//        unsigned char currentAcid = harqStatus_.at(nodeId) ;
+		//        unsigned char currentAcid = harqStatus_.at(nodeId) ;
 
 		unsigned char currentAcid = (harqStatus_.at(nodeId) + 2) % (harqRxBuffers_->at(nodeId)->getProcesses());
 		//EV << "\t the acid that should be considered is " << currentAcid << endl;
@@ -448,7 +438,7 @@ unsigned int NRSchedulerGnbUl::schedulePerAcidRtx(MacNodeId nodeId, Codeword cw,
 		}
 
 		Codeword allocatedCw = 0;
-//        Codeword allocatedCw = MAX_CODEWORDS;
+		//        Codeword allocatedCw = MAX_CODEWORDS;
 		// search for already allocated codeword
 		// create "mirror" scList ID for other codeword than current
 		std::pair<unsigned int, Codeword> scListMirrorId = std::pair<unsigned int, Codeword>(idToMacCid(nodeId, SHORT_BSR), MAX_CODEWORDS - cw - 1);
@@ -474,8 +464,8 @@ unsigned int NRSchedulerGnbUl::schedulePerAcidRtx(MacNodeId nodeId, Codeword cw,
 			int limit = bandLim->at(i).limit_.at(cw);
 
 			// TODO add support to multi CW
-//            unsigned int bandAvailableBytes = // if a codeword has been already scheduled for retransmission, limit available blocks to what's been  allocated on that codeword
-//                    ((allocatedCw == MAX_CODEWORDS) ? availableBytes(nodeId,antenna, b, cw) : mac_->getAmc()->blocks2bytes(nodeId, b, cw, allocator_->getBlocks(antenna,b,nodeId) , direction_));    // available space
+			//            unsigned int bandAvailableBytes = // if a codeword has been already scheduled for retransmission, limit available blocks to what's been  allocated on that codeword
+			//                    ((allocatedCw == MAX_CODEWORDS) ? availableBytes(nodeId,antenna, b, cw) : mac_->getAmc()->blocks2bytes(nodeId, b, cw, allocator_->getBlocks(antenna,b,nodeId) , direction_));    // available space
 			unsigned int availableBlocks = allocator_->availableBlocks(nodeId, antenna, b);
 			unsigned int bandAvailableBytes = availableBytes(nodeId, antenna, b, cw, direction_);
 
@@ -501,8 +491,8 @@ unsigned int NRSchedulerGnbUl::schedulePerAcidRtx(MacNodeId nodeId, Codeword cw,
 			}
 
 			unsigned int servedBlocks = mac_->getAmc()->computeReqRbs(nodeId, b, cw, servedBytes, direction_, availableBlocks);
-//			if (servedBlocks + 2 <= availableBlocks)
-//				servedBlocks += 2;
+			//			if (servedBlocks + 2 <= availableBlocks)
+			//				servedBlocks += 2;
 			servedBytes = mac_->getAmc()->computeBytesOnNRbs(nodeId, b, cw, servedBlocks, UL);
 			//
 
@@ -605,7 +595,7 @@ unsigned int NRSchedulerGnbUl::schedulePerAcidRtxWithNRHarq(MacNodeId nodeId, Co
 		//EV << NOW << "NRSchedulerGnbUl::rtxAcid - Node[" << mac_->getMacNodeId() << ", User[" << nodeId << ", Codeword[ " << cw << "], ACID[" << (unsigned int)acid << "] " << endl;
 
 		// Get the current active HARQ process
-//        unsigned char currentAcid = harqStatus_.at(nodeId) ;
+		//        unsigned char currentAcid = harqStatus_.at(nodeId) ;
 
 		unsigned char currentAcid = acid;
 		//EV << "\t the acid that should be considered is " << currentAcid << endl;
@@ -620,7 +610,7 @@ unsigned int NRSchedulerGnbUl::schedulePerAcidRtxWithNRHarq(MacNodeId nodeId, Co
 		}
 
 		Codeword allocatedCw = 0;
-//        Codeword allocatedCw = MAX_CODEWORDS;
+		//        Codeword allocatedCw = MAX_CODEWORDS;
 		// search for already allocated codeword
 		// create "mirror" scList ID for other codeword than current
 		std::pair<unsigned int, Codeword> scListMirrorId = std::pair<unsigned int, Codeword>(idToMacCid(nodeId, SHORT_BSR), MAX_CODEWORDS - cw - 1);
@@ -647,8 +637,8 @@ unsigned int NRSchedulerGnbUl::schedulePerAcidRtxWithNRHarq(MacNodeId nodeId, Co
 			int limit = bandLim->at(i).limit_.at(cw);
 
 			// TODO add support to multi CW
-//            unsigned int bandAvailableBytes = // if a codeword has been already scheduled for retransmission, limit available blocks to what's been  allocated on that codeword
-//                    ((allocatedCw == MAX_CODEWORDS) ? availableBytes(nodeId,antenna, b, cw) : mac_->getAmc()->blocks2bytes(nodeId, b, cw, allocator_->getBlocks(antenna,b,nodeId) , direction_));    // available space
+			//            unsigned int bandAvailableBytes = // if a codeword has been already scheduled for retransmission, limit available blocks to what's been  allocated on that codeword
+			//                    ((allocatedCw == MAX_CODEWORDS) ? availableBytes(nodeId,antenna, b, cw) : mac_->getAmc()->blocks2bytes(nodeId, b, cw, allocator_->getBlocks(antenna,b,nodeId) , direction_));    // available space
 			unsigned int availableBlocks = allocator_->availableBlocks(nodeId, antenna, b);
 			unsigned int bandAvailableBytes = availableBytes(nodeId, antenna, b, cw, direction_);
 
@@ -674,8 +664,8 @@ unsigned int NRSchedulerGnbUl::schedulePerAcidRtxWithNRHarq(MacNodeId nodeId, Co
 			}
 
 			unsigned int servedBlocks = mac_->getAmc()->computeReqRbs(nodeId, b, cw, servedBytes, direction_, availableBlocks);
-//			if (servedBlocks + 2 <= availableBlocks)
-//				servedBlocks += 2;
+			//			if (servedBlocks + 2 <= availableBlocks)
+			//				servedBlocks += 2;
 			servedBytes = mac_->getAmc()->computeBytesOnNRbs(nodeId, b, cw, servedBlocks, UL);
 			//
 
@@ -747,5 +737,16 @@ unsigned int NRSchedulerGnbUl::schedulePerAcidRtxWithNRHarq(MacNodeId nodeId, Co
 	//std::cout << "NRSchedulerGnbUl::schedulePerAcidRtx end at " << simTime().dbl() << std::endl;
 
 	return 0;
+}
+
+void NRSchedulerGnbUl::removePendingRac(MacNodeId nodeId)
+{
+    //std::cout << "NRSchedulerGnbUl::removePendingRac start at " << simTime().dbl() << std::endl;
+
+    racStatus_.erase(nodeId);
+    delete racStatusInfo_[nodeId];
+    racStatusInfo_.erase(nodeId);
+
+    //std::cout << "NRSchedulerGnbUl::removePendingRac end at " << simTime().dbl() << std::endl;
 }
 

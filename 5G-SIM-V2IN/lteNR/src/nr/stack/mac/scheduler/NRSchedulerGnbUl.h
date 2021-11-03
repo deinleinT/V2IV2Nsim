@@ -49,4 +49,6 @@ protected:
 	virtual unsigned int schedulePerAcidRtx(MacNodeId nodeId, Codeword cw, unsigned char acid, std::vector<BandLimit> *bandLim = NULL, Remote antenna = MACRO, bool limitBl = false);
 
 	virtual unsigned int schedulePerAcidRtxWithNRHarq(MacNodeId nodeId, Codeword cw, unsigned char acid, std::vector<BandLimit> *bandLim = NULL, Remote antenna = MACRO, bool limitBl = false);
+
+	virtual void removePendingRac(MacNodeId nodeId);
 };
