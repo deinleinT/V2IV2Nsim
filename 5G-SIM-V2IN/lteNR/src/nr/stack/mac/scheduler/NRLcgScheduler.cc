@@ -78,7 +78,9 @@ ScheduleListSizes& NRLcgScheduler::schedule(unsigned int availableBytes, Directi
 
 	// for all traffic classes
 //    for (unsigned short i = 0; i < UNKNOWN_TRAFFIC_TYPE; ++i)
-	for (auto &var : qosHandler->getSortedQosInfos()) {
+
+	//sorted by lcid
+	for (auto &var : qosHandler->getSortedQosInfos(UL)) {
 		if (var.second.qfi == 0)
 			continue;
 		// Prepare the iterators to cycle the entire scheduling set
@@ -98,6 +100,10 @@ ScheduleListSizes& NRLcgScheduler::schedule(unsigned int availableBytes, Directi
 
 			// get the buffer size
 			unsigned int queueLength = vQueue->getQueueOccupancy(); // in bytes
+			if (getSimulation()->getSystemModule()->par("useSinglePacketSizeDuringScheduling").boolValue()) {
+				//only the size of one packet is considered
+				queueLength = (vQueue->getQueueOccupancy() == 0) ? 0 : vQueue->getQueueOccupancy() / vQueue->getQueueLength(); // in bytes
+			}
 
 			// connection id of the processed connection
 			MacCid cid = it->second.first;
@@ -229,10 +235,12 @@ ScheduleListSizes& NRLcgScheduler::schedule(unsigned int availableBytes, Directi
 					availableBytes -= toServe;
 					scheduleListSizes_[cid].first = elem->sentSdus_;
 
-					while (!vQueue->isEmpty()) {
-						// remove SDUs from virtual buffer
-						vQueue->popFront();
+					if (!getSimulation()->getSystemModule()->par("useSinglePacketSizeDuringScheduling").boolValue()) {
+						while (!vQueue->isEmpty()) {
+							// remove SDUs from virtual buffer
+							vQueue->popFront();
 //                        elem->sentSdus_++;
+						}
 					}
 
 					toServe = 0;
@@ -325,6 +333,9 @@ ScheduleListSizes& NRLcgScheduler::schedule(unsigned int availableBytes, Directi
 					//EV << "NRLcgScheduler::schedule - Node" << mac_->getMacNodeId() << ", Starting best effort service" << endl;
 				}
 			} // END of connections cycle
+			if(scheduleListSizes_.size() == 1){
+				return scheduleListSizes_;
+			}
 		} // END of Traffic Classes cycle
 
 		//std::cout << "NRLcgScheduler::schedule end at " << simTime().dbl() << std::endl;

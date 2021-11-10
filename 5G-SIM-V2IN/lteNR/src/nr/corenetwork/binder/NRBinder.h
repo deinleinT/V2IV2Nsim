@@ -64,6 +64,77 @@ public:
 	 +------------------------------------------------------------------------------+
 	 |
 	 |
+	 |  Function Name:  setQueueStatus
+	 |
+	 |  Prototype at:   NRBinder.h
+	 |
+	 |  Description:    used when simplifiedFlowControl is activated (useSimplifiedFlowControl)
+	 |                  tracks the macBufferStatus for each queue
+	 |
+	 |  Parameter:      MacNodeId ueId, unsigned short dir, unsigned short application, bool queueFull
+	 |					ueId --> the corresponding ueId
+	 |	 	 	 	 	dir --> sending direction, downlink / uplink
+	 |	 	 	 	 	application --> the corresponding application
+	 |	 	 	 	 	queueFull --> true if the queue is full
+	 |
+	 |  Return Value:   void
+	 |
+	 +-----------------------------------------------------------------------------*/
+	virtual void setQueueStatus(MacNodeId ueId, unsigned short dir, unsigned short application, bool queueFull) {
+		Enter_Method_Silent("queueStatus");
+
+		if (queueStatusMap.find(ueId) != queueStatusMap.end()) {
+
+			bool queueAvailable = false;
+
+			for (auto &var : queueStatusMap[ueId]) {
+				if (var.dir == dir && var.application == application) {
+					var.queueFull = queueFull;
+					var.timestamp = NOW;
+					queueAvailable = true;
+				}
+			}
+
+			if (!queueAvailable) {
+				QueueStatus tmp;
+				tmp.dir = dir;
+				tmp.application = application;
+				tmp.timestamp = NOW;
+				tmp.queueFull = queueFull;
+				queueStatusMap[ueId].push_back(tmp);
+			}
+		} else {
+			QueueStatus tmp;
+			tmp.dir = dir;
+			tmp.application = application;
+			tmp.timestamp = NOW;
+			tmp.queueFull = queueFull;
+			queueStatusMap[ueId].push_back(tmp);
+		}
+	}
+
+	virtual std::pair<simtime_t, bool> getQueueStatus(MacNodeId ueId, unsigned short dir, unsigned short application) {
+
+		if (queueStatusMap.find(ueId) == queueStatusMap.end()) {
+			//no queue for this ueId available
+			return std::make_pair(0, false);
+		} else {
+
+			for (auto &var : queueStatusMap[ueId]) {
+				if (var.dir == dir && var.application == application) {
+					return std::make_pair(var.timestamp, var.queueFull);
+				}
+			}
+
+			return std::make_pair(0, false);
+		}
+	}
+
+	/*-----------------------------------------------------------------------------+
+	 |    F U N C T I O N   I N F O R M A T I O N                                   |
+	 +------------------------------------------------------------------------------+
+	 |
+	 |
 	 |  Function Name:  calculateAttenuationPerCutAndMeter
 	 |
 	 |  Prototype at:   NRBinder.h
@@ -159,7 +230,7 @@ public:
 	 |
 	 |  Parameter:      unsigned short ueId --> vehicle id, unsigned int remoteCarFactor
 	 |
-	 |  Return Value:   bool
+	 |  Return Value:   bool (true if the ueId belongs to a remote vehicle)
 	 |
 	 +-----------------------------------------------------------------------------*/
 	virtual bool isRemoteCar(unsigned short ueId, unsigned int remoteCarFactor) {
@@ -184,6 +255,7 @@ public:
 		}
 		return false;
 	}
+
 
 	/*-----------------------------------------------------------------------------+
 	 |    F U N C T I O N   I N F O R M A T I O N                                   |
@@ -295,6 +367,17 @@ protected:
 		bool video = true;
 		bool data = true;
 	};
+
+	//used for simplified flow control
+	struct QueueStatus {
+		unsigned short dir;		//DL or UL
+		unsigned short application;	//application type
+		bool queueFull;			//true, if the corresponding queue on mac layer is full
+		simtime_t timestamp;	//simtime when the status was updated the last time
+	};
+
+	//used for simplified flow control
+	std::map<MacNodeId, std::vector<QueueStatus>> queueStatusMap;
 
 	std::map<MacNodeId, VehicleApplicationSummary> vehicleApplicationMap;
 

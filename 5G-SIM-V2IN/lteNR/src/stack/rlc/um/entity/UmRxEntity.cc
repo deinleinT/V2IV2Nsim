@@ -299,7 +299,7 @@ void UmRxEntity::toPdcp(LteRlcSdu* rlcSdu)
         LteMacBase* mac = check_and_cast<LteMacBase*>(getParentModule()->getParentModule()->getSubmodule("mac"));
 		LteRlcUm * rlcUe = check_and_cast<LteRlcUm*>(ue);
         if (mac->getNodeType() == ENODEB || mac->getNodeType() == GNODEB){
-			rlcUe->recordTotalRlcThroughputUl(length);
+			rlcUe->recordUETotalRlcThroughputUl(length);
 			LteRlcUm * rlcNodeB = check_and_cast<LteRlcUm*>(nodeB_);
 			LteMacEnb* macNodeB = check_and_cast<LteMacEnb*>(binder_->getMacFromMacNodeId(mac->getMacCellId()));
 			unsigned int conUes = 0;
@@ -309,7 +309,7 @@ void UmRxEntity::toPdcp(LteRlcSdu* rlcSdu)
 			}
 			rlcNodeB->recordConnectedCellUes(conUes);
         }else{
-        	rlcUe->recordTotalRlcThroughputDl(length);
+        	rlcUe->recordUETotalRlcThroughputDl(length);
 			LteRlcUm * rlcNodeB = check_and_cast<LteRlcUm*>(nodeB_);
 			LteMacEnb* macNodeB = check_and_cast<LteMacEnb*>(binder_->getMacFromMacNodeId(mac->getMacCellId()));
 			unsigned int conUes = 0;

@@ -110,6 +110,7 @@ public:
 
 protected:
 	unsigned int harqProcessesNR_;
+	bool nrHarq;
 	LteMacScheduleListWithSizes scheduleListWithSizes_;
 	virtual void initialize(int stage);
 	virtual void handleMessage(cMessage *msg);

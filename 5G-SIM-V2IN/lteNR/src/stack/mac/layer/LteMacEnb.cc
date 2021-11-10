@@ -484,7 +484,7 @@ void LteMacEnb::exchangeQosInfosFromQosHandler(MacNodeId nodeId, std::vector<Qos
             }else if(tmp.destNodeId == oldMasterId){
                 tmp.destNodeId = newMasterId;
             }
-            newMasterMac->getQosHandler()->getQosInfo()[cid] = tmp;
+            newMasterMac->getQosHandler()->insertQosInfo(cid, tmp);
         }
     }
 }
@@ -544,7 +544,7 @@ void LteMacEnb::initialize(int stage)
         // register the pair <id,name> to the binder
         const char* moduleName = getParentModule()->getParentModule()->getFullName();
         binder_->registerName(nodeId_, moduleName);
-        qosHandler = check_and_cast<QosHandlerGNB*>(getParentModule()->getSubmodule("qosHandler"));
+
     }
 }
 

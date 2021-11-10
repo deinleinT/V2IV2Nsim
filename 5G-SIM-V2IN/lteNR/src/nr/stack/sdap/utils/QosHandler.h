@@ -32,8 +32,10 @@
 using namespace omnetpp;
 
 struct QosInfo {
-	QosInfo() {
-	}
+	QosInfo(){};
+	QosInfo(Direction dir) {
+		this->dir = dir;
+	};
 	MacNodeId destNodeId;
 	MacNodeId senderNodeId;
 	IPv4Address senderAddress;
@@ -43,10 +45,11 @@ struct QosInfo {
 	unsigned short rlcType;
 	unsigned short lcid = 0;
 	unsigned short qfi = 0;
-	unsigned short _5Qi = 0;
+	//unsigned short _5Qi = 0;
 	unsigned short radioBearerId = 0;
 	unsigned int cid = 0;
 	bool containsSeveralCids = false;
+	Direction dir;
 };
 
 //used for Qos-relevant procedures,
@@ -59,14 +62,22 @@ public:
 	}
 
 	virtual LteNodeType getNodeType() {
+		Enter_Method_Silent("getNodeType");
 		return nodeType;
 	}
 
-	virtual std::unordered_map<unsigned int, QosInfo>& getQosInfo() {
+	virtual std::map<MacCid, QosInfo>& getQosInfo() {
+		Enter_Method_Silent("getQosInfo");
 		return QosInfos;
 	}
 
+	virtual void insertQosInfo(MacCid cid, QosInfo info){
+		Enter_Method_Silent("insertQosInfo");
+		QosInfos[cid] = info;
+	}
+
     virtual unsigned short getLcid(unsigned int nodeId, unsigned short msgCat) {
+    	Enter_Method_Silent("getLcid");
         for (auto const & var : QosInfos) {
             if (var.second.destNodeId == nodeId
                     && var.second.appType == msgCat) {
@@ -77,6 +88,7 @@ public:
     }
 
     virtual void deleteNode(unsigned int nodeId) {
+    	Enter_Method_Silent("deleteNode");
         std::vector<unsigned int> tmp;
         for (auto const & var : QosInfos) {
             if (var.second.destNodeId == nodeId
@@ -91,49 +103,65 @@ public:
     }
 
     virtual std::vector<QosInfo> getAllQosInfos(unsigned int nodeId) {
-            std::vector<QosInfo> tmp;
-            for (auto const & var : QosInfos) {
-                if (var.second.destNodeId == nodeId
-                        || var.second.senderNodeId == nodeId) {
-                    if(var.second.lcid != 0)
-                        tmp.push_back(var.second);
-                }
-            }
-            return tmp;
-        }
+		Enter_Method_Silent("getAllQosInfos");
+		std::vector<QosInfo> tmp;
+		for (auto const &var : QosInfos) {
+			if (var.second.destNodeId == nodeId || var.second.senderNodeId == nodeId) {
+				if (var.second.lcid != 0)
+					tmp.push_back(var.second);
+			}
+		}
+		return tmp;
+	}
 
     virtual int numInitStages() const {
         return 2;
     }
 
-    //sorts the qosInfos by its qfi value (from smallest to highest)
-    virtual std::vector<std::pair<unsigned int, QosInfo>> getSortedQosInfos() {
-        std::vector<std::pair<unsigned int, QosInfo>> tmp;
-        for(auto & var : QosInfos){
-            tmp.push_back(var);
-        }
-        std::sort(tmp.begin(), tmp.end(),
-                [&](std::pair<unsigned int, QosInfo> & a, std::pair<unsigned int, QosInfo> & b) {return a.second.qfi > b.second.qfi;});
-        return tmp;
-    }
-
-    virtual void clearQosInfos(){
-        QosInfos.clear();
-    }
-
-    //sorts the qosInfos by its qfi value (from smallest to highest)
-	virtual std::vector<std::pair<unsigned int, QosInfo>> getPrioritySortedQosInfos() {
+	//sorts the qosInfos by its lcid value (from smallest to highest)
+	virtual std::vector<std::pair<MacCid, QosInfo>> getSortedQosInfos(Direction dir) {
+		Enter_Method_Silent("getSortedQosInfos");
 		std::vector<std::pair<unsigned int, QosInfo>> tmp;
-		for (auto &var : QosInfos) {
-			tmp.push_back(var);
+		for (auto var : QosInfos) {
+			if (var.second.lcid != 0 && var.second.lcid != 10 && var.second.dir == dir)
+				tmp.push_back(var);
 		}
 		std::sort(tmp.begin(), tmp.end(), [&](std::pair<unsigned int, QosInfo> &a, std::pair<unsigned int, QosInfo> &b) {
-			return (getPriority(a.second._5Qi) > getPriority(b.second._5Qi));
+			return a.second.lcid > b.second.lcid;
+		});
+		return tmp;
+	}
+
+	//sort by priority from 23.501
+	virtual std::vector<std::pair<MacCid, QosInfo>> getPrioritySortedQosInfos(Direction dir) {
+		Enter_Method_Silent("getPrioritySortedQosInfos");
+		std::vector<std::pair<MacCid, QosInfo>> tmp;
+		for (auto &var : QosInfos) {
+			if (MacCidToLcid(var.first) != 0 && MacCidToLcid(var.first) != 10 && var.second.dir == dir)
+				tmp.push_back(var);
+		}
+		std::sort(tmp.begin(), tmp.end(), [&](std::pair<unsigned int, QosInfo> &a, std::pair<unsigned int, QosInfo> &b) {
+			return (getPriority(get5Qi(a.second.qfi)) > getPriority(get5Qi(b.second.qfi)));
+		});
+		return tmp;
+	}
+
+	//sort by pdb from 23.501
+	virtual std::vector<std::pair<MacCid, QosInfo>> getPdbSortedQosInfos(Direction dir) {
+		Enter_Method_Silent("getPdbSortedQosInfos");
+		std::vector<std::pair<MacCid, QosInfo>> tmp;
+		for (auto &var : QosInfos) {
+			if (MacCidToLcid(var.first) != 0 && MacCidToLcid(var.first) != 10 && var.second.dir == dir)
+				tmp.push_back(var);
+		}
+		std::sort(tmp.begin(), tmp.end(), [&](std::pair<unsigned int, QosInfo> &a, std::pair<unsigned int, QosInfo> &b) {
+			return (getPdb(get5Qi(a.second.qfi)) > getPdb(get5Qi(b.second.qfi)));
 		});
 		return tmp;
 	}
 
     virtual void modifyControlInfo(LteControlInfo * info){
+    	Enter_Method_Silent("modifyControlInfo");
         info->setApplication(0);
         MacCid newMacCid = idToMacCid(MacCidToNodeId(info->getCid()),0);
         info->setCid(newMacCid);
@@ -141,7 +169,7 @@ public:
         info->setQfi(0);
         info->setTraffic(0);
         info->setContainsSeveralCids(true);
-        QosInfo tmp;
+        QosInfo tmp((Direction)info->getDirection());
         tmp.appType = (ApplicationType)0;
         tmp.cid = newMacCid;
         tmp.containsSeveralCids = true;
@@ -153,6 +181,7 @@ public:
     }
 
     virtual ApplicationType getApplicationType(MacCid cid) {
+    	Enter_Method_Silent("getApplicationType");
         for (auto & var : QosInfos) {
             if (var.first == cid)
                 return (ApplicationType) var.second.appType;
@@ -161,6 +190,7 @@ public:
     }
 
     virtual unsigned short getQfi(MacCid cid) {
+    	Enter_Method_Silent("getQfi");
         for (auto & var : QosInfos) {
             if (var.first == cid)
                 return var.second.qfi;
@@ -168,17 +198,10 @@ public:
         return 0;
     }
 
-    virtual unsigned short get5Qi(MacCid cid) {
-		for (auto &var : QosInfos) {
-			if (var.first == cid)
-				return var.second._5Qi;
-		}
-		return 0;
-	}
-
     //type is the application type V2X, VOD, VOIP, DATA_FLOW
     //returns the QFI which is pre-configured in QosHandler.ned file
     virtual unsigned short getQfi(ApplicationType type){
+    	Enter_Method_Silent("getQfi");
         switch(type){
         case V2X:
             return v2xQfi;
@@ -194,6 +217,7 @@ public:
     }
 
 	virtual unsigned short get5Qi(unsigned short qfi) {
+		Enter_Method_Silent("get5Qi");
 		if (qfi == v2xQfi) {
 			return v2x5Qi;
 		} else if (qfi == videoQfi) {
@@ -208,6 +232,7 @@ public:
 	}
 
     virtual unsigned short getRadioBearerId(unsigned short qfi){
+    	Enter_Method_Silent("getRadioBearerId");
         if (qfi == v2xQfi)
             return v2xQfiToRadioBearer;
         else if (qfi == videoQfi)
@@ -220,24 +245,26 @@ public:
         	return dataQfiToRadioBearer;
     }
 
-    virtual void initQfiParams(){
-        v2xQfi = par("v2xQfi").intValue();
-        videoQfi = par("videoQfi").intValue();
-        voipQfi = par("voipQfi").intValue();
-        dataQfi = par("dataQfi").intValue();
+	virtual void initQfiParams() {
+		Enter_Method_Silent("initQfiParams");
+		v2xQfi = par("v2xQfi").intValue();
+		videoQfi = par("videoQfi").intValue();
+		voipQfi = par("voipQfi").intValue();
+		dataQfi = par("dataQfi").intValue();
 
-	v2x5Qi = par("v2x5Qi").intValue();
-	video5Qi = par("video5Qi").intValue();
-	voip5Qi = par("voip5Qi").intValue();
-	data5Qi = par("data5Qi").intValue();
+		v2x5Qi = par("v2x5Qi").intValue();
+		video5Qi = par("video5Qi").intValue();
+		voip5Qi = par("voip5Qi").intValue();
+		data5Qi = par("data5Qi").intValue();
 
-        v2xQfiToRadioBearer = par("v2xQfiToRadioBearer").intValue();
-        videoQfiToRadioBearer = par("videoQfiToRadioBearer").intValue();
-        voipQfiToRadioBearer = par("voipQfiToRadioBearer").intValue();
-        dataQfiToRadioBearer = par("dataQfiToRadioBearer").intValue();
-    }
+		v2xQfiToRadioBearer = par("v2xQfiToRadioBearer").intValue();
+		videoQfiToRadioBearer = par("videoQfiToRadioBearer").intValue();
+		voipQfiToRadioBearer = par("voipQfiToRadioBearer").intValue();
+		dataQfiToRadioBearer = par("dataQfiToRadioBearer").intValue();
+	}
 
     virtual double getCharacteristic(std::string characteristic, unsigned short _5Qi) {
+    	Enter_Method_Silent("getCharacteristic");
 		QosCharacteristic qosCharacteristics = NRQosCharacteristics::getNRQosCharacteristics()->getQosCharacteristic(_5Qi);
 
 		if (characteristic == "PDB") {
@@ -252,20 +279,23 @@ public:
 	}
 
     virtual unsigned short getPriority(unsigned short _5Qi){
+    	Enter_Method_Silent("getPriority");
     	return getCharacteristic("PRIO", _5Qi);
     }
 
     virtual double getPdb(unsigned short _5Qi){
+    	Enter_Method_Silent("getPdb");
     	return getCharacteristic("PDB", _5Qi);
     }
 
     virtual double getPer(unsigned short _5Qi){
+    	Enter_Method_Silent("getPer");
     	return getCharacteristic("PER", _5Qi);
     }
 
 protected:
     LteNodeType nodeType;
-    std::unordered_map<MacCid, QosInfo> QosInfos;
+    std::map<MacCid, QosInfo> QosInfos;
     unsigned short v2xQfi;
     unsigned short videoQfi;
     unsigned short voipQfi;

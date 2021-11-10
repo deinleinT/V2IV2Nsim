@@ -35,6 +35,7 @@ void NRPdcpRrcUe::initialize(int stage){
                 getParentModule()->getSubmodule("qosHandler"));
     }
     nodeId_ = getAncestorPar("macNodeId");
+    lcid_ = 10000;
 }
 
 void NRPdcpRrcUe::handleMessage(cMessage *msg) {
@@ -123,7 +124,7 @@ void NRPdcpRrcUe::fromDataPort(cPacket *pkt) {
 
         if (qosHandler->getQosInfo().find(key)
                 == qosHandler->getQosInfo().end()) {
-            QosInfo qosinfo;
+            QosInfo qosinfo(UL);
             qosinfo.destNodeId = lteInfo->getDestId();
             qosinfo.destAddress = IPv4Address(lteInfo->getDstAddr());
             qosinfo.appType = (ApplicationType) lteInfo->getApplication();
@@ -135,7 +136,8 @@ void NRPdcpRrcUe::fromDataPort(cPacket *pkt) {
             qosinfo.lcid = mylcid;
             qosinfo.cid = key;
             qosinfo.trafficClass = (LteTrafficClass)lteInfo->getTraffic();
-            qosHandler->getQosInfo()[key] = qosinfo;
+//            qosHandler->getQosInfo()[key] = qosinfo;
+            qosHandler->insertQosInfo(key, qosinfo);
         }
     }
 

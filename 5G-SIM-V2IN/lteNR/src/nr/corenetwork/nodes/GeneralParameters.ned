@@ -61,7 +61,7 @@ network GeneralParameters
         double checkConnectionInterval @unit(s) = default(0.1s);
         **.dasRssiThreshold = SINRThreshold;
 
-        //
+        //Application layer --> Traffic Generator
         //if true, the VideoStream Config in the ini file is modified --> every 10th vehicle sends or receives a videostream with 5Mbps (packet size 15625 byte, packet intervall 25ms)
         //one half of all other vehicles send or receive a voip stream with 80kbps (packet size 100byte), packet interval 10ms
         //the other half send or receive random streams (packet size uniform(50byte,1500byte), packet interval uniform(10ms, 500ms)
@@ -92,5 +92,13 @@ network GeneralParameters
 
         bool fairRacScheduleInUL = default(true); //used in NRSchedulerGnbUl::racschedule (by default set to false)
         bool newTxbeforeRtx = default(false); //used in NRSchedulerGnbUl and NRMacUe (if true, a new transmission is scheduled before a retransmission, by default set to false)
-
+	
+	//if false, consider queuesize during scheduling
+    	//if true, only the single packetsize is considered
+    	//default false
+    	bool useSinglePacketSizeDuringScheduling = default(false); 
+    	
+    	//simplified Flow Control
+    	//binder --> ueId --> in DL check macBuffer on base station, in UL check macBuffer on UE
+    	bool useSimplifiedFlowControl = default(true);
 }

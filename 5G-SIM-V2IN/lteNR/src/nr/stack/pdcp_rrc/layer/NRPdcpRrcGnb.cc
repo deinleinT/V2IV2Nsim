@@ -122,7 +122,7 @@ void NRPdcpRrcGnb::fromDataPort(cPacket *pkt) {
 
         if (qosHandler->getQosInfo().find(key)
                 == qosHandler->getQosInfo().end()) {
-            QosInfo qosinfo;
+            QosInfo qosinfo(DL);
             qosinfo.destNodeId = lteInfo->getDestId();
             qosinfo.destAddress = IPv4Address(lteInfo->getDstAddr());
             qosinfo.appType = (ApplicationType) lteInfo->getApplication();
@@ -134,7 +134,9 @@ void NRPdcpRrcGnb::fromDataPort(cPacket *pkt) {
             qosinfo.lcid = mylcid;
             qosinfo.cid = key;
             qosinfo.trafficClass = (LteTrafficClass) lteInfo->getTraffic();
-            qosHandler->getQosInfo()[key] = qosinfo;
+//            qosHandler->getQosInfo()[key] = qosinfo;
+            qosHandler->insertQosInfo(key, qosinfo);
+
         }
     }
 

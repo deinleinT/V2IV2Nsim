@@ -40,24 +40,22 @@ NRPhyGnb::~NRPhyGnb() {
 void NRPhyGnb::initialize(int stage) {
     LtePhyEnb::initialize(stage);
 
-    if (stage == inet::INITSTAGE_APPLICATION_LAYER) {
+	if (stage == inet::INITSTAGE_APPLICATION_LAYER) {
 
-        averageTxPower = registerSignal("averageTxPower");
-        attenuation = registerSignal("attenuation");
-        snir = registerSignal("snir");
-        d2d = registerSignal("d2d");
-        d3d = registerSignal("d3d");
-        totalPer = registerSignal("totalPer");
-        bler = registerSignal("bler");
-        speed = registerSignal("speed");
+		averageTxPower = registerSignal("averageTxPower");
+		attenuation = registerSignal("attenuation");
+		snir = registerSignal("snir");
+		d2d = registerSignal("d2d");
+		d3d = registerSignal("d3d");
+		totalPer = registerSignal("totalPer");
+		bler = registerSignal("bler");
+		speed = registerSignal("speed");
 
+		emit(averageTxPower, txPower_);
+		errorCount = 0;
 
-        emit(averageTxPower, txPower_);
-        errorCount = 0;
-
-        qosHandler = check_and_cast<QosHandlerGNB*>(getParentModule()->getSubmodule("qosHandler"));
-
-    }
+		qosHandler = check_and_cast<QosHandlerGNB*>(getParentModule()->getSubmodule("qosHandler"));
+	}
 }
 
 void NRPhyGnb::recordAttenuation(const double & att) {

@@ -41,7 +41,7 @@ using namespace inet;
 
 /**
  * struct for recording the statistics for each
- * datastreams
+ * datastream
  */
 struct StatReport {
 

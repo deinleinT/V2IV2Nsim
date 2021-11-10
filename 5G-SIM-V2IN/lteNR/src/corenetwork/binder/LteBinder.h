@@ -52,7 +52,7 @@ using namespace inet;
 
 class LteBinder: public cSimpleModule {
 protected:
-	int numerology;
+	unsigned short numerology;
 	double TTI;
 
 	typedef std::map<MacNodeId, std::map<MacNodeId, bool> > DeployedUesMap;
@@ -134,7 +134,7 @@ public:
 		ulTransmissionMap_.resize(2); // store transmission map of previous and current TTI
 	}
 
-	int getNumerology() {
+	unsigned short getNumerology() {
 		return numerology;
 	}
 

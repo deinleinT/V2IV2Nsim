@@ -1155,6 +1155,17 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 			return;
 		}
 
+		//simplified flow control
+		if (getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue()) {
+			//if true, the corresponding macBufferQueue is full
+			if (getNRBinder()->getQueueStatus(nodeId, UL, V2X).second) {
+				numberSentPackets--;
+				numSent--;
+				return;
+			}
+		}
+		//
+
 		sentPacketsV2X++;
 
 		V2XMessage *payload = new V2XMessage(packetName);
@@ -1208,6 +1219,18 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 			numSent--;
 			return;
 		}
+		//
+
+		//simplified flow control
+		if (getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue()) {
+			//if true, the corresponding macBufferQueue is full
+			if (getNRBinder()->getQueueStatus(nodeId, UL, VOD).second) {
+				numberSentPackets--;
+				numSent--;
+				return;
+			}
+		}
+		//
 
 		sentPacketsVideo++;
 
@@ -1290,6 +1313,18 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 			numSent--;
 			return;
 		}
+		//
+
+		//simplified flow control
+		if (getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue()) {
+			//if true, the corresponding macBufferQueue is full
+			if (getNRBinder()->getQueueStatus(nodeId, UL, VOIP).second) {
+				numberSentPackets--;
+				numSent--;
+				return;
+			}
+		}
+		//
 
 		sentPacketsVoip++;
 
@@ -1352,6 +1387,18 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 			numSent--;
 			return;
 		}
+		//
+
+		//simplified flow control
+		if (getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue()) {
+			//if true, the corresponding macBufferQueue is full
+			if (getNRBinder()->getQueueStatus(nodeId, UL, DATA_FLOW).second) {
+				numberSentPackets--;
+				numSent--;
+				return;
+			}
+		}
+		//
 
 		sentPacketsData++;
 
@@ -2122,6 +2169,18 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 					numSent--;
 					continue;
 				}
+				//
+
+				//simplified flow control
+				if (getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue()) {
+					//if true, the corresponding macBufferQueue is full
+					if (getNRBinder()->getQueueStatus(nodeId, DL, V2X).second) {
+						numberSentPackets--;
+						numSent--;
+						continue;
+					}
+				}
+				//
 
 				sentPacketsV2X++;
 				V2XMessage *payload = new V2XMessage(packetName);
@@ -2175,6 +2234,18 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 					numSent--;
 					continue;
 				}
+				//
+
+				//simplified flow control
+				if (getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue()) {
+					//if true, the corresponding macBufferQueue is full
+					if (getNRBinder()->getQueueStatus(nodeId, DL, VOD).second) {
+						numberSentPackets--;
+						numSent--;
+						continue;
+					}
+				}
+				//
 
 				sentPacketsVideo++;
 
@@ -2251,6 +2322,18 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 					numSent--;
 					continue;
 				}
+				//
+
+				//simplified flow control
+				if (getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue()) {
+					//if true, the corresponding macBufferQueue is full
+					if (getNRBinder()->getQueueStatus(nodeId, DL, VOIP).second) {
+						numberSentPackets--;
+						numSent--;
+						continue;
+					}
+				}
+				//
 
 				sentPacketsVoip++;
 				VoIPMessage *payload = new VoIPMessage(packetName);
@@ -2296,6 +2379,18 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 					numSent--;
 					continue;
 				}
+				//
+
+				//simplified flow control
+				if (getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue()) {
+					//if true, the corresponding macBufferQueue is full
+					if (getNRBinder()->getQueueStatus(nodeId, DL, DATA_FLOW).second) {
+						numberSentPackets--;
+						numSent--;
+						continue;
+					}
+				}
+				//
 
 				if (getSimulation()->getSystemModule()->par("remoteDrivingDL")) {
 					//check nodeId --> every 10th car is a remote car

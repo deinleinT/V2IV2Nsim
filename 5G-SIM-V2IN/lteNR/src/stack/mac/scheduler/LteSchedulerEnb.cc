@@ -149,7 +149,7 @@ unsigned int LteSchedulerEnb::scheduleGrant(MacCid cid, unsigned int bytes, bool
     unsigned int numCodewords = txParams.getLayers().size();
 
     // TEST: check the number of codewords
-    numCodewords = 1;
+    //numCodewords = 1;
 
     std::string bands_msg = "BAND_LIMIT_SPECIFIED";
     std::vector<BandLimit> tempBandLim;

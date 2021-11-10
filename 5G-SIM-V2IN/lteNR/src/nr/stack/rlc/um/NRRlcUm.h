@@ -44,18 +44,88 @@ protected:
     simsignal_t UEtotalRlcThroughputDlMean;
     simsignal_t UEtotalRlcThroughputUlMean;
 
+	//important for initializing the UEThroughputvector in a correct way
+	virtual void checkRemoteCarStatus() {
+		//check if remoteDriving Uplink
+		if (getSimulation()->getSystemModule()->par("remoteDrivingUL")) {
+			//check if the vector was already initialized
+			if (!ueTotalRlcThroughputUlInit) {
+				NRMacUe *mac = check_and_cast<NRMacUe*>(getParentModule()->getParentModule()->getSubmodule("mac"));
+				MacNodeId ueId = mac->getMacNodeId();
+				ueTotalRlcThroughputUlInit = true;
+				//start time when the first packet was transmitted
+				ueTotalRlcThroughputUlStartTime = NOW;
+				//check if this vehicle is a remote vehicle or not
+				if (getNRBinder()->isRemoteCar(ueId, getSystemModule()->par("remoteCarFactor").intValue())) {
+					ueTotalRlcThroughputUl.setName("UEtotalRlcThroughputUlREMOTE");
+				} else {
+					ueTotalRlcThroughputUl.setName("UEtotalRlcThroughputUl");
+				}
+			}
+		} else {
+			//human driven vehicle
+			if (!ueTotalRlcThroughputUlInit) {
+				ueTotalRlcThroughputUl.setName("UEtotalRlcThroughputUl");
+				ueTotalRlcThroughputUlInit = true;
+				ueTotalRlcThroughputUlStartTime = NOW;
+			}
+		}
+
+		//check if remoteDriving Uplink
+		if (getSimulation()->getSystemModule()->par("remoteDrivingDL")) {
+			//check if the vector was already initialized
+			if (!ueTotalRlcThroughputDlInit) {
+				NRMacUe *mac = check_and_cast<NRMacUe*>(getParentModule()->getParentModule()->getSubmodule("mac"));
+				MacNodeId ueId = mac->getMacNodeId();
+				ueTotalRlcThroughputDlInit = true;
+				//start time when the first packet was transmitted
+				ueTotalRlcThroughputDlStartTime = NOW;
+				if (getNRBinder()->isRemoteCar(ueId, getSystemModule()->par("remoteCarFactor").intValue())) {
+					ueTotalRlcThroughputDl.setName("UEtotalRlcThroughputDlREMOTE");
+				} else {
+					ueTotalRlcThroughputDl.setName("UEtotalRlcThroughputDl");
+				}
+			}
+		} else {
+			if (!ueTotalRlcThroughputDlInit) {
+				ueTotalRlcThroughputDl.setName("UEtotalRlcThroughputDl");
+				ueTotalRlcThroughputDlInit = true;
+				ueTotalRlcThroughputDlStartTime = NOW;
+			}
+		}
+	}
+
 public:
-	virtual void recordTotalRlcThroughputUl(double length) {
+	//length --> packet size
+	//tp is the throughput per second
+	virtual void recordUETotalRlcThroughputUl(double length) {
+		Enter_Method_Silent();
+		checkRemoteCarStatus();
 		this->totalRcvdBytesUl += length;
-		double tp = totalRcvdBytesUl / (NOW - getSimulation()->getWarmupPeriod());
-		totalRlcThroughputUl.record(tp);
+		//double tp = totalRcvdBytesUl / (NOW - getSimulation()->getWarmupPeriod());
+
+		//to avoid a division through 0
+		if(NOW - ueTotalRlcThroughputUlStartTime < 1)
+			return;
+		double tp = totalRcvdBytesUl / (NOW - ueTotalRlcThroughputUlStartTime);
+		ueTotalRlcThroughputUl.record(tp);
 		emit(UEtotalRlcThroughputUlMean,tp);
 	}
 
-	virtual void recordTotalRlcThroughputDl(double length) {
+	//length --> packet size
+	//tp is the throughput per second
+	virtual void recordUETotalRlcThroughputDl(double length) {
+		Enter_Method_Silent();
+		checkRemoteCarStatus();
 		this->totalRcvdBytesDl += length;
-		double tp = totalRcvdBytesDl / (NOW - getSimulation()->getWarmupPeriod());
-		totalRlcThroughputDl.record(tp);
+		//double tp = totalRcvdBytesDl / (NOW - getSimulation()->getWarmupPeriod());
+
+		//to avoid a division through 0
+		if(NOW - ueTotalRlcThroughputDlStartTime < 1)
+			return;
+
+		double tp = totalRcvdBytesDl / (NOW - ueTotalRlcThroughputDlStartTime);
+		ueTotalRlcThroughputDl.record(tp);
 		emit(UEtotalRlcThroughputDlMean,tp);
 	}
 

@@ -275,22 +275,6 @@ void NRPhyUe::checkConnection() {
 	}
 }
 
-void NRPhyUe::recordPositionAndLostPackets(unsigned int lostPackets, Direction direction){
-	if(direction == DL){
-		//save in downlinkVectors
-		inet::Coord coord = getPosition();
-		lostPacketsDownlink.record(lostPackets);
-		downlinkXPosition.record(coord.x);
-		downlinkYPosition.record(coord.y);
-	} else {
-		//save in uplinkVectors
-		inet::Coord coord = getPosition();
-		lostPacketsUplink.record(lostPackets);
-		uplinkXPosition.record(coord.x);
-		uplinkYPosition.record(coord.y);
-	}
-}
-
 void NRPhyUe::recordAttenuation(const double & att) {
 	emit(attenuation, att);
 }

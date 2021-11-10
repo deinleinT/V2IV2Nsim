@@ -30,27 +30,6 @@ void NRsdap::handleMessage(cMessage *msg) {
 
     //std::cout << "NRsdap::handleMessage start at " << simTime().dbl() << std::endl;
 
-	if (getSimulation()->getSystemModule()->par("useSINRThreshold").boolValue()) {
-		if (!msg->isSelfMessage()) {
-			cPacket *pkt = check_and_cast<cPacket*>(msg);
-			FlowControlInfo *lteInfo = check_and_cast<FlowControlInfo*>(pkt->getControlInfo());
-			MacNodeId ueId;
-			if (lteInfo->getDirection() == DL) {
-				ueId = lteInfo->getDestId();
-			} else if (lteInfo->getDirection() == UL) {
-				ueId = lteInfo->getSourceId();
-			} else {
-				throw cRuntimeError("Unknown direction in NRsdap::handleMessage");
-			}
-			ASSERT(ueId >= UE_MIN_ID && ueId <= UE_MAX_ID);
-			if (getBinder()->isNotConnected(ueId)) {
-				delete msg;
-				return;
-			}
-		}
-	}
-
-
     if (msg->isSelfMessage()) {
         handleSelfMessage(msg);
     } else if (strcmp(msg->getArrivalGate()->getBaseName(), "upperLayer")

@@ -56,27 +56,6 @@ void NRsdapGNB::initialize(int stage) {
 
 }
 
-void NRsdapGNB::handleMessage(cMessage *msg) {
-
-    //std::cout << "NRsdap::handleMessage start at " << simTime().dbl() << std::endl;
-
-    if (msg->isSelfMessage()) {
-        handleSelfMessage(msg);
-    } else if (strcmp(msg->getArrivalGate()->getBaseName(), "upperLayer")
-            == 0) {
-
-        fromUpperToLower(msg);
-
-    } else if (strcmp(msg->getArrivalGate()->getBaseName(), "lowerLayer")
-            == 0) {
-
-        fromLowerToUpper(msg);
-
-    }
-
-    //std::cout << "NRsdap::handleMessage end at " << simTime().dbl() << std::endl;
-}
-
 void NRsdapGNB::handleSelfMessage(cMessage *msg) {
 
     //std::cout << "NRsdap::handleSelfMessage start at " << simTime().dbl() << std::endl;
@@ -114,6 +93,11 @@ void NRsdapGNB::fromUpperToLower(cMessage *msg) {
         return;
     }
 
+    if (getBinder()->isNotConnected(destId)) {
+		delete msg;
+		return;
+	}
+
     //nodeid is nodeB-Id, destid is ue
     NRSdapEntity* entity = getEntity(nodeId_, destId, (ApplicationType)(lteInfo->getApplication()));
 
@@ -128,7 +112,7 @@ void NRsdapGNB::fromUpperToLower(cMessage *msg) {
 
     if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
 		//add processing delay
-		sendDelayed(sdapPkt, uniform(0, pkt->getByteLength() / 10e6), lowerLayer);
+		sendDelayed(sdapPkt, uniform(0, pkt->getByteLength() / 10e5), lowerLayer);
 	} else {
 		send(sdapPkt, lowerLayer);
 	}
@@ -152,7 +136,7 @@ void NRsdapGNB::fromLowerToUpper(cMessage *msg) {
 
 	if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
 		//add processing delay
-		sendDelayed(upPkt, uniform(0, upPkt->getByteLength() / 10e6), upperLayer);
+		sendDelayed(upPkt, uniform(0, upPkt->getByteLength() / 10e5), upperLayer);
 	} else {
 		send(upPkt, upperLayer);
 	}

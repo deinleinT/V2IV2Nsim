@@ -66,6 +66,19 @@ class LteHarqProcessRx
     virtual void setMacOwner(LteMacBase * macOwner){
         this->macOwner_ = macOwner;
     }
+
+    virtual simtime_t getPduCreationTime(Codeword cw);
+
+    LteMacPdu* getPdu(Codeword cw);
+
+    unsigned char getTransmissions(){
+    	return transmissions_;
+    }
+
+    unsigned char getAcid(){
+    	return acid_;
+    }
+
     /**
      * Constructor.
      *

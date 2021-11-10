@@ -63,8 +63,19 @@ void NRRlcUm::initialize() {
 	sentPacketToUpperLayer = registerSignal("sentPacketToUpperLayer");
 	sentPacketToLowerLayer = registerSignal("sentPacketToLowerLayer");
 
-	totalRlcThroughputUl.setName("UEtotalRlcThroughputUl");
-	totalRlcThroughputDl.setName("UEtotalRlcThroughputDl");
+	//for measuring the throughput for remote vehicles and human driven vehicles
+	if (nodeType.compare("UE") != 0) {
+		ueTotalRlcThroughputDlInit = true;
+		ueTotalRlcThroughputUlInit = true;
+		ueTotalRlcThroughputUlStartTime = NOW;
+		ueTotalRlcThroughputDlStartTime = NOW;
+		ueTotalRlcThroughputUl.setName("UEtotalRlcThroughputUl");
+		ueTotalRlcThroughputDl.setName("UEtotalRlcThroughputDl");
+	} else {
+		ueTotalRlcThroughputDlInit = false;
+		ueTotalRlcThroughputUlInit = false;
+	}
+
 	totalRcvdBytesUl = 0;
 	totalRcvdBytesDl = 0;
 

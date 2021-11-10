@@ -311,9 +311,12 @@ void NRMacGnb::fromPhy(cPacket *pkt) {
 	UserControlInfo *userInfo = check_and_cast<UserControlInfo*>(pkt->getControlInfo());
 
 	if (userInfo->getFrameType() == DATAPKT) {
+		//the cid in the userInfo is a combination of nodeId and 0
 
-		if (qosHandler->getQosInfo().find(userInfo->getCid()) == qosHandler->getQosInfo().end()) {
-			QosInfo tmp;
+		//insert into qosHandler the latest info
+		if (qosHandler->getQosInfo().find(userInfo->getCid()) == qosHandler->getQosInfo().end() ||
+				qosHandler->getQosInfo().find(userInfo->getCid())->second.lcid != userInfo->getLcid()) {
+			QosInfo tmp(UL);
 			tmp.appType = (ApplicationType) userInfo->getApplication();
 			tmp.cid = userInfo->getCid();
 			tmp.lcid = userInfo->getLcid();
@@ -324,7 +327,8 @@ void NRMacGnb::fromPhy(cPacket *pkt) {
 			tmp.containsSeveralCids = userInfo->getContainsSeveralCids();
 			tmp.rlcType = userInfo->getRlcType();
 			tmp.trafficClass = (LteTrafficClass) userInfo->getTraffic();
-			qosHandler->getQosInfo()[userInfo->getCid()] = tmp;
+//			qosHandler->getQosInfo()[userInfo->getCid()] = tmp;
+			qosHandler->insertQosInfo(userInfo->getCid(), tmp);
 		}
 	}
 
@@ -334,7 +338,7 @@ void NRMacGnb::fromPhy(cPacket *pkt) {
 }
 
 /**
- * changed the default behaviour from LteMacEnb
+ * changed the default behavior from LteMacEnb
  * checks whether there are more than one SDU in the pkt
  * @param pkt
  */
@@ -365,6 +369,7 @@ void NRMacGnb::macPduUnmake(cPacket *pkt) {
 					qosHandler->getQosInfo()[cid].appType = static_cast<ApplicationType>(lteInfo->getApplication());
 					qosHandler->getQosInfo()[cid].destNodeId = lteInfo->getDestId();
 					qosHandler->getQosInfo()[cid].lcid = lteInfo->getLcid();
+					qosHandler->getQosInfo()[cid].dir = UL;
 					qosHandler->getQosInfo()[cid].qfi = lteInfo->getQfi();
 					qosHandler->getQosInfo()[cid].cid = lteInfo->getCid();
 					qosHandler->getQosInfo()[cid].radioBearerId = lteInfo->getRadioBearerId();
@@ -387,6 +392,7 @@ void NRMacGnb::macPduUnmake(cPacket *pkt) {
 				qosHandler->getQosInfo()[cid].destNodeId = lteInfo->getDestId();
 				qosHandler->getQosInfo()[cid].lcid = lteInfo->getLcid();
 				qosHandler->getQosInfo()[cid].qfi = lteInfo->getQfi();
+				qosHandler->getQosInfo()[cid].dir = UL;
 				qosHandler->getQosInfo()[cid].cid = lteInfo->getCid();
 				qosHandler->getQosInfo()[cid].radioBearerId = lteInfo->getRadioBearerId();
 				qosHandler->getQosInfo()[cid].senderNodeId = lteInfo->getSourceId();
@@ -785,6 +791,19 @@ bool NRMacGnb::bufferizePacket(cPacket *pkt) {
 		PacketInfo vpkt(pkt->getByteLength(), pkt->getCreationTime());
 
 		LteMacBufferMap::iterator it = macBuffers_.find(cid);
+		if (qosHandler->getQosInfo().find(cid) == qosHandler->getQosInfo().end()) {
+			qosHandler->getQosInfo()[cid].appType = static_cast<ApplicationType>(lteInfo->getApplication());
+			qosHandler->getQosInfo()[cid].destNodeId = lteInfo->getDestId();
+			qosHandler->getQosInfo()[cid].lcid = lteInfo->getLcid();
+			qosHandler->getQosInfo()[cid].dir = DL;
+			qosHandler->getQosInfo()[cid].qfi = lteInfo->getQfi();
+			qosHandler->getQosInfo()[cid].cid = lteInfo->getCid();
+			qosHandler->getQosInfo()[cid].radioBearerId = lteInfo->getRadioBearerId();
+			qosHandler->getQosInfo()[cid].senderNodeId = lteInfo->getSourceId();
+			qosHandler->getQosInfo()[cid].trafficClass = (LteTrafficClass) lteInfo->getTraffic();
+			qosHandler->getQosInfo()[cid].rlcType = lteInfo->getRlcType();
+			qosHandler->getQosInfo()[cid].containsSeveralCids = lteInfo->getContainsSeveralCids();
+		}
 		if (it == macBuffers_.end()) {
 			LteMacBuffer *vqueue = new LteMacBuffer();
 			vqueue->pushBack(vpkt);
@@ -816,6 +835,16 @@ bool NRMacGnb::bufferizePacket(cPacket *pkt) {
 			} else {
 				vqueue->pushBack(vpkt);
 			}
+
+			//simplified Flow Control
+			if (getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue()) {
+				if (macBuffers_[cid]->getQueueOccupancy() > (queueSize_ / 8)) {
+					getNRBinder()->setQueueStatus(MacCidToNodeId(cid), lteInfo->getDirection(), lteInfo->getApplication(), true);
+				} else {
+					getNRBinder()->setQueueStatus(MacCidToNodeId(cid), lteInfo->getDirection(), lteInfo->getApplication(), false);
+				}
+			}
+			//
 
 			//EV << "LteMacBuffers : Using old buffer on node: " << MacCidToNodeId(cid) << " for Lcid: " << MacCidToLcid(cid) << ", Space left in the Queue: " << vqueue->getQueueOccupancy() << "\n";
 		}
@@ -849,8 +878,19 @@ bool NRMacGnb::bufferizePacket(cPacket *pkt) {
 
 			//EV << "LteMacBuffers : Dropped packet: queue" << cid << " is full\n";
 			pkt->setBitError(true);
+
 			return false;
 		}
+
+		//simplified Flow Control --> to ensure the packet flow continues
+		if (getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue()) {
+			if (macBuffers_[cid]->getQueueOccupancy() > (queueSize_ / 4 / 8)) {
+				getNRBinder()->setQueueStatus(MacCidToNodeId(cid), lteInfo->getDirection(), lteInfo->getApplication(), true);
+			} else {
+				getNRBinder()->setQueueStatus(MacCidToNodeId(cid), lteInfo->getDirection(), lteInfo->getApplication(), false);
+			}
+		}
+		//
 
 		//EV << "LteMacBuffers : Using old buffer on node: " << MacCidToNodeId(cid) << " for Lcid: " << MacCidToLcid(cid) << ", Space left in the Queue: " << queue->getQueueSize() - queue->getByteLength() << "\n";
 	}

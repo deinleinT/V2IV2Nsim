@@ -22,7 +22,7 @@ Define_Module(LtePdcpRrcRelayEnb);
 
 LtePdcpRrcBase::LtePdcpRrcBase() {
     ht_ = new ConnectionsTable();
-    lcid_ = 1;
+    lcid_ = 20;
 }
 
 LtePdcpRrcBase::~LtePdcpRrcBase() {

@@ -136,7 +136,7 @@ void LteMacUe::initialize(int stage)
         if(ipv4if == NULL)
             throw new cRuntimeError("no IPv4 interface data - cannot bind node %i", nodeId_);
         binder_->setMacNodeId(ipv4if->getIPAddress(), nodeId_);
-        qosHandler = check_and_cast<QosHandlerUE*>(getParentModule()->getSubmodule("qosHandler"));
+
     }
 }
 
@@ -210,7 +210,7 @@ bool LteMacUe::bufferizePacket(cPacket* pkt)
     if (pkt->getByteLength() == 0)
         return false;
 
-    pkt->setTimestamp();        // Add timestamp with current time to packet
+    //pkt->setTimestamp();        // Add timestamp with current time to packet
 
     FlowControlInfo* lteInfo = check_and_cast<FlowControlInfo*>(pkt->getControlInfo());
 
@@ -1009,7 +1009,7 @@ void LteMacUe::changeMasterId(MacNodeId oldMasterId, MacNodeId newMasterId){
 
     //modify the QosHandler in UE
     QosHandler * qos = qosHandler;
-    std::unordered_map<unsigned int, QosInfo> nodeQosInfos = qos->getQosInfo();
+    std::map<unsigned int, QosInfo> nodeQosInfos = qos->getQosInfo();
     for (auto & var : nodeQosInfos) {
         if (var.second.senderNodeId == oldMasterId) {
             var.second.senderNodeId = newMasterId;

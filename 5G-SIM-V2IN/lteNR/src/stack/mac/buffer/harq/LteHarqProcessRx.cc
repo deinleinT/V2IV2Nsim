@@ -166,6 +166,17 @@ LteMacPdu* LteHarqProcessRx::extractPdu(Codeword cw)
     return pdu;
 }
 
+//added
+LteMacPdu* LteHarqProcessRx::getPdu(Codeword cw)
+{
+    return pdu_.at(cw);
+}
+
+simtime_t LteHarqProcessRx::getPduCreationTime(Codeword cw){
+	return pdu_.at(cw)->getCreationTime();
+}
+//
+
 int64_t LteHarqProcessRx::getByteLength(Codeword cw)
 {
     //std::cout << "LteHarqProcessRx::getByteLength start at " << simTime().dbl() << std::endl;

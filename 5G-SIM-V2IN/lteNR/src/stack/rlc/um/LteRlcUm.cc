@@ -233,8 +233,8 @@ void LteRlcUm::initialize()
     sentPacketToUpperLayer = registerSignal("sentPacketToUpperLayer");
     sentPacketToLowerLayer = registerSignal("sentPacketToLowerLayer");
 
-	totalRlcThroughputUl.setName("UEtotalRlcThroughputUl");
-	totalRlcThroughputDl.setName("UEtotalRlcThroughputUl");
+	ueTotalRlcThroughputUl.setName("UEtotalRlcThroughputUl");
+	ueTotalRlcThroughputDl.setName("UEtotalRlcThroughputUl");
 	totalRcvdBytesUl = 0;
 	totalRcvdBytesDl = 0;
 

@@ -60,16 +60,16 @@ class LteRlcUm : public cSimpleModule
     {
     }
 
-    virtual void recordTotalRlcThroughputUl(double length){
+    virtual void recordUETotalRlcThroughputUl(double length){
     	this->totalRcvdBytesUl += length;
     	double tp = totalRcvdBytesUl / (NOW - getSimulation()->getWarmupPeriod());
-    	totalRlcThroughputUl.record(tp);
+    	ueTotalRlcThroughputUl.record(tp);
     }
 
-	virtual void recordTotalRlcThroughputDl(double length) {
+	virtual void recordUETotalRlcThroughputDl(double length) {
 		this->totalRcvdBytesDl += length;
 		double tp = totalRcvdBytesDl / (NOW - getSimulation()->getWarmupPeriod());
-		totalRlcThroughputDl.record(tp);
+		ueTotalRlcThroughputDl.record(tp);
 	}
 
 	virtual void recordConnectedCellUes(double number){
@@ -160,10 +160,19 @@ class LteRlcUm : public cSimpleModule
     virtual UmRxEntity* getRxBuffer(FlowControlInfo* lteInfo);
 
     //added for individual Throughput
-    cOutVector totalRlcThroughputUl;
+    cOutVector ueTotalRlcThroughputDl;
+    cOutVector ueTotalRlcThroughputUl;
+
+    //time when the first packet for throughput calculation was sent
+    simtime_t ueTotalRlcThroughputDlStartTime;
+    simtime_t ueTotalRlcThroughputUlStartTime;
+
+    //for checking the vector is already initialized
+    bool ueTotalRlcThroughputDlInit;
+    bool ueTotalRlcThroughputUlInit;
+
     double totalRcvdBytesUl;
     double totalRcvdBytesDl;
-    cOutVector totalRlcThroughputDl;
 
     cOutVector totalCellRlcThroughputUl;
 	static double totalCellRcvdBytesUl;

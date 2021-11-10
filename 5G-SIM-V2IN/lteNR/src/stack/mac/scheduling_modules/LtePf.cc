@@ -42,6 +42,15 @@ void LtePf::prepareSchedule() //
 	// Clear structures
 	grantedBytes_.clear();
 
+	if (direction_ == DL) {
+		//Look into the macBuffers and find out all active connections
+		for (auto &var : *mac_->getMacBuffers()) {
+			if (!var.second->isEmpty()) {
+				eNbScheduler_->backlog(var.first);
+			}
+		}
+	}
+
 	// Create a working copy of the active set
 	activeConnectionTempSet_ = activeConnectionSet_;
 
