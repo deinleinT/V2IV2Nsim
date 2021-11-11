@@ -127,7 +127,7 @@ bool NRSchedulerGnbDl::rtxschedule() {
 			}
 		}
 
-//		for (process = 0; process < maxProcesses; ++process) {
+		//		for (process = 0; process < maxProcesses; ++process) {
 		for (auto &process : rtxProcesses) {
 			// for each HARQ process
 			LteHarqProcessTx *currProc = (*processes)[process.second];
@@ -379,9 +379,7 @@ unsigned int NRSchedulerGnbDl::scheduleGrant(MacCid cid, unsigned int bytes, boo
 	unsigned int numCodewords = txParams.getLayers().size();
 
 	std::string bands_msg = "BAND_LIMIT_SPECIFIED";
-
 	std::vector<BandLimit> tempBandLim;
-
 	if (bandLim == NULL) {
 		bands_msg = "NO_BAND_SPECIFIED";
 		// Create a vector of band limit using all bands
@@ -478,21 +476,23 @@ unsigned int NRSchedulerGnbDl::scheduleGrant(MacCid cid, unsigned int bytes, boo
 		return 0;
 	}
 
-	// DEBUG OUTPUT
-	if (limitBl) {
-		//EV << "NRSchedulerGnbDl::grant blocks: " << bytes << endl;
-	} else {
-		//EV << "NRSchedulerGnbDl::grant Bytes: " << bytes << endl;
-	}
-	//EV << "NRSchedulerGnbDl::grant Bands: {";
-	unsigned int size = (*bandLim).size();
-	if (size > 0) {
-		//EV << (*bandLim).at(0).band_;
-		for (unsigned int i = 1; i < size; i++) {
-			//EV << ", " << (*bandLim).at(i).band_;
-		}
-	}
-	//EV << "}\n";
+	// ===== DEBUG OUTPUT ===== //
+	//	bool debug = false; // TODO: make this configurable
+	//	if (debug) {
+	//		if (limitBl)
+	//			EV << "LteSchedulerEnb::grant blocks: " << bytes << endl;
+	//		else
+	//			EV << "LteSchedulerEnb::grant Bytes: " << bytes << endl;
+	//		EV << "LteSchedulerEnb::grant Bands: {";
+	//		unsigned int size = (*bandLim).size();
+	//		if (size > 0) {
+	//			EV << (*bandLim).at(0).band_;
+	//			for (unsigned int i = 1; i < size; i++)
+	//				EV << ", " << (*bandLim).at(i).band_;
+	//		}
+	//		EV << "}\n";
+	//	}
+	// ===== END DEBUG OUTPUT ===== //
 
 	//EV << "NRSchedulerGnbDl::grant TxMode: " << txModeToA(txParams.readTxMode()) << endl;
 	//EV << "NRSchedulerGnbDl::grant Available codewords: " << numCodewords << endl;
@@ -605,13 +605,13 @@ unsigned int NRSchedulerGnbDl::scheduleGrant(MacCid cid, unsigned int bytes, boo
 				// use the provided limit as cap for available bytes, if it is not set to unlimited
 				if (limit >= 0 && limit < (int) bandAvailableBytes) {
 					bandAvailableBytes = limit;
-					//EV << "NRSchedulerGnbDl::grant Band space limited to " << bandAvailableBytes << " bytes according to limit cap" << endl;
+
 				}
 			} else {
 				// if bandLimit is expressed in blocks
 				if (limit >= 0 && limit < (int) bandAvailableBlocks) {
 					bandAvailableBlocks = limit;
-					//EV << "NRSchedulerGnbDl::grant Band space limited to " << bandAvailableBlocks << " blocks according to limit cap" << endl;
+
 				}
 			}
 

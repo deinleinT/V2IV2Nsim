@@ -125,6 +125,12 @@ void NRBinder::initialize(int stages) {
 
 		losDetected = 0;
 		nlosDetected = 0;
+
+		//ini / ned flags
+		remoteCarByColour = getSimulation()->getSystemModule()->par("remoteCarByColour").boolValue();
+		remoteCarJustOne = getSimulation()->getSystemModule()->par("remoteCarJustOne").boolValue();
+		realisticApproachMultiApplication = getSimulation()->getSystemModule()->par("realisticApproachMultiApplication").boolValue();
+		//
 	}
 
 }

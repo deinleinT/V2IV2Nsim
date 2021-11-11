@@ -170,7 +170,7 @@ public:
 
 		ASSERT(ueId >= UE_MIN_ID && ueId <= UE_MAX_ID);
 
-		for(auto var : ueNotConnectedList_){
+		for(auto & var : ueNotConnectedList_){
 			if(var == ueId){
 				return true;
 			}

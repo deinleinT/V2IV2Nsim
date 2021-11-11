@@ -165,6 +165,15 @@ typedef ConnectionsMap::iterator ConnectionsMapIterator;
 class TrafficGenerator: public UDPBasicApp {
 protected:
 
+	//flag parameters from ini / ned file / GeneralParameters
+	bool remoteDrivingDL;
+	bool remoteDrivingUL;
+	bool useSimplifiedFlowControl;
+	bool recordPositionAndPacketLoss;
+	int remoteCarFactor;
+	bool useSINRThreshold;
+	//
+
 	std::string nodeType;
 	L3Address localAddress_;
 	L3Address destAddress_;
@@ -550,7 +559,7 @@ public:
 		}
 
 		//save the random messageLength for each car in RemoteDrivingDL
-		if (getSimulation()->getSystemModule()->par("remoteDrivingDL")) {
+		if (remoteDrivingDL) {
 			carsByteLengthRemoteDrivingDL[name] = par("messageLength").intValue();
 			carsSendingIntervalRemoteDrivingDL[name] = interval;
 		}

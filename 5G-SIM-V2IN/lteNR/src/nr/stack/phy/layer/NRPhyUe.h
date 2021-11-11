@@ -57,6 +57,12 @@ public:
 
 
 protected:
+
+    //ini / ned flags
+    bool useSINRThreshold;
+    double checkConnectionInterval;
+    //
+
     cMessage * checkConnectionTimer;
     QosHandler * qosHandler;
     simsignal_t averageTxPower;

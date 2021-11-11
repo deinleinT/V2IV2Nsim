@@ -56,7 +56,7 @@ protected:
 				//start time when the first packet was transmitted
 				ueTotalRlcThroughputUlStartTime = NOW;
 				//check if this vehicle is a remote vehicle or not
-				if (getNRBinder()->isRemoteCar(ueId, getSystemModule()->par("remoteCarFactor").intValue())) {
+				if (getNRBinder()->isRemoteCar(ueId, getSimulation()->getSystemModule()->par("remoteCarFactor").intValue())) {
 					ueTotalRlcThroughputUl.setName("UEtotalRlcThroughputUlREMOTE");
 				} else {
 					ueTotalRlcThroughputUl.setName("UEtotalRlcThroughputUl");

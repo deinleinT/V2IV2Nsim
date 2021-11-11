@@ -79,8 +79,6 @@ void NRPhyUe::initialize(int stage) {
 		emit(averageTxPower, txPower_);
 		errorCount = 0;
 
-		checkConnectionTimer = new cMessage("checkConnectionTimer");
-
 		if (!hasListeners(averageCqiDl_))
 			error("no phy listeners");
 
@@ -90,6 +88,12 @@ void NRPhyUe::initialize(int stage) {
 		downlinkYPosition.setName("downlinkYPosition");
 		uplinkXPosition.setName("uplinkXPosition");
 		uplinkYPosition.setName("uplinkYPosition");
+
+		//check Connection procedure
+		checkConnectionTimer = new cMessage("checkConnectionTimer");
+		useSINRThreshold = getSimulation()->getSystemModule()->par("useSINRThreshold").boolValue();
+		checkConnectionInterval = getSimulation()->getSystemModule()->par("checkConnectionInterval").doubleValue();
+		//
 
 		WATCH(nodeType_);
 		WATCH(masterId_);
@@ -197,7 +201,7 @@ void NRPhyUe::initialize(int stage) {
 
 void NRPhyUe::checkConnection() {
 
-	if (getSimulation()->getSystemModule()->par("useSINRThreshold").boolValue()) {
+	if (useSINRThreshold) {
 		// this is a fictitious frame that needs to compute the SINR
 		LteAirFrame *frame = new LteAirFrame("cellSelectionFrame");
 		UserControlInfo *cInfo = new UserControlInfo();
@@ -208,7 +212,7 @@ void NRPhyUe::checkConnection() {
 		std::vector<EnbInfo*>::iterator it = enbList->begin();
 
 		it = enbList->begin();
-		double maxRssiUL = -100;
+		double maxRssi = -100;
 		int bestGNB = 0;
 		double bestGNBSINR = 0;
 		for (; it != enbList->end(); ++it) {
@@ -245,12 +249,12 @@ void NRPhyUe::checkConnection() {
 				rssi += *it;
 			rssi /= rssiV.size();   // compute the mean over all RBs
 
-			if(rssi > maxRssiUL){
+			if(rssi > maxRssi){
 				bestGNB = cellId;
 				bestGNBSINR = rssi;
 			}
 
-			maxRssiUL = max(rssi, maxRssiUL);
+			maxRssi = max(rssi, maxRssi);
 
 		}
 		delete cInfo;
@@ -258,7 +262,7 @@ void NRPhyUe::checkConnection() {
 		//
 
 		//signal to all nodeBs is weak
-		if (maxRssiUL <= getSimulation()->getSystemModule()->par("SINRThreshold").intValue()) {
+		if (maxRssi <= getSimulation()->getSystemModule()->par("SINRThreshold").intValue()) {
 			getBinder()->insertUeToNotConnectedList(nodeId_);
 			deleteOldBuffers(masterId_);
 		} else {
@@ -271,7 +275,7 @@ void NRPhyUe::checkConnection() {
 
 		}
 		cancelEvent(checkConnectionTimer);
-		scheduleAt(simTime() + getSimulation()->getSystemModule()->par("checkConnectionInterval").doubleValue() + uniform(0, 0.005), checkConnectionTimer);
+		scheduleAt(simTime() + checkConnectionInterval + uniform(0, 0.005), checkConnectionTimer);
 	}
 }
 
@@ -339,7 +343,7 @@ void NRPhyUe::recordTotalPer(const double & totalPerVal) {
 	emit(totalPer, totalPerVal);
 }
 
-//when UE is leaving the simulation and for simplified Handover
+//when UE is leaving the simulation and for simplified Handover / connection is disconnected
 void NRPhyUe::deleteOldBuffers(MacNodeId masterId) {
 
 	//std::cout << "NRPhyUe deleteOldBuffers start at " << simTime().dbl() << std::endl;
@@ -354,7 +358,7 @@ void NRPhyUe::deleteOldBuffers(MacNodeId masterId) {
 	/* Delete Mac Buffers */
 
 	// delete macBuffer[nodeId_] at old master
-	LteMacEnb *masterMac = check_and_cast<LteMacEnb *>(getSimulation()->getModule(masterOmnetId)->getSubmodule("lteNic")->getSubmodule("mac"));
+	NRMacGnb *masterMac = check_and_cast<NRMacGnb *>(getSimulation()->getModule(masterOmnetId)->getSubmodule("lteNic")->getSubmodule("mac"));
 	masterMac->deleteQueues(nodeId_);
 	//qosHandler GNB
 	masterMac->deleteNodeFromQosHandler(nodeId_);

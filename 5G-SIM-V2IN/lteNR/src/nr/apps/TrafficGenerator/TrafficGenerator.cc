@@ -130,6 +130,16 @@ void TrafficGenerator::initialize(int stage) {
 		//for DL and UL, set in OmnetINI
 		startTime = NOW + uniform(0, par("startTime").doubleValue());
 		stopTime = SIMTIME_MAX;
+
+		//flag parameters from ini/ned files or GeneralParameters.ned
+		remoteDrivingDL = getSimulation()->getSystemModule()->par("remoteDrivingDL");
+		remoteDrivingUL = getSimulation()->getSystemModule()->par("remoteDrivingUL");
+		useSimplifiedFlowControl = getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue();
+		recordPositionAndPacketLoss = getSimulation()->getSystemModule()->par("recordPositionAndPacketLoss").boolValue();
+		remoteCarFactor = getSimulation()->getSystemModule()->par("remoteCarFactor").intValue();
+		useSINRThreshold = getSimulation()->getSystemModule()->par("useSINRThreshold").boolValue();
+		//
+
 		if (stopTime >= SIMTIME_ZERO && stopTime < startTime)
 			throw cRuntimeError("Invalid startTime/stopTime parameters");
 	}
@@ -1125,7 +1135,7 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 	unsigned short nodeId = getNRBinder()->getMacNodeId(localAddress_.toIPv4());
 
 	//do not send a packet if unconnected
-	if (getSimulation()->getSystemModule()->par("useSINRThreshold").boolValue()) {
+	if (useSINRThreshold) {
 		//get the binder an the ueNotConnectedList
 		if (getBinder()->isNotConnected(nodeId)) {
 			return;
@@ -1140,9 +1150,9 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 
 	if (strcmp(packetName, "V2X") == 0) {
 
-		if (getSimulation()->getSystemModule()->par("remoteDrivingUL")) {
-			//check nodeId --> every 10th car is a remote car
-			if (!isRemoteCar(nodeId, getSystemModule()->par("remoteCarFactor").intValue())) {
+		if (remoteDrivingUL) {
+			//check nodeId --> every ...th car is a remote car
+			if (!isRemoteCar(nodeId, remoteCarFactor)) {
 				sendVideoPacket = false;
 				return;
 			}
@@ -1156,7 +1166,7 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 		}
 
 		//simplified flow control
-		if (getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue()) {
+		if (useSimplifiedFlowControl) {
 			//if true, the corresponding macBufferQueue is full
 			if (getNRBinder()->getQueueStatus(nodeId, UL, V2X).second) {
 				numberSentPackets--;
@@ -1222,7 +1232,7 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 		//
 
 		//simplified flow control
-		if (getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue()) {
+		if (useSimplifiedFlowControl) {
 			//if true, the corresponding macBufferQueue is full
 			if (getNRBinder()->getQueueStatus(nodeId, UL, VOD).second) {
 				numberSentPackets--;
@@ -1240,33 +1250,6 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 		payload->setSenderName(getParentModule()->getFullName());
 		payload->setTimestamp(NOW);
 		payload->setSequenceNumber(0);
-
-		/*
-		 * realisticApproach
-		 * every 10th car: interval 25ms, 15625byte
-		 * even node Id: VoipStream, 80kbps, 100byte, 10ms
-		 * odd node Id: random traffic, 10ms 500ms, 50 1500byte
-		 */
-		if (getSimulation()->getSystemModule()->par("realisticApproach")) {
-
-			if (nodeId % 10 == 0) {
-				//VideoStream with 5Mbps
-				//packet size 15625 byte, packet interval 25ms
-				payload->setByteLength(15625);
-				sendInterval = 0.025;
-			} else if (nodeId % 2 == 0) {
-				//VoipStream with 80kpbs
-				//packet size 100byte, packet interval 10ms
-				payload->setByteLength(100);
-				sendInterval = 0.01;
-			} else {
-				//random streams (packet size uniform(50byte,1500byte), packet interval uniform(10ms, 500ms)
-				unsigned int bytes = uniform(50, 1500);
-				payload->setByteLength(bytes);
-				sendInterval = uniform(0.01, 0.500);
-			}
-		}
-		//
 
 		if (connectionsUEtoServ.find(nodeId) != connectionsUEtoServ.end()) {
 			//already one entry
@@ -1316,7 +1299,7 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 		//
 
 		//simplified flow control
-		if (getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue()) {
+		if (useSimplifiedFlowControl) {
 			//if true, the corresponding macBufferQueue is full
 			if (getNRBinder()->getQueueStatus(nodeId, UL, VOIP).second) {
 				numberSentPackets--;
@@ -1373,9 +1356,9 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 
 	} else if (strcmp(packetName, "Data") == 0) {
 
-		if (getSimulation()->getSystemModule()->par("remoteDrivingUL")) {
+		if (remoteDrivingUL) {
 			//check nodeId --> every 10th car is a remote car
-			if (isRemoteCar(nodeId, getSystemModule()->par("remoteCarFactor"))) {
+			if (isRemoteCar(nodeId, remoteCarFactor)) {
 				sendDataPacket = false;
 				return;
 			}
@@ -1390,7 +1373,7 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 		//
 
 		//simplified flow control
-		if (getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue()) {
+		if (useSimplifiedFlowControl) {
 			//if true, the corresponding macBufferQueue is full
 			if (getNRBinder()->getQueueStatus(nodeId, UL, DATA_FLOW).second) {
 				numberSentPackets--;
@@ -1492,7 +1475,7 @@ void TrafficGeneratorCarDL::initialize(int stage) {
 		const char *carName = getParentModule()->getFullName();
 
 		//for V2X Broadcast
-		bool flag = getSystemModule()->par("v2vMulticastFlag").boolValue();
+		bool flag = getSimulation()->getSystemModule()->par("v2vMulticastFlag").boolValue();
 		if (flag)
 			return;
 		//
@@ -1502,8 +1485,7 @@ void TrafficGeneratorCarDL::initialize(int stage) {
 		carNameSignal = registerSignal("carName");
 		subscribe(carNameSignal, listener0);
 
-		if (getSimulation()->getSystemModule()->par("remoteDrivingUL").boolValue() && getSimulation()->getSystemModule()->par("remoteDrivingDL").boolValue()
-				&& getAncestorPar("numUdpApps").intValue() == 4) {
+		if (remoteDrivingUL && remoteDrivingDL && getAncestorPar("numUdpApps").intValue() == 4) {
 			unsigned short tmpGate = 0;
 			if (getAncestorPar("oneServer").boolValue())
 				tmpGate = 1;
@@ -2124,7 +2106,7 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 			}
 
 			//
-			if (getSimulation()->getSystemModule()->par("remoteDrivingDL")) {
+			if (remoteDrivingDL) {
 				//use the same random time
 				carsSendingTimes[carName] = carsSendingIntervalRemoteDrivingDL[carName] + NOW;
 			} else {
@@ -2136,7 +2118,7 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 			int nodeId = getNRBinder()->getMacNodeIdFromOmnetId(omnetId);
 
 			//do not send a packet if unconnected
-			if (getSimulation()->getSystemModule()->par("useSINRThreshold").boolValue()) {
+			if (useSINRThreshold) {
 				//get the binder an the ueNotConnectedList
 				if (getBinder()->isNotConnected(nodeId)) {
 					continue;
@@ -2151,9 +2133,9 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 
 			if (strcmp(packetName, "V2X") == 0) {
 
-				if (getSimulation()->getSystemModule()->par("remoteDrivingDL")) {
+				if (remoteDrivingDL) {
 					//check nodeId --> every ...th car is a remote car
-					if (!isRemoteCar(nodeId, getSystemModule()->par("remoteCarFactor").intValue())) {
+					if (!isRemoteCar(nodeId, remoteCarFactor)) {
 						//sendVideoPacket = false;
 						itr = names.erase(itr);
 						carsSendingTimes.erase(carName);
@@ -2164,7 +2146,7 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 				}
 
 				//if true, the vehicle should send a packet
-				if(!getNRBinder()->getVehicleApplicationSummaryValue(nodeId, "V2X")){
+				if (!getNRBinder()->getVehicleApplicationSummaryValue(nodeId, "V2X")) {
 					numberSentPackets--;
 					numSent--;
 					continue;
@@ -2172,7 +2154,7 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 				//
 
 				//simplified flow control
-				if (getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue()) {
+				if (useSimplifiedFlowControl) {
 					//if true, the corresponding macBufferQueue is full
 					if (getNRBinder()->getQueueStatus(nodeId, DL, V2X).second) {
 						numberSentPackets--;
@@ -2186,7 +2168,7 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 				V2XMessage *payload = new V2XMessage(packetName);
 
 				//
-				if (getSimulation()->getSystemModule()->par("remoteDrivingDL")) {
+				if (remoteDrivingDL) {
 					payload->setByteLength(carsByteLengthRemoteDrivingDL[carName]);
 				} else {
 					payload->setByteLength(messageLength);
@@ -2229,7 +2211,7 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 			} else if (strcmp(packetName, "Video") == 0) {
 
 				//if true, the vehicle should send a packet
-				if(!getNRBinder()->getVehicleApplicationSummaryValue(nodeId, "Video")){
+				if (!getNRBinder()->getVehicleApplicationSummaryValue(nodeId, "Video")) {
 					numberSentPackets--;
 					numSent--;
 					continue;
@@ -2237,7 +2219,7 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 				//
 
 				//simplified flow control
-				if (getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue()) {
+				if (useSimplifiedFlowControl) {
 					//if true, the corresponding macBufferQueue is full
 					if (getNRBinder()->getQueueStatus(nodeId, DL, VOD).second) {
 						numberSentPackets--;
@@ -2255,33 +2237,6 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 				payload->setSenderName(getParentModule()->getFullName());
 				payload->setTimestamp(NOW);
 				payload->setSequenceNumber(0);
-
-				//
-				if (getSimulation()->getSystemModule()->par("realisticApproach")) {
-
-					//10th car
-					if (nodeId % 10 == 0) {
-						//VideoStream with 5Mbps
-						//packet size 15625 byte, packet intervall 25ms
-						payload->setByteLength(15625);
-						sendInterval = 0.025;
-					} else if (nodeId % 2 == 0) {
-						//VoipStream with 80kpbs
-						//packet size 100byte, packet interval 10ms
-						payload->setByteLength(100);
-						sendInterval = 0.01;
-					} else {
-						//random streams (packet size uniform(50byte,1500byte), packet interval uniform(10ms, 500ms)
-						unsigned int bytes = uniform(50, 1500);
-						payload->setByteLength(bytes);
-						sendInterval = uniform(0.01, 0.500);
-					}
-					//
-
-					nextSelfMsgTime = NOW + sendInterval + uniform(0, par("resendingDelay").doubleValue());
-					carsSendingTimes[carName] = nextSelfMsgTime;
-				}
-				//
 
 				if (connectionsServToUE.find(nodeId) != connectionsServToUE.end()) {
 					//already one entry
@@ -2317,7 +2272,7 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 			} else if (strcmp(packetName, "VoIP") == 0) {
 
 				//if true, the vehicle should send a packet
-				if(!getNRBinder()->getVehicleApplicationSummaryValue(nodeId, "VoIP")){
+				if (!getNRBinder()->getVehicleApplicationSummaryValue(nodeId, "VoIP")) {
 					numberSentPackets--;
 					numSent--;
 					continue;
@@ -2325,7 +2280,7 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 				//
 
 				//simplified flow control
-				if (getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue()) {
+				if (useSimplifiedFlowControl) {
 					//if true, the corresponding macBufferQueue is full
 					if (getNRBinder()->getQueueStatus(nodeId, DL, VOIP).second) {
 						numberSentPackets--;
@@ -2374,7 +2329,7 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 			} else if (strcmp(packetName, "Data") == 0) {
 
 				//if true, the vehicle should send a packet
-				if(!getNRBinder()->getVehicleApplicationSummaryValue(nodeId, "Data")){
+				if (!getNRBinder()->getVehicleApplicationSummaryValue(nodeId, "Data")) {
 					numberSentPackets--;
 					numSent--;
 					continue;
@@ -2382,7 +2337,7 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 				//
 
 				//simplified flow control
-				if (getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue()) {
+				if (useSimplifiedFlowControl) {
 					//if true, the corresponding macBufferQueue is full
 					if (getNRBinder()->getQueueStatus(nodeId, DL, DATA_FLOW).second) {
 						numberSentPackets--;
@@ -2392,9 +2347,9 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 				}
 				//
 
-				if (getSimulation()->getSystemModule()->par("remoteDrivingDL")) {
+				if (remoteDrivingDL) {
 					//check nodeId --> every 10th car is a remote car
-					if (isRemoteCar(nodeId, getSystemModule()->par("remoteCarFactor").intValue())) {
+					if (isRemoteCar(nodeId, remoteCarFactor)) {
 						//sendVideoPacket = false;
 						itr = names.erase(itr);
 						carsSendingTimes.erase(carName);
@@ -2409,7 +2364,7 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 				DataMessage *payload = new DataMessage(packetName);
 
 				//
-				if (getSimulation()->getSystemModule()->par("remoteDrivingDL")) {
+				if (remoteDrivingDL) {
 					payload->setByteLength(carsByteLengthRemoteDrivingDL[carName]);
 				} else {
 					payload->setByteLength(messageLength);

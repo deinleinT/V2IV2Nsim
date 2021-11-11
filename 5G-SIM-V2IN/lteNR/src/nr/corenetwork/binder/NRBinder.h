@@ -235,14 +235,14 @@ public:
 	 +-----------------------------------------------------------------------------*/
 	virtual bool isRemoteCar(unsigned short ueId, unsigned int remoteCarFactor) {
 
-		if (getSystemModule()->par("remoteCarByColour")) {
+		if (remoteCarByColour) {
 			veins::TraCIScenarioManager *vinetmanager = check_and_cast<veins::TraCIScenarioManager*>(getSimulation()->getModuleByPath("veinsManager"));
 			return vinetmanager->isRemoteVehicle(getBinder()->getMacFromMacNodeId(ueId)->getParentModule()->getParentModule()->getFullName());
 		}
 
 		//if remoteCarJustOne is true, only one remote vehicle is added to the simulation
 		//its id is determined by the remoteCarFactor (e.g., remoteCarFactor=0 --> the remote car is the one with the ueId 1025)
-		if (getSystemModule()->par("remoteCarJustOne").boolValue()) {
+		if (remoteCarJustOne) {
 			if ((UE_MIN_ID + remoteCarFactor) == ueId) {
 				return true;
 			}
@@ -336,7 +336,7 @@ public:
 	 +-----------------------------------------------------------------------------*/
 	virtual bool getVehicleApplicationSummaryValue(MacNodeId ueId, std::string applicationString) {
 
-		if (getSimulation()->getSystemModule()->par("realisticApproachMultiApplication")) {
+		if (realisticApproachMultiApplication) {
 
 			std::transform(applicationString.begin(), applicationString.end(), applicationString.begin(), ::tolower);
 
@@ -391,5 +391,11 @@ protected:
 	virtual void initialize(int stages);
 	unsigned int losDetected;
 	unsigned int nlosDetected;
+
+	//ini / ned flags
+	bool remoteCarByColour;
+	bool remoteCarJustOne;
+	bool realisticApproachMultiApplication;
+	//
 };
 
