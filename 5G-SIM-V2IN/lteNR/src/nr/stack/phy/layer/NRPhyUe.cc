@@ -275,7 +275,7 @@ void NRPhyUe::checkConnection() {
 
 		}
 		cancelEvent(checkConnectionTimer);
-		scheduleAt(simTime() + checkConnectionInterval + uniform(0, 0.005), checkConnectionTimer);
+		scheduleAt(simTime() + checkConnectionInterval + uniform(0, 0.001), checkConnectionTimer);
 	}
 }
 

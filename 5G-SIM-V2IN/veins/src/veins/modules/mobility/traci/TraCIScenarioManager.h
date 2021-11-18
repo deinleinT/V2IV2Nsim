@@ -132,6 +132,7 @@ public:
     }
 
     virtual bool deleteRemoteVehicle(std::string carName) {
+        Enter_Method_Silent("deleteRemoteVehicle");
         std::set<std::string>::const_iterator it = remoteVehicles.begin();
         //auto it=remoteVehicles.begin();
         while (it != remoteVehicles.end()) {

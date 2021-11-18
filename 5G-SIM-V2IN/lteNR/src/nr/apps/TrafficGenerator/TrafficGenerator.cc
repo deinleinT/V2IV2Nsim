@@ -1136,7 +1136,7 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 
 	//do not send a packet if unconnected
 	if (useSINRThreshold) {
-		//get the binder an the ueNotConnectedList
+		//get the binder and the ueNotConnectedList
 		if (getBinder()->isNotConnected(nodeId)) {
 			return;
 		}
@@ -2141,6 +2141,9 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 						carsSendingTimes.erase(carName);
 						carsByteLengthRemoteDrivingDL.erase(carName);
 						carsSendingIntervalRemoteDrivingDL.erase(carName);
+					    	numberSentPackets--;
+					    	//from UDPBasicApp
+					    	numSent--;
 						continue;
 					}
 				}

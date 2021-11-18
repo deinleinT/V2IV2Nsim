@@ -43,7 +43,6 @@ simple QosHandler like IQosHandler
         int dataQfi = default(4);
         int data5Qi = default(9);//NGBR
 
-
         int v2xQfiToRadioBearer = default(1);
         int videoQfiToRadioBearer = default(1);
         int voipQfiToRadioBearer = default(1);

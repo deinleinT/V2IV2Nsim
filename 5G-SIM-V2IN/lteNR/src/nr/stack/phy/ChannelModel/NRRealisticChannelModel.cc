@@ -144,6 +144,8 @@ void NRRealisticChannelModel::initialize(int stage) {
 			throw cRuntimeError("Only NR ChannelModels are allowed!");
 
 		lastStatisticRecord = -1;
+
+		considerInterferenceOnlyForPossibleOverlappingRB = getSimulation()->getSystemModule()->par("considerInterferenceOnlyForPossibleOverlappingRB").boolValue();
 	}
 
 }
@@ -2109,6 +2111,35 @@ bool NRRealisticChannelModel::computeDownlinkInterference(MacNodeId eNbId, MacNo
 			continue;
 		}
 
+		//Here the number of available resource blocks and the occupied resource blocks are considered.
+		//The ratio between usedResourceBlocks and availableResourceBlocks is used as an upper boundary
+		//a uniform random value between 0 and 1 is calculated and used as determiner whether interference
+		//has to be considered or not
+		//if the randomValue is larger than the ratio then it is assumed that the transmitted resource blocks
+		//of this transmission do not interfere with a transmission from the neighbor (base station)
+		if (considerInterferenceOnlyForPossibleOverlappingRB) {
+			//the blocks for this transmission
+			double resourceBlocks = rbmap[MACRO][0];
+			//the available blocks
+			double availableResourceBlocks = getCellInfo(eNbId)->getNumRbDl();
+			double ratio = resourceBlocks / availableResourceBlocks;
+
+			//we only want to consider data transmissions
+			if (ratio <= 0) {
+				++it;
+				continue;
+			}
+
+			//calculate a random value
+			double randomValue = uniform(0.0, 1.0);
+
+			if (randomValue > ratio) {
+				//do not consider this base station interference
+				++it;
+				continue;
+			}
+		}
+
 		// initialize eNb data structures
 		if (!(*it)->init) {
 			// obtain a reference to enb phy and obtain tx power
@@ -2232,6 +2263,33 @@ bool NRRealisticChannelModel::computeUplinkInterference(MacNodeId eNbId, MacNode
 				if (cellId == eNbId)
 					continue;
 
+				//Here the number of available resource blocks and the occupied resource blocks are considered.
+				//The ratio between usedResourceBlocks and availableResourceBlocks is used as an upper boundary
+				//a uniform random value between 0 and 1 is calculated and used as determiner whether interference
+				//has to be considered or not
+				//if the randomValue is larger than the ratio then it is assumed that the transmitted resource blocks
+				//of this transmission do not interfere with a transmission from the neighbor (base station)
+				if (considerInterferenceOnlyForPossibleOverlappingRB) {
+					//the blocks for this transmission
+					double resourceBlocks = rbmap[MACRO][0];
+					//the available blocks
+					double availableResourceBlocks = getCellInfo(eNbId)->getNumRbDl();
+					double ratio = resourceBlocks / availableResourceBlocks;
+
+					//we only want to consider data transmissions
+					if (ratio <= 0) {
+						continue;
+					}
+
+					//calculate a random value
+					double randomValue = uniform(0.0, 1.0);
+
+					if (randomValue > ratio) {
+						//do not consider this interference
+						continue;
+					}
+				}
+
 				//EV<<NOW<<" NRRealisticChannelModel::computeUplinkInterference - Interference from UE: "<< ueId << "(dir " << dirToA(dir) << ") on band[" << i << "]" << endl;
 
 				// get tx power and attenuation from this UE
@@ -2281,6 +2339,33 @@ bool NRRealisticChannelModel::computeUplinkInterference(MacNodeId eNbId, MacNode
 				if (cellId == eNbId)
 					continue;
 
+				//Here the number of available resource blocks and the occupied resource blocks are considered.
+				//The ratio between usedResourceBlocks and availableResourceBlocks is used as an upper boundary
+				//a uniform random value between 0 and 1 is calculated and used as determiner whether interference
+				//has to be considered or not
+				//if the randomValue is larger than the ratio then it is assumed that the transmitted resource blocks
+				//of this transmission do not interfere with a transmission from the neighbor (base station)
+				if (considerInterferenceOnlyForPossibleOverlappingRB) {
+					//the blocks for this transmission
+					double resourceBlocks = rbmap[MACRO][0];
+					//the available blocks
+					double availableResourceBlocks = getCellInfo(eNbId)->getNumRbDl();
+					double ratio = resourceBlocks / availableResourceBlocks;
+
+					//we only want to consider data transmissions
+					if (ratio <= 0) {
+						continue;
+					}
+
+					//calculate a random value
+					double randomValue = uniform(0.0, 1.0);
+
+					if (randomValue > ratio) {
+						//do not consider this interference
+						continue;
+					}
+				}
+
 				//EV<<NOW<<" NRRealisticChannelModel::computeUplinkInterference - Interference from UE: "<< ueId << "(dir " << dirToA(dir) << ") on band[" << i << "]" << endl;
 
 				// get tx power and attenuation from this UE
@@ -2300,9 +2385,9 @@ bool NRRealisticChannelModel::computeUplinkInterference(MacNodeId eNbId, MacNode
 
 	// Debug Output
 	//EV << NOW << " NRRealisticChannelModel::computeUplinkInterference - Final Band Interference Status: "<<endl;
-	for (unsigned int i = 0; i < band_; i++) {
+	//for (unsigned int i = 0; i < band_; i++) {
 		//EV << "\t band " << i << " int[" << (*interference)[i] << "]" << endl;
-	}
+	//}
 
 	return true;
 }

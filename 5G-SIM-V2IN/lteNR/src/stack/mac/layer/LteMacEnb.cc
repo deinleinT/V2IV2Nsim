@@ -1208,9 +1208,8 @@ void LteMacEnb::macHandleFeedbackPkt(cPacket *pkt)
 
     LteFeedbackPkt* fb = check_and_cast<LteFeedbackPkt*>(pkt);
     LteFeedbackDoubleVector fbMapDl = fb->getLteFeedbackDoubleVectorDl();
-//    LteFeedbackDoubleVector fbMapUl = fb->getLteFeedbackDoubleVectorUl();
-    //changed for 5G-SIM-V2I/N --> we only want to use the DL
-    LteFeedbackDoubleVector fbMapUl = fb->getLteFeedbackDoubleVectorDl();
+    LteFeedbackDoubleVector fbMapUl = fb->getLteFeedbackDoubleVectorUl();
+
     //get Source Node Id<
     MacNodeId id = fb->getSourceNodeId();
     LteFeedbackDoubleVector::iterator it;

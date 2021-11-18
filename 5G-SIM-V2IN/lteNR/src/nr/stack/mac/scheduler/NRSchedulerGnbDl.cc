@@ -27,12 +27,11 @@
 #include "nr/stack/mac/scheduler/NRSchedulerGnbDl.h"
 
 NRSchedulerGnbDl::NRSchedulerGnbDl() {
-	// TODO Auto-generated constructor stub
 
 }
 
 NRSchedulerGnbDl::~NRSchedulerGnbDl() {
-	// TODO Auto-generated destructor stub
+
 }
 
 LteMacScheduleListWithSizes* NRSchedulerGnbDl::schedule() {
@@ -98,7 +97,7 @@ bool NRSchedulerGnbDl::rtxschedule() {
 
 		// Get user transmission parameters
 		const UserTxParams &txParams = mac_->getAmc()->computeTxParams(nodeId, direction_);        // get the user info
-		// TODO SK Get the number of codewords - FIX with correct mapping
+
 		unsigned int codewords = txParams.getLayers().size();        // get the number of available codewords
 
 		//EV << NOW << " NRSchedulerGnbDl::rtxschedule  UE: " << nodeId << endl;
@@ -183,7 +182,7 @@ unsigned int NRSchedulerGnbDl::schedulePerAcidRtx(MacNodeId nodeId, Codeword cw,
 
 	// Get user transmission parameters
 	const UserTxParams &txParams = mac_->getAmc()->computeTxParams(nodeId, direction_);    // get the user info
-	// TODO SK Get the number of codewords - FIX with correct mapping
+
 	unsigned int codewords = txParams.getLayers().size();                // get the number of available codewords
 
 	std::string bands_msg = "BAND_LIMIT_SPECIFIED";
@@ -339,7 +338,7 @@ unsigned int NRSchedulerGnbDl::schedulePerAcidRtx(MacNodeId nodeId, Codeword cw,
 	// if allocated codewords is not MAX_CODEWORDS, then there's another allocated codeword , update the codewords variable :
 
 	if (allocatedCw != 0) {
-		// TODO fixme this only works if MAX_CODEWORDS ==2
+
 		--codewords;
 		if (codewords <= 0)
 			throw cRuntimeError("LteSchedulerEnbDl::rtxAcid(): erroneus codeword count %d", codewords);

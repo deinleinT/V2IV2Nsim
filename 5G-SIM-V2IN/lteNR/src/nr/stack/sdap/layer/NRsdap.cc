@@ -47,69 +47,6 @@ void NRsdap::handleMessage(cMessage *msg) {
     //std::cout << "NRsdap::handleMessage end at " << simTime().dbl() << std::endl;
 }
 
-void NRsdap::handleSelfMessage(cMessage *msg) {
-
-    //std::cout << "NRsdap::handleSelfMessage start at " << simTime().dbl() << std::endl;
-	//TODO
-    //std::cout << "NRsdap::handleSelfMessage end at " << simTime().dbl() << std::endl;
-
-}
-
-//incoming messages from IP2NR, to pdcp
-void NRsdap::fromUpperToLower(cMessage *msg) {
-
-    //std::cout << "NRsdap::fromUpperToLower start at " << simTime().dbl() << std::endl;
-
-    cPacket* pkt = check_and_cast<cPacket *>(msg);
-    FlowControlInfo * lteInfo = check_and_cast<FlowControlInfo*>(
-            pkt->removeControlInfo());
-    setTrafficInformation(pkt, lteInfo);
-    // dest id
-    MacNodeId destId = getNRBinder()->getMacNodeId(
-            IPv4Address(lteInfo->getDstAddr()));
-    // master of this ue (myself or a relay)
-    MacNodeId master = getNRBinder()->getNextHop(destId);
-    if (master != nodeId_) {
-        destId = master;
-    }
-
-    if (nodeType == UE) {
-        nodeId_ = getBinder()->getMacNodeId(IPv4Address(lteInfo->getSrcAddr()));
-        destId = getNRBinder()->getNextHop(nodeId_);
-    }
-
-    lteInfo->setDestId(destId);
-    lteInfo->setSourceId(nodeId_);
-    lteInfo->setHeaderSize(1);
-
-    SdapPdu * sdapPkt = new SdapPdu(pkt->getName());
-    sdapPkt->encapsulate(pkt);
-    sdapPkt->setControlInfo(lteInfo);
-
-    send(sdapPkt, lowerLayer);
-
-    //std::cout << "NRsdap::fromUpperToLower end at " << simTime().dbl() << std::endl;
-}
-
-//incoming messages from pdcp, to IP2NR
-void NRsdap::fromLowerToUpper(cMessage *msg) {
-
-    //std::cout << "NRsdap::fromLowerToUpper start at " << simTime().dbl() << std::endl;
-
-    cPacket* pkt = check_and_cast<cPacket *>(msg);
-    SdapPdu * sdapPkt = check_and_cast<SdapPdu*>(pkt);
-    FlowControlInfo* lteInfo = check_and_cast<FlowControlInfo*>(
-            sdapPkt->removeControlInfo());
-    cPacket* upPkt = sdapPkt->decapsulate();
-    delete sdapPkt;
-
-    upPkt->setControlInfo(lteInfo);
-
-    send(upPkt, upperLayer);
-
-    //std::cout << "NRsdap::fromLowerToUpper end at " << simTime().dbl() << std::endl;
-}
-
 //sets the qfi for each packet
 void NRsdap::setTrafficInformation(cPacket* pkt, FlowControlInfo* lteInfo) {
     //std::cout << "NRsdap::setTrafficInformation start at " << simTime().dbl() << std::endl;

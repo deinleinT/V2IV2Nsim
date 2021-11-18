@@ -94,8 +94,6 @@ simple NRRealisticChannelModel extends LteRealisticChannelModel
 	bool isNodeB;
 	useTorus = default(false);
 	
-	//bool cqiFlag = default(false);
-	
 	//for Indoor Factory channel models from 38.901, table 7.2-4
 	double d_clutter = default(10); //typical clutter size (10m, 2m or above)
 	double clutter_density_r = default(0); //percentage of surface area occupied by clutter, about 40 %

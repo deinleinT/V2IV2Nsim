@@ -153,7 +153,7 @@ class LteMacBuffer
     unsigned int queueOccupancy_;
 
     /// Number of queued  packets
-    int queueLength_;
+    unsigned int queueLength_;
 
     /// List of  packets
     std::list<PacketInfo> Queue_;

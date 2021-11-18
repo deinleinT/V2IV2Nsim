@@ -890,7 +890,7 @@ void TraCIScenarioManager::processSimSubscription(std::string objectId, TraCIBuf
 }
 
 /*
- * modified for 5G-Sim-V2I/N, enhanced, reads also the colour of a vehicle
+ * modified for 5G-Sim-V2I/N, enhanced, reads also the color of a vehicle
  */
 void TraCIScenarioManager::processVehicleSubscription(std::string objectId, TraCIBuffer& buf)
 {
@@ -1109,7 +1109,6 @@ void TraCIScenarioManager::processVehicleSubscription(std::string objectId, TraC
         if (colourA == 255 && colourG == 0 && colourB == 0) {
             remoteVehicles.insert(std::string(mod->getFullName()));
         }
-
     }
 }
 

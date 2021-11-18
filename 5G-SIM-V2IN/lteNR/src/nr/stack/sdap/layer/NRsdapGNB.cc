@@ -42,8 +42,6 @@ void NRsdapGNB::initialize(int stage) {
         toLowerLayer = registerSignal("toLowerLayer");
         pkdrop = registerSignal("pkdrop");
 
-
-
         qosHandler = check_and_cast<QosHandler*>(
                 getParentModule()->getSubmodule("qosHandler"));
 
@@ -53,14 +51,6 @@ void NRsdapGNB::initialize(int stage) {
         WATCH(nodeId_);
 
     }
-
-}
-
-void NRsdapGNB::handleSelfMessage(cMessage *msg) {
-
-    //std::cout << "NRsdap::handleSelfMessage start at " << simTime().dbl() << std::endl;
-	//TODO
-    //std::cout << "NRsdap::handleSelfMessage end at " << simTime().dbl() << std::endl;
 
 }
 

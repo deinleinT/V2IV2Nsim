@@ -68,6 +68,8 @@ public:
 protected:
 	simtime_t lastStatisticRecord;
 
+	bool considerInterferenceOnlyForPossibleOverlappingRB;
+
 	DeploymentScenarioNR scenarioNR_;
 	NRChannelModel channelModelType_;
 	bool isNodeB_;

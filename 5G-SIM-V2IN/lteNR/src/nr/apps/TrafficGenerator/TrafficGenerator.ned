@@ -32,7 +32,6 @@ simple TrafficGenerator extends UDPBasicApp
         stopTime = default(10000s);
         bool autoReply = default(false);  
         int videoSize = default(intuniform(5000000,10000000)); // in bytes
-        
         int dataSize = default(2000000); // in bytes
         
 //        volatile int messageLengthCar50 @unit(B) = default(1000B);

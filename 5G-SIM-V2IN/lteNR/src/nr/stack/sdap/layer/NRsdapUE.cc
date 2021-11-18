@@ -28,7 +28,6 @@
 
 Define_Module(NRsdapUE);
 
-
 void NRsdapUE::initialize(int stage) {
 
     if (stage == inet::INITSTAGE_NETWORK_LAYER) {
@@ -43,35 +42,14 @@ void NRsdapUE::initialize(int stage) {
         toLowerLayer = registerSignal("toLowerLayer");
         pkdrop = registerSignal("pkdrop");
 
-
-
-        qosHandler = check_and_cast<QosHandler*>(
-                getParentModule()->getSubmodule("qosHandler"));
+        qosHandler = check_and_cast<QosHandler*>(getParentModule()->getSubmodule("qosHandler"));
 
         nodeType = qosHandler->getNodeType();
         nodeId_ = getAncestorPar("macNodeId");
         hoErrorCount = 0;
         WATCH(nodeId_);
 
-//    cModule * mod = getParentModule()->getSubmodule("rrc");
-//
-//    if (strcmp(mod->par("nodeType").stringValue(), "UE") == 0) {
-//        nodeType = UE;
-//    } else if (strcmp(mod->par("nodeType").stringValue(), "GNODEB") == 0) {
-//        nodeType = GNODEB;
-//    } else {
-//        throw cRuntimeError("Unknown NodeType");
-//    }
-
     }
-
-}
-
-void NRsdapUE::handleSelfMessage(cMessage *msg) {
-
-    //std::cout << "NRsdap::handleSelfMessage start at " << simTime().dbl() << std::endl;
-
-    //std::cout << "NRsdap::handleSelfMessage end at " << simTime().dbl() << std::endl;
 
 }
 

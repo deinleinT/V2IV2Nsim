@@ -28,7 +28,6 @@
 #include "nr/common/NRCommon.h"
 #include "common/LteControlInfo.h"
 
-
 using namespace omnetpp;
 
 struct QosInfo {
@@ -79,8 +78,7 @@ public:
     virtual unsigned short getLcid(unsigned int nodeId, unsigned short msgCat) {
     	Enter_Method_Silent("getLcid");
         for (auto const & var : QosInfos) {
-            if (var.second.destNodeId == nodeId
-                    && var.second.appType == msgCat) {
+            if (var.second.destNodeId == nodeId && var.second.appType == msgCat) {
                 return var.second.lcid;
             }
         }
