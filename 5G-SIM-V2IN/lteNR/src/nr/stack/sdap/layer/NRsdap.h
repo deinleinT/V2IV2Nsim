@@ -71,9 +71,8 @@ protected:
 protected:
     virtual void initialize(int stage) = 0;
     virtual void handleMessage(cMessage *msg);
-    virtual void handleSelfMessage(cMessage *msg);
-    virtual void fromLowerToUpper(cMessage * msg);
-    virtual void fromUpperToLower(cMessage * msg);
+    virtual void fromLowerToUpper(cMessage * msg) = 0;
+    virtual void fromUpperToLower(cMessage * msg) = 0;
     virtual void setTrafficInformation(cPacket* pkt, FlowControlInfo* lteInfo);
     virtual int numInitStages() const { return inet::INITSTAGE_NETWORK_LAYER+1; }
     virtual NRSdapEntity * getEntity(MacNodeId sender, MacNodeId dest, ApplicationType appType);

@@ -22,7 +22,7 @@
  * Part of 5G-Sim-V2I/N
  *
  *
-*/
+ */
 
 #pragma once
 
@@ -38,10 +38,8 @@ using namespace omnetpp;
 class NRsdapGNB: public NRsdap {
 
 protected:
-    virtual void initialize(int stage);
-    virtual void handleMessage(cMessage *msg);
-    virtual void fromLowerToUpper(cMessage * msg);
-    virtual void fromUpperToLower(cMessage * msg);
-
+	virtual void initialize(int stage);
+	virtual void fromLowerToUpper(cMessage *msg);
+	virtual void fromUpperToLower(cMessage *msg);
 
 };
