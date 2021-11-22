@@ -66,9 +66,6 @@ network GeneralParameters
         //thus, some vehicles will not transmit or receive data
         bool realisticApproachMultiApplication = default(true);
 
-        //Records the vehicle position in downlink and uplink when a packet loss at application layer was detected
-        bool recordPositionAndPacketLoss = default(false);
-
         //if true, a uniform random processing delay is considered in downlink and uplink
         //in the modules NRsdapUE, NRsdapGNB, NRPdcpRrcUe, NRPdcpRrcGnb, TrafficFlowFilterNR, GtpUserNR
         //the delay is calculated by this formula: uniform(0, totalPacketSizeInBytes / 10e5)
@@ -98,7 +95,7 @@ network GeneralParameters
     	//binder --> ueId --> in DL check macBuffer on base station, in UL check macBuffer on UE
     	bool useSimplifiedFlowControl = default(false);
     	
-    	//considers the interference calculation only for data transmissions
-    	//used in NRRealistichChannelModel
+    	//considers the number of resource blocks during interference calculation
+    	//used in NRRealistichChannelModel, by default set to true
     	bool considerInterferenceOnlyForPossibleOverlappingRB = default(true);
 }

@@ -169,7 +169,7 @@ protected:
 	bool remoteDrivingDL;
 	bool remoteDrivingUL;
 	bool useSimplifiedFlowControl;
-	bool recordPositionAndPacketLoss;
+
 	int remoteCarFactor;
 	bool useSINRThreshold;
 	//

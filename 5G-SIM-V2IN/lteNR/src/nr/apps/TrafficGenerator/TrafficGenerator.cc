@@ -135,7 +135,6 @@ void TrafficGenerator::initialize(int stage) {
 		remoteDrivingDL = getSimulation()->getSystemModule()->par("remoteDrivingDL");
 		remoteDrivingUL = getSimulation()->getSystemModule()->par("remoteDrivingUL");
 		useSimplifiedFlowControl = getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue();
-		recordPositionAndPacketLoss = getSimulation()->getSystemModule()->par("recordPositionAndPacketLoss").boolValue();
 		remoteCarFactor = getSimulation()->getSystemModule()->par("remoteCarFactor").intValue();
 		useSINRThreshold = getSimulation()->getSystemModule()->par("useSINRThreshold").boolValue();
 		//
