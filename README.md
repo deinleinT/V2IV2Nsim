@@ -32,7 +32,7 @@ We tested the framework with Linux Mint 18.3, 19.3 and Ubuntu 18.04 (we use gcc/
 * You need the OMNeT++-R-Package for using the script with R Studio.
 * See the OMNeT++-github-site (https://github.com/omnetpp/omnetpp-resultfiles) for further information how to install the package within R Studio.
 
-**See changeLog.txt for information about the latest changes. The current version is v0.3.4**
+**See changeLog.txt for information about the latest changes. The current version is v0.3.5**
 
 **MORE INFORMATION IS COMING SOON**
 
