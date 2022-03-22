@@ -52,7 +52,16 @@ void TrafficFlowFilterNR::initialize(int stage) {
 
 		//TODO --> in Binder, to which gnb is the upf connected?
 		if (ownerType_ == GNB || ownerType_ == ENB) {
-			std::string moduleName = getParentModule()->gate("ppp$o")->getNextGate()->getOwnerModule()->getName();
+		    cModule* upfModule = getParentModule()->gate("ppp$o")->getNextGate()->getOwnerModule();
+            if (!(upfModule->hasPar("nodeType") && strcmp(upfModule->par("nodeType"), "UPF") == 0)) {
+                // if: connected gate is part of container module, UPF is a sub-component -> search UPF component
+                upfModule = upfModule->getModuleByPath(".upf");
+                if (!upfModule) {
+                    error("TrafficFlowFilterNR::initialize - could not find UPF module in compound module. Aborting...");
+                }
+            }
+
+			std::string moduleName = upfModule->getFullPath();
 
 			if (moduleName.find("upf") != std::string::npos) {
 				LteMacBase *mac = check_and_cast<LteMacBase*>(getParentModule()->getSubmodule("lteNic")->getSubmodule("mac"));
@@ -60,6 +69,7 @@ void TrafficFlowFilterNR::initialize(int stage) {
 				binder_->fillUpfGnbMap(gnbId, moduleName);
 			} else {
 				//not connected to a UPF
+			    EV << "TrafficFlowFilterNR::initialize - Not connected to a UPF." << endl;
 			}
 		}
 	}
@@ -108,7 +118,15 @@ void TrafficFlowFilterNR::handleMessage(cMessage *msg) {
 		std::string upfConnected;
 		int gateIndex = 0;
 		for (int i = 0; i < index; i++) {
-			std::string destinationName = gate("fromToN9Interface$o", i)->getNextGate()->getNextGate()->getOwnerModule()->getName();
+		    cModule* upfModule = gate("fromToN9Interface$o", i)->getNextGate()->getNextGate()->getOwnerModule();
+            if (!(upfModule->hasPar("nodeType") && strcmp(upfModule->par("nodeType"), "UPF") == 0)) {
+                // if: connected gate is part of container module, UPF is a sub-component -> search UPF component
+                upfModule = upfModule->getModuleByPath(".upf");
+                if (!upfModule) {
+                    error("TrafficFlowFilterNR::handleMessage - could not find UPF module in compound module. Aborting...");
+                }
+            }
+			std::string destinationName = upfModule->getFullPath();
 			gateIndex = i;
 			if (connectedUPF_ == destinationName) {
 				if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
@@ -201,8 +219,8 @@ TrafficFlowTemplateId TrafficFlowFilterNR::findTrafficFlow(L3Address srcAddress,
 	//if several upfs are in the scenario
 	if (ownerType_ == USER_PLANE_FUNCTION) {
 		//get local upf name
-		std::string localUPFname = getParentModule()->getName();
-		MacNodeId connectedGnbWithDestId = binder_->getConnectedGnb(destId);
+		std::string localUPFname = getParentModule()->getFullPath();
+		//MacNodeId connectedGnbWithDestId = binder_->getConnectedGnb(destId);
 		std::string connectedUpfToMasterId = binder_->getConnectedUpf(destMaster);
 		if (connectedUpfToMasterId == localUPFname) {
 			return destMaster;
