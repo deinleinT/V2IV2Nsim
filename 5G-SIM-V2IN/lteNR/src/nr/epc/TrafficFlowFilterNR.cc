@@ -129,22 +129,24 @@ void TrafficFlowFilterNR::handleMessage(cMessage *msg) {
 			std::string destinationName = upfModule->getFullPath();
 			gateIndex = i;
 			if (connectedUPF_ == destinationName) {
-				if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
-					//add processing delay
-					sendDelayed(datagram, uniform(0,datagram->getTotalLengthField()/10e5), "fromToN9Interface$o", i);
-				} else {
-					send(datagram, "fromToN9Interface$o", i);
-				}
-				connectedUPF_ = "";
-				return;
+				break;
 			}
+		}
+
+		// send datagram to other UPF
+		// - to final UPF, if directly connected
+		// - to other UPF, if not directly connected
+		cGate *outGate = gate("fromToN9Interface$o", gateIndex);
+		simtime_t delay = SIMTIME_ZERO;
+		if (outGate->getChannel()->isBusy()) {
+		    delay = delay + outGate->getChannel()->getTransmissionFinishTime();
 		}
 		if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
 			//add processing delay
-			sendDelayed(datagram, uniform(0,datagram->getTotalLengthField()/10e5), "fromToN9Interface$o", gateIndex);
-		} else {
-			send(datagram, "fromToN9Interface$o", gateIndex);
+		    delay = delay + uniform(0,datagram->getTotalLengthField()/10e5);
 		}
+        sendDelayed(datagram, delay, outGate);
+
 		connectedUPF_ = "";
 	} else {
 		// add control info to the normal ip datagram. This info will be read by the GTP-U application
