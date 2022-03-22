@@ -113,41 +113,33 @@ void TrafficFlowFilterNR::handleMessage(cMessage *msg) {
 		delete msg;
 	} else if (tftId == -3) {
 		//need to send the packet to another upf
-		//send to connectedUPF_ if connected, else send to random connected upf
-		int index = gateSize("fromToN9Interface");
-		std::string upfConnected;
-		int gateIndex = 0;
-		for (int i = 0; i < index; i++) {
-		    cModule* upfModule = gate("fromToN9Interface$o", i)->getNextGate()->getNextGate()->getOwnerModule();
-            if (!(upfModule->hasPar("nodeType") && strcmp(upfModule->par("nodeType"), "UPF") == 0)) {
-                // if: connected gate is part of container module, UPF is a sub-component -> search UPF component
-                upfModule = upfModule->getModuleByPath(".upf");
-                if (!upfModule) {
-                    error("TrafficFlowFilterNR::handleMessage - could not find UPF module in compound module. Aborting...");
-                }
+		//send to connectedUPF_ if connected, else send to other connected upf
+		cGate *outGate = nullptr;
+		for (int i = 0; i < gateSize("fromToN9Interface"); i++) {
+		    outGate = gate("fromToN9Interface$o", i);
+            cModule *pppInterfaceLocal = outGate->getPathEndGate()->getOwnerModule()->getParentModule();   // Gate-->PPPQueue-->PPPInterface
+            cModule *pppInterfaceRemote = pppInterfaceLocal->gate("phys$o")->getPathEndGate()->getOwnerModule();    // PPPInterface-->Gate-->Gate-->PPPInterface
+            cModule *upfModule = pppInterfaceRemote->getParentModule()->getParentModule();   // PPPInterface-->-->UPF module
+
+            if (!(upfModule && upfModule->hasPar("nodeType") && strcmp(upfModule->par("nodeType"), "UPF") == 0)) {
+                error("TrafficFlowFilterNR::handleMessage - could not find UPF module connected via PPP. Aborting...");
             }
+
 			std::string destinationName = upfModule->getFullPath();
-			gateIndex = i;
 			if (connectedUPF_ == destinationName) {
 				break;
 			}
 		}
 
-		// send datagram to other UPF
-		// - to final UPF, if directly connected
-		// - to other UPF, if not directly connected
-		cGate *outGate = gate("fromToN9Interface$o", gateIndex);
-		simtime_t delay = SIMTIME_ZERO;
-		if (outGate->getChannel()->isBusy()) {
-		    delay = delay + outGate->getChannel()->getTransmissionFinishTime();
-		}
 		if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
 			//add processing delay
-		    delay = delay + uniform(0,datagram->getTotalLengthField()/10e5);
+		    sendDelayed(datagram, uniform(0,datagram->getTotalLengthField()/10e5), outGate);
 		}
-        sendDelayed(datagram, delay, outGate);
-
+		else {
+		    send(datagram, outGate);
+		}
 		connectedUPF_ = "";
+
 	} else {
 		// add control info to the normal ip datagram. This info will be read by the GTP-U application
 		TftControlInfo *tftInfo = new TftControlInfo();

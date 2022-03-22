@@ -44,12 +44,19 @@ module UPF extends NodeBase
 
     submodules:
         trafficFlowFilter: TrafficFlowFilterNR {
-            ownerType = nodeType;
-            @display("p=813,206");
+            parameters:
+                ownerType = nodeType;
+                @display("p=813,206");
+            gates:
+                fromToN9Interface[sizeof(n9Interface)];
         }
         pppInterface: PPPInterface {
             @display("p=727,386");
         }
+        pppN9Interface[sizeof(n9Interface)]: PPPInterface {
+            @display("is=s");
+        }
+
         udp: UDP {
             @display("p=329,206");
         }
@@ -73,7 +80,8 @@ module UPF extends NodeBase
         trafficFlowFilter.gtpUserGateOut --> gtp_user.trafficFlowFilterGate;
 
         for i=0..sizeof(n9Interface)-1 {
-            n9Interface[i] <--> { @display("m=s"); } <--> trafficFlowFilter.fromToN9Interface++;
+            n9Interface[i] <--> { @display("m=s"); } <--> pppN9Interface[i].phys;
+            pppN9Interface[i].upperLayerOut --> trafficFlowFilter.fromToN9Interface$i[i];
+            pppN9Interface[i].upperLayerIn <-- trafficFlowFilter.fromToN9Interface$o[i];
         }
-
 }
