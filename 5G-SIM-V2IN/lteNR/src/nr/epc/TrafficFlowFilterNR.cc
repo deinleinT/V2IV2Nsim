@@ -52,7 +52,16 @@ void TrafficFlowFilterNR::initialize(int stage) {
 
 		//TODO --> in Binder, to which gnb is the upf connected?
 		if (ownerType_ == GNB || ownerType_ == ENB) {
-			std::string moduleName = getParentModule()->gate("ppp$o")->getNextGate()->getOwnerModule()->getName();
+		    cModule* upfModule = getParentModule()->gate("ppp$o")->getNextGate()->getOwnerModule();
+            if (!(upfModule->hasPar("nodeType") && strcmp(upfModule->par("nodeType"), "UPF") == 0)) {
+                // if: connected gate is part of container module, UPF is a sub-component -> search UPF component
+                upfModule = upfModule->getModuleByPath(".upf");
+                if (!upfModule) {
+                    error("TrafficFlowFilterNR::initialize - could not find UPF module in compound module. Aborting...");
+                }
+            }
+
+			std::string moduleName = upfModule->getFullPath();
 
 			if (moduleName.find("upf") != std::string::npos) {
 				LteMacBase *mac = check_and_cast<LteMacBase*>(getParentModule()->getSubmodule("lteNic")->getSubmodule("mac"));
@@ -60,6 +69,7 @@ void TrafficFlowFilterNR::initialize(int stage) {
 				binder_->fillUpfGnbMap(gnbId, moduleName);
 			} else {
 				//not connected to a UPF
+			    EV << "TrafficFlowFilterNR::initialize - Not connected to a UPF." << endl;
 			}
 		}
 	}
@@ -103,31 +113,33 @@ void TrafficFlowFilterNR::handleMessage(cMessage *msg) {
 		delete msg;
 	} else if (tftId == -3) {
 		//need to send the packet to another upf
-		//send to connectedUPF_ if connected, else send to random connected upf
-		int index = gateSize("fromToN9Interface");
-		std::string upfConnected;
-		int gateIndex = 0;
-		for (int i = 0; i < index; i++) {
-			std::string destinationName = gate("fromToN9Interface$o", i)->getNextGate()->getNextGate()->getOwnerModule()->getName();
-			gateIndex = i;
+		//send to connectedUPF_ if connected, else send to other connected upf
+		cGate *outGate = nullptr;
+		for (int i = 0; i < gateSize("fromToN9Interface"); i++) {
+		    outGate = gate("fromToN9Interface$o", i);
+            cModule *pppInterfaceLocal = outGate->getPathEndGate()->getOwnerModule()->getParentModule();   // Gate-->PPPQueue-->PPPInterface
+            cModule *pppInterfaceRemote = pppInterfaceLocal->gate("phys$o")->getPathEndGate()->getOwnerModule();    // PPPInterface-->Gate-->Gate-->PPPInterface
+            cModule *upfModule = pppInterfaceRemote->getParentModule()->getParentModule();   // PPPInterface-->-->UPF module
+
+            if (!(upfModule && upfModule->hasPar("nodeType") && strcmp(upfModule->par("nodeType"), "UPF") == 0)) {
+                error("TrafficFlowFilterNR::handleMessage - could not find UPF module connected via PPP. Aborting...");
+            }
+
+			std::string destinationName = upfModule->getFullPath();
 			if (connectedUPF_ == destinationName) {
-				if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
-					//add processing delay
-					sendDelayed(datagram, uniform(0,datagram->getTotalLengthField()/10e5), "fromToN9Interface$o", i);
-				} else {
-					send(datagram, "fromToN9Interface$o", i);
-				}
-				connectedUPF_ = "";
-				return;
+				break;
 			}
 		}
+
 		if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
 			//add processing delay
-			sendDelayed(datagram, uniform(0,datagram->getTotalLengthField()/10e5), "fromToN9Interface$o", gateIndex);
-		} else {
-			send(datagram, "fromToN9Interface$o", gateIndex);
+		    sendDelayed(datagram, uniform(0,datagram->getTotalLengthField()/10e5), outGate);
+		}
+		else {
+		    send(datagram, outGate);
 		}
 		connectedUPF_ = "";
+
 	} else {
 		// add control info to the normal ip datagram. This info will be read by the GTP-U application
 		TftControlInfo *tftInfo = new TftControlInfo();
@@ -201,8 +213,8 @@ TrafficFlowTemplateId TrafficFlowFilterNR::findTrafficFlow(L3Address srcAddress,
 	//if several upfs are in the scenario
 	if (ownerType_ == USER_PLANE_FUNCTION) {
 		//get local upf name
-		std::string localUPFname = getParentModule()->getName();
-		MacNodeId connectedGnbWithDestId = binder_->getConnectedGnb(destId);
+		std::string localUPFname = getParentModule()->getFullPath();
+		//MacNodeId connectedGnbWithDestId = binder_->getConnectedGnb(destId);
 		std::string connectedUpfToMasterId = binder_->getConnectedUpf(destMaster);
 		if (connectedUpfToMasterId == localUPFname) {
 			return destMaster;

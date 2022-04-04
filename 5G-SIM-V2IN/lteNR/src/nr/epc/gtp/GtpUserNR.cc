@@ -29,11 +29,19 @@ void GtpUserNR::initialize(int stage) {
 
     ownerType_ = selectOwnerType(getAncestorPar("nodeType"));
 
+    cModule* upfModule = nullptr;
     if(ownerType_ == ENB || ownerType_ == GNB){
-    	getParentModule()->gate("ppp$o")->getNextGate()->getOwnerModule()->getName();
-    	upfAddress_ = L3AddressResolver().resolve(getParentModule()->gate("ppp$o")->getNextGate()->getOwnerModule()->getName());
+    	upfModule = getParentModule()->gate("ppp$o")->getNextGate()->getOwnerModule();
+    	if (!(upfModule->hasPar("nodeType") && strcmp(upfModule->par("nodeType"), "UPF") == 0)) {
+    	    // if: connected gate is part of container module, UPF is a sub-component
+    	    upfModule = upfModule->getModuleByPath(".upf");
+    	}
+    	// else: connected gate is part of UPF module
     }else if(ownerType_ == USER_PLANE_FUNCTION){
-    	upfAddress_ = L3AddressResolver().resolve(getParentModule()->getName());
+        upfModule = getParentModule();
+    }
+    if (upfModule) {
+        upfAddress_ = L3AddressResolver().resolve(upfModule->getFullPath().c_str());
     }
 }
 
