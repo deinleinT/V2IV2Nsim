@@ -40,7 +40,7 @@ module UPF extends NodeBase
         @display("bgb=920,462;i=device/mainframe");
     gates:
         inout filterGate @labels(PPPFrame-conn);
-        inout n9Interface[] @loose;
+        inout n9Interface[] @loose @labels(PPPFrame-conn);
 
     submodules:
         trafficFlowFilter: TrafficFlowFilterNR {
