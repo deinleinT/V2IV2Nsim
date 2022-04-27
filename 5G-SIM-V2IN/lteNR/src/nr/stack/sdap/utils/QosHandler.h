@@ -158,6 +158,99 @@ public:
 		return tmp;
 	}
 
+	//prio --> priority, pdb, weight
+	//
+	virtual std::map<double, std::vector<QosInfo>> getEqualPriorityMap(Direction dir) {
+		Enter_Method_Silent("getEqualPriorityMap");
+
+		double lambdaPriority = getSimulation()->getSystemModule()->par("lambdaPriority").doubleValue();
+		double lambdaRemainDelayBudget = getSimulation()->getSystemModule()->par("lambdaRemainDelayBudget").doubleValue();
+		double lambdaCqi = getSimulation()->getSystemModule()->par("lambdaCqi").doubleValue();
+		double lambdaByteSize = getSimulation()->getSystemModule()->par("lambdaByteSize").doubleValue();
+		double lambdaRtx = getSimulation()->getSystemModule()->par("lambdaRtx").doubleValue();
+
+		std::string prio = "default";
+		if (getSimulation()->getSystemModule()->hasPar("qosModelPriority")) {
+			prio = getSimulation()->getSystemModule()->par("qosModelPriority").stdstringValue();
+
+			if(lambdaPriority == 1 && lambdaByteSize == 0 && lambdaCqi == 0 && lambdaRemainDelayBudget == 0 && lambdaRtx == 0){
+				prio = "priority";
+			}else if(lambdaPriority == 0 && lambdaByteSize == 0 && lambdaCqi == 0 && lambdaRemainDelayBudget == 1 && lambdaRtx == 0){
+				prio = "pdb";
+			}else{
+				prio = "default";
+			}
+		}
+
+		//first item is the (calculated prio), second item is the cid
+		std::map<double, std::vector<QosInfo>> retValue;
+
+		if (prio == "priority") {
+			//use priority from table in 23.501, qos characteristics
+
+			//get the priorityMap
+			std::vector<std::pair<MacCid, QosInfo>> tmp = getPrioritySortedQosInfos(dir);
+
+			for (auto &var : tmp) {
+				double prio = getPriority(get5Qi(getQfi(var.first)));
+				retValue[prio].push_back(var.second);
+			}
+
+			return retValue;
+
+		} else if (prio == "pdb") {
+			//use packet delay budget from table in 23.501, a shorter pdb gets a higher priority
+
+			//get the priorityMap
+			std::vector<std::pair<MacCid, QosInfo>> tmp = getPdbSortedQosInfos(dir);
+
+			//find out the pdb
+
+			for (auto &var : tmp) {
+				double prio = getPdb(get5Qi(getQfi(var.first)));
+				retValue[prio].push_back(var.second);
+			}
+
+			return retValue;
+
+		} else if (prio == "weight") {
+			//calculate a weight by priority * pdb * per (values from 23.501)
+
+			//get the priorityMap
+			//consider the pdb value as above --> ensure that the most urgent one gets highest prio
+			std::vector<std::pair<MacCid, QosInfo>> tmp = getPrioritySortedQosInfos(dir);
+
+			for (auto &var : tmp) {
+				double prio = getPriority(get5Qi(getQfi(var.first)));
+				double pdb = getPdb(get5Qi(getQfi(var.first)));
+				//double per = getPer(getQfi(var.first));
+				double weight = prio * pdb;
+
+				retValue[weight].push_back(var.second);
+			}
+
+			return retValue;
+
+		} else if (prio == "default") {
+			//by lcid
+			std::vector<std::pair<MacCid, QosInfo>> tmp = getSortedQosInfos(dir);
+
+			for (auto &var : tmp) {
+				double lcid = var.second.lcid;
+				retValue[lcid].push_back(var.second);
+			}
+			return retValue;
+
+		} else {
+			throw cRuntimeError("Error - QosHandler::getEqualPriorityMap - unknown priority");
+		}
+
+	}
+
+	virtual void clearQosInfos(){
+        QosInfos.clear();
+    }
+
     virtual void modifyControlInfo(LteControlInfo * info){
     	Enter_Method_Silent("modifyControlInfo");
         info->setApplication(0);

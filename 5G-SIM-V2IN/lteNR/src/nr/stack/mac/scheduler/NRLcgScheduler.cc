@@ -333,7 +333,7 @@ ScheduleListSizes& NRLcgScheduler::schedule(unsigned int availableBytes, Directi
 					//EV << "NRLcgScheduler::schedule - Node" << mac_->getMacNodeId() << ", Starting best effort service" << endl;
 				}
 			} // END of connections cycle
-			if(scheduleListSizes_.size() == 1){
+			if (scheduleListSizes_.size() == 1) {
 				return scheduleListSizes_;
 			}
 		} // END of Traffic Classes cycle

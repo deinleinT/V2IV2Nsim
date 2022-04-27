@@ -62,7 +62,6 @@ protected:
     int seed; /**< seed value to set in launch configuration, if missing (-1: current run number) */
 
     void init_traci() override;
-
 };
 
 class VEINS_API TraCIScenarioManagerLaunchdAccess {

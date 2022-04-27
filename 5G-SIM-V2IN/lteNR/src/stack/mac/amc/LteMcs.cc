@@ -305,7 +305,7 @@ unsigned short getQm(LteMod mod){
 //calculates the TBS in bits for 5G
 //tested with https://5g-tools.com/5g-nr-tbs-transport-block-size-calculator/
 unsigned int calcTBS(MacNodeId nodeId, unsigned int numPRB, unsigned short mcsIndex,
-        unsigned short numLayers) {
+        unsigned short numLayers, const Direction dir) {
 
     //std::cout << "LteMcs::calcTBS start at " << simTime().dbl() << std::endl;
 
@@ -322,8 +322,14 @@ unsigned int calcTBS(MacNodeId nodeId, unsigned int numPRB, unsigned short mcsIn
     //Step 1: --> 12
     const unsigned short numSC = check_and_cast<NRCellInfo*>(getCellInfo(nodeId))->getRbyDl();
 
-    //--> nSym is the number of symbols per SC and --> 14
-    const unsigned short nSym = check_and_cast<NRCellInfo*>(getCellInfo(nodeId))->getDlSymbolsOneMS();//slot symbols
+    //--> nSym is the number of symbols per SC and --> 14 in FDD
+    //if TDD is activated the corresponding number of symbals is retrieved
+    unsigned short nSym;
+    if (dir == DL){
+    	nSym = check_and_cast<NRCellInfo*>(getCellInfo(nodeId))->getRbxDl();//slot symbols DL
+    }else{
+    	nSym = check_and_cast<NRCellInfo*>(getCellInfo(nodeId))->getRbxUl();//slot symbols DL
+    }
     //
 
     //const unsigned short nPrbDMRS = check_and_cast<NRCellInfo*>(getCellInfo(nodeId))->getSignalDl();

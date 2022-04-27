@@ -37,9 +37,18 @@
 #include "../../mac/layer/NRMacGnb.h"
 #include "nr/world/radio/NRChannelControl.h"
 
+//needed if useMatlabEngine is enabled
+//link to matlabroot/R2021a/extern/include
+//#include "MatlabEngine.hpp"
+//#include "MatlabDataArray.hpp"
+
+
+//needed if useMatlabLibraryCompiler is enabled
+//#include "MatlabCppSharedLib.hpp"
+
 /*
  * Realistic Channel Model taken from
- * "--- Guidelines for evaluation of radio interface technologies for IMT-2020"
+ * "--- Guidelines for evaluation of radio interface technologies for IMT-2020 and 38.901"
  *
  * see inherit class for method description
  */

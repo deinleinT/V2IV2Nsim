@@ -64,7 +64,24 @@ network GeneralParameters
         //Application layer --> Traffic Generator
         //leads to a more realistic behavior: for each vehicle it is randomly evaluated whether a vehicle runs an application or not
         //thus, some vehicles will not transmit or receive data
-        bool realisticApproachMultiApplication = default(true);
+        bool realisticApproachMultiApplication = default(false);
+
+        //if true, the NR QosModel is used for scheduling
+        //first approach uses the priority level of the qos characteristics
+        bool useQosModel = default(true);
+        bool packetDropEnabled = default(true);
+        bool combineQosWithRac = default(true);//should always set to true
+        double lambdaPriority = default(1);
+        double lambdaRemainDelayBudget = default(0);
+        double lambdaCqi = default(0);
+        double lambdaRtx = default(0);
+        double lambdaByteSize = default(0);
+
+        //the smallest priority value gets the highest priority and is scheduled first
+        //priority --> use the priority values from the qos characteristics from 23.501
+        //pdb --> use the pdb values from the qos characteristics
+        //should be set to "default" by default
+        string qosModelPriority = default("default");
 
         //if true, a uniform random processing delay is considered in downlink and uplink
         //in the modules NRsdapUE, NRsdapGNB, NRPdcpRrcUe, NRPdcpRrcGnb, TrafficFlowFilterNR, GtpUserNR
@@ -85,17 +102,32 @@ network GeneralParameters
 
         bool fairRacScheduleInUL = default(true); //used in NRSchedulerGnbUl::racschedule (by default set to true)
         bool newTxbeforeRtx = default(false); //used in NRSchedulerGnbUl and NRMacUe (if true, a new transmission is scheduled before a retransmission, by default set to false)
-	
-	//if false, consider queuesize during scheduling
+
+    	//heat map physical layer
+    	//max SNR value in DL and UL
+    	double maxDL = default(40);
+    	double maxUL = default(20);
+    	//min SNR value in DL and UL
+    	double minDL = default(-10);
+    	double minUL = default(-10);
+    	
+    	//if false, consider queuesize during scheduling
     	//if true, only the single packetsize is considered
     	//default false
     	bool useSinglePacketSizeDuringScheduling = default(false); 
     	
     	//simplified Flow Control
     	//binder --> ueId --> in DL check macBuffer on base station, in UL check macBuffer on UE
-    	bool useSimplifiedFlowControl = default(false);
+    	bool useSimplifiedFlowControl = default(true);
     	
-    	//considers the number of resource blocks during interference calculation
-    	//used in NRRealistichChannelModel, by default set to true
+    	//considers the interference calculation only for data transmissions
+    	//used in NRRealistichChannelModel
     	bool considerInterferenceOnlyForPossibleOverlappingRB = default(true);
+    	
+    	//throughput measuring interval for vehicles
+    	double throughputInterval = default(1);
+    	
+    	bool useTdd = default(false);
+    	int dlSymbols = default(6);
+    	int ulSymbols = default(6); // this represents slot format 45, 2 flexible symbols are used as guard symbol
 }

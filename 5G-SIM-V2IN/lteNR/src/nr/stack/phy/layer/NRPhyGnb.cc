@@ -76,19 +76,6 @@ void NRPhyGnb::recordDistance2d(const double & d2dVal) {
 
 void NRPhyGnb::handleMessage(cMessage *msg) {
 
-////RRC Handling
-//    if (strcmp(msg->getName(), "RRC") == 0) {
-//        if (msg->getArrivalGate()->getId() == radioInGate_) {
-//            //RRC Message from a UE
-//            //TODO
-//        }
-//
-//        // message from stack
-//        else if (msg->getArrivalGate()->getId() == upperGateIn_) {
-//            //send RRC Message to a UE
-//            //TODO
-//        }
-//    }
     LtePhyEnb::handleMessage(msg);
 }
 

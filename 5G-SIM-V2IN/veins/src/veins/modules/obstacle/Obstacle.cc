@@ -91,7 +91,6 @@ double segmentsIntersectAt(const Coord& p1From, const Coord& p1To, const Coord& 
     double p1y = p1To.y - p1From.y;
     double p2x = p2To.x - p2From.x;
     double p2y = p2To.y - p2From.y;
-
     double p1p2x = p1From.x - p2From.x;
     double p1p2y = p1From.y - p2From.y;
     double D = (p1x * p2y - p1y * p2x);

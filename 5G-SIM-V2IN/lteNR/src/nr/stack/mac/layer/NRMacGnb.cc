@@ -55,12 +55,43 @@ void NRMacGnb::initialize(int stage) {
 		if (getSystemModule()->par("nrHarq").boolValue()) {
 			harqProcesses_ = harqProcessesNR_;
 		}
-	}else
+	} else
 
-	if(stage == INITSTAGE_LAST){
+	if (stage == INITSTAGE_LAST) {
 		amc_->printTBS();
 	}
 
+}
+
+void NRMacGnb::fromPhy(cPacket *pkt) {
+	//std::cout << "NRMacGnbRealistic::fromPhy start at " << simTime().dbl() << std::endl;
+
+	UserControlInfo *userInfo = check_and_cast<UserControlInfo*>(pkt->getControlInfo());
+
+	if (userInfo->getFrameType() == DATAPKT) {
+		//the cid in the userInfo is a combination of nodeId and 0
+
+		//insert into qosHandler the latest info
+		if (qosHandler->getQosInfo().find(userInfo->getCid()) == qosHandler->getQosInfo().end() || qosHandler->getQosInfo().find(userInfo->getCid())->second.lcid != userInfo->getLcid()) {
+			QosInfo tmp(UL);
+			tmp.appType = (ApplicationType) userInfo->getApplication();
+			tmp.cid = userInfo->getCid();
+			tmp.lcid = userInfo->getLcid();
+			tmp.qfi = userInfo->getQfi();
+			tmp.radioBearerId = userInfo->getRadioBearerId();
+			tmp.destNodeId = userInfo->getDestId();
+			tmp.senderNodeId = userInfo->getSourceId();
+			tmp.containsSeveralCids = userInfo->getContainsSeveralCids();
+			tmp.rlcType = userInfo->getRlcType();
+			tmp.trafficClass = (LteTrafficClass) userInfo->getTraffic();
+//			qosHandler->getQosInfo()[userInfo->getCid()] = tmp;
+			qosHandler->insertQosInfo(userInfo->getCid(), tmp);
+		}
+	}
+
+	LteMacBase::fromPhy(pkt);
+
+	//std::cout << "NRMacGnbRealistic::fromPhy end at " << simTime().dbl() << std::endl;
 }
 
 void NRMacGnb::handleMessage(cMessage *msg) {
@@ -180,9 +211,26 @@ void NRMacGnb::sendGrants(LteMacScheduleListWithSizes *scheduleList) {
 		Codeword otherCw = MAX_CODEWORDS - cw;
 
 		MacCid cid = it->first.first;
-		LogicalCid lcid = MacCidToLcid(cid);// 10 because of BSR
+		LogicalCid lcid = MacCidToLcid(cid);        // 10 because of BSR
 
 		MacNodeId nodeId = MacCidToNodeId(cid);
+
+		//
+		MacCid realCid = 0;
+		MacCid realLcid = 0;
+		for (auto &var : qosHandler->getAllQosInfos(nodeId)) {
+			if (var.cid == idToMacCid(nodeId, 0)) {
+				//latest received rac --> contains the correct qfi
+				realCid = idToMacCid(nodeId, var.lcid);
+				realLcid = var.lcid;
+				break;
+			}
+		}
+		ASSERT(realCid != 0);
+		if (qosHandler->getQosInfo().find(realCid) == qosHandler->getQosInfo().end()) {
+			throw cRuntimeError("Error in NRMacGnb");
+		}
+		//
 
 		unsigned int granted = it->second.first;        //blocks
 		unsigned int codewords = 0;
@@ -217,7 +265,6 @@ void NRMacGnb::sendGrants(LteMacScheduleListWithSizes *scheduleList) {
 		LteSchedulingGrant *grant = new LteSchedulingGrant("LteGrant");
 
 		grant->setDirection(UL);
-
 		grant->setCodewords(codewords);
 
 		// set total granted blocks
@@ -227,8 +274,10 @@ void NRMacGnb::sendGrants(LteMacScheduleListWithSizes *scheduleList) {
 		uinfo->setSourceId(getMacNodeId());
 		uinfo->setDestId(nodeId);
 		uinfo->setFrameType(GRANTPKT);
-		uinfo->setCid(cid);
-		uinfo->setLcid(lcid);
+//		uinfo->setCid(cid);
+//		uinfo->setLcid(lcid);
+		uinfo->setCid(realCid);
+		uinfo->setLcid(realLcid);
 
 		grant->setControlInfo(uinfo);
 
@@ -247,10 +296,10 @@ void NRMacGnb::sendGrants(LteMacScheduleListWithSizes *scheduleList) {
 			grant->setProcessId(-1);
 
 		} else {
-			auto & temp = rtxMap[nodeId];
+			auto &temp = rtxMap[nodeId];
 			unsigned short order = 17;
-			for(auto & var : temp){
-				if(var.second.order < order){
+			for (auto &var : temp) {
+				if (var.second.order < order) {
 					order = var.second.order;
 				}
 			}
@@ -304,37 +353,65 @@ void NRMacGnb::sendGrants(LteMacScheduleListWithSizes *scheduleList) {
 	//std::cout << "LteMacEnb::sendGrants end at " << simTime().dbl() << std::endl;
 }
 
+//incoming racs from Ues, first encouter of cid in UL
+void NRMacGnb::macHandleRac(cPacket *pkt) {
 
-void NRMacGnb::fromPhy(cPacket *pkt) {
-	//std::cout << "NRMacGnbRealistic::fromPhy start at " << simTime().dbl() << std::endl;
+	//std::cout << "LteMacEnb::macHandleRac start at " << simTime().dbl() << std::endl;
 
-	UserControlInfo *userInfo = check_and_cast<UserControlInfo*>(pkt->getControlInfo());
+	//EV << NOW << " LteMacEnb::macHandleRac" << endl;
 
-	if (userInfo->getFrameType() == DATAPKT) {
-		//the cid in the userInfo is a combination of nodeId and 0
+	LteRac *racPkt = check_and_cast<LteRac*>(pkt);
+	UserControlInfo *uinfo = check_and_cast<UserControlInfo*>(racPkt->getControlInfo());
 
-		//insert into qosHandler the latest info
-		if (qosHandler->getQosInfo().find(userInfo->getCid()) == qosHandler->getQosInfo().end() ||
-				qosHandler->getQosInfo().find(userInfo->getCid())->second.lcid != userInfo->getLcid()) {
-			QosInfo tmp(UL);
-			tmp.appType = (ApplicationType) userInfo->getApplication();
-			tmp.cid = userInfo->getCid();
-			tmp.lcid = userInfo->getLcid();
-			tmp.qfi = userInfo->getQfi();
-			tmp.radioBearerId = userInfo->getRadioBearerId();
-			tmp.destNodeId = userInfo->getDestId();
-			tmp.senderNodeId = userInfo->getSourceId();
-			tmp.containsSeveralCids = userInfo->getContainsSeveralCids();
-			tmp.rlcType = userInfo->getRlcType();
-			tmp.trafficClass = (LteTrafficClass) userInfo->getTraffic();
-//			qosHandler->getQosInfo()[userInfo->getCid()] = tmp;
-			qosHandler->insertQosInfo(userInfo->getCid(), tmp);
-		}
-	}
+	//prepare QosHandler
+//	if (qosHandler->getQosInfo().find(uinfo->getCid()) == qosHandler->getQosInfo().end() ||
+//			qosHandler->getQosInfo().find(uinfo->getCid())->second.lcid != uinfo->getLcid()) {
+	QosInfo tmp(UL);
 
-	LteMacBase::fromPhy(pkt);
+	tmp.appType = (ApplicationType) uinfo->getApplication();
+	tmp.cid = uinfo->getCid();
+	tmp.lcid = uinfo->getLcid();
+	tmp.qfi = uinfo->getQfi();
+	tmp.radioBearerId = uinfo->getRadioBearerId();
+	tmp.destNodeId = uinfo->getDestId();
+	tmp.senderNodeId = uinfo->getSourceId();
+	tmp.containsSeveralCids = uinfo->getContainsSeveralCids();
+	tmp.rlcType = uinfo->getRlcType();
+	tmp.trafficClass = (LteTrafficClass) uinfo->getTraffic();
+	qosHandler->insertQosInfo(uinfo->getCid(), tmp);
 
-	//std::cout << "NRMacGnbRealistic::fromPhy end at " << simTime().dbl() << std::endl;
+//	}
+	MacNodeId nodeId = MacCidToNodeId(uinfo->getCid());
+	MacCid realCid = idToMacCid(nodeId, uinfo->getLcid());
+
+	QosInfo info(UL);
+
+	info.appType = (ApplicationType) uinfo->getApplication();
+	info.cid = uinfo->getCid();
+	info.lcid = uinfo->getLcid();
+	info.qfi = uinfo->getQfi();
+	info.radioBearerId = uinfo->getRadioBearerId();
+	info.destNodeId = uinfo->getDestId();
+	info.senderNodeId = uinfo->getSourceId();
+	info.containsSeveralCids = uinfo->getContainsSeveralCids();
+	info.rlcType = uinfo->getRlcType();
+	info.trafficClass = (LteTrafficClass) uinfo->getTraffic();
+	qosHandler->insertQosInfo(realCid, info);
+
+	enbSchedulerUl_->signalRac(uinfo->getSourceId());
+	enbSchedulerUl_->signalRacInfo(uinfo->getSourceId(), uinfo->dup());
+
+	// TODO all RACs are marked "success"
+	racPkt->setSuccess(true);
+
+	uinfo->setDestId(uinfo->getSourceId());
+	uinfo->setSourceId(nodeId_);
+	uinfo->setDirection(DL);
+	racPkt->setSchedulingPriority(0);
+
+	sendLowerPackets(racPkt);
+
+	//std::cout << "LteMacEnb::macHandleRac end at " << simTime().dbl() << std::endl;
 }
 
 /**
@@ -838,7 +915,7 @@ bool NRMacGnb::bufferizePacket(cPacket *pkt) {
 
 			//simplified Flow Control
 			if (getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue()) {
-				if (macBuffers_[cid]->getQueueOccupancy() > (queueSize_ / 8)) {
+				if (macBuffers_[cid]->getQueueOccupancy() > (queueSize_ / 4)) {
 					getNRBinder()->setQueueStatus(MacCidToNodeId(cid), lteInfo->getDirection(), lteInfo->getApplication(), true);
 				} else {
 					getNRBinder()->setQueueStatus(MacCidToNodeId(cid), lteInfo->getDirection(), lteInfo->getApplication(), false);
@@ -884,7 +961,7 @@ bool NRMacGnb::bufferizePacket(cPacket *pkt) {
 
 		//simplified Flow Control --> to ensure the packet flow continues
 		if (getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue()) {
-			if (macBuffers_[cid]->getQueueOccupancy() > (queueSize_ / 4 / 8)) {
+			if (macBuffers_[cid]->getQueueOccupancy() > (queueSize_ / 4)) {
 				getNRBinder()->setQueueStatus(MacCidToNodeId(cid), lteInfo->getDirection(), lteInfo->getApplication(), true);
 			} else {
 				getNRBinder()->setQueueStatus(MacCidToNodeId(cid), lteInfo->getDirection(), lteInfo->getApplication(), false);
@@ -907,7 +984,7 @@ void NRMacGnb::handleUpperMessage(cPacket *pkt) {
 	MacCid cid = idToMacCid(lteInfo->getDestId(), lteInfo->getLcid());
 
 	//true, if in bufferizePacket a macBufferOverflow was detected
-	if(pkt->hasBitError()){
+	if (pkt->hasBitError()) {
 		delete pkt;
 		return;
 	}

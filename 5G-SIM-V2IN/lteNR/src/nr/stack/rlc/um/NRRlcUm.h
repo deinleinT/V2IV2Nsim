@@ -34,15 +34,35 @@
 //see inherit class for method description
 class NRRlcUm: public LteRlcUm {
 
-protected:
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
-	virtual void sendDefragmented(cPacket *pkt);
-	virtual void handleLowerMessage(cPacket *pkt);
-    virtual void handleUpperMessage(cPacket *pkt);
+public:
+    NRRlcUm()
+    {
+    }
+    virtual ~NRRlcUm()
+    {
+        cancelAndDelete(throughputTimer);
+        throughputTimer = nullptr;
+    }
 
+protected:
     simsignal_t UEtotalRlcThroughputDlMean;
     simsignal_t UEtotalRlcThroughputUlMean;
+
+    unsigned int throughputInBitsPerSecondDL;
+    unsigned int throughputInBitsPerSecondUL;
+
+    cOutVector UERlcThroughputPerSecondUl;
+    cOutVector UERlcThroughputPerSecondDl;
+
+    cMessage * throughputTimer;
+    double throughputInterval;
+    std::string nodeType;
+
+    virtual void initialize();
+    virtual void handleMessage(cMessage *msg);
+    virtual void sendDefragmented(cPacket *pkt);
+    virtual void handleLowerMessage(cPacket *pkt);
+    virtual void handleUpperMessage(cPacket *pkt);
 
 	//important for initializing the UEThroughputvector in a correct way
 	virtual void checkRemoteCarStatus() {
@@ -58,20 +78,23 @@ protected:
 				//check if this vehicle is a remote vehicle or not
 				if (getNRBinder()->isRemoteCar(ueId, getSimulation()->getSystemModule()->par("remoteCarFactor").intValue())) {
 					ueTotalRlcThroughputUl.setName("UEtotalRlcThroughputUlREMOTE");
+					UERlcThroughputPerSecondUl.setName("UERlcThroughputPerSecondUlREMOTE");
 				} else {
 					ueTotalRlcThroughputUl.setName("UEtotalRlcThroughputUl");
+					UERlcThroughputPerSecondUl.setName("UERlcThroughputPerSecondUl");
 				}
 			}
 		} else {
 			//human driven vehicle
 			if (!ueTotalRlcThroughputUlInit) {
 				ueTotalRlcThroughputUl.setName("UEtotalRlcThroughputUl");
+				UERlcThroughputPerSecondUl.setName("UERlcThroughputPerSecondUl");
 				ueTotalRlcThroughputUlInit = true;
 				ueTotalRlcThroughputUlStartTime = NOW;
 			}
 		}
 
-		//check if remoteDriving Uplink
+		//check if remoteDriving Downlink
 		if (getSimulation()->getSystemModule()->par("remoteDrivingDL")) {
 			//check if the vector was already initialized
 			if (!ueTotalRlcThroughputDlInit) {
@@ -82,13 +105,16 @@ protected:
 				ueTotalRlcThroughputDlStartTime = NOW;
 				if (getNRBinder()->isRemoteCar(ueId, getSystemModule()->par("remoteCarFactor").intValue())) {
 					ueTotalRlcThroughputDl.setName("UEtotalRlcThroughputDlREMOTE");
+					UERlcThroughputPerSecondDl.setName("UERlcThroughputPerSecondDlREMOTE");
 				} else {
 					ueTotalRlcThroughputDl.setName("UEtotalRlcThroughputDl");
+					UERlcThroughputPerSecondDl.setName("UERlcThroughputPerSecondDl");
 				}
 			}
 		} else {
 			if (!ueTotalRlcThroughputDlInit) {
 				ueTotalRlcThroughputDl.setName("UEtotalRlcThroughputDl");
+				UERlcThroughputPerSecondDl.setName("UERlcThroughputPerSecondDl");
 				ueTotalRlcThroughputDlInit = true;
 				ueTotalRlcThroughputDlStartTime = NOW;
 			}
@@ -96,13 +122,15 @@ protected:
 	}
 
 public:
-	//length --> packet size
+	//length --> packet size in bytes
 	//tp is the throughput per second
+	//per BITS!
 	virtual void recordUETotalRlcThroughputUl(double length) {
 		Enter_Method_Silent();
 		checkRemoteCarStatus();
-		this->totalRcvdBytesUl += length;
-		//double tp = totalRcvdBytesUl / (NOW - getSimulation()->getWarmupPeriod());
+		this->totalRcvdBytesUl += (length * 8);
+
+		throughputInBitsPerSecondUL = throughputInBitsPerSecondUL + (length * 8);
 
 		//to avoid a division through 0
 		if(NOW - ueTotalRlcThroughputUlStartTime < 1)
@@ -117,8 +145,9 @@ public:
 	virtual void recordUETotalRlcThroughputDl(double length) {
 		Enter_Method_Silent();
 		checkRemoteCarStatus();
-		this->totalRcvdBytesDl += length;
-		//double tp = totalRcvdBytesDl / (NOW - getSimulation()->getWarmupPeriod());
+		this->totalRcvdBytesDl += (length * 8);
+
+		throughputInBitsPerSecondDL = throughputInBitsPerSecondDL + (length * 8);
 
 		//to avoid a division through 0
 		if(NOW - ueTotalRlcThroughputDlStartTime < 1)

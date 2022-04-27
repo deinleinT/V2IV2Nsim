@@ -1,0 +1,55 @@
+./netconvert --osm-files a9.osm -o a9.net.xml --geometry.remove --ramps.guess --junctions.join --tls.guess-signals --tls.discard-simple --tls.join
+
+osmBuild ist besser:
+./osmBuild.py --osm-file a9.osm --vehicle-classes road --netconvert-options --geometry.remove,--ramps.guess,--junctions.join,--tls.guess-signals,--tls.discard-simple,--tls.join,--keep-edges.by-type highway.motorway,highway.motorway_link,highway.trunk,highway.trunk_link,highway.primary,highway.primary_link
+
+oder
+osmBuild.py --osm-file a9.osm --vehicle-classes road
+
+*************
+<input>
+        <osm-files value="a9.osm"/>
+    </input>
+
+    <output>
+        <output-file value="osm.net.xml"/>
+        <output.street-names value="true"/>
+        <output.original-names value="true"/>
+    </output>
+
+    <processing>
+        <geometry.remove value="true"/>
+        <roundabouts.guess value="true"/>
+    </processing>
+
+    <tls_building>
+        <tls.discard-simple value="true"/>
+        <tls.join value="true"/>
+        <tls.guess-signals value="true"/>
+    </tls_building>
+
+    <ramp_guessing>
+        <ramps.guess value="true"/>
+    </ramp_guessing>
+
+    <edge_removal>
+        <remove-edges.by-vclass value="tram,rail_urban,rail_electric,bicycle,pedestrian"/>
+    </edge_removal>
+
+    <junctions>
+        <junctions.join value="true"/>
+        <junctions.corner-detail value="5"/>
+    </junctions>
+
+    <report>
+        <verbose value="true"/>
+    </report>
+*************
+
+Routen erstellen:
+../../sumo-1.0.0/tools/randomTrips.py -n a9.net.xml --min-distance 1000.0 -p 0.5
+
+
+DUAROUTER:
+../../sumo-1.0.0/bin/duarouter -n a9.net.xml -r trips.trips.xml --repair --randomize-flows -b 0 -v --no-warnings -o a9.rou.xml
+

@@ -33,10 +33,13 @@
 #include "stack/mac/allocator/LteAllocationModule.h"
 #include "stack/mac/scheduler/LteScheduler.h"
 #include "stack/mac/buffer/LteMacBuffer.h"
+#include "nr/stack/mac/scheduling_modules/NRQoSModel.h"
 
 //see inherit class for method description
 class NRSchedulerGnbUl: public LteSchedulerEnbUl {
 protected:
+
+	std::set<MacNodeId> schedulingNodeSet;
 
 	virtual LteMacScheduleListWithSizes* schedule();
 
@@ -50,5 +53,16 @@ protected:
 
 	virtual unsigned int schedulePerAcidRtxWithNRHarq(MacNodeId nodeId, Codeword cw, unsigned char acid, std::vector<BandLimit> *bandLim = NULL, Remote antenna = MACRO, bool limitBl = false);
 
+	virtual unsigned int scheduleGrant(MacCid cid, unsigned int bytes, bool& terminate, bool& active, bool& eligible, std::vector<BandLimit>* bandLim = NULL, Remote antenna = MACRO, bool limitBl = false);
+
+	virtual void qosModelSchedule();
+
 	virtual void removePendingRac(MacNodeId nodeId);
+
+	/**
+	 * Set Direction and bind the internal pointers to the MAC objects.
+	 * @param dir link direction
+	 * @param mac pointer to MAC module
+	 */
+	virtual void initialize(Direction dir, LteMacEnb *mac);
 };

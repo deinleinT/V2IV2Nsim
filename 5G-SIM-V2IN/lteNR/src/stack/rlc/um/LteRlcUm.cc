@@ -464,4 +464,3 @@ void LteRlcUm::modifyEntitiesUe(MacNodeId nodeId, LteRlcUm * newMasterRlcUmReali
     //std::cout << "LteRlcUm::modifyEntitiesUe end at " << simTime().dbl() << std::endl;
 
 }
-

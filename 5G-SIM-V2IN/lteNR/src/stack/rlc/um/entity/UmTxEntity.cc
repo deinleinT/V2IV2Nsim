@@ -69,6 +69,32 @@ void UmTxEntity::rlcPduMake(int pduLength)
         cPacket* pkt = sduQueue_.front();
         LteRlcSdu* rlcSdu = check_and_cast<LteRlcSdu*>(pkt);
 
+		if (sduQueue_.getLength() > 1) {
+			if (getSimulation()->getSystemModule()->par("useQosModel").boolValue() && getSimulation()->getSystemModule()->par("packetDropEnabled").boolValue()) {
+
+				//check the delay budget of that packet
+				//get corresponding delay budget
+				LteRlcUm* lteRlc = check_and_cast<LteRlcUm *>(getParentModule()->getSubmodule("um"));
+				unsigned short qfi = flowControlInfo_->getQfi();
+				unsigned short _5qi = lteRlc->getQoSHandler()->get5Qi(qfi);
+				double pdb = lteRlc->getQoSHandler()->getPdb(_5qi);
+
+				while (sduQueue_.getLength() > 1) {
+					double delay = NOW.dbl() - pkt->getCreationTime().dbl();
+					if(delay > pdb){
+						//drop packet
+						sduQueue_.pop();
+						delete rlcSdu;
+						pkt = sduQueue_.front();
+						rlcSdu = check_and_cast<LteRlcSdu*>(pkt);
+					}else{
+						break;
+					}
+				}
+
+			}
+		}
+
         //unsigned int sduSequenceNumber = rlcSdu->getSnoMainPacket();
         int sduLength = rlcSdu->getByteLength();
 

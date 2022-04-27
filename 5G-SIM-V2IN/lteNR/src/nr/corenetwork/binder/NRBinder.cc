@@ -131,6 +131,7 @@ void NRBinder::initialize(int stages) {
 		remoteCarJustOne = getSimulation()->getSystemModule()->par("remoteCarJustOne").boolValue();
 		realisticApproachMultiApplication = getSimulation()->getSystemModule()->par("realisticApproachMultiApplication").boolValue();
 		//
+
 	}
 
 }

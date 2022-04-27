@@ -29,8 +29,9 @@
 void NRsdap::handleMessage(cMessage *msg) {
 
 	//std::cout << "NRsdap::handleMessage start at " << simTime().dbl() << std::endl;
-
-	if (strcmp(msg->getArrivalGate()->getBaseName(), "upperLayer") == 0) {
+	if (msg->isSelfMessage()) {
+		handleSelfMessage(msg);
+	} else if (strcmp(msg->getArrivalGate()->getBaseName(), "upperLayer") == 0) {
 
 		fromUpperToLower(msg);
 
@@ -96,6 +97,8 @@ void NRsdap::finish() {
 	}
 	entities.clear();
 	recordScalar("hoErrorCounts", hoErrorCount);
+
+
 }
 
 void NRsdap::deleteEntities(MacNodeId nodeId) {

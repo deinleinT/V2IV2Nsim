@@ -20,13 +20,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 
-cplusplus {{
-    #include "veins/modules/messages/Mac80211Pkt_m.h"
-}}
+import veins.modules.messages.Mac80211Pkt;
 
 namespace veins;
-
-class Mac80211Pkt;
 
 packet Mac80211Ack extends Mac80211Pkt {
     unsigned long messageId; // The ID of the aknowledged packet

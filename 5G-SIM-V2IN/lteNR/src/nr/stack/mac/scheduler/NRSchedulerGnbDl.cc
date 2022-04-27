@@ -41,6 +41,7 @@ LteMacScheduleListWithSizes* NRSchedulerGnbDl::schedule() {
 
 	// clearing structures for new scheduling
 	scheduleList_.clear();
+	schedulingNodeSet.clear();
 	allocatedCws_.clear(); //allocatedCwsNodeCid_.clear();
 
 	// clean the allocator
@@ -67,8 +68,474 @@ LteMacScheduleListWithSizes* NRSchedulerGnbDl::schedule() {
 	return &scheduleList_;
 }
 
+void NRSchedulerGnbDl::qosModelSchedule() {
+
+	//std::cout << "NRSchedulerGnbDl::qosModelSchedule start at " << simTime().dbl() << std::endl;
+
+	//use code from rtxschedule to find out the harqprocesses which need a rtx
+	// retrieving reference to HARQ entities
+	HarqTxBuffers *harqQueues = mac_->getHarqTxBuffers();
+	HarqTxBuffers::const_iterator it = harqQueues->begin();
+	HarqTxBuffers::const_iterator et = harqQueues->end();
+
+	//retrieve the lambdaValues from the ini file
+	double lambdaPriority = getSimulation()->getSystemModule()->par("lambdaPriority").doubleValue();
+	double lambdaRemainDelayBudget = getSimulation()->getSystemModule()->par("lambdaRemainDelayBudget").doubleValue();
+	double lambdaCqi = getSimulation()->getSystemModule()->par("lambdaCqi").doubleValue();
+	double lambdaRtx = getSimulation()->getSystemModule()->par("lambdaRtx").doubleValue();
+	double lambdaByteSize = getSimulation()->getSystemModule()->par("lambdaByteSize").doubleValue();	//consider also the size of one packet
+	//
+
+	std::map<double, std::vector<ScheduleInfo>> combinedMap;
+	//std::vector<MacNodeId> neglectUe;
+
+	//PART 1: gather all relevant information about the harqs
+	for (; it != et; ++it) {
+		// For each UE
+		MacNodeId nodeId = it->first;
+
+		OmnetId id = binder_->getOmnetId(nodeId);
+		if (id == 0) {
+			// UE has left the simulation, erase HARQ-queue
+			it = harqQueues->erase(it);
+			if (it == et)
+				break;
+			else
+				continue;
+		}
+		LteHarqBufferTx *currHarq = it->second;
+		std::vector<LteHarqProcessTx*> *processes = currHarq->getHarqProcesses();
+
+		// Get user transmission parameters
+		const UserTxParams &txParams = mac_->getAmc()->computeTxParams(nodeId, direction_);        // get the user info
+		unsigned int codewords = txParams.getLayers().size();        // get the number of available codewords
+		unsigned int process = 0;
+		unsigned int maxProcesses = currHarq->getNumProcesses();
+		//stores all harq processes with its priority and still available delay budget
+
+		//bool breakFlag = false; //used for break if a process for rtx was found
+
+		//
+//		for (process = 0; process < maxProcesses; ++process) {
+//			// for each HARQ process
+//			LteHarqProcessTx *currProc = (*processes)[process];
+//
+//			if (currProc->getUnitStatus(0) == TXHARQ_PDU_WAITING) {
+//				neglectUe.push_back(nodeId);
+//				breakFlag = true;
+//				break;
+//			}
+//		}
+//		if(breakFlag)
+//			continue;
+		//
+
+		for (process = 0; process < maxProcesses; ++process) {
+			// for each HARQ process
+			LteHarqProcessTx *currProc = (*processes)[process];
+
+			if (allocatedCws_[nodeId] == codewords)
+				break;
+			for (Codeword cw = 0; cw < codewords; ++cw) {
+				if (allocatedCws_[nodeId] == codewords)
+					break;
+
+				// skip processes which are not in rtx status
+				if (currProc->getUnitStatus(cw) == TXHARQ_PDU_BUFFERED) {
+					LteMacPdu *pdu = currProc->getPdu(cw);
+					UserControlInfo *lteInfo = check_and_cast<UserControlInfo*>(pdu->getControlInfo());
+					MacCid cid = idToMacCid(lteInfo->getDestId(), lteInfo->getLcid());
+					unsigned short qfi = lteInfo->getQfi();
+					unsigned short _5qi = mac_->getQosHandler()->get5Qi(qfi);
+					double prio = mac_->getQosHandler()->getPriority(_5qi);
+					double pdb = mac_->getQosHandler()->getPdb(_5qi);
+					ASSERT(pdu->getCreationTime() != 0);
+					simtime_t delay = NOW - pdu->getCreationTime();
+					simtime_t remainDelayBudget = SimTime(pdb) - delay;
+
+					//create a scheduleInfo
+					ScheduleInfo tmp;
+					tmp.nodeId = nodeId;
+					tmp.remainDelayBudget = remainDelayBudget;
+					tmp.category = "rtx";
+					tmp.cid = cid;
+					tmp.codeword = cw;
+					tmp.harqProcessTx = currProc;
+					tmp.pdb = pdb;
+					tmp.priority = prio;
+					tmp.numberRtx = currProc->getTransmissions(cw);
+					tmp.nodeId = nodeId;
+					tmp.process = process;
+					tmp.sizeOnePacketDL = currProc->getPdu(cw)->getByteLength();
+
+					double calcPrio = lambdaPriority * (prio / 90.0) + ((remainDelayBudget.dbl() / 0.5) * lambdaRemainDelayBudget) + lambdaCqi * (1.0 / (txParams.readCqiVector().at(0) + 1.0))
+							+ (lambdaRtx * (1.0 / (1.0 + tmp.numberRtx))) + ((70.0 / tmp.sizeOnePacketDL) * lambdaByteSize);
+
+					combinedMap[calcPrio].push_back(tmp);
+					//breakFlag = true;
+				} else {
+					continue;
+				}
+//				if (breakFlag) {
+//					break;
+//				}
+			}
+//			if (breakFlag) {
+//				break;
+//			}
+		}
+	}
+
+	//Look into the macBuffers and find out all active connections
+	for (auto &var : *mac_->getMacBuffers()) {
+		if (!var.second->isEmpty()) {
+			backlog(var.first);
+		}
+	}
+
+	//here we consider the active connections which want to send new data
+	//use code from QosModel to find out most prio cid
+	//get the activeSet of connections
+	ActiveSet activeConnectionTempSet_ = scheduler_->getActiveConnectionSet();
+
+	//find out which cid has highest priority via qosHandler
+	std::map<double, std::vector<QosInfo>> sortedCids = mac_->getQosHandler()->getEqualPriorityMap(DL);
+
+	//create a map with cids sorted by priority
+	std::map<double, std::vector<QosInfo>> activeCids;
+	for (auto &var : sortedCids) {
+		for (auto &qosinfo : var.second) {
+			for (auto &cid : activeConnectionTempSet_) {
+
+				MacNodeId nodeId = MacCidToNodeId(cid);
+
+				//
+//				bool conFlag = false;
+//				for(auto & ueId : neglectUe){
+//					if(ueId == nodeId){
+//						conFlag = true;
+//						break;
+//					}
+//				}
+//				if(conFlag){
+//					continue;
+//				}
+				//
+
+				OmnetId id = binder_->getOmnetId(nodeId);
+
+				if (nodeId == 0 || id == 0) {
+					// node has left the simulation - erase corresponding CIDs
+					//activeConnectionTempSet_.erase(cid);
+					continue;
+				}
+
+				// check if node is still a valid node in the simulation - might have been dynamically removed
+				if (getBinder()->getOmnetId(nodeId) == 0) {
+					//activeConnectionTempSet_.erase(cid);
+					continue;
+				}
+
+				MacCid realCidQosInfo;
+				realCidQosInfo = idToMacCid(qosinfo.destNodeId, qosinfo.lcid);
+				if (realCidQosInfo == cid) {
+					//we have the QosInfos
+					activeCids[var.first].push_back(qosinfo);
+				}
+			}
+		}
+	}
+
+	for (auto &var : activeCids) {
+
+		//loop over all qosinfos with same prio
+
+		for (auto &qosinfos : var.second) {
+			MacCid cid = idToMacCid(qosinfos.destNodeId, qosinfos.lcid);
+			MacNodeId nodeId = MacCidToNodeId(cid);
+
+			//access the macbuffer to retrieve the creationTime of the pdu
+			if (mac_->getMacBuffers()->find(cid) != mac_->getMacBuffers()->end()) {
+				LteMacBuffer *macBuffer = mac_->getMacBuffers()->at(cid);
+
+				if (macBuffer->getQueueLength() <= 0) {
+					continue;
+				}
+
+				const UserTxParams &txParams = mac_->getAmc()->computeTxParams(nodeId, direction_);
+
+				//this is the creationTime of the first packet in the buffer
+				simtime_t creationTimeFirstPacket = macBuffer->getHolTimestamp();
+				ASSERT(creationTimeFirstPacket != 0);
+				//delay of this packet
+				simtime_t delay = NOW - creationTimeFirstPacket;
+
+				//get the pdb and prio of this cid
+				unsigned short qfi = qosinfos.qfi;
+				unsigned short _5qi = mac_->getQosHandler()->get5Qi(qfi);
+				double prio = mac_->getQosHandler()->getPriority(_5qi);
+				double pdb = mac_->getQosHandler()->getPdb(_5qi);
+
+				simtime_t remainDelayBudget = SimTime(pdb) - delay;
+
+				ScheduleInfo tmp;
+				tmp.nodeId = nodeId;
+				tmp.remainDelayBudget = remainDelayBudget;
+				tmp.category = "newTx";
+				tmp.cid = cid;
+				tmp.pdb = pdb;
+				tmp.priority = prio;
+				tmp.numberRtx = 0;
+				tmp.nodeId = qosinfos.destNodeId;
+
+				tmp.bytesizeDL = macBuffer->getQueueOccupancy();
+				tmp.sizeOnePacketDL = macBuffer->front().first;
+
+				if (!getSimulation()->getSystemModule()->par("useSinglePacketSizeDuringScheduling").boolValue()) {
+					tmp.sizeOnePacketDL = tmp.bytesizeDL;
+				}
+
+				double calcPrio = lambdaPriority * (prio / 90.0) + ((remainDelayBudget.dbl() / 0.5) * lambdaRemainDelayBudget) + lambdaCqi * (1 / (txParams.readCqiVector().at(0) + 1))
+						+ (lambdaRtx * (1 / (1 + tmp.numberRtx))) + ((70.0 / tmp.sizeOnePacketDL) * lambdaByteSize);
+
+				combinedMap[calcPrio].push_back(tmp);
+			}
+		}
+	}
+
+	//go through the combinedMap and find out the most prior rtx or newTx
+	//is sorted by calculated priority
+
+	std::map<MacNodeId, std::vector<ScheduledInfo>> scheduledInfoMap;
+
+	//considering the available resources
+	if (getSimulation()->getSystemModule()->par("combineQosWithRac").boolValue()) {
+
+		//how many resources available for all?
+		//how many resources needed per priority?
+		//ensure that highest priority is fully satisfied
+		//go to next prio
+		//key --> calculated weight
+		for (auto &prio : combinedMap) {
+
+			int countedRtx = 0;
+
+			//schedule only the first rtx (all have same prio)
+			for (auto &schedInfo : prio.second) {
+
+				//only the connection with the highest Prio of the same UE gets resources
+				if (scheduledInfoMap[schedInfo.nodeId].size() == 1) {
+					continue;
+				}
+
+				if (schedInfo.category == "rtx") {
+					unsigned int rtxBytes = schedulePerAcidRtx(schedInfo.nodeId, schedInfo.codeword, schedInfo.process);
+
+					ScheduledInfo tmp;
+					tmp.nodeId = schedInfo.nodeId;
+					tmp.info = schedInfo;
+					scheduledInfoMap[schedInfo.nodeId].push_back(tmp);
+					countedRtx++;
+				}
+
+			}
+
+			int blocks = allocator_->computeTotalRbs();
+			//values --> vector with ScheduleInfo with the same weight, mix of rtx and newTx
+			int numberOfSchedInfosWithSamePrio = prio.second.size();
+			int newTxWithEqualPrio = numberOfSchedInfosWithSamePrio - countedRtx;
+
+			if (newTxWithEqualPrio <= 0) {
+				continue;
+			}
+
+			//share the available blocks in a fair way
+			int blocksPerSchedInfo = blocks / newTxWithEqualPrio;
+//			if(blocks != blocksPerSchedInfo){
+//				std::cout << std::endl;
+//			}
+
+			//than schedule newRtx
+			for (auto &schedInfo : prio.second) {
+
+				//only the connection with the highest Prio of the same UE gets resources
+				if (scheduledInfoMap[schedInfo.nodeId].size() == 1) {
+					continue;
+				}
+
+				if (schedInfo.category == "newTx") {
+
+					MacCid cid = schedInfo.cid;
+					MacNodeId nodeId = schedInfo.nodeId;
+					unsigned int numBands = mac_->getCellInfo()->getNumBands();
+					const unsigned int cw = 0;
+					bool allocation = false;
+					//blocks = allocator_->computeTotalRbs();
+					unsigned int bytesize = schedInfo.bytesizeDL;
+					unsigned int sizePerPacket = schedInfo.sizeOnePacketDL;
+					unsigned int reqBlocks = 0;
+					unsigned int bytes = 0;
+					int schedBlocks = 0;
+					int schedBytesPerSchedInfo = 0;
+
+					for (Band b = 0; b < mac_->getCellInfo()->getNumBands(); ++b) {
+
+						if (blocks > 0) {
+
+							//real required blocks
+							if (getSimulation()->getSystemModule()->par("useSinglePacketSizeDuringScheduling").boolValue()) {
+								reqBlocks = mac_->getAmc()->computeReqRbs(nodeId, b, cw, sizePerPacket, DL, blocks); //required Blocks --> for Packet
+							} else {
+								reqBlocks = mac_->getAmc()->computeReqRbs(nodeId, b, cw, bytesize, DL, blocks); //required Blocks --> for Queue
+							}
+
+							//real required bytes
+							bytes = mac_->getAmc()->computeBytesOnNRbs(nodeId, b, cw, reqBlocks, DL); //required Bytes
+							//shared available blocks
+							schedBytesPerSchedInfo = mac_->getAmc()->computeBytesOnNRbs(nodeId, b, cw, blocksPerSchedInfo, DL); //required Bytes
+							if(newTxWithEqualPrio == 1){
+								schedBytesPerSchedInfo = mac_->getAmc()->computeBytesOnNRbs(nodeId, b, cw, allocator_->availableBlocks(nodeId, MACRO, b), UL);
+							}
+
+							// Grant data to that connection.
+							bool terminate = false;
+							bool active = true;
+							bool eligible = true;
+
+							//required blocks fit the size of the shared blocks
+							if (reqBlocks <= blocksPerSchedInfo) {
+
+								unsigned int granted = scheduleGrant(schedInfo.cid, bytes, terminate, active, eligible);
+
+							} else {
+								//required blocks larger, schedule only the shared blocks
+								unsigned int granted = scheduleGrant(schedInfo.cid, schedBytesPerSchedInfo, terminate, active, eligible);
+							}
+
+							// Exit immediately if the terminate flag is set.
+							if (terminate) {
+								break;
+							}
+
+							if (!active) {
+								activeConnectionTempSet_.erase(schedInfo.cid);
+							}
+
+						}
+					}
+
+					ScheduledInfo tmp;
+					tmp.nodeId = schedInfo.nodeId;
+					tmp.info = schedInfo;
+					scheduledInfoMap[schedInfo.nodeId].push_back(tmp);
+					newTxWithEqualPrio--;
+				}
+
+			}
+		}
+
+	} else {
+		//key --> calculated prio
+		for (auto &var : combinedMap) {
+
+			//values --> vector with ScheduleInfo with the same weight
+			for (auto &vec : var.second) {
+
+				//only the connection with the highest Prio of the same UE get resources
+				if (scheduledInfoMap[vec.nodeId].size() == 1) {
+					ASSERT(vec.nodeId == scheduledInfoMap[vec.nodeId].at(0).nodeId);
+					continue;
+				}
+
+				if (vec.category == "rtx") {
+
+					unsigned int bytes = schedulePerAcidRtx(vec.nodeId, vec.codeword, vec.process);
+
+				} else if (vec.category == "newTx") {
+
+					// compute available blocks for the current user
+					const UserTxParams &info = mac_->getAmc()->computeTxParams(vec.nodeId, DL);
+					const std::set<Band> &bands = info.readBands();
+					unsigned int codeword = info.getLayers().size();
+					if (allocatedCws(vec.nodeId) == codeword)
+						continue;
+					std::set<Band>::const_iterator it = bands.begin(), et = bands.end();
+
+					std::set<Remote>::iterator antennaIt = info.readAntennaSet().begin(), antennaEt = info.readAntennaSet().end();
+
+					bool cqiNull = false;
+					for (unsigned int i = 0; i < codeword; i++) {
+						if (info.readCqiVector()[i] == 0)
+							cqiNull = true;
+					}
+					if (cqiNull)
+						continue;
+					// compute score based on total available bytes
+					unsigned int availableBlocks = 0;
+					unsigned int availableBytes = 0;
+					// for each antenna
+					for (; antennaIt != antennaEt; ++antennaIt) {
+						// for each logical band
+						for (; it != et; ++it) {
+							availableBlocks += readAvailableRbs(vec.nodeId, *antennaIt, *it);
+							availableBytes += mac_->getAmc()->computeBytesOnNRbs(vec.nodeId, *it, availableBlocks, direction_);
+						}
+					}
+
+					// Grant data to that connection.
+					bool terminate = false;
+					bool active = true;
+					bool eligible = true;
+
+					unsigned int bytesize = vec.bytesizeDL;
+					unsigned int sizePerPacket = vec.sizeOnePacketDL;
+
+					unsigned int granted = 0;
+					if (getSimulation()->getSystemModule()->par("useSinglePacketSizeDuringScheduling").boolValue()) {
+						granted = scheduleGrant(vec.cid, sizePerPacket, terminate, active, eligible); // for Packet
+					} else {
+						granted = scheduleGrant(vec.cid, bytesize, terminate, active, eligible); // for queue
+					}
+
+					// Exit immediately if the terminate flag is set.
+					if (terminate) {
+						break;
+					}
+
+					if (!active) {
+						activeConnectionTempSet_.erase(vec.cid);
+					}
+				} else {
+					throw cRuntimeError("Error");
+				}
+
+				ScheduledInfo stmp;
+				stmp.nodeId = vec.nodeId;
+				stmp.info = vec;
+				scheduledInfoMap[vec.nodeId].push_back(stmp);
+			}
+		}
+	}
+
+	//clean up
+	scheduler_->getActiveConnectionSet() = activeConnectionTempSet_;
+	combinedMap.clear();
+
+	//std::cout << "NRSchedulerGnbDl::qosModelSchedule start at " << simTime().dbl() << std::endl;
+}
+
 bool NRSchedulerGnbDl::rtxschedule() {
 	//std::cout << "NRSchedulerGnbDl::rtxschedule start at " << simTime().dbl() << std::endl;
+
+	//
+	if (getSimulation()->getSystemModule()->hasPar("useQosModel")) {
+		if (getSimulation()->getSystemModule()->par("useQosModel").boolValue()) {
+			qosModelSchedule();
+			//return always true to avoid calling other scheduling functions
+			return true;
+		}
+	}
+	//
 
 	// retrieving reference to HARQ entities
 	HarqTxBuffers *harqQueues = mac_->getHarqTxBuffers();
@@ -82,6 +549,11 @@ bool NRSchedulerGnbDl::rtxschedule() {
 	for (; it != et; ++it) {
 		// For each UE
 		MacNodeId nodeId = it->first;
+
+		if (schedulingNodeSet.find(nodeId) != schedulingNodeSet.end()) {
+			//already one cid scheduled for this node
+			continue;
+		}
 
 		OmnetId id = binder_->getOmnetId(nodeId);
 		if (id == 0) {
@@ -158,6 +630,8 @@ bool NRSchedulerGnbDl::rtxschedule() {
 
 				// perform the retransmission
 				unsigned int bytes = schedulePerAcidRtx(nodeId, cw, process.second, bandLim);
+
+				schedulingNodeSet.insert(nodeId);
 
 				// if a value different from zero is returned, there was a service
 				if (bytes > 0) {
@@ -349,12 +823,9 @@ unsigned int NRSchedulerGnbDl::schedulePerAcidRtx(MacNodeId nodeId, Codeword cw,
 
 	// mark codeword as used
 	if (allocatedCws_.find(nodeId) != allocatedCws_.end()) {
-		allocatedCws_.at(nodeId)++;
-
-		}
+		allocatedCws_.at(nodeId)++;}
 	else {
 		allocatedCws_[nodeId] = 1;
-
 	}
 
 	bytes = currHarq->pduLength(acid, cw);
@@ -371,6 +842,13 @@ unsigned int NRSchedulerGnbDl::scheduleGrant(MacCid cid, unsigned int bytes, boo
 
 	// Get the node ID and logical connection ID
 	MacNodeId nodeId = MacCidToNodeId(cid);
+
+	if (schedulingNodeSet.find(nodeId) != schedulingNodeSet.end()) {
+		//already one cid scheduled for this node
+		active = false;
+		return 0;
+	}
+
 	LogicalCid flowId = MacCidToLcid(cid);
 	// Get user transmission parameters
 	const UserTxParams &txParams = mac_->getAmc()->computeTxParams(nodeId, direction_);
@@ -381,52 +859,34 @@ unsigned int NRSchedulerGnbDl::scheduleGrant(MacCid cid, unsigned int bytes, boo
 	std::vector<BandLimit> tempBandLim;
 	if (bandLim == NULL) {
 		bands_msg = "NO_BAND_SPECIFIED";
-		// Create a vector of band limit using all bands
-		bandLim = &tempBandLim;
 
 		txParams.print("grant()");
-
-		unsigned int numBands = mac_->getCellInfo()->getNumBands();
-		// for each band of the band vector provided
-		for (unsigned int i = 0; i < numBands; i++) {
-			BandLimit elem;
-			// copy the band
-			elem.band_ = Band(i);
-			//EV << "Putting band " << i << endl;
-			// mark as unlimited
-			for (unsigned int j = 0; j < numCodewords; j++) {
-				//EV << "- Codeword " << j << endl;
-				elem.limit_.push_back(-1);
+		// Create a vector of band limit using all bands
+		if (emptyBandLim_.empty()) {
+			unsigned int numBands = mac_->getCellInfo()->getNumBands();
+			// for each band of the band vector provided
+			for (unsigned int i = 0; i < numBands; i++) {
+				BandLimit elem;
+				// copy the band
+				elem.band_ = Band(i);
+				EV << "Putting band " << i << endl;
+				// mark as unlimited
+				for (unsigned int j = 0; j < numCodewords; j++) {
+					//EV << "- Codeword " << j << endl;
+					elem.limit_.push_back(-1);
+				}
+				emptyBandLim_.push_back(elem);
 			}
-			bandLim->push_back(elem);
 		}
+		tempBandLim = emptyBandLim_;
+		bandLim = &tempBandLim;
 	}
 	//EV << "NRSchedulerGnbDl::grant(" << cid << "," << bytes << "," << terminate << "," << active << "," << eligible << "," << bands_msg << "," << dasToA(antenna) << ")" << endl;
 
-	// Perform normal operation for grant
+	unsigned int totalAllocatedBytes = 0;  // total allocated data (in bytes)
+	unsigned int totalAllocatedBlocks = 0; // total allocated data (in blocks)
 
-	// Get virtual buffer reference (it shouldn't be direction UL)
-	vbuf_ = mac_->getMacBuffers();
-	bsrbuf_ = mac_->getBsrVirtualBuffers();
-	LteMacBuffer *conn = ((direction_ == DL) ? vbuf_->at(cid) : bsrbuf_->at(cid));
-
-	// get the buffer size
-	unsigned int queueLength = conn->getQueueOccupancy(); // in bytes
-
-	// get traffic descriptor
-	FlowControlInfo connDesc;
-	try {
-		connDesc = mac_->getConnDesc().at(cid);
-	} catch (...) {
-		//std::cout << "NRSchedulerGnbDl::scheduleGrant end at " << simTime().dbl() << std::endl;
-		terminate = true;
-		return 0;
-	}
-	//
-
-	//EV << "NRSchedulerGnbDl::grant --------------------::[ START GRANT ]::--------------------" << endl;
-	//EV << "NRSchedulerGnbDl::grant Cell: " << mac_->getMacCellId() << endl;
-	//EV << "NRSchedulerGnbDl::grant CID: " << cid << "(UE: " << nodeId << ", Flow: " << flowId << ") current Antenna [" << dasToA(antenna) << "]" << endl;
+	// === Perform normal operation for grant === //
 
 	//! Multiuser MIMO support
 	if (mac_->muMimo() && (txParams.readTxMode() == MULTI_USER)) {
@@ -449,18 +909,16 @@ unsigned int NRSchedulerGnbDl::scheduleGrant(MacCid cid, unsigned int bytes, boo
 	Plane plane = allocator_->getOFDMPlane(nodeId);
 	allocator_->setRemoteAntenna(plane, antenna);
 
-	unsigned int cwAlredyAllocated = 0;
 	// search for already allocated codeword
+	unsigned int cwAlreadyAllocated = 0;
+	if (allocatedCws_.find(nodeId) != allocatedCws_.end())
+		cwAlreadyAllocated = allocatedCws_.at(nodeId);
 
-	if (allocatedCws_.find(nodeId) != allocatedCws_.end()) {
-		cwAlredyAllocated = allocatedCws_.at(nodeId);
-		//allocatedCwsNodeCid_[cid] = cwAlredyAllocated;
-	}
 	// Check OFDM space
 	// OFDM space is not zero if this if we are trying to allocate the second cw in SPMUX or
 	// if we are tryang to allocate a peer user in mu_mimo plane
 	if (allocator_->computeTotalRbs() == 0
-			&& (((txParams.readTxMode() != OL_SPATIAL_MULTIPLEXING && txParams.readTxMode() != CL_SPATIAL_MULTIPLEXING) || cwAlredyAllocated == 0)
+			&& (((txParams.readTxMode() != OL_SPATIAL_MULTIPLEXING && txParams.readTxMode() != CL_SPATIAL_MULTIPLEXING) || cwAlreadyAllocated == 0)
 					&& (txParams.readTxMode() != MULTI_USER || plane != MU_MIMO_PLANE))) {
 		terminate = true; // ODFM space ended, issuing terminate flag
 		//EV << "NRSchedulerGnbDl::grant Space ended, no schedulation." << endl;
@@ -470,7 +928,7 @@ unsigned int NRSchedulerGnbDl::scheduleGrant(MacCid cid, unsigned int bytes, boo
 	// TODO This is just a BAD patch
 	// check how a codeword may be reused (as in the if above) in case of non-empty OFDM space
 	// otherwise check why an UE is stopped being scheduled while its buffer is not empty
-	if (cwAlredyAllocated > 0) {
+	if (cwAlreadyAllocated > 0) {
 		terminate = true;
 		return 0;
 	}
@@ -493,85 +951,63 @@ unsigned int NRSchedulerGnbDl::scheduleGrant(MacCid cid, unsigned int bytes, boo
 	//	}
 	// ===== END DEBUG OUTPUT ===== //
 
-	//EV << "NRSchedulerGnbDl::grant TxMode: " << txModeToA(txParams.readTxMode()) << endl;
-	//EV << "NRSchedulerGnbDl::grant Available codewords: " << numCodewords << endl;
-
-	bool stop = false;
-	unsigned int totalAllocatedBytes = 0; // total allocated data (in bytes)
-	unsigned int totalAllocatedBlocks = 0; // total allocated data (in blocks)
-	Codeword cw = 0; // current codeword, modified by reference by the checkeligibility function
-
 	// Retrieve the first free codeword checking the eligibility - check eligibility could modify current cw index.
+	Codeword cw = 0; // current codeword, modified by reference by the checkeligibility function
 	if (!checkEligibility(nodeId, cw) || cw >= numCodewords) {
 		eligible = false;
 
-		//EV << "NRSchedulerGnbDl::grant @@@@@ CODEWORD " << cw << " @@@@@" << endl;
-		//EV << "NRSchedulerGnbDl::grant Total allocation: " << totalAllocatedBytes << "bytes" << endl;
-		//EV << "NRSchedulerGnbDl::grant NOT ELIGIBLE!!!" << endl;
-		//EV << "NRSchedulerGnbDl::grant --------------------::[  END GRANT  ]::--------------------" << endl;
 		return totalAllocatedBytes; // return the total number of served bytes
 	}
 
+	// Get virtual buffer reference
+	LteMacBuffer *conn = ((direction_ == DL) ? vbuf_->at(cid) : bsrbuf_->at(cid));
+
+	// get the buffer size
+	unsigned int queueLength = conn->getQueueOccupancy(); // in bytes
+	if (getSimulation()->getSystemModule()->par("useSinglePacketSizeDuringScheduling").boolValue()) {
+		queueLength = (conn->getQueueOccupancy() == 0) ? 0 : conn->getQueueOccupancy() / conn->getQueueLength(); // in bytes
+	}
+
+	if (getSimulation()->getSystemModule()->par("useQosModel").boolValue()) {
+		if (getSimulation()->getSystemModule()->par("combineQosWithRac").boolValue()) {
+			queueLength = bytes;
+		}
+	}
+
+	if (queueLength == 0) {
+		active = false;
+
+		return totalAllocatedBytes;
+	}
+
+	bool stop = false;
+	unsigned int toServe = 0;
 	for (; cw < numCodewords; ++cw) {
-		unsigned int cwAllocatedBytes = 0;
-		// used by uplink only, for signaling cw blocks usage to schedule list
-		unsigned int cwAllocatedBlocks = 0;
-		// per codeword vqueue item counter (UL: BSRs DL: SDUs)
-		unsigned int vQueueItemCounter = 0;
+
+		queueLength += MAC_HEADER + RLC_HEADER_UM;  // TODO RLC may be either UM or AM
+		toServe = queueLength;
+
+		unsigned int cwAllocatedBytes = 0;  // per codeword allocated bytes
+		unsigned int cwAllocatedBlocks = 0; // used by uplink only, for signaling cw blocks usage to schedule list
+		unsigned int vQueueItemCounter = 0; // per codeword MAC SDUs counter
 
 		unsigned int allocatedCws = 0;
-
-		std::list<Request> bookedRequests;
-
-		// band limit structure
-
-		//EV << "NRSchedulerGnbDl::grant @@@@@ CODEWORD " << cw << " @@@@@" << endl;
-
 		unsigned int size = (*bandLim).size();
-
-		unsigned int toBook;
-		// Check whether the virtual buffer is empty
-		if (queueLength == 0) {
-			active = false; // all user data have been served
-			//EV << "NRSchedulerGnbDl::grant scheduled connection is no more active . Exiting grant " << endl;
-			stop = true;
-			break;
-		} else {
-			// we need to consider also the size of RLC and MAC headers
-
-			if (connDesc.getRlcType() == UM)
-				queueLength += RLC_HEADER_UM;
-			else if (connDesc.getRlcType() == AM)
-				queueLength += RLC_HEADER_AM;
-			queueLength += MAC_HEADER;
-
-			toBook = queueLength;
-		}
-
-		//EV << "NRSchedulerGnbDl::grant bytes to be allocated: " << toBook << endl;
-
-		// Book bands for this connection
-		for (unsigned int i = 0; i < size; ++i) {
-//            // for sulle bande
-			unsigned int bandAllocatedBytes = 0;
-
+		for (unsigned int i = 0; i < size; ++i) // for each band
+				{
 			// save the band and the relative limit
 			Band b = (*bandLim).at(i).band_;
 			int limit = (*bandLim).at(i).limit_.at(cw);
 
-			//EV << "NRSchedulerGnbDl::grant --- BAND " << b << " LIMIT " << limit << "---" << endl;
-
 			// if the limit flag is set to skip, jump off
 			if (limit == -2) {
-				//EV << "NRSchedulerGnbDl::grant skipping logical band according to limit value" << endl;
 				continue;
 			}
 
 			// search for already allocated codeword
-
-			if (allocatedCws_.find(nodeId) != allocatedCws_.end()) {
+			if (allocatedCws_.find(nodeId) != allocatedCws_.end())
 				allocatedCws = allocatedCws_.at(nodeId);
-			}
+
 			unsigned int bandAvailableBytes = 0;
 			unsigned int bandAvailableBlocks = 0;
 			// if there is a previous blocks allocation on the first codeword, blocks allocation is already available
@@ -580,20 +1016,14 @@ unsigned int NRSchedulerGnbDl::scheduleGrant(MacCid cid, unsigned int bytes, boo
 				int b1 = allocator_->getBlocks(antenna, b, nodeId);
 				// limit eventually allocated blocks on other codeword to limit for current cw
 				bandAvailableBlocks = (limitBl ? (b1 > limit ? limit : b1) : b1);
-
-				//    bandAvailableBlocks=b1;
-
 				bandAvailableBytes = mac_->getAmc()->computeBytesOnNRbs(nodeId, b, cw, bandAvailableBlocks, direction_);
-			}
-			// if limit is expressed in blocks, limit value must be passed to availableBytes function
-			else {            //TODO Check bandAvailableBytes
+			} else // if limit is expressed in blocks, limit value must be passed to availableBytes function
+			{
 				bandAvailableBytes = availableBytes(nodeId, antenna, b, cw, direction_, (limitBl) ? limit : -1); // available space (in bytes)
 				bandAvailableBlocks = allocator_->availableBlocks(nodeId, antenna, b);
 			}
 
-			// if no allocation can be performed, notify to skip
-			// the band on next processing (if any)
-
+			// if no allocation can be performed, notify to skip the band on next processing (if any)
 			if (bandAvailableBytes == 0) {
 				//EV << "NRSchedulerGnbDl::grant Band " << b << "will be skipped since it has no space left." << endl;
 				(*bandLim).at(i).limit_.at(cw) = -2;
@@ -614,189 +1044,109 @@ unsigned int NRSchedulerGnbDl::scheduleGrant(MacCid cid, unsigned int bytes, boo
 				}
 			}
 
-			//EV << "NRSchedulerGnbDl::grant Available Bytes: " << bandAvailableBytes << " available blocks " << bandAvailableBlocks << endl;
+			unsigned int uBytes = (bandAvailableBytes > queueLength) ? queueLength : bandAvailableBytes;
+			unsigned int uBlocks = mac_->getAmc()->computeReqRbs(nodeId, b, cw, uBytes, direction_, bandAvailableBlocks);
 
-			// book resources on this band
+			// allocate resources on this band
+			if (allocatedCws == 0) {
+				// mark here allocation
+				allocator_->addBlocks(antenna, b, nodeId, uBlocks, uBytes);
+				// add allocated blocks for this codeword
+				cwAllocatedBlocks += uBlocks;
+				totalAllocatedBlocks += uBlocks;
+				cwAllocatedBytes += uBytes;
+			}
 
-			unsigned int blocksAdded = mac_->getAmc()->computeReqRbs(nodeId, b, cw, bandAllocatedBytes, direction_, bandAvailableBlocks);
-			//unsigned int blocksAdded = mac_->getAmc()->computeReqRbs(nodeId, b, cw, bandAvailableBytes, direction_,bandAvailableBlocks);
-
-			if (blocksAdded > bandAvailableBlocks)
-				throw cRuntimeError("band %d GRANT allocation overflow : avail. blocks %d alloc. blocks %d", b, bandAvailableBlocks, blocksAdded);
-
-			//EV << "NRSchedulerGnbDl::grant Booking band available blocks" << (bandAvailableBlocks-blocksAdded) << " [" << bandAvailableBytes << " bytes] for future use, going to next band" << endl;
-			// enable booking  here
-			bookedRequests.push_back(Request(b, bandAvailableBytes, bandAvailableBlocks - blocksAdded));
+			// update limit
+			if (uBlocks > 0 && (*bandLim).at(i).limit_.at(cw) > 0) {
+				(*bandLim).at(i).limit_.at(cw) -= uBlocks;
+				if ((*bandLim).at(i).limit_.at(cw) < 0)
+					throw cRuntimeError("Limit decreasing error during booked resources allocation on band %d : new limit %d, due to blocks %d ", b, (*bandLim).at(i).limit_.at(cw), uBlocks);
+			}
 
 			// update the counter of bytes to be served
-			toBook = (bandAvailableBytes > toBook) ? 0 : toBook - bandAvailableBytes;
-
-			if (toBook == 0) {
+			toServe = (uBytes > toServe) ? 0 : toServe - uBytes;
+			if (toServe == 0) {
 				// all bytes booked, go to allocation
 				stop = true;
 				active = false;
 				break;
 			}
-			// else continue booking (if there are available bands)
-		}
+			// continue allocating (if there are available bands)
+		} // Closes loop on bands
 
-		// allocation of the booked resources
+		if (cwAllocatedBytes > 0)
+			vQueueItemCounter++;  // increase counter of served SDU
 
-		// compute here total booked requests
-		unsigned int totalBooked = 0;
-		unsigned int bookedUsed = 0;
+		// === update virtual buffer === //
 
-		std::list<Request>::iterator li = bookedRequests.begin(), le = bookedRequests.end();
-		for (; li != le; ++li) {
-			totalBooked += li->bytes_;
-			//EV << "NRSchedulerGnbDl::grant Band " << li->b_ << " can contribute with " << li->bytes_ << " of booked resources " << endl;
-		}
-
-		// get resources to allocate
-		unsigned int toServe = queueLength - toBook;
-
-		//EV << "NRSchedulerGnbDl::grant servicing " << toServe << " bytes with " << totalBooked << " booked bytes " << endl;
-
-		// decrease booking value - if totalBooked is greater than 0, we used booked resources for scheduling the pdu
-		if (totalBooked > 0) {
-			// reset booked resources iterator.
-			li = bookedRequests.begin();
-
-			//EV << "NRSchedulerGnbDl::grant Making use of booked resources [" << totalBooked << "] for inter-band data allocation" << endl;
-			// updating booked requests structure
-			while ((li != le) && (bookedUsed <= toServe)) {
-				Band u = li->b_;
-				unsigned int uBytes = ((li->bytes_ > toServe) ? toServe : li->bytes_);
-
-				//EV << "NRSchedulerGnbDl::grant allocating " << uBytes << " prev. booked bytes on band " << (unsigned short)u << endl;
-
-				// mark here the usage of booked resources
-				bookedUsed += uBytes;
-				cwAllocatedBytes += uBytes;
-
-				//changed, Thomas Deinlein
-				unsigned int uBlocks = mac_->getAmc()->computeReqRbs(nodeId, u, cw, uBytes, direction_, li->blocks_);
-				//
-
-				if (uBlocks <= li->blocks_) {
-					li->blocks_ -= uBlocks;
-				} else {
-					li->blocks_ = uBlocks = 0;
-				}
-
-				// add allocated blocks for this codeword
-				cwAllocatedBlocks += uBlocks;
-
-				// update limit
-				if (uBlocks > 0) {
-					unsigned int j = 0;
-					for (; j < (*bandLim).size(); ++j)
-						if ((*bandLim).at(j).band_ == u)
-							break;
-
-					if ((*bandLim).at(j).limit_.at(cw) > 0) {
-						(*bandLim).at(j).limit_.at(cw) -= uBlocks;
-
-						if ((*bandLim).at(j).limit_.at(cw) < 0)
-							throw cRuntimeError("Limit decreasing error during booked resources allocation on band %d : new limit %d, due to blocks %d ", u, (*bandLim).at(j).limit_.at(cw), uBlocks);
-					}
-				}
-
-				if (allocatedCws == 0) {
-					// mark here allocation
-					allocator_->addBlocks(antenna, u, nodeId, uBlocks, uBytes);
-				}
-
-				// update reserved status
-
-				if (li->bytes_ > toServe) {
-					li->bytes_ -= toServe;
-
-					li++;
-				} else {
-					std::list<Request>::iterator erase = li;
-					// increment pointer.
-					li++;
-					// erase element from list
-					bookedRequests.erase(erase);
-
-					//EV << "NRSchedulerGnbDl::grant band " << (unsigned short)u << " depleted all its booked resources " << endl;
-				}
-			}
-			vQueueItemCounter++;
-		}
-
-		// update virtual buffer
-		unsigned int alloc = toServe;
-		alloc -= MAC_HEADER;
-		if (connDesc.getRlcType() == UM)
-			alloc -= RLC_HEADER_UM;
-		else if (connDesc.getRlcType() == AM)
-			alloc -= RLC_HEADER_AM;
-		// alloc is the number of effective bytes allocated (without overhead)
-		while (!conn->isEmpty() && alloc > 0) {
+		// number of bytes to be consumed from the virtual buffer
+		unsigned int consumedBytes = cwAllocatedBytes - (MAC_HEADER + RLC_HEADER_UM);  // TODO RLC may be either UM or AM
+		while (!conn->isEmpty() && consumedBytes > 0) {
 			unsigned int vPktSize = conn->front().first;
-			if (vPktSize <= alloc) {
-				// serve the entire vPkt
+			if (vPktSize <= consumedBytes) {
+				// serve the entire vPkt, remove pkt info
 				conn->popFront();
-				alloc -= vPktSize;
-			} else {
-				// serve partial vPkt
+				consumedBytes -= vPktSize;
 
-				// update pkt info
+			} else {
+				// serve partial vPkt, update pkt info
 				PacketInfo newPktInfo = conn->popFront();
-				newPktInfo.first = newPktInfo.first - alloc;
+				newPktInfo.first = newPktInfo.first - consumedBytes;
 				conn->pushFront(newPktInfo);
-				alloc = 0;
+				consumedBytes = 0;
+
 			}
 		}
-
-		//EV << "NRSchedulerGnbDl::grant Codeword allocation: " << cwAllocatedBytes << "bytes" << endl;
 
 		if (cwAllocatedBytes > 0) {
 			// mark codeword as used
-			if (allocatedCws_.find(nodeId) != allocatedCws_.end()) {
-				allocatedCws_.at(nodeId)++;
-				//allocatedCwsNodeCid_.at(cid) = allocatedCws_.at(nodeId);
-				}
-			else {
+			if (allocatedCws_.find(nodeId) != allocatedCws_.end())
+				allocatedCws_.at(nodeId)++;else
 				allocatedCws_[nodeId] = 1;
-				//allocatedCwsNodeCid_.at(cid) = 1;
-			}
 
 			totalAllocatedBytes += cwAllocatedBytes;
 
-			std::pair<MacCid, Codeword> scListId;
-			scListId.first = cid;
-			scListId.second = cw;
-
+			// create entry in the schedule list
+			std::pair<unsigned int, Codeword> scListId(cid, cw);
 			if (scheduleList_.find(scListId) == scheduleList_.end())
 				scheduleList_[scListId].first = 0;
 
 			// if direction is DL , then schedule list contains number of to-be-trasmitted SDUs ,
 			// otherwise it contains number of granted blocks
+			//scheduleList_[scListId] += ((dir == DL) ? vQueueItemCounter : cwAllocatedBlocks);
 			scheduleList_[scListId].first += ((direction_ == DL) ? vQueueItemCounter : cwAllocatedBlocks);
-			scheduleList_[scListId].second = cwAllocatedBytes;
+			scheduleList_[scListId].second = totalAllocatedBytes;
 
-			//EV << "NRSchedulerGnbDl::grant CODEWORD IS NOW BUSY: GO TO NEXT CODEWORD." << endl;
+			//to ensure that just one cid is scheduled for each node
+			schedulingNodeSet.insert(nodeId);
+
 			if (allocatedCws_.at(nodeId) == MAX_CODEWORDS) {
 				eligible = false;
 				stop = true;
 			}
 		} else {
-			//EV << "NRSchedulerGnbDl::grant CODEWORD IS FREE: NO ALLOCATION IS POSSIBLE IN NEXT CODEWORD." << endl;
+
 			eligible = false;
 			stop = true;
 		}
 		if (stop)
 			break;
-
-	} // end for codeword
-
-	//EV << "NRSchedulerGnbDl::grant Total allocation: " << totalAllocatedBytes << " bytes, " << totalAllocatedBlocks << " blocks" << endl;
-	//EV << "NRSchedulerGnbDl::grant --------------------::[  END GRANT  ]::--------------------" << endl;
-
-	//std::cout << "NRSchedulerGnbDl::scheduleGrant end at " << simTime().dbl() << std::endl;
+	} // Closes loop on Codewords
 
 	return totalAllocatedBytes;
+
+}
+
+void NRSchedulerGnbDl::initialize(Direction dir, LteMacEnb *mac) {
+	LteSchedulerEnb::initialize(dir, mac);
+
+	if (getSimulation()->getSystemModule()->hasPar("useQosModel")) {
+		if (getSimulation()->getSystemModule()->par("useQosModel").boolValue()) {
+			if (scheduler_)
+				delete scheduler_;
+			scheduler_ = new NRQoSModel(DL);
+			scheduler_->setEnbScheduler(this);
+		}
+	}
 }

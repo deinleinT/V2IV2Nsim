@@ -33,7 +33,13 @@ NRSchedulerUeUl::NRSchedulerUeUl(LteMacUe *mac) :
 
 	mac_ = mac;
 
-	lcgScheduler_ = new NRLcgScheduler(mac);
+	useQosModel = getSimulation()->getSystemModule()->par("useQosModel").boolValue();
+
+	if (useQosModel) {
+		lcgScheduler_ = new NRQoSModelScheduler(mac);
+	} else {
+		lcgScheduler_ = new NRLcgScheduler(mac);
+	}
 
 	//std::cout << "NRSchedulerUeUl end at " << simTime().dbl() << std::endl;
 }
@@ -44,6 +50,7 @@ NRSchedulerUeUl::~NRSchedulerUeUl() {
 
 LteMacScheduleListWithSizes* NRSchedulerUeUl::schedule() {
 	//std::cout << "NRSchedulerUeUl schedule start at " << simTime().dbl() << std::endl;
+
 	// 1) Environment Setup
 
 	// clean up old scheduling decisions
@@ -51,6 +58,8 @@ LteMacScheduleListWithSizes* NRSchedulerUeUl::schedule() {
 
 	// get the grant
 	const LteSchedulingGrant *grant = mac_->getSchedulingGrant();
+	UserControlInfo *userInfo = check_and_cast<UserControlInfo*>(grant->getControlInfo());
+
 	Direction dir = grant->getDirection();
 
 	// get the nodeId of the mac owner node
@@ -60,57 +69,83 @@ LteMacScheduleListWithSizes* NRSchedulerUeUl::schedule() {
 
 	unsigned int availableBlocks = grant->getTotalGrantedBlocks();
 
-	for (Codeword cw = 0; cw < codewords; ++cw) {
-		unsigned int availableBytes = grant->getGrantedCwBytes(cw);
+	if (useQosModel) {
+		for (Codeword cw = 0; cw < codewords; ++cw) {
+			unsigned int availableBytes = grant->getGrantedCwBytes(cw);
 
-		if (availableBytes <= 4)
-			continue;
+			if (availableBytes <= 4)
+				continue;
 
-		// invoke the schedule() method of the attached LCP scheduler in order to schedule
-		// the connections provided
-		std::map<MacCid, std::pair<unsigned int, unsigned int>> &sdus = lcgScheduler_->schedule(availableBytes, dir);
+			// invoke the schedule() method of the attached LCP scheduler in order to schedule
+			// the connections provided
+			std::map<MacCid, std::pair<unsigned int, unsigned int>> &sdus = check_and_cast<NRQoSModelScheduler*>(lcgScheduler_)->schedule(idToMacCid(nodeId, userInfo->getLcid()), availableBytes, dir);
 
-		if (sdus.empty())
-			continue;
+			if (sdus.empty())
+				continue;
 
-		std::map<MacCid, std::pair<unsigned int, unsigned int>>::const_iterator it = sdus.begin(), et = sdus.end();
-		if (sdus.size() > 1) {
-			for (auto &var : sdus) {
-				if (var.second.second == 0)
-					sdus.erase(var.first);
+			std::map<MacCid, std::pair<unsigned int, unsigned int>>::const_iterator it = sdus.begin(), et = sdus.end();
+			if (sdus.size() > 1) {
+				for (auto &var : sdus) {
+					if (var.second.second == 0)
+						sdus.erase(var.first);
+				}
+				for (auto &var : sdus) {
+					std::pair<MacCid, Codeword> schedulePair(var.first, cw);
+					scheduleListWithSizes_[schedulePair].first = 1;
+					scheduleListWithSizes_[schedulePair].second = var.second.second;
+				}
+
+			} else {
+				for (; it != et; ++it) {
+					// set schedule list entry
+					std::pair<MacCid, Codeword> schedulePair(it->first, cw);
+					scheduleListWithSizes_[schedulePair].first = 1;
+					scheduleListWithSizes_[schedulePair].second = availableBytes;
+				}
 			}
-			for (auto &var : sdus) {
-				std::pair<MacCid, Codeword> schedulePair(var.first, cw);
-				scheduleListWithSizes_[schedulePair].first = 1;
-				scheduleListWithSizes_[schedulePair].second = var.second.second;
-			}
 
-		} else {
-			for (; it != et; ++it) {
-				// set schedule list entry
-				std::pair<MacCid, Codeword> schedulePair(it->first, cw);
-				scheduleListWithSizes_[schedulePair].first = 1;
-				scheduleListWithSizes_[schedulePair].second = availableBytes;
+		}
+		//std::cout << "NRSchedulerUeUl schedule end at " << simTime().dbl() << std::endl;
+
+		return &scheduleListWithSizes_;
+	} else {
+
+		for (Codeword cw = 0; cw < codewords; ++cw) {
+			unsigned int availableBytes = grant->getGrantedCwBytes(cw);
+
+			if (availableBytes <= 4)
+				continue;
+
+			// invoke the schedule() method of the attached LCP scheduler in order to schedule
+			// the connections provided
+			std::map<MacCid, std::pair<unsigned int, unsigned int>> &sdus = lcgScheduler_->schedule(availableBytes, dir);
+
+			if (sdus.empty())
+				continue;
+
+			std::map<MacCid, std::pair<unsigned int, unsigned int>>::const_iterator it = sdus.begin(), et = sdus.end();
+			if (sdus.size() > 1) {
+				for (auto &var : sdus) {
+					if (var.second.second == 0)
+						sdus.erase(var.first);
+				}
+				for (auto &var : sdus) {
+					std::pair<MacCid, Codeword> schedulePair(var.first, cw);
+					scheduleListWithSizes_[schedulePair].first = 1;
+					scheduleListWithSizes_[schedulePair].second = var.second.second;
+				}
+
+			} else {
+				for (; it != et; ++it) {
+					// set schedule list entry
+					std::pair<MacCid, Codeword> schedulePair(it->first, cw);
+					scheduleListWithSizes_[schedulePair].first = 1;
+					scheduleListWithSizes_[schedulePair].second = availableBytes;
+				}
 			}
 		}
+		//std::cout << "NRSchedulerUeUl schedule end at " << simTime().dbl() << std::endl;
 
-//		MacCid highestBackloggedFlow = 0;
-//		MacCid highestBackloggedPriority = 0;
-//		MacCid lowestBackloggedFlow = 0;
-//		MacCid lowestBackloggedPriority = 0;
-//		bool backlog = false;
-//
-//		// get the highest backlogged flow id and priority
-//		backlog = mac_->getHighestBackloggedFlow(highestBackloggedFlow, highestBackloggedPriority);
-//
-//		if (backlog) // at least one backlogged flow exists
-//		{
-//			// get the lowest backlogged flow id and priority
-//			mac_->getLowestBackloggedFlow(lowestBackloggedFlow, lowestBackloggedPriority);
-//		}
-
+		return &scheduleListWithSizes_;
 	}
-	//std::cout << "NRSchedulerUeUl schedule end at " << simTime().dbl() << std::endl;
-
-	return &scheduleListWithSizes_;
 }

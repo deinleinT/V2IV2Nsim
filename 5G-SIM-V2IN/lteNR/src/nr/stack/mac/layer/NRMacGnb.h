@@ -85,6 +85,8 @@ protected:
      */
     virtual void handleSelfMessage();
 
+    virtual void macHandleRac(cPacket *pkt);
+
     /**
      * Flush Tx H-ARQ buffers for all users
      */

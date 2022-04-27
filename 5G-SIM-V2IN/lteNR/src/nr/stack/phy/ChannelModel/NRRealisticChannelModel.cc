@@ -63,8 +63,10 @@ void NRRealisticChannelModel::initialize(int stage) {
 		hUe_ = par("ue_height").doubleValue();
 
 		//for Indoor Factory channel models from 38.901, table 7.2-4
-		d_clutter = par("d_clutter").doubleValue();; //typical clutter size (10m, 2m or above)
-		clutter_density_r = par("clutter_density_r").doubleValue();; //percentage of surface area occupied by clutter
+		d_clutter = par("d_clutter").doubleValue();
+		//typical clutter size (10m, 2m or above)
+		clutter_density_r = par("clutter_density_r").doubleValue();
+		//percentage of surface area occupied by clutter
 		hClutter = par("hClutter").doubleValue(); // hc, effective clutter heigth
 		ceilingHeight = par("ceilingHeight").doubleValue();
 		//
@@ -608,7 +610,7 @@ std::vector<double> NRRealisticChannelModel::getSINR(LteAirFrame *frame, UserCon
 		} else {
 			speed = computeSpeed(ueId, ueCoord, movement);
 		}
-//			cqiDl = true;
+		//			cqiDl = true;
 	}
 	/*
 	 * If direction is UL OR
@@ -830,7 +832,7 @@ std::vector<double> NRRealisticChannelModel::getSINR(LteAirFrame *frame, UserCon
 		}
 	}
 
-//std::cout << "NRRealisticChannelModel::getSINR end at " << simTime().dbl() << std::endl;
+	//std::cout << "NRRealisticChannelModel::getSINR end at " << simTime().dbl() << std::endl;
 
 	return snrVector;
 }
@@ -992,8 +994,8 @@ double NRRealisticChannelModel::getAttenuationNR(const MacNodeId &nodeId, const 
 		attenuation = getNRBinder()->calculateAttenuationPerCutAndMeter(enodebcoord, uecoord); //use veinsObstacleControl for NLOS, here it is nlos, and we want to calculate attenuation with veins obstacleControl
 	}
 
-//    Applying shadowing only if it is enabled by configuration
-//    log-normal shadowing
+	//    Applying shadowing only if it is enabled by configuration
+	//    log-normal shadowing
 	if (shadowing_) {
 		double mean = 0;
 
@@ -1047,7 +1049,7 @@ double NRRealisticChannelModel::getAttenuationNR(const MacNodeId &nodeId, const 
 		attenuation += att;
 	}
 
-// update current user position
+	// update current user position
 
 	if (nodeId >= UE_MIN_ID && nodeId <= UE_MAX_ID) {
 		updatePositionHistory(nodeId, uecoord);
@@ -1106,7 +1108,7 @@ double NRRealisticChannelModel::computeIndoorHotspot(const double &d3d, double &
 			}
 		}
 	}
-//InH_B
+	//InH_B
 	else {
 		//LOS
 		if (losMap_[nodeId]) {
@@ -1143,25 +1145,25 @@ double NRRealisticChannelModel::calcDistanceBreakPoint(const double &d2d) {
 	//std::cout << "NRRealisticChannelModel::calcDistanceBreakPoint start at " << simTime().dbl() << std::endl;
 
 	double dbp = 0.0;
-//h'BS
+	//h'BS
 	double hBS = 0.0;
-//h'UT
+	//h'UT
 	double hUT = 0.0;
-//C(d2d,hUe)
+	//C(d2d,hUe)
 	double c = 0.0;
 	double g = 0.0;
-//1/(1+c)
+	//1/(1+c)
 	double probability = 0.0;
-//effective environment height
+	//effective environment height
 	double he = 0.0;
 
-//calc g(d2d)
+	//calc g(d2d)
 	if (d2d <= 18)
 		g = 0;
 	else if (18 < d2d)
 		g = (5 / 4) * pow(d2d / 100, 3) * exp(-d2d / 150);
 
-//calc C(d2d,hUT)
+	//calc C(d2d,hUT)
 	//in most cases ue_height is < 13m
 	if (hUe_ < 13)
 		c = 0.0;
@@ -1206,7 +1208,7 @@ double NRRealisticChannelModel::computePLrmaLos(const double &d3d, double &d2d) 
 	if (!(10 <= d2d && d2d <= 21000))
 		throw cRuntimeError("Error Path Loss RMa --> invalid distance (2d)");
 
-//dbp Note 4
+	//dbp Note 4
 	double dbp = calcDistanceBreakPointRMa(d2d);
 	double a1 = (0.03 * pow(hBuilding_, 1.72));
 	double b1 = 0.044 * pow(hBuilding_, 1.72);
@@ -1215,7 +1217,7 @@ double NRRealisticChannelModel::computePLrmaLos(const double &d3d, double &d2d) 
 
 	double plOne = 20 * log10(40 * M_PI * d3d * (carrierFrequency_ / 3)) + a * log10(d3d) - b + 0.002 * log10(hBuilding_) * d3d;
 
-//PL1
+	//PL1
 	if (10 <= d2d && d2d <= dbp)
 		return plOne;
 	else if (dbp <= d2d && d2d <= 21000)  //PL2
@@ -1245,7 +1247,7 @@ double NRRealisticChannelModel::computePLrmaNlos(const double &d3d, double &d2d)
 double NRRealisticChannelModel::computeRMaA(double &d3ddistance, double &d2ddistance, const MacNodeId &nodeId) {
 	//std::cout << "NRRealisticChannelModel::computeRMaA start at " << simTime().dbl() << std::endl;
 
-//check range of parameters --> parameterRanges.txt
+	//check range of parameters --> parameterRanges.txt
 	if (!(5 <= hBuilding_ && hBuilding_ <= 50 && 5 <= wStreet_ && wStreet_ <= 50 && 10 <= hNodeB_ && hNodeB_ <= 150 && 1 <= hUe_ && hUe_ <= 10))
 		throw cRuntimeError("Error Path Loss RMaA --> invalid, height enodeb or ue not valid --> see parameterRanges.txt");
 
@@ -1284,7 +1286,7 @@ double NRRealisticChannelModel::computeRMaA(double &d3ddistance, double &d2ddist
 double NRRealisticChannelModel::computeRMaB(double &d3ddistance, double &d2ddistance, const MacNodeId &nodeId) {
 	//std::cout << "NRRealisticChannelModel::computeRMaB start at " << simTime().dbl() << std::endl;
 
-//check range of parameters --> parameterRanges.txt
+	//check range of parameters --> parameterRanges.txt
 	if (!(5 <= hBuilding_ && hBuilding_ <= 50 && 5 <= wStreet_ && wStreet_ <= 50 && 10 <= hNodeB_ && hNodeB_ <= 150 && 1 <= hUe_ && hUe_ <= 10))
 		throw cRuntimeError("Error Path Loss RMaB --> invalid, height gnodeb or ue not valid --> see parameterRanges.txt");
 
@@ -1506,7 +1508,7 @@ double NRRealisticChannelModel::computePLumiALos(const double &d3d, double &d2d)
  * table A1-3, UMa_A, LOS
  */
 double NRRealisticChannelModel::computePLumaLos(const double &d3d, double &d2d) {
-//dbp --> see Note 3: d'BP --> Note 3: 4 * h'BS * h'UT * f
+	//dbp --> see Note 3: d'BP --> Note 3: 4 * h'BS * h'UT * f
 
 	//std::cout << "NRRealisticChannelModel::computePLumaLos start at " << simTime().dbl() << std::endl;
 
@@ -1693,11 +1695,11 @@ bool NRRealisticChannelModel::isCorrupted(LteAirFrame *frame, UserControlInfo *l
 
 	//Get MacNodeId of UE
 	if (dir == DL) {
-//        id = lteInfo->getDestId();
+		//        id = lteInfo->getDestId();
 		ueId = lteInfo->getDestId();
 		eNbId = lteInfo->getSourceId();
 	} else {
-//        id = lteInfo->getSourceId();
+		//        id = lteInfo->getSourceId();
 		ueId = lteInfo->getSourceId();
 		eNbId = lteInfo->getDestId();
 	}
@@ -1767,7 +1769,6 @@ bool NRRealisticChannelModel::isCorrupted(LteAirFrame *frame, UserControlInfo *l
 
 	// for statistic purposes
 	double sumSnr = 0.0;
-	int usedRBs = 0;
 
 	//for each Remote unit used to transmit the packet
 	for (it = rbmap.begin(); it != rbmap.end(); ++it) {
@@ -1783,16 +1784,17 @@ bool NRRealisticChannelModel::isCorrupted(LteAirFrame *frame, UserControlInfo *l
 				if (it->first != lteInfo->getCw())
 					continue;
 
-			//Get the Bler
 			if (cqi == 0 || cqi > 15)
 				throw cRuntimeError("A packet has been transmitted with a cqi equal to 0 or greater than 15 cqi:%d txmode:%d dir:%d rb:%d cw:%d rtx:%d", cqi, lteInfo->getTxMode(), dir, jt->second, cw,
 						nTx);
 
 			// for statistic purposes
 			sumSnr += snrV[jt->first];
-			usedRBs++;
 
-			int snr = snrV[jt->first];        //XXX because jt->first is a Band (=unsigned short)
+			int rbs = jt->second;
+			int bitLengthOfTB = frame->getBitLength();
+			int bitsPerRB = bitLengthOfTB / rbs;
+			int snr = snrV[jt->first];
 
 			if (getSimulation()->getSystemModule()->par("blerCurvesNR").boolValue()) {
 				if (snr < binder_->blerNR.minSnr())
@@ -1814,9 +1816,10 @@ bool NRRealisticChannelModel::isCorrupted(LteAirFrame *frame, UserControlInfo *l
 
 			double success = 1 - bler;
 			//compute the success probability according to the number of RB used
-			double successPacket = pow(success, (double) jt->second);
+			//double successPacket = pow(success, (double) jt->second);
 			// compute the success probability according to the number of LB used
-			finalSuccess *= successPacket;
+			//finalSuccess *= successPacket;
+			finalSuccess = pow((finalSuccess * success), rbs);
 
 			//EV << " NRRealisticChannelModel::error direction " << dirToA(dir) << " node " << id << " remote unit " << dasToA((*it).first) << " Band " << (*jt).first << " SNR " << snr << " CQI "<< cqi << " BLER " << bler << " success probability " << successPacket << " total success probability " << finalSuccess << endl;
 		}
@@ -2386,7 +2389,7 @@ bool NRRealisticChannelModel::computeUplinkInterference(MacNodeId eNbId, MacNode
 	// Debug Output
 	//EV << NOW << " NRRealisticChannelModel::computeUplinkInterference - Final Band Interference Status: "<<endl;
 	//for (unsigned int i = 0; i < band_; i++) {
-		//EV << "\t band " << i << " int[" << (*interference)[i] << "]" << endl;
+	//EV << "\t band " << i << " int[" << (*interference)[i] << "]" << endl;
 	//}
 
 	return true;

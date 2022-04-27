@@ -37,7 +37,6 @@ module NRRlc extends LteRlc
         LteRlcUmType = default("NRRlcUm");     // One of: "LteRlcUm", "LteRlcUmRealistic", "LteRlcUmRealisticD2D"      
 }
 
-
 // 
 // UM Module
 //

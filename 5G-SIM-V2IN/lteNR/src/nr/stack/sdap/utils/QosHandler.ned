@@ -32,10 +32,11 @@ simple QosHandler like IQosHandler
 {
     parameters:
         int v2xQfi = default(1);
-        int v2x5Qi = default(84);//GBR
+        //int v2x5Qi = default(84);//GBR 84
+        int v2x5Qi = default(86);//GBR 86
 
         int voipQfi = default(2);
-        int voip5Qi = default(1);//NGBR
+        int voip5Qi = default(1);//GBR
 
         int videoQfi = default(3);
         int video5Qi = default(7);//NGBR

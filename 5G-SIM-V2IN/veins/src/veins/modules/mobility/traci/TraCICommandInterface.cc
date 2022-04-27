@@ -37,12 +37,12 @@ using namespace veins::TraCIConstants;
 namespace veins {
 
 const std::map<uint32_t, TraCICommandInterface::VersionConfig> TraCICommandInterface::versionConfigs = {
-    {20, {20, TYPE_DOUBLE, TYPE_POLYGON, VAR_TIME}},
-    {19, {19, TYPE_DOUBLE, TYPE_POLYGON, VAR_TIME}},
-    {18, {18, TYPE_DOUBLE, TYPE_POLYGON, VAR_TIME}},
-    {17, {17, TYPE_INTEGER, TYPE_BOUNDINGBOX, VAR_TIME_STEP}},
-    {16, {16, TYPE_INTEGER, TYPE_BOUNDINGBOX, VAR_TIME_STEP}},
-    {15, {15, TYPE_INTEGER, TYPE_BOUNDINGBOX, VAR_TIME_STEP}},
+    {20, {20, TYPE_DOUBLE, TYPE_POLYGON, VAR_TIME}}, // since SUMO 1.2.0
+    {19, {19, TYPE_DOUBLE, TYPE_POLYGON, VAR_TIME}}, // since SUMO 1.1.0
+    {18, {18, TYPE_DOUBLE, TYPE_POLYGON, VAR_TIME}}, // since SUMO 1.0.0
+    {17, {17, TYPE_INTEGER, TYPE_BOUNDINGBOX, VAR_TIME_STEP}}, // since SUMO 0.32.0
+    {16, {16, TYPE_INTEGER, TYPE_BOUNDINGBOX, VAR_TIME_STEP}}, // since SUMO 0.31.0
+    {15, {15, TYPE_INTEGER, TYPE_BOUNDINGBOX, VAR_TIME_STEP}}, // since SUMO 0.30.0
 };
 
 TraCICommandInterface::TraCICommandInterface(cComponent* owner, TraCIConnection& c, bool ignoreGuiCommands)
@@ -88,7 +88,7 @@ void TraCICommandInterface::setApiVersion(uint32_t apiVersion)
         TraCIBuffer::setTimeType(versionConfig.timeType);
     }
     catch (std::out_of_range const& exc) {
-        throw cRuntimeError(std::string("TraCI server reports unsupported TraCI API version: " + std::to_string(apiVersion) + ". We recommend using Sumo version 1.0.1 or 0.32.0").c_str());
+        throw cRuntimeError("%s", std::string("TraCI server reports unsupported TraCI API version: " + std::to_string(apiVersion) + ". We recommend using Sumo version 1.0.1 or 0.32.0").c_str());
     }
 }
 
@@ -250,6 +250,21 @@ std::list<std::string> TraCICommandInterface::getRouteIds()
     return genericGetStringList(CMD_GET_ROUTE_VARIABLE, "", ID_LIST, RESPONSE_GET_ROUTE_VARIABLE);
 }
 
+void TraCICommandInterface::addRoute(std::string routeId, const std::list<std::string>& edges)
+{
+    TraCIBuffer p;
+    p << static_cast<uint8_t>(ADD);
+    p << routeId;
+    p << static_cast<uint8_t>(TYPE_STRINGLIST);
+    p << static_cast<int32_t>(edges.size());
+    for (const std::string& edge : edges) {
+        p << edge;
+    }
+
+    TraCIBuffer buf = connection.query(CMD_SET_ROUTE_VARIABLE, p);
+    ASSERT(buf.eof());
+}
+
 std::list<std::string> TraCICommandInterface::getRoadIds()
 {
     return genericGetStringList(CMD_GET_EDGE_VARIABLE, "", ID_LIST, RESPONSE_GET_EDGE_VARIABLE);
@@ -263,6 +278,15 @@ double TraCICommandInterface::Road::getCurrentTravelTime()
 double TraCICommandInterface::Road::getMeanSpeed()
 {
     return traci->genericGetDouble(CMD_GET_EDGE_VARIABLE, roadId, LAST_STEP_MEAN_SPEED, RESPONSE_GET_EDGE_VARIABLE);
+}
+
+std::string TraCICommandInterface::Road::getName()
+{
+    const auto apiVersion = traci->versionConfig.version;
+    if (apiVersion <= 18) {
+        throw cRuntimeError("TraCICommandInterface::Road::getName requires SUMO 1.1.0 or newer");
+    }
+    return traci->genericGetString(CMD_GET_EDGE_VARIABLE, roadId, VAR_NAME, RESPONSE_GET_EDGE_VARIABLE);
 }
 
 std::string TraCICommandInterface::Vehicle::getRoadId()
@@ -440,6 +464,34 @@ double TraCICommandInterface::Vehicle::getAccumulatedWaitingTime() const
     return traci->genericGetDouble(CMD_GET_VEHICLE_VARIABLE, nodeId, VAR_WAITING_TIME_ACCUMULATED, RESPONSE_GET_VEHICLE_VARIABLE);
 }
 
+uint8_t TraCICommandInterface::Vehicle::getStopState() const
+{
+    const auto apiVersion = traci->versionConfig.version;
+    if (apiVersion < 18) {
+        return traci->genericGetUnsignedByte(CMD_GET_VEHICLE_VARIABLE, nodeId, VAR_STOPSTATE, RESPONSE_GET_VEHICLE_VARIABLE);
+    }
+    else {
+        return traci->genericGetInt(CMD_GET_VEHICLE_VARIABLE, nodeId, VAR_STOPSTATE, RESPONSE_GET_VEHICLE_VARIABLE);
+    }
+}
+
+bool TraCICommandInterface::Vehicle::isStopReached() const
+{
+    return getStopState() & 0x1;
+}
+
+void TraCICommandInterface::Vehicle::changeTarget(const std::string& newTarget) const
+{
+    TraCIBuffer p;
+    p << static_cast<uint8_t>(CMD_CHANGETARGET);
+    p << nodeId;
+    p << static_cast<uint8_t>(TYPE_STRING);
+    p << newTarget;
+
+    TraCIBuffer buf = traci->connection.query(CMD_SET_VEHICLE_VARIABLE, p);
+    ASSERT(buf.eof());
+}
+
 double TraCICommandInterface::getDistance(const Coord& p1, const Coord& p2, bool returnDrivingDistance)
 {
     uint8_t variable = DISTANCE_REQUEST;
@@ -534,6 +586,76 @@ std::pair<std::string, double> TraCICommandInterface::Vehicle::getLeader(const d
     ASSERT(response.eof());
 
     return std::make_pair(leaderId, distanceToLeader);
+}
+
+std::vector<std::tuple<std::string, int, double, char>> TraCICommandInterface::Vehicle::getNextTls()
+{
+    std::vector<std::tuple<std::string, int, double, char>> result;
+
+    TraCIBuffer request = TraCIBuffer() << VAR_NEXT_TLS << nodeId;
+    TraCIBuffer response = connection->query(CMD_GET_VEHICLE_VARIABLE, request);
+
+    uint8_t cmdLength;
+    response >> cmdLength;
+    if (cmdLength == 0) {
+        uint32_t cmdLengthX;
+        response >> cmdLengthX;
+    }
+    uint8_t responseId;
+    response >> responseId;
+    ASSERT(responseId == RESPONSE_GET_VEHICLE_VARIABLE);
+    uint8_t variableType;
+    response >> variableType;
+    ASSERT(variableType == VAR_NEXT_TLS);
+    std::string rspNodeId;
+    response >> rspNodeId;
+    ASSERT(strcmp(rspNodeId.c_str(), nodeId.c_str()) == 0);
+    uint8_t responseType;
+    response >> responseType;
+    ASSERT(responseType == TYPE_COMPOUND);
+    uint32_t numElements;
+    response >> numElements;
+    ASSERT((numElements - 1) % 4 == 0);
+
+    uint8_t numLinksType;
+    response >> numLinksType;
+    ASSERT(numLinksType == TYPE_INTEGER);
+
+    uint32_t numLinks;
+    response >> numLinks;
+    ASSERT(numLinks * 4 + 1 == numElements);
+
+    for (int i = 0; i < numLinks; ++i) {
+        uint8_t tlsIdType;
+        response >> tlsIdType;
+        ASSERT(tlsIdType == TYPE_STRING);
+        std::string tlsId;
+        response >> tlsId;
+
+        uint8_t tlsLinkIndexType;
+        response >> tlsLinkIndexType;
+        ASSERT(tlsLinkIndexType == TYPE_INTEGER);
+        int tlsLinkIndex;
+        response >> tlsLinkIndex;
+
+        uint8_t distanceToTlsType;
+        response >> distanceToTlsType;
+        ASSERT(distanceToTlsType == TYPE_DOUBLE);
+        double distanceToTls;
+        response >> distanceToTls;
+
+        uint8_t linkStateType;
+        response >> linkStateType;
+        ASSERT(linkStateType == TYPE_BYTE);
+        uint8_t linkState;
+        response >> linkState;
+
+        result.push_back(std::make_tuple(tlsId, tlsLinkIndex, distanceToTls, linkState));
+    }
+
+    ASSERT(response.eof());
+
+    return result;
 }
 
 std::list<std::string> TraCICommandInterface::getTrafficlightIds()
@@ -921,7 +1043,8 @@ void TraCICommandInterface::addPolygon(std::string polyId, std::string polyType,
     p << static_cast<uint8_t>(TYPE_COLOR) << color.red << color.green << color.blue << color.alpha;
     p << static_cast<uint8_t>(TYPE_UBYTE) << static_cast<uint8_t>(filled);
     p << static_cast<uint8_t>(TYPE_INTEGER) << layer;
-    p << static_cast<uint8_t>(TYPE_POLYGON) << static_cast<uint8_t>(points.size());
+    p << static_cast<uint8_t>(TYPE_POLYGON);
+    p.writeByteOrFull<uint32_t>(points.size());
     for (std::list<Coord>::const_iterator i = points.begin(); i != points.end(); ++i) {
         const TraCICoord& pos = connection.omnet2traci(*i);
         p << static_cast<double>(pos.x) << static_cast<double>(pos.y);
@@ -1013,6 +1136,11 @@ double TraCICommandInterface::Lane::getMeanSpeed()
     return traci->genericGetDouble(CMD_GET_LANE_VARIABLE, laneId, LAST_STEP_MEAN_SPEED, RESPONSE_GET_LANE_VARIABLE);
 }
 
+double TraCICommandInterface::Lane::getWidth()
+{
+    return traci->genericGetDouble(CMD_GET_LANE_VARIABLE, laneId, VAR_WIDTH, RESPONSE_GET_LANE_VARIABLE);
+}
+
 void TraCICommandInterface::Lane::setDisallowed(std::list<std::string> disallowedClasses)
 {
     uint8_t variableId = LANE_DISALLOWED;
@@ -1041,6 +1169,11 @@ std::list<std::string> TraCICommandInterface::getJunctionIds()
 Coord TraCICommandInterface::Junction::getPosition()
 {
     return traci->genericGetCoord(CMD_GET_JUNCTION_VARIABLE, junctionId, VAR_POSITION, RESPONSE_GET_JUNCTION_VARIABLE);
+}
+
+std::list<Coord> TraCICommandInterface::Junction::getShape()
+{
+    return traci->genericGetCoordList(CMD_GET_JUNCTION_VARIABLE, junctionId, VAR_SHAPE, RESPONSE_GET_JUNCTION_VARIABLE);
 }
 
 bool TraCICommandInterface::addVehicle(std::string vehicleId, std::string vehicleTypeId, std::string routeId, simtime_t emitTime_st, double emitPosition, double emitSpeed, int8_t emitLane)
@@ -1469,6 +1602,43 @@ simtime_t TraCICommandInterface::genericGetTime(uint8_t commandId, std::string o
     return res;
 }
 
+uint8_t TraCICommandInterface::genericGetUnsignedByte(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId, TraCIConnection::Result* result)
+{
+
+    uint8_t resultTypeId = TYPE_UBYTE;
+    int8_t res;
+
+    TraCIBuffer buf = connection.query(commandId, TraCIBuffer() << variableId << objectId, result);
+
+    if ((result != nullptr) && (!result->success)) {
+        return 0;
+    }
+
+    uint8_t cmdLength;
+    buf >> cmdLength;
+    if (cmdLength == 0) {
+        uint32_t cmdLengthX;
+        buf >> cmdLengthX;
+    }
+    uint8_t commandId_r;
+    buf >> commandId_r;
+    ASSERT(commandId_r == responseId);
+    uint8_t varId;
+    buf >> varId;
+    ASSERT(varId == variableId);
+    std::string objectId_r;
+    buf >> objectId_r;
+    ASSERT(objectId_r == objectId);
+    uint8_t resType_r;
+    buf >> resType_r;
+    ASSERT(resType_r == resultTypeId);
+    buf >> res;
+
+    ASSERT(buf.eof());
+
+    return res;
+}
+
 int32_t TraCICommandInterface::genericGetInt(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId, TraCIConnection::Result* result)
 {
 
@@ -1579,8 +1749,7 @@ std::list<Coord> TraCICommandInterface::genericGetCoordList(uint8_t commandId, s
     uint8_t resType_r;
     buf >> resType_r;
     ASSERT(resType_r == resultTypeId);
-    uint8_t count;
-    buf >> count;
+    uint32_t count = buf.readByteOrFull<uint32_t>();
     for (uint32_t i = 0; i < count; i++) {
         double x;
         buf >> x;
