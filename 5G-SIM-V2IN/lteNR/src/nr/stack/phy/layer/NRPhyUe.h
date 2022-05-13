@@ -73,6 +73,7 @@ protected:
     simsignal_t totalPer;
     simsignal_t bler;
     simsignal_t speed;
+    simsignal_t servingCellHandover;
     int errorCount;
     virtual void initialize(int stage) override;
     virtual void handleMessage(cMessage *msg);
