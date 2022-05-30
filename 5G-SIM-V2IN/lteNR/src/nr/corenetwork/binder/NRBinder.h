@@ -44,11 +44,11 @@ public:
 	NRBinder();
 	virtual ~NRBinder();
 	virtual MacNodeId getConnectedGnb(MacNodeId ueId);
-	virtual void fillUpfGnbMap(MacNodeId gnbId, std::string upfName) {
+	virtual void fillUpfGnbMap(MacNodeId gnbId, const std::string &upfName) {
 		upfGnbMap[gnbId] = upfName;
 	}
 
-	virtual std::string getConnectedUpf(MacNodeId gnbId) {
+	virtual const std::string &getConnectedUpf(MacNodeId gnbId) {
 		return upfGnbMap[gnbId];
 	}
 
