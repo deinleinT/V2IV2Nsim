@@ -2181,7 +2181,7 @@ bool LteRealisticChannelModel::computeUplinkInterference(MacNodeId eNbId, MacNod
 
    // Debug Output
    //EV << NOW << " LteRealisticChannelModel::computeUplinkInterference - Final Band Interference Status: "<<endl;
-   for(unsigned int i=0;i<band_;i++)
+   //for(unsigned int i=0;i<band_;i++)
        //EV << "\t band " << i << " int[" << (*interference)[i] << "]" << endl;
 
    return true;
@@ -2286,7 +2286,7 @@ bool LteRealisticChannelModel::computeD2DInterference(MacNodeId eNbId, MacNodeId
 
    // Debug Output
    //EV << NOW << " LteRealisticChannelModel::computeD2DInterference - Final Band Interference Status: "<<endl;
-   for(unsigned int i=0;i<band_;i++)
+   //for(unsigned int i=0;i<band_;i++)
        //EV << "\t band " << i << " int[" << (*interference)[i] << "]" << endl;
 
    return true;
