@@ -56,7 +56,7 @@ public:
 	virtual void resetSchedulingGrant() {
 		Enter_Method_Silent();
 
-		if (!schedulingGrantMap.empty()) {
+		if (schedulingGrant_ && !schedulingGrantMap.empty()) {
 			schedulingGrantMap.erase(schedulingGrant_->getProcessId());
 		}
 		delete schedulingGrant_;

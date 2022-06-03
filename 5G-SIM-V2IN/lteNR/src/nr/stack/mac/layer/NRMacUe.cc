@@ -406,7 +406,7 @@ void NRMacUe::handleSelfMessage() {
 		//EV << NOW << " NRMacUe::handleSelfMessage " << nodeId_ << " NO configured grant" << endl;
 		checkRAC();
 
-	} else if (schedulingGrant_->getPeriodic()) {
+	} else if (schedulingGrant_ && schedulingGrant_->getPeriodic()) {
 		// Periodic checks
 		if (--expirationCounter_ < 0) {
 			// Periodic grant is expired
