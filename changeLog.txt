@@ -1,7 +1,45 @@
-### Change log v0.2:
-* Version v0.2 adds further default use cases to the default scenarios: video streaming, remote driving (only in UL), cooperative perception
-* The 5G HARQ mechanism can be turned on/off by setting the flag *nrHarq* in the omnetpp.ini. If that flag is true, in DL and UL 16 parallel HARQ processes are used. The time that is assumed for decoding a HARQ ACK/NACK is reduced to 1ms. In UL the time for receiving a scheduling grant is reduced to 1ms. If the flag is false, the LTE HARQ procedure with 8 parallel processes (asynchronous in DL, synchronous in UL) is used (time for decoding a HARQ ACK/NACK is set to 3ms and also the time for receiving a scheduling grant) is used.
-* If the flag *rtxSignalisedFlag* is set to true, just one HARQ process is active and no other transmissions or retransmissions are considered (until either an ACK is received or the maximum number of retransmission is exceeded for that one active HARQ process).
+### Change log v0.4:
+* Added QoS Flows based on 3GPP TS 23.501, Table 5.7.4-1.
+* Via ini-file up to four QoSFlows per vehicle can be configured. Example:
+    **. v2xQfi = 1
+    **. v2x5Qi = 84 # V2X
+    **. voipQfi = 2
+    **. voip5Qi = 1 # VoIP
+    **. videoQfi = 3
+    **. video5Qi = 7 # Video 
+    **. dataQfi = 4
+    **. data5Qi = 9 # Web Traffic
+* The MAC-Scheduler consideres during scheduling the values from the mentioned table for the default priority and for the packet delay budget.
+* Depending on the configured weight, several additional parameters like CQI, queuesize and number of retransmission are considered for calculating a scheduling priority.
+* Example (has to be configured in the ini-file):
+    **.useQosModel = true # enables the qos scheduler
+    **.lambdaPriority = 1 # the default priority from 23.501 is used for the priority calculation
+    **.lambdaRemainDelayBudget = 0 # the pdb is not used
+    **.lambdaCqi = 1 # the cqi is used for the priority calculation
+    **.lambdaRtx = 0 # the number of already conducted retransmissions is not considered
+    **.lambdaByteSize = 0 # the size of the corresponding packet queue is not considered
+    **.packetDropEnabled = true # if true, the packet delay budget from the above mentioned table is used for dropping packets during the scheduling (when its delay already exceeds the delay budget)
+
+### Change log v0.3.5:
+* Added a simplified flow / congestion control which ensures that the UDP application layer pauses the packet creation when the corresponding macBufferQueue reached its maximum queue size; the packet creation continues when the macBufferQueue is reduced to a fourth of its maximum size (set by the ini-file parameter **.mac.queueSize) --> this feature can be enabled by setting the ini-file parameter *useSimplifiedFlowControl* to true
+* Added a more realistic application deployment feature: If the ini-file parameter *realisticApproachMultiApplication* is set to true, the execution of UDP apps is randomized, e.g., in the four application scenario for each application type for each vehicle there is a 50% chance that the application is executed. This leads to a more realistic behavior since in real scenarios not all vehicles execute the same number of applications. The ini-parameter is set to true by default in the GeneralParameters.ned file.
+
+### Change log v0.3.4:
+* Added BLER Curves from Simu5G. By default, the AWGN variation is used (see 5G-SIM-V2IN/lteNR/src/nr/corenetwork/blerCurves/BlerNR.h, SINR-range from -14.5 to 22.5). The variation "TU" can be set via ini-file: **.blerVersion = "TU" (SINR-range from -14.5 to 38).
+* A uniform random processing delay can be added by setting the **.considerProcessingDelay = true. In DL and UL the following modules are considered: NRsdapUE, NRsdapGNB, NRPdcpRrcUe, NRPdcpRrcGnb, TrafficFlowFilterNR, GtpUserNR. The processing delay is calculated by this formula: uniform(0, totalPacketSizeInBytes / 10e5).
+* The speed value (meter / second) for a vehicle is retrieved from sumo (only once for the same sim time).
+
+### Change log v0.3.3:
+* Added the indoor factory channel models (InF) from 3gpp 38.901 (can be used by setting the ini-parameter * **.scenarioNR = "INDOOR_FACTORY"* and * **.channelModelType = "InFSL"*, channelModelTypes are: InFSL, InFDL, InFSH, InFDH, InFHH. See Table 7.2.4 from 3gpp 38.901 for more information).
+* The channel models RMa, UMa and UMi from 38.901 use the same formulas as the channel models from the already implemented models from the ITU-Guidelines (RMa_B meets RMa, UMa_B meets UMa, UMi_B meets UMi-street canyon; the used model can be configured in the ini-file by changing the parameter * **.channelModelType = "RMa_B"*).
+
+### Change log v0.3.2:
+* Upgraded INET to version 3.7.0.
+* Added codeblock groups (simplified approach). The function *isCorrupted* in the ChannelModel calls the function *considerCodeBlockGroups* if the corresponding flag (*useCodeBlockGroups = true*)  in the ini-file is set to true (by default set to true). The number of codeblock groups can be configured by the parameter *numberOfCodeBlockGroups* in the ini-file and is set to 8 by default. The size of the whole transport block (the received message) is divided through the number of configured codeblock groups. After that, the calculated *totalPer* is used to calculate how many bytes of the transport block were transmitted correctly and how many are corrupted. Afterwards, it is determined how many codeblock groups cover the corrupted bytes. Example: The message has a size of 800 bytes, the number of configured codeblock groups is 8. One codeblockgroup consists of 100 bytes, the totalPer is assumed to be 0.2, the corrupted bytes are 160 bytes, two codeblock groups (size of 200 bytes) are needed to cover the number of corrupted bytes, the HARQ mechanism retransmits only the two codeblock groups with a size of 200 bytes afterwards.
+* In the *NRPhyUe.cc* the *checkConnection* function checks every 100ms the signal strength of the current connection. If the signal strength (SINR, measured in DL by default) lowers the configured threshold (by default 5db in Downlink) in the ini-file, the Ue is not in coverage of its master base station and the communication stops. If the signal strength exceeds the threshold in a next call of this function a "re-attach" is conducted. Important: Within the *checkConnection* function no handover is conducted (the handover procedure was not changed for this functionality).
+
+### Change log v0.3.1:
+* Upgraded Veins to version 5.1 and integrated the roadCanvasVisualizer into the default scenarios.
 
 ### Change log v0.3:
 * Enhances the LoS/NLoS-evaluation. Among three approaches for the Los/-NLoS Evaluation can be chosen:
@@ -9,23 +47,19 @@
 2. 2D-Evaluation: The Veins obstacle control is used to detect buildings (see the poly.xml file in the Urban-Scneario-Folder) and determines the LoS with the 2D coordinates of sender and receiver. If one edge of a building intersects with the line of sight between sender and receiver, the NLos case will be considered. Appropriate for motorway and urban scenario. Usage: Set *dynamicNlos = true* in omnetpp.ini.
 3. 3D-Evaluation: In the first place, the 2D evaluation is used to detect buildings in 2D (see 2.). Each coordinate where a 2D intersection with a building edge between sender and receiver is detected, will be checked in the 3D case. The channel model needs the building height to calculate the path loss. Sender and receiver have 3D-coordinates, because the heigth of antennas is also considered for the path loss calculation. If the determined z-coordinate of the intersection is lower than the building height, the sender and the receiver are in the NLos case, vice-versa otherwise. Usage: Set *dynamicNlos = true and NlosEvaluationIn3D = true* in omnetpp.ini.
 
-### Change log v0.3.1:
-* Upgraded Veins to version 5.1 and integrated the roadCanvasVisualizer into the default scenarios.
+### Change log v0.2:
+* Version v0.2 adds further default use cases to the default scenarios: video streaming, remote driving (only in UL), cooperative perception
+* The 5G HARQ mechanism can be turned on/off by setting the flag *nrHarq* in the omnetpp.ini. If that flag is true, in DL and UL 16 parallel HARQ processes are used. The time that is assumed for decoding a HARQ ACK/NACK is reduced to 1ms. In UL the time for receiving a scheduling grant is reduced to 1ms. If the flag is false, the LTE HARQ procedure with 8 parallel processes (asynchronous in DL, synchronous in UL) is used (time for decoding a HARQ ACK/NACK is set to 3ms and also the time for receiving a scheduling grant) is used.
+* If the flag *rtxSignalisedFlag* is set to true, just one HARQ process is active and no other transmissions or retransmissions are considered (until either an ACK is received or the maximum number of retransmission is exceeded for that one active HARQ process).
 
-### Change log v0.3.2:
-* Upgraded INET to version 3.7.0.
-* Added codeblock groups (simplified approach). The function *isCorrupted* in the ChannelModel calls the function *considerCodeBlockGroups* if the corresponding flag (*useCodeBlockGroups = true*)  in the ini-file is set to true (by default set to true). The number of codeblock groups can be configured by the parameter *numberOfCodeBlockGroups* in the ini-file and is set to 8 by default. The size of the whole transport block (the received message) is divided through the number of configured codeblock groups. After that, the calculated *totalPer* is used to calculate how many bytes of the transport block were transmitted correctly and how many are corrupted. Afterwards, it is determined how many codeblock groups cover the corrupted bytes. Example: The message has a size of 800 bytes, the number of configured codeblock groups is 8. One codeblockgroup consists of 100 bytes, the totalPer is assumed to be 0.2, the corrupted bytes are 160 bytes, two codeblock groups (size of 200 bytes) are needed to cover the number of corrupted bytes, the HARQ mechanism retransmits only the two codeblock groups with a size of 200 bytes afterwards.
-* In the *NRPhyUe.cc* the *checkConnection* function checks every 100ms the signal strength of the current connection. If the signal strength (SINR, measured in DL by default) lowers the configured threshold (by default 5db in Downlink) in the ini-file, the Ue is not in coverage of its master base station and the communication stops. If the signal strength exceeds the threshold in a next call of this function a "re-attach" is conducted. Important: Within the *checkConnection* function no handover is conducted (the handover procedure was not changed for this functionality).
 
-### Change log v0.3.3:
-* Added the indoor factory channel models (InF) from 3gpp 38.901 (can be used by setting the ini-parameter * **.scenarioNR = "INDOOR_FACTORY"* and * **.channelModelType = "InFSL"*, channelModelTypes are: InFSL, InFDL, InFSH, InFDH, InFHH. See Table 7.2.4 from 3gpp 38.901 for more information).
-* The channel models RMa, UMa and UMi from 38.901 use the same formulas as the channel models from the already implemented models from the ITU-Guidelines (RMa_B meets RMa, UMa_B meets UMa, UMi_B meets UMi-street canyon; the used model can be configured in the ini-file by changing the parameter * **.channelModelType = "RMa_B"*).
 
-### Change log v0.3.4:
-* Added BLER Curves from Simu5G. By default, the AWGN variation is used (see 5G-SIM-V2IN/lteNR/src/nr/corenetwork/blerCurves/BlerNR.h, SINR-range from -14.5 to 22.5). The variation "TU" can be set via ini-file: **.blerVersion = "TU" (SINR-range from -14.5 to 38).
-* A uniform random processing delay can be added by setting the **.considerProcessingDelay = true. In DL and UL the following modules are considered: NRsdapUE, NRsdapGNB, NRPdcpRrcUe, NRPdcpRrcGnb, TrafficFlowFilterNR, GtpUserNR. The processing delay is calculated by this formula: uniform(0, totalPacketSizeInBytes / 10e5).
-* The speed value (meter / second) for a vehicle is retrieved from sumo (only once for the same sim time).
 
-### Change log v0.3.5:
-* Added a simplified flow / congestion control which ensures that the UDP application layer pauses the packet creation when the corresponding macBufferQueue reached its maximum queue size; the packet creation continues when the macBufferQueue is reduced to a fourth of its maximum size (set by the ini-file parameter **.mac.queueSize) --> this feature can be enabled by setting the ini-file parameter *useSimplifiedFlowControl* to true
-* Added a more realistic application deployment feature: If the ini-file parameter *realisticApproachMultiApplication* is set to true, the execution of UDP apps is randomized, e.g., in the four application scenario for each application type for each vehicle there is a 50% chance that the application is executed. This leads to a more realistic behavior since in real scenarios not all vehicles execute the same number of applications. The ini-parameter is set to true by default in the GeneralParameters.ned file.
+
+
+
+
+
+
+
+

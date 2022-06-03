@@ -22,7 +22,7 @@
  * Part of 5G-Sim-V2I/N
  *
  *
-*/
+ */
 
 #pragma once
 
@@ -68,9 +68,12 @@ protected:
     NRSdapEntities entities;
     unsigned int hoErrorCount;
 
+
+
 protected:
     virtual void initialize(int stage) = 0;
     virtual void handleMessage(cMessage *msg);
+    virtual void handleSelfMessage(cMessage *msg) = 0;
     virtual void fromLowerToUpper(cMessage * msg) = 0;
     virtual void fromUpperToLower(cMessage * msg) = 0;
     virtual void setTrafficInformation(cPacket* pkt, FlowControlInfo* lteInfo);

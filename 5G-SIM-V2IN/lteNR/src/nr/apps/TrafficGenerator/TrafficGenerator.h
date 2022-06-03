@@ -230,7 +230,22 @@ protected:
 	unsigned int sentPacketsData;
 
 	//
-	cOutVector delayDataTransferFinished;
+	//cOutVector delayDataTransferFinished;
+
+	//considered as packet loss rate
+	// plr = lostPackets / sentPackets
+	// recorded every time when a packet
+	// is received at the application layer
+	cOutVector packetLossRateULV2X;
+	cOutVector packetLossRateULVoip;
+	cOutVector packetLossRateULVideo;
+	cOutVector packetLossRateULData;
+
+	cOutVector packetLossRateDLV2X;
+	cOutVector packetLossRateDLVoip;
+	cOutVector packetLossRateDLVideo;
+	cOutVector packetLossRateDLData;
+	//
 
 	//server DL
 	unsigned int messages;
@@ -246,7 +261,7 @@ protected:
 	simtime_t delayBudget30ms;
 	simtime_t delayBudget300ms;
 
-	bool considerDatasizeAndMessages;
+	//bool considerDatasizeAndMessages;
 
 	unsigned int lastSentStatusUpdateSN;
 
@@ -538,12 +553,12 @@ public:
 		//startTime --> server determines the first time a packet is sent to this car
 		simtime_t interval = par("sendInterval").doubleValue();
 		simtime_t nextSelfMsgTime = NOW + interval + +uniform(0.0, par("startTimeDL").doubleValue());
-		if (considerDatasizeAndMessages) {
-			//HD Map
-//			if ("car[159]" == name || "car[237]" == name) {
-//				nextSelfMsg = NOW + par("startTime").doubleValue();
-//			}
-		}
+//		if (considerDatasizeAndMessages) {
+//			//HD Map
+////			if ("car[159]" == name || "car[237]" == name) {
+////				nextSelfMsg = NOW + par("startTime").doubleValue();
+////			}
+//		}
 		if (names.find(name) == names.end()) {
 			carsSendingTimes[name] = nextSelfMsgTime;
 		}

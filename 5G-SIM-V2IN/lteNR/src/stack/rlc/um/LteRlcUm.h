@@ -60,14 +60,16 @@ class LteRlcUm : public cSimpleModule
     {
     }
 
+    //length --> packet size in byte
+    //converted to bits
     virtual void recordUETotalRlcThroughputUl(double length){
-    	this->totalRcvdBytesUl += length;
+    	this->totalRcvdBytesUl += (length * 8);
     	double tp = totalRcvdBytesUl / (NOW - getSimulation()->getWarmupPeriod());
     	ueTotalRlcThroughputUl.record(tp);
     }
 
 	virtual void recordUETotalRlcThroughputDl(double length) {
-		this->totalRcvdBytesDl += length;
+		this->totalRcvdBytesDl += (length * 8);
 		double tp = totalRcvdBytesDl / (NOW - getSimulation()->getWarmupPeriod());
 		ueTotalRlcThroughputDl.record(tp);
 	}
@@ -75,7 +77,6 @@ class LteRlcUm : public cSimpleModule
 	virtual void recordConnectedCellUes(double number){
 		cellConnectedUes.record(number);
 	}
-
 
     /**
      * sendDefragmented() is invoked by the RXBuffer as a direct method
@@ -122,6 +123,11 @@ class LteRlcUm : public cSimpleModule
      * and call proper handler
      */
     virtual void handleMessage(cMessage *msg);
+
+    virtual QosHandler * getQoSHandler(){
+    	Enter_Method_Silent();
+    	return qosHandler;
+    }
 
   protected:
     QosHandler * qosHandler;

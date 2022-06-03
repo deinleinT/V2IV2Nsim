@@ -36,9 +36,34 @@
 #include "common/LteCommon.h"
 
 #include "nr/corenetwork/binder/NRBinder.h"
+#include "stack/mac/buffer/harq/LteHarqProcessTx.h"
+#include "stack/mac/buffer/harq/LteHarqProcessRx.h"
 
 class NRBinder;
 class NRCellInfo;
+
+struct ScheduleInfo {
+	MacCid cid;
+	std::string category; //rtx or newTx
+	unsigned short codeword;
+	LteHarqProcessTx *harqProcessTx;
+	LteHarqProcessRx *harqProcessRx;
+	simtime_t remainDelayBudget;
+	double pdb;
+	unsigned short priority;
+	unsigned short numberRtx;
+	MacNodeId nodeId;
+	unsigned int process;
+	unsigned int bytesizeUL;
+	unsigned int sizeOnePacketUL;
+	unsigned int bytesizeDL;
+	unsigned int sizeOnePacketDL;
+};
+
+struct ScheduledInfo {
+	MacNodeId nodeId;
+	ScheduleInfo info;
+};
 
 NRBinder* getNRBinder();
 

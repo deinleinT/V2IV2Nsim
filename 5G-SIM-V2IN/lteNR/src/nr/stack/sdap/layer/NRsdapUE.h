@@ -36,10 +36,31 @@
 using namespace omnetpp;
 
 class NRsdapUE: public NRsdap {
+public:
+	void recordThroughputDL(unsigned int length){
+		throughputDL = throughputDL + length * 8;
+	}
+
+	void recordThroughputUL(unsigned int  length){
+		throughputUL = throughputUL + length * 8;
+	}
 
 protected:
 	virtual void initialize(int stage);
+	virtual void handleSelfMessage(cMessage *msg);
+	virtual void finish() {
+		if (throughputTimer) {
+			cancelEvent(throughputTimer);
+			delete throughputTimer;
+			throughputTimer = nullptr;
+		}
+	}
 	virtual void fromLowerToUpper(cMessage *msg);
 	virtual void fromUpperToLower(cMessage *msg);
+	unsigned int  throughputDL;//in Bits
+	unsigned int  throughputUL;
+	cOutVector throughputDLvec;
+	cOutVector throughputULvec;
+    cMessage * throughputTimer;
 
 };

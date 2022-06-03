@@ -49,8 +49,26 @@ void NRsdapUE::initialize(int stage) {
         hoErrorCount = 0;
         WATCH(nodeId_);
 
-    }
+        throughputTimer = new cMessage("throughputTimer");
+        throughputDL = 0;
+        throughputUL = 0;
+        throughputDLvec.setName("throughputDLvecSDAP");
+        throughputULvec.setName("throughputULvecSDAP");
+        scheduleAt(NOW + 1, throughputTimer);
 
+    }
+}
+
+ void NRsdapUE::handleSelfMessage(cMessage *msg){
+	 //DL
+	 throughputDLvec.record(throughputDL);
+	 throughputDL = 0;
+
+	 //UL
+	 throughputULvec.record(throughputUL);
+	 throughputUL = 0;
+
+	 scheduleAt(NOW + 1, throughputTimer);
 }
 
 //incoming messages from IP2NR, to pdcp
@@ -100,6 +118,8 @@ void NRsdapUE::fromUpperToLower(cMessage *msg) {
 
     lteInfo->setHeaderSize(1);
 
+    lteInfo->setDirection(UL);
+
     SdapPdu * sdapPkt = new SdapPdu(pkt->getName());
 
     sdapPkt->setKind(lteInfo->getApplication());
@@ -132,6 +152,10 @@ void NRsdapUE::fromLowerToUpper(cMessage *msg) {
     delete sdapPkt;
 
     upPkt->setControlInfo(lteInfo);
+
+    //
+    recordThroughputDL(upPkt->getByteLength());
+	//
 
 	if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
 		//add processing delay

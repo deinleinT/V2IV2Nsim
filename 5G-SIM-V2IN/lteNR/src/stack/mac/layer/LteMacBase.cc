@@ -407,7 +407,15 @@ void LteMacBase::initialize(int stage)
         WATCH_MAP(macBuffers_);
 
         rtxSignalised = false;
-        rtxSignalisedFlagEnabled = par("rtxSignalisedFlagEnabled").boolValue();
+
+		if (getSimulation()->getSystemModule()->hasPar("useQosModel")) {
+			if (getSimulation()->getSystemModule()->par("useQosModel").boolValue()) {
+				//deactivate if qosModel scheduling is activated
+				rtxSignalisedFlagEnabled = false;
+			}else{
+				rtxSignalisedFlagEnabled = par("rtxSignalisedFlagEnabled").boolValue();
+			}
+		}
     }
 }
 

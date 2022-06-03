@@ -7,6 +7,12 @@
 // and cannot be removed from it.
 //
 
+//
+// This file has been modified/enhanced for 5G-SIM-V2I/N.
+// Date: 2021
+// Author: Thomas Deinlein
+//
+
 #ifndef _LTE_LTEHARQBUFFERRX_H_
 #define _LTE_LTEHARQBUFFERRX_H_
 

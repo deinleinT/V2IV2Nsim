@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Tue Oct 22 13:03:30 2019 by Eclipse SUMO duarouter Version 1.0.0
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/duarouterConfiguration.xsd">
+
+    <input>
+        <net-file value="autobahnSimple.net.xml"/>
+        <route-files value="trips001.xml"/>
+    </input>
+
+    <output>
+        <output-file value="autobahnSimple001.rou.xml"/>
+        <alternatives-output value="autobahnSimple001.rou.alt.xml"/>
+    </output>
+
+    <processing>
+        <repair value="true"/>
+    </processing>
+
+</configuration>
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+   <vType id="vtype0" accel="2.66" decel="4.38" sigma="0.5" length="4.04" minGap="4.11" maxSpeed="20.29"/>
+   <route id="route0" edges="44288195 288193246 275413828 143837872"/>
+   <flow id="flow0" type="vtype0" route="route0" begin="0.09" period="0.2" number="1"/>
+</routes>
+
+
+    
+    
+    
+    

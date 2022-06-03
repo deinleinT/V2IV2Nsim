@@ -32,9 +32,7 @@ We tested the framework with Linux Mint 18.3, 19.3 and Ubuntu 18.04 (we use gcc/
 * You need the OMNeT++-R-Package for using the script with R Studio.
 * See the OMNeT++-github-site (https://github.com/omnetpp/omnetpp-resultfiles) for further information how to install the package within R Studio.
 
-**See changeLog.txt for information about the latest changes. The current version is v0.3.5**
-
-**MORE INFORMATION IS COMING SOON**
+**See changeLog.txt for information about the latest changes. The current version is v0.4**
 
 ## Authors
 
@@ -45,7 +43,17 @@ We tested the framework with Linux Mint 18.3, 19.3 and Ubuntu 18.04 (we use gcc/
 
 If you use this framework, please cite it as follows:
 
-*T. Deinlein, R. German and A. Djanatliev, "5G-Sim-V2I/N: Towards a Simulation Framework for the Evaluation of 5G V2I/V2N Use Cases," 2020 European Conference on Networks and Communications (EuCNC), Dubrovnik, Croatia, 2020, pp. 353-357, doi: 10.1109/EuCNC48522.2020.9200949.*
+*T. DEINLEIN, R. GERMAN and A. DJANATLIEV, "5G-Sim-V2I/N: Towards a Simulation Framework for the Evaluation of 5G V2I/V2N Use Cases," 2020 European Conference on Networks and Communications (EuCNC), Dubrovnik, Croatia, 2020, pp. 353-357, DOI: 10.1109/EuCNC48522.2020.9200949.*
+
+## Further publications
+
+*T. DEINLEIN, M. ROSHDI, T. NAN, T. HEYN, A. DJANATLIEV, and R. GERMAN , “On the Impact of priority-based MAC Layer Scheduling in 5G V2N multi-application Scenarios,” in 2021 13th IFIP Wireless and Mobile Networking Conference (WMNC). IEEE, 2021, pp. 63–70, ISBN: 978-3-903176-42-3, DOI: 10.23919/WMNC53478.2021.9619001.*
+
+*T. DEINLEIN, A. BRUMMER, R. GERMAN , and A. DJANATLIEV, “On the Impact of Buildings on the LoS Evaluation in System-Level V2I/N Simulations,” in 2021 IEEE 94th Vehicular Technology Conference (VTC2021-Fall), IEEE, 2021, pp. 1–5, ISBN: 978-1-6654-1368-8, DOI: 10.1109/VTC2021-Fall52928.2021.9625489.*
+
+*T. DEINLEIN, R. GERMAN,  and A. DJANATLIEV, “Evaluation of the 5G Data Plane for Advanced Vehicular Use Cases with 5G-Sim-V2I/N,” in 2020 IEEE Vehicular Networking Conference (VNC), 2020, pp. 1–8, DOI: 10.1109/V-NC51378.2020.9318368.*
+
+*T. DEINLEIN, R. GERMAN, and A. DJANATLIEV, “Simulative Comparison of 4G/5G ITU Channel Models in the Context of V2I,” in 2019 IEEE 90th Vehicular Technology Conference (VTC2019-Fall). IEEE, 9/22/2019 - 9/25/2019, pp. 1–5, DOI: 10.1109/VTCFall.2019.8891094.*
 
 ## License
 

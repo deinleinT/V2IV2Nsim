@@ -25,6 +25,7 @@
 */
 
 #include "nr/stack/sdap/layer/NRsdapGNB.h"
+#include "nr/stack/sdap/layer/NRsdapUE.h"
 
 Define_Module(NRsdapGNB);
 
@@ -123,6 +124,13 @@ void NRsdapGNB::fromLowerToUpper(cMessage *msg) {
     delete sdapPkt;
 
     upPkt->setControlInfo(lteInfo);
+
+    //throughput
+    MacNodeId ueId = lteInfo->getSourceId();
+    LteMacBase* macUE = check_and_cast<LteMacBase*>(getNRBinder()->getMacFromMacNodeId(ueId));
+    NRsdapUE *sdapUE = check_and_cast<NRsdapUE*>(macUE->getParentModule()->getSubmodule("sdap"));
+    sdapUE->recordThroughputUL(upPkt->getByteLength());
+    //
 
 	if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
 		//add processing delay

@@ -43,7 +43,6 @@ import nr.stack.mac.NRMacUe;
 import nr.stack.mac.NRMacGnb;
 import nr.stack.rlc.NRRlc;
 import nr.stack.sdap.layer.INRsdap;
-import nr.stack.rrc.Rrc;
 import nr.stack.sdap.utils.*;
 import nr.stack.phy.ChannelModel.NRRealisticChannelModel;
 
@@ -87,10 +86,6 @@ module NRNicBase like INRNic
         qosHandler: <qosHandlerType> like IQosHandler {
 
             @display("p=227.532,45.28");
-        }
-
-        rrc: Rrc {
-            @display("p=216.212,169.8");
         }
 
         // bridge between lte stack and network layer
@@ -141,10 +136,6 @@ module NRNicBase like INRNic
 
         ip2lte.stackLte <--> sdap.upperLayer;
         sdap.lowerLayer <--> pdcpRrc.DataPort;
-
-        //RRC Handling
-        //RRC -- PDCP
-        rrc.gateRRC <--> pdcpRrc.upperLayerRRC;
 
         //PDCP -- RLC
         pdcpRrc.lowerLayerRRC <--> rlc.upperLayer;

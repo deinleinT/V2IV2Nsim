@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Tue Oct 22 13:03:30 2019 by Eclipse SUMO duarouter Version 1.0.0
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/duarouterConfiguration.xsd">
+
+    <input>
+        <net-file value="autobahnSimple.net.xml"/>
+        <route-files value="trips001.xml"/>
+    </input>
+
+    <output>
+        <output-file value="autobahnSimple001.rou.xml"/>
+        <alternatives-output value="autobahnSimple001.rou.alt.xml"/>
+    </output>
+
+    <processing>
+        <repair value="true"/>
+    </processing>
+
+</configuration>
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    <vehicle id="0" depart="0.10" accel="2.5" decel="4.3" sigma="0.5" length="4.74" minGap="3.89" maxSpeed="40.9">
+        <route edges="275413837 275413841 288193247"/>
+    </vehicle>
+    <vehicle id="1" depart="0.10" accel="2.66" decel="4.38" sigma="0.5" length="4.04" minGap="4.11" maxSpeed="20.29">
+        <route edges="44288195 288193246 275413828 143837872"/>
+    </vehicle>
+    <vehicle id="2" depart="0.10" accel="2.06" decel="4.44" sigma="0.5" length="3.67" minGap="4.4" maxSpeed="29.90">
+        <route edges="275413841"/>
+    </vehicle>
+    <vehicle id="4" depart="0.10" accel="2.74" decel="4.03" sigma="0.5" length="4.84" minGap="4.37" maxSpeed="25.7">
+        <route edges="275413841"/>
+    </vehicle>
+    <vehicle id="5" depart="0.10" accel="2.38" decel="4.25" sigma="0.5" length="3.06" minGap="2.66" maxSpeed="44.90">
+        <route edges="288193246 275413828 143837872"/>
+    </vehicle>
+</routes>

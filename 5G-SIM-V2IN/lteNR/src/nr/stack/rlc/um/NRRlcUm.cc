@@ -35,7 +35,7 @@ Define_Module(NRRlcUm);
 
 void NRRlcUm::initialize() {
 
-	std::string nodeType = getParentModule()->getParentModule()->par("nodeType").stdstringValue();
+	nodeType = getParentModule()->getParentModule()->par("nodeType").stdstringValue();
 	std::string macType = getParentModule()->getParentModule()->par("LteMacType").stdstringValue();
 
 	if (nodeType.compare("ENODEB") == 0 || nodeType.compare("GNODEB") == 0) {
@@ -55,9 +55,6 @@ void NRRlcUm::initialize() {
 
 	qosHandler = check_and_cast<QosHandler*>(getParentModule()->getParentModule()->getSubmodule("qosHandler"));
 
-	WATCH_MAP(txEntities_);
-	WATCH_MAP(rxEntities_);
-
 	receivedPacketFromUpperLayer = registerSignal("receivedPacketFromUpperLayer");
 	receivedPacketFromLowerLayer = registerSignal("receivedPacketFromLowerLayer");
 	sentPacketToUpperLayer = registerSignal("sentPacketToUpperLayer");
@@ -71,9 +68,15 @@ void NRRlcUm::initialize() {
 		ueTotalRlcThroughputDlStartTime = NOW;
 		ueTotalRlcThroughputUl.setName("UEtotalRlcThroughputUl");
 		ueTotalRlcThroughputDl.setName("UEtotalRlcThroughputDl");
+
 	} else {
 		ueTotalRlcThroughputDlInit = false;
 		ueTotalRlcThroughputUlInit = false;
+		throughputTimer = new cMessage("throughputTimer");
+		throughputInterval = getSimulation()->getSystemModule()->par("throughputInterval").doubleValue();
+		double time = NOW.dbl();
+		double firstSchedule = floor(time + throughputInterval);
+		scheduleAt(firstSchedule, throughputTimer);
 	}
 
 	totalRcvdBytesUl = 0;
@@ -84,6 +87,10 @@ void NRRlcUm::initialize() {
 
 	UEtotalRlcThroughputDlMean = registerSignal("UEtotalRlcThroughputDlMean");
 	UEtotalRlcThroughputUlMean = registerSignal("UEtotalRlcThroughputUlMean");
+
+	throughputInBitsPerSecondDL = 0;
+	throughputInBitsPerSecondUL = 0;
+
 }
 
 void NRRlcUm::handleUpperMessage(cPacket *pkt) {
@@ -130,15 +137,16 @@ void NRRlcUm::handleUpperMessage(cPacket *pkt) {
 void NRRlcUm::handleMessage(cMessage *msg) {
 
 	//std::cout << "NRRlcUm::handleMessage start at " << simTime().dbl() << std::endl;
-
-	if (strcmp(msg->getName(), "RRC") == 0) {
-		cGate *incoming = msg->getArrivalGate();
-		if (incoming == up_[IN]) {
-			//from pdcp to mac
-			send(msg, gate("lowerLayer$o"));
-		} else if (incoming == down_[IN]) {
-			//from mac to pdcp
-			send(msg, gate("upperLayer$o"));
+	if (nodeType.compare("UE") == 0) {
+		if (msg->isSelfMessage()) {
+			//throughput per second for each vehicle
+			checkRemoteCarStatus();
+			UERlcThroughputPerSecondDl.record(throughputInBitsPerSecondDL);
+			UERlcThroughputPerSecondUl.record(throughputInBitsPerSecondUL);
+			throughputInBitsPerSecondDL = 0;
+			throughputInBitsPerSecondUL = 0;
+			scheduleAt(NOW + throughputInterval, throughputTimer);
+			return;
 		}
 	}
 

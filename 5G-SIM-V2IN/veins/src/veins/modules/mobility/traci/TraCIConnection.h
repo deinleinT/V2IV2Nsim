@@ -47,7 +47,13 @@ public:
     };
 
     static TraCIConnection* connect(cComponent* owner, const char* host, int port);
+    //netbounds1
     void setNetbounds(TraCICoord netbounds1, TraCICoord netbounds2, int margin);
+    TraCICoord getTopleft() { return coordinateTransformation.get()->getTopLeft(); }
+    TraCICoord getBottomright() { return coordinateTransformation.get()->getBottomRight();  }
+    float getMargin() { return coordinateTransformation.get()->getMargin();  }
+    TraCICoord getDimensions() { return coordinateTransformation.get()->getDimensions(); }
+
     ~TraCIConnection();
 
     /**

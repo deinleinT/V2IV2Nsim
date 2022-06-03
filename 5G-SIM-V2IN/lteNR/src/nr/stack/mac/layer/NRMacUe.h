@@ -54,8 +54,7 @@ public:
 	}
 
 	virtual void resetSchedulingGrant() {
-		Enter_Method_Silent
-		();
+		Enter_Method_Silent();
 
 		if (!schedulingGrantMap.empty()) {
 			schedulingGrantMap.erase(schedulingGrant_->getProcessId());
@@ -66,8 +65,7 @@ public:
 
 	virtual void resetSchedulingGrantMap() {
 
-		Enter_Method_Silent
-		();
+		Enter_Method_Silent();
 
 		std::map<unsigned char, LteSchedulingGrant*>::const_iterator it;
 		for (it = schedulingGrantMap.begin(); it != schedulingGrantMap.end();) {
@@ -143,6 +141,7 @@ protected:
 	 */
 	virtual void handleSelfMessage();
 	virtual void handleSelfMessageWithNRHarq();
+	virtual void handleSelfMessageWithQosModel();
 
 	/**
 	 * macPduMake() creates MAC PDUs (one for each CID)
@@ -168,5 +167,7 @@ protected:
 	virtual bool bufferizePacket(cPacket *pkt);
 
 	virtual void checkRAC();
+
+	virtual void checkRACQoSModel();
 };
 

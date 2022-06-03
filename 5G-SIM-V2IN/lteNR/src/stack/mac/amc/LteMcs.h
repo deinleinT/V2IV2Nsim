@@ -95,7 +95,7 @@ extern const std::vector<Tbs> tbsNRTable;
 extern CQIelem cqiTable[];
 
 unsigned int calcTBS(MacNodeId nodeId, unsigned int numPRB, unsigned short mcsIndex,
-        unsigned short numLayers);
+        unsigned short numLayers, const Direction dir);
 
 unsigned short getQm(LteMod mod);
 //

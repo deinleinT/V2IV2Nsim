@@ -20,4 +20,7 @@
     <vehicle id="0" depart="0.00" accel="2.6" decel="4.5" sigma="0.5" length="2.5" minGap="2.5" maxSpeed="25">
         <route edges="0/1to1/1 1/1to2/1"/>
     </vehicle>
+    <vehicle id="1" depart="1.00" accel="2.6" decel="4.5" sigma="0.5" length="2.5" minGap="2.5" maxSpeed="25">
+        <route edges="0/1to1/1 1/1to2/1"/>
+    </vehicle>
 </routes>

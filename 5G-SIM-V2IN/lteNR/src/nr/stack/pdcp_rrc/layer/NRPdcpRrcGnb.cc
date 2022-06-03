@@ -50,13 +50,6 @@ void NRPdcpRrcGnb::toDataPort(cPacket *pkt) {
 
     //std::cout << "NRPdcpRrcGnb::toDataPort start at " << simTime().dbl() << std::endl;
 
-    if (strcmp(pkt->getName(), "RRC") == 0) {
-        cGate * tmpGate = gate("upperLayerRRC$o");
-        send(pkt, tmpGate);
-
-        return;
-    }
-
     emit(receivedPacketFromLowerLayer, pkt);
     LtePdcpPdu* pdcpPkt = check_and_cast<LtePdcpPdu*>(pkt);
     FlowControlInfo* lteInfo = check_and_cast<FlowControlInfo*>(

@@ -36,7 +36,7 @@ simple TrafficGenerator extends UDPBasicApp
         
 //        volatile int messageLengthCar50 @unit(B) = default(1000B);
 //        int dataSizeCar50 = default(500000000);
-        bool considerDatasizeAndMessages = default(false);
+
         int messages = default(10);
         
         //delay for following packets

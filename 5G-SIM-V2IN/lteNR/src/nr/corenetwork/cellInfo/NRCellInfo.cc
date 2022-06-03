@@ -29,12 +29,15 @@
 Define_Module(NRCellInfo);
 
 void NRCellInfo::initialize() {
-    //NRCellInfo::initialize();
 
     int numerology = getBinder()->getNumerology();
     if (numerology == 15 || numerology == 30 || numerology == 60) {
-        rbxDl_ = 14;
-        rbxUl_ = 14;
+        rbxDl_ = 14; // number of symbols per slot DL
+        rbxUl_ = 14; // number of symbols per slot UL
+		if (getSimulation()->getSystemModule()->par("useTdd").boolValue() && !getSimulation()->getSystemModule()->par("printTBS").boolValue()) {
+			rbxDl_ = getSimulation()->getSystemModule()->par("dlSymbols"); // number of symbols per slot DL
+			rbxUl_ = getSimulation()->getSystemModule()->par("ulSymbols"); // number of symbols per slot UL
+		}
     } else
         throw cRuntimeError(
                 "Unknown numerology of %d, possible values are 15, 30 or 60");
@@ -49,10 +52,8 @@ void NRCellInfo::initialize() {
     eNbType_ = par("microCell").boolValue() ? MICRO_ENB : MACRO_ENB;
     numRbDl_ = par("numRbDl");
     numRbUl_ = par("numRbUl");
-    rbyDl_ = par("rbyDl");
+    rbyDl_ = par("rbyDl"); // subcarriers
     rbyUl_ = par("rbyUl");
-//    rbxDl_ = par("rbxDl");
-//    rbxUl_ = par("rbxUl");
     rbPilotDl_ = par("rbPilotDl");
     rbPilotUl_ = par("rbPilotUl");
     signalDl_ = par("signalDl");
@@ -96,9 +97,6 @@ void NRCellInfo::calculateMCSScale(double *mcsUl, double *mcsDl) {
 
     int ulRbSymbols = rbxDl_;
     int dlRbSymbols = rbxUl_;
-
-    ulSymbolsOneMS = ulRbSymbols;
-    dlSymbolsOneMS = dlRbSymbols;
 
     //TODO
     int ulSigSymbols = par("signalUl");

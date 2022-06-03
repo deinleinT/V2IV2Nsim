@@ -274,7 +274,6 @@ void NRPhyUe::checkConnection() {
 				//to guarantee that no old packets are in the buffers
 				deleteOldBuffers(masterId_);
 			}
-
 		}
 		cancelEvent(checkConnectionTimer);
 		scheduleAt(simTime() + checkConnectionInterval + uniform(0, 0.001), checkConnectionTimer);

@@ -25,6 +25,7 @@
  */
 
 #include "nr/stack/mac/layer/NRMacUe.h"
+#include "stack/mac/layer/LteMacEnb.h"
 
 Define_Module(NRMacUe);
 
@@ -41,6 +42,9 @@ void NRMacUe::initialize(int stage) {
 		harqProcesses_ = getSystemModule()->par("numberHarqProcesses").intValue();
 		harqProcessesNR_ = getSystemModule()->par("numberHarqProcessesNR").intValue();
 		nrHarq = getSystemModule()->par("nrHarq").boolValue();
+		if (getSystemModule()->par("useQosModel").boolValue()) {
+			nrHarq = true;
+		}
 		if (nrHarq) {
 			raRespWinStart_ = getSystemModule()->par("raRespWinStartNR").intValue();
 			harqProcesses_ = harqProcessesNR_;
@@ -368,6 +372,11 @@ void NRMacUe::handleSelfMessage() {
 
 	//EV << "----- UE MAIN LOOP -----" << endl;
 
+	if (getSystemModule()->par("useQosModel").boolValue()) {
+		handleSelfMessageWithQosModel();
+		return;
+	}
+
 	if (nrHarq) {
 		handleSelfMessageWithNRHarq();
 		return;
@@ -594,7 +603,107 @@ void NRMacUe::handleSelfMessageWithNRHarq() {
 
 	//EV << "--- END UE MAIN LOOP ---" << endl;
 
-//std::cout << "NRMacUe handleSelfMessageWithNRHarq end at " << simTime().dbl() << std::endl;
+	//std::cout << "NRMacUe handleSelfMessageWithNRHarq end at " << simTime().dbl() << std::endl;
+}
+
+void NRMacUe::handleSelfMessageWithQosModel() {
+	//std::cout << "NRMacUe handleSelfMessageWithQosModel start at " << simTime().dbl() << std::endl;
+
+	HarqRxBuffers::iterator hit = harqRxBuffers_.begin();
+	HarqRxBuffers::iterator het = harqRxBuffers_.end();
+	LteMacPdu *pdu = NULL;
+	std::list<LteMacPdu*> pduList;
+
+	for (; hit != het; ++hit) {
+		pduList = hit->second->extractCorrectPdus();
+		while (!pduList.empty()) {
+			pdu = pduList.front();
+			pduList.pop_front();
+			macPduUnmake(pdu);
+		}
+	}
+
+	requestedSdus_ = 0;
+
+	if (schedulingGrant_ == NULL) {
+		checkRAC();
+	} else // if a grant is configured
+	{
+		if (!firstTx) {
+			firstTx = true;
+			currentHarq_ = harqProcesses_ - 2;
+		}
+
+		//newTx or Rtx
+		if (schedulingGrant_->getNewTx()) {
+
+			scheduleListWithSizes_ = *lcgScheduler_->schedule(); //NRSchedulerUeUl
+			requestedSdus_ = macSduRequest();
+
+			if (requestedSdus_ == 0) {
+				// no data to send, but if bsrTriggered is set, send a BSR
+				macPduMake();
+			}
+		} else {
+			//
+
+			HarqTxBuffers::iterator it2;
+			LteHarqBufferTx *currHarq;
+
+			UserControlInfo *lteInfo = check_and_cast<UserControlInfo*>(schedulingGrant_->getControlInfo());
+			MacCid cid = idToMacCid(nodeId_, lteInfo->getLcid());
+			bool flag = false;
+
+			for (it2 = harqTxBuffers_.begin(); it2 != harqTxBuffers_.end(); it2++) {
+				currHarq = it2->second;
+				for (unsigned short i = 0; i < harqProcessesNR_; i++) {
+					if (currHarq->getProcess(i)->hasReadyUnits()) {
+						//find out cid
+						UserControlInfo *info = check_and_cast<UserControlInfo*>(currHarq->getProcess(i)->getPdu(lteInfo->getCw())->getControlInfo());
+						if (info->getCid() == cid) {
+							//found the correct one
+
+							CwList cwListRetx = currHarq->getProcess(i)->readyUnitsIds();
+
+							UnitList signal;
+							signal.first = i;
+							signal.second = cwListRetx;
+							currHarq->markSelected(signal, schedulingGrant_->getUserTxParams()->getLayers().size());
+							rtxSignalised = false;
+							flag = true;
+
+						}
+					}
+
+					if (flag) {
+						break;
+					}
+				}
+				if (flag) {
+					break;
+				}
+			}
+		}
+
+		// Message that triggers flushing of Tx H-ARQ buffers for all users
+		// This way, flushing is performed after the (possible) reception of new MAC PDUs
+		cMessage *flushHarqMsg = new cMessage("flushHarqMsg");
+		flushHarqMsg->setSchedulingPriority(1);        // after other messages
+		scheduleAt(NOW, flushHarqMsg);
+	}
+
+	unsigned int purged = 0;
+	// purge from corrupted PDUs all Rx H-HARQ buffers
+	for (hit = harqRxBuffers_.begin(); hit != het; ++hit) {
+		purged += hit->second->purgeCorruptedPdus();
+	}
+
+	if (requestedSdus_ == 0) {
+		// update current harq process id
+		currentHarq_ = (currentHarq_ + 1) % harqProcesses_;
+	}
+
+	//std::cout << "NRMacUe handleSelfMessageWithQosModel end at " << simTime().dbl() << std::endl;
 }
 
 void NRMacUe::macPduMake(MacCid cid) {
@@ -733,8 +842,31 @@ void NRMacUe::macPduMake(MacCid cid) {
 			delete macPkt;
 		} else {
 			if (nrHarq) {
-				UnitList temp = txBuf->firstAvailable();
-				txBuf->insertPdu(temp.first, cw, macPkt);
+				if (getSimulation()->getSystemModule()->par("useQosModel").boolValue()) {
+					bool deletePduFlag = false;
+					for (unsigned int i = 0; i < harqProcessesNR_; i++) {
+						UnitList temp = txBuf->getEmptyUnits(i);
+						if (temp.second.empty()) {
+							deletePduFlag = true;
+							continue;
+						} else {
+							if (txBuf->isCompletelyEmpty(temp.first, cw, macPkt)) {
+								txBuf->insertPdu(temp.first, cw, macPkt);
+								deletePduFlag = false;
+								break;
+							} else {
+								deletePduFlag = true;
+								continue;
+							}
+						}
+					}
+					if (deletePduFlag) {
+						delete macPkt;
+					}
+				} else {
+					UnitList temp = txBuf->firstAvailable();
+					txBuf->insertPdu(temp.first, cw, macPkt);
+				}
 			} else {
 				txBuf->insertPdu(txList.first, cw, macPkt);
 			}
@@ -840,7 +972,7 @@ bool NRMacUe::bufferizePacket(cPacket *pkt) {
 
 			//simplified Flow Control
 			if (getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue()) {
-				if (macBuffers_[cid]->getQueueOccupancy() > (queueSize_ / 8)) {
+				if (macBuffers_[cid]->getQueueOccupancy() > (queueSize_ / 4)) {
 					getNRBinder()->setQueueStatus(MacCidToNodeId(cid), lteInfo->getDirection(), lteInfo->getApplication(), true);
 				} else {
 					getNRBinder()->setQueueStatus(MacCidToNodeId(cid), lteInfo->getDirection(), lteInfo->getApplication(), false);
@@ -883,7 +1015,7 @@ bool NRMacUe::bufferizePacket(cPacket *pkt) {
 
 		//simplified Flow Control --> to ensure the packet flow continues
 		if (getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue()) {
-			if (macBuffers_[cid]->getQueueOccupancy() > (queueSize_ / 4 / 8)) {
+			if (macBuffers_[cid]->getQueueOccupancy() > (queueSize_ / 4)) {
 				getNRBinder()->setQueueStatus(MacCidToNodeId(cid), lteInfo->getDirection(), lteInfo->getApplication(), true);
 			} else {
 				getNRBinder()->setQueueStatus(MacCidToNodeId(cid), lteInfo->getDirection(), lteInfo->getApplication(), false);
@@ -916,10 +1048,157 @@ void NRMacUe::flushHarqBuffers() {
 	//std::cout << "NRMacUe flushHarqBuffers end at " << simTime().dbl() << std::endl;
 }
 
+void NRMacUe::checkRACQoSModel() {
+
+	if (racBackoffTimer_ > 0) {
+		racBackoffTimer_--;
+		return;
+	}
+
+	if (raRespTimer_ > 0) {
+		// decrease RAC response timer
+		raRespTimer_--;
+		//EV << NOW << " NRMacUe::checkRAC - waiting for previous RAC requests to complete (timer=" << raRespTimer_ << ")" << endl;
+		return;
+	}
+
+	//     Avoids double requests whithin same TTI window
+	if (racRequested_) {
+		//EV << NOW << " NRMacUe::checkRAC - double RAC request" << endl;
+		racRequested_ = false;
+		return;
+	}
+
+	bool trigger = false;
+
+	LteMacBufferMap::const_iterator it;
+	unsigned int bytesize = 0;
+	MacCid cid;
+	simtime_t creationTimeOfQueueFront;
+	unsigned int sizeOfOnePacketInBytes;
+
+	//retrieve the lambdaValues from the ini file
+	double lambdaPriority = getSimulation()->getSystemModule()->par("lambdaPriority").doubleValue();
+	double lambdaRemainDelayBudget = getSimulation()->getSystemModule()->par("lambdaRemainDelayBudget").doubleValue();
+	double lambdaCqi = getSimulation()->getSystemModule()->par("lambdaCqi").doubleValue();
+	double lambdaByteSize = getSimulation()->getSystemModule()->par("lambdaByteSize").doubleValue();
+	double lambdaRtx = getSimulation()->getSystemModule()->par("lambdaRtx").doubleValue();
+
+	std::map<double, std::vector<ScheduleInfo>> combinedMap;
+
+	const UserTxParams &txParams = (check_and_cast<LteMacEnb*>(getMacByMacNodeId(cellId_)))->getAmc()->computeTxParams(nodeId_, UL);
+	simtime_t remainDelayBudget;
+
+	//
+	std::map<double, std::vector<QosInfo>> qosinfosMap;
+	//
+	qosinfosMap = getQosHandler()->getEqualPriorityMap(UL);
+	for (auto &var : qosinfosMap) {
+		for (auto &qosinfo : var.second) {
+			if (!macBuffers_[qosinfo.cid]->isEmpty()) {
+
+				cid = qosinfo.cid;
+				simtime_t creationTimeFirstPacket = macBuffers_[cid]->getHolTimestamp();
+				ASSERT(creationTimeFirstPacket != 0);
+
+				ScheduleInfo tmp;
+				tmp.category = "newTx";
+				tmp.cid = cid;
+				tmp.pdb = getQosHandler()->getPdb(getQosHandler()->get5Qi(getQosHandler()->getQfi(cid)));
+				tmp.priority = getQosHandler()->getPriority(getQosHandler()->get5Qi(getQosHandler()->getQfi(cid)));
+				tmp.numberRtx = 0;
+				tmp.nodeId = MacCidToNodeId(tmp.cid);
+				tmp.bytesizeUL = macBuffers_[cid]->getQueueOccupancy();
+				tmp.sizeOnePacketUL = macBuffers_[cid]->front().first;
+
+				simtime_t delay = NOW - creationTimeFirstPacket;
+				remainDelayBudget = tmp.pdb - delay;
+				tmp.remainDelayBudget = remainDelayBudget;
+
+				//calculate the weight to find the macBufferCid with the highest priority
+
+				if (!getSimulation()->getSystemModule()->par("useSinglePacketSizeDuringScheduling").boolValue()) {
+					tmp.sizeOnePacketUL = tmp.bytesizeUL;
+				}
+
+				double calcPrio = lambdaPriority * (tmp.priority / 90.0) + ((remainDelayBudget.dbl() / 0.5) * lambdaRemainDelayBudget) + lambdaCqi * (1 / (txParams.readCqiVector().at(0) + 1))
+						+ (lambdaRtx * (1 / (1 + tmp.numberRtx))) + ((70.0 / tmp.sizeOnePacketUL) * lambdaByteSize);
+
+				combinedMap[calcPrio].push_back(tmp);
+			}
+		}
+	}
+
+	//choose the first entry
+	for (auto &var : combinedMap) {
+		for (auto &vec : var.second) {
+			cid = vec.cid;
+			bytesize = vec.bytesizeUL;
+			creationTimeOfQueueFront = macBuffers_[cid]->getHolTimestamp();
+			sizeOfOnePacketInBytes = vec.sizeOnePacketUL;
+
+			trigger = true;
+			break;
+		}
+		if (trigger)
+			break;
+	}
+
+	if ((racRequested_ = trigger)) {
+
+		LteRac *racReq = new LteRac("RacRequest");
+		UserControlInfo *uinfo = new UserControlInfo();
+		uinfo->setSourceId(nodeId_);
+		uinfo->setDestId(getMacCellId());
+		uinfo->setDirection(UL);
+		uinfo->setFrameType(RACPKT);
+		uinfo->setBytesize(bytesize);
+
+		QosInfo tmp = qosHandler->getQosInfo()[cid];
+		uinfo->setLcid(tmp.lcid);
+		uinfo->setCid(idToMacCid(nodeId_, 0));
+		uinfo->setQfi(tmp.qfi);
+		uinfo->setRadioBearerId(tmp.radioBearerId);
+		uinfo->setApplication(tmp.appType);
+		uinfo->setTraffic(tmp.trafficClass);
+		uinfo->setRlcType(tmp.rlcType);
+		uinfo->setBytesize(bytesize);
+		//
+		uinfo->setCreationTimeOfQueueFront(creationTimeOfQueueFront);
+		uinfo->setBytesizeOfOnePacket(sizeOfOnePacketInBytes);
+
+		racReq->setControlInfo(uinfo);
+		racReq->setKind(tmp.appType);
+
+		if (!firstTx) {
+			racRequests_.insert(harqProcesses_ - 2);
+		} else {
+			if (nrHarq) {
+				racRequests_.insert(currentHarq_);
+			} else {
+				racRequests_.insert((currentHarq_ + 4) % harqProcesses_);
+			}
+		}
+
+		sendLowerPackets(racReq);
+
+		//EV << NOW << " Ue  " << nodeId_ << " cell " << cellId_ << " ,RAC request sent to PHY " << endl;
+
+		// wait at least  "raRespWinStart_" TTIs before another RAC request
+		raRespTimer_ = raRespWinStart_;
+	}
+}
+
 void NRMacUe::checkRAC() {
 	//std::cout << "NRMacUe checkRAC start at " << simTime().dbl() << std::endl;
 
-	//EV << NOW << " NRMacUe::checkRAC , Ue  " << nodeId_ << ", racTimer : " << racBackoffTimer_ << " maxRacTryOuts : " << maxRacTryouts_ << ", raRespTimer:" << raRespTimer_ << endl;
+	//
+	//check if QosModel is activated
+	if (getSimulation()->getSystemModule()->hasPar("useQosModel") && getSimulation()->getSystemModule()->par("useQosModel").boolValue()) {
+		checkRACQoSModel();
+		return;
+	}
+	//
 
 	// to be set in omnetpp.ini --> if true, the ue does not send a rac request when the last transmission failed (a HARQNACK arrived)
 	// a new rac request will be sent after a successfull rtx
@@ -974,10 +1253,13 @@ void NRMacUe::checkRAC() {
 	unsigned int bytesize = 0;
 	MacCid cid;
 
-	for (it = macBuffers_.begin(); it != macBuffers_.end(); ++it) {
-		if (!(it->second->isEmpty())) {
-			cid = it->first;
-			bytesize += it->second->getQueueOccupancy();
+	//default approach --> sorted by Lcids
+	std::vector<std::pair<MacCid, QosInfo>> qosinfos = getQosHandler()->getSortedQosInfos(UL);
+	for (auto &var : qosinfos) {
+		if (!macBuffers_[var.first]->isEmpty()) {
+			cid = var.first;
+			bytesize += macBuffers_[var.first]->getQueueOccupancy(); //--> whole size of Queue would used for RAC request
+
 			trigger = true;
 
 			break;

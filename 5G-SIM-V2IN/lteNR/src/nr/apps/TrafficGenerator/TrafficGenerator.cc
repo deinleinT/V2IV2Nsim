@@ -104,7 +104,7 @@ void TrafficGenerator::initialize(int stage) {
 		WATCH(sentPacketsVoip);
 		WATCH(sentPacketsData);
 
-		delayDataTransferFinished.setName("delayDataTransferFinished");
+		//delayDataTransferFinished.setName("delayDataTransferFinished");
 
 		messages = par("messages").intValue();
 
@@ -119,8 +119,18 @@ void TrafficGenerator::initialize(int stage) {
 		delayBudget30ms = 0.03;
 		delayBudget300ms = 0.3;
 
-		considerDatasizeAndMessages = par("considerDatasizeAndMessages").boolValue();
+		//considerDatasizeAndMessages = par("considerDatasizeAndMessages").boolValue();
 		//
+
+		packetLossRateULV2X.setName("packetLossRateULV2X");
+		packetLossRateULVoip.setName("packetLossRateULVoip");
+		packetLossRateULVideo.setName("packetLossRateULVideo");
+		packetLossRateULData.setName("packetLossRateULData");
+
+		packetLossRateDLV2X.setName("packetLossRateDLV2X");
+		packetLossRateDLVoip.setName("packetLossRateDLVoip");
+		packetLossRateDLVideo.setName("packetLossRateDLVideo");
+		packetLossRateDLData.setName("packetLossRateDLData");
 
 		lastSentStatusUpdateSN = 0;
 
@@ -135,6 +145,7 @@ void TrafficGenerator::initialize(int stage) {
 		remoteDrivingDL = getSimulation()->getSystemModule()->par("remoteDrivingDL");
 		remoteDrivingUL = getSimulation()->getSystemModule()->par("remoteDrivingUL");
 		useSimplifiedFlowControl = getSimulation()->getSystemModule()->par("useSimplifiedFlowControl").boolValue();
+
 		remoteCarFactor = getSimulation()->getSystemModule()->par("remoteCarFactor").intValue();
 		useSINRThreshold = getSimulation()->getSystemModule()->par("useSINRThreshold").boolValue();
 		//
@@ -184,6 +195,13 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityData10ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityData10ms = 1.0 - double((recPacketsDataOutBudget10ms + lostPacketsData) / (lostPacketsData + recPacketsData));
 			recordScalar(nameString.c_str(), TotalReliabilityData10ms);
+			//rec packets
+			nameString = "recPacketsInBudgetData10ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsData - recPacketsDataOutBudget10ms);
+			unsigned int sentPacketsTotal = lostPacketsData + recPacketsData; // only once
+			nameString = "sentPacketsTotalData" + direction + std::to_string(carNodeId); // only once
+			recordScalar(nameString.c_str(), sentPacketsTotal); //only once
+			//
 
 			double reliabilityData20ms = 1.0 - double(recPacketsDataOutBudget20ms / recPacketsData);
 			nameString = "reliabilityData20ms" + direction + std::to_string(carNodeId);
@@ -191,6 +209,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityData20ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityData20ms = 1.0 - double((recPacketsDataOutBudget20ms + lostPacketsData) / (lostPacketsData + recPacketsData));
 			recordScalar(nameString.c_str(), TotalReliabilityData20ms);
+			//rec and sent packets
+			nameString = "recPacketsInBudgetData20ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsData - recPacketsDataOutBudget20ms);
+			//
 
 			//
 			double reliabilityData30ms = 1.0 - double(recPacketsDataOutBudget30ms / recPacketsData);
@@ -199,6 +221,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityData30ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityData30ms = 1.0 - double((recPacketsDataOutBudget30ms + lostPacketsData) / (lostPacketsData + recPacketsData));
 			recordScalar(nameString.c_str(), TotalReliabilityData30ms);
+			//rec packets
+			nameString = "recPacketsInBudgetData30ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsData - recPacketsDataOutBudget30ms);
+			//
 
 			double reliabilityData300ms = 1.0 - double(recPacketsDataOutBudget300ms / recPacketsData);
 			nameString = "reliabilityData300ms" + direction + std::to_string(carNodeId);
@@ -206,6 +232,9 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityData300ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityData300ms = 1.0 - double((recPacketsDataOutBudget300ms + lostPacketsData) / (lostPacketsData + recPacketsData));
 			recordScalar(nameString.c_str(), TotalReliabilityData300ms);
+			//rec packets
+			nameString = "recPacketsInBudgetData300ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsData - recPacketsDataOutBudget300ms);
 			//
 
 			double reliabilityData50ms = 1.0 - double(recPacketsDataOutBudget50ms / recPacketsData);
@@ -214,6 +243,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityData50ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityData50ms = 1.0 - double((recPacketsDataOutBudget50ms + lostPacketsData) / (lostPacketsData + recPacketsData));
 			recordScalar(nameString.c_str(), TotalReliabilityData50ms);
+			//rec packets
+			nameString = "recPacketsInBudgetData50ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsData - recPacketsDataOutBudget50ms);
+			//
 
 			double reliabilityData100ms = 1.0 - double(recPacketsDataOutBudget100ms / recPacketsData);
 			nameString = "reliabilityData100ms" + direction + std::to_string(carNodeId);
@@ -221,6 +254,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityData100ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityData100ms = 1.0 - double((recPacketsDataOutBudget100ms + lostPacketsData) / (lostPacketsData + recPacketsData));
 			recordScalar(nameString.c_str(), TotalReliabilityData100ms);
+			//rec and sent packets
+			nameString = "recPacketsInBudgetData100ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsData - recPacketsDataOutBudget100ms);
+			//
 
 			double reliabilityData200ms = 1.0 - double(recPacketsDataOutBudget200ms / recPacketsData);
 			nameString = "reliabilityData200ms" + direction + std::to_string(carNodeId);
@@ -228,6 +265,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityData200ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityData200ms = 1.0 - double((recPacketsDataOutBudget200ms + lostPacketsData) / (lostPacketsData + recPacketsData));
 			recordScalar(nameString.c_str(), TotalReliabilityData200ms);
+			//rec packets
+			nameString = "recPacketsInBudgetData200ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsData - recPacketsDataOutBudget200ms);
+			//
 
 			double reliabilityData500ms = 1.0 - double(recPacketsDataOutBudget500ms / recPacketsData);
 			nameString = "reliabilityData500ms" + direction + std::to_string(carNodeId);
@@ -235,6 +276,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityData500ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityData500ms = 1.0 - double((recPacketsDataOutBudget500ms + lostPacketsData) / (lostPacketsData + recPacketsData));
 			recordScalar(nameString.c_str(), TotalReliabilityData500ms);
+			//rec packets
+			nameString = "recPacketsInBudgetData500ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsData - recPacketsDataOutBudget500ms);
+			//
 
 			double reliabilityData1s = 1.0 - double(recPacketsDataOutBudget1s / recPacketsData);
 			nameString = "reliabilityData1s" + direction + std::to_string(carNodeId);
@@ -242,6 +287,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityData1s" + direction + std::to_string(carNodeId);
 			double TotalReliabilityData1s = 1.0 - double((recPacketsDataOutBudget1s + lostPacketsData) / (lostPacketsData + recPacketsData));
 			recordScalar(nameString.c_str(), TotalReliabilityData1s);
+			//rec packets
+			nameString = "recPacketsInBudgetData1s" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsData - recPacketsDataOutBudget1s);
+			//
 
 			nameString = "lostPacketsData" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), lostPacketsData);
@@ -275,6 +324,13 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityV2X10ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityV2X10ms = 1.0 - double((recPacketsV2XOutBudget10ms + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
 			recordScalar(nameString.c_str(), TotalReliabilityV2X10ms);
+			//rec and sent packets
+			nameString = "recPacketsInBudgetV2X10ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsV2X - recPacketsV2XOutBudget10ms);
+			unsigned int sentPacketsTotal = lostPacketsV2X + recPacketsV2X; // only once
+			nameString = "sentPacketsTotalV2X" + direction + std::to_string(carNodeId); // only once
+			recordScalar(nameString.c_str(), sentPacketsTotal); //only once
+			//
 
 			double reliabilityV2X20ms = 1.0 - double(recPacketsV2XOutBudget20ms / recPacketsV2X);
 			nameString = "reliabilityV2X20ms" + direction + std::to_string(carNodeId);
@@ -282,6 +338,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityV2X20ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityV2X20ms = 1.0 - double((recPacketsV2XOutBudget20ms + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
 			recordScalar(nameString.c_str(), TotalReliabilityV2X20ms);
+			//rec packets
+			nameString = "recPacketsInBudgetV2X20ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsV2X - recPacketsV2XOutBudget20ms);
+			//
 
 			//
 			double reliabilityV2X30ms = 1.0 - double(recPacketsV2XOutBudget30ms / recPacketsV2X);
@@ -290,6 +350,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityV2X30ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityV2X30ms = 1.0 - double((recPacketsV2XOutBudget30ms + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
 			recordScalar(nameString.c_str(), TotalReliabilityV2X30ms);
+			//rec packets
+			nameString = "recPacketsInBudgetV2X30ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsV2X - recPacketsV2XOutBudget30ms);
+			//
 
 			double reliabilityV2X300ms = 1.0 - double(recPacketsV2XOutBudget300ms / recPacketsV2X);
 			nameString = "reliabilityV2X300ms" + direction + std::to_string(carNodeId);
@@ -297,6 +361,9 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityV2X300ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityV2X300ms = 1.0 - double((recPacketsV2XOutBudget300ms + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
 			recordScalar(nameString.c_str(), TotalReliabilityV2X300ms);
+			//rec packets
+			nameString = "recPacketsInBudgetV2X300ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsV2X - recPacketsV2XOutBudget300ms);
 			//
 
 			double reliabilityV2X50ms = 1.0 - double(recPacketsV2XOutBudget50ms / recPacketsV2X);
@@ -305,6 +372,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityV2X50ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityV2X50ms = 1.0 - double((recPacketsV2XOutBudget50ms + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
 			recordScalar(nameString.c_str(), TotalReliabilityV2X50ms);
+			//rec packets
+			nameString = "recPacketsInBudgetV2X50ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsV2X - recPacketsV2XOutBudget50ms);
+			//
 
 			double reliabilityV2X100ms = 1.0 - double(recPacketsV2XOutBudget100ms / recPacketsV2X);
 			nameString = "reliabilityV2X100ms" + direction + std::to_string(carNodeId);
@@ -312,6 +383,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityV2X100ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityV2X100ms = 1.0 - double((recPacketsV2XOutBudget100ms + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
 			recordScalar(nameString.c_str(), TotalReliabilityV2X100ms);
+			//rec packets
+			nameString = "recPacketsInBudgetV2X100ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsV2X - recPacketsV2XOutBudget100ms);
+			//
 
 			double reliabilityV2X200ms = 1.0 - double(recPacketsV2XOutBudget200ms / recPacketsV2X);
 			nameString = "reliabilityV2X200ms" + direction + std::to_string(carNodeId);
@@ -319,6 +394,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityV2X200ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityV2X200ms = 1.0 - double((recPacketsV2XOutBudget200ms + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
 			recordScalar(nameString.c_str(), TotalReliabilityV2X200ms);
+			//rec packets
+			nameString = "recPacketsInBudgetV2X200ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsV2X - recPacketsV2XOutBudget200ms);
+			//
 
 			double reliabilityV2X500ms = 1.0 - double(recPacketsV2XOutBudget500ms / recPacketsV2X);
 			nameString = "reliabilityV2X500ms" + direction + std::to_string(carNodeId);
@@ -326,6 +405,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityV2X500ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityV2X500ms = 1.0 - double((recPacketsV2XOutBudget500ms + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
 			recordScalar(nameString.c_str(), TotalReliabilityV2X500ms);
+			//rec packets
+			nameString = "recPacketsInBudgetV2X500ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsV2X - recPacketsV2XOutBudget500ms);
+			//
 
 			double reliabilityV2X1s = 1.0 - double(recPacketsV2XOutBudget1s / recPacketsV2X);
 			nameString = "reliabilityV2X1s" + direction + std::to_string(carNodeId);
@@ -333,12 +416,16 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityV2X1s" + direction + std::to_string(carNodeId);
 			double TotalReliabilityV2X1s = 1.0 - double((recPacketsV2XOutBudget1s + lostPacketsV2X) / (lostPacketsV2X + recPacketsV2X));
 			recordScalar(nameString.c_str(), TotalReliabilityV2X1s);
+			//rec packets
+			nameString = "recPacketsInBudgetV2X1s" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsV2X - recPacketsV2XOutBudget1s);
+			//
 
 			nameString = "lostPacketsV2X" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), lostPacketsV2X);
 			nameString = "recPacketsV2X" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), recPacketsV2X);
-			recordScalar("numberCarsV2X", carsData.size());
+			recordScalar("numberCarsV2X", carsV2X.size());
 		}
 
 		//Voip
@@ -365,6 +452,13 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityVoip10ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVoip10ms = 1.0 - double((recPacketsVoipOutBudget10ms + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
 			recordScalar(nameString.c_str(), TotalReliabilityVoip10ms);
+			//rec and sent packets
+			nameString = "recPacketsInBudgetVoip10ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsVoip - recPacketsVoipOutBudget10ms);
+			unsigned int sentPacketsTotal = lostPacketsVoip + recPacketsVoip; // only once
+			nameString = "sentPacketsTotalVoip" + direction + std::to_string(carNodeId); // only once
+			recordScalar(nameString.c_str(), sentPacketsTotal); //only once
+			//
 
 			double reliabilityVoip20ms = 1.0 - double(recPacketsVoipOutBudget20ms / recPacketsVoip);
 			nameString = "reliabilityVoip20ms" + direction + std::to_string(carNodeId);
@@ -372,6 +466,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityVoip20ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVoip20ms = 1.0 - double((recPacketsVoipOutBudget20ms + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
 			recordScalar(nameString.c_str(), TotalReliabilityVoip20ms);
+			//rec packets
+			nameString = "recPacketsInBudgetVoip20ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsVoip - recPacketsVoipOutBudget20ms);
+			//
 
 			//
 			double reliabilityVoip30ms = 1.0 - double(recPacketsVoipOutBudget30ms / recPacketsVoip);
@@ -380,6 +478,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityVoip30ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVoip30ms = 1.0 - double((recPacketsVoipOutBudget30ms + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
 			recordScalar(nameString.c_str(), TotalReliabilityVoip30ms);
+			//rec packets
+			nameString = "recPacketsInBudgetVoip30ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsVoip - recPacketsVoipOutBudget30ms);
+			//
 
 			double reliabilityVoip300ms = 1.0 - double(recPacketsVoipOutBudget300ms / recPacketsVoip);
 			nameString = "reliabilityVoip300ms" + direction + std::to_string(carNodeId);
@@ -387,6 +489,9 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityVoip300ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVoip300ms = 1.0 - double((recPacketsVoipOutBudget300ms + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
 			recordScalar(nameString.c_str(), TotalReliabilityVoip300ms);
+			//rec packets
+			nameString = "recPacketsInBudgetVoip300ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsVoip - recPacketsVoipOutBudget300ms);
 			//
 
 			double reliabilityVoip50ms = 1.0 - double(recPacketsVoipOutBudget50ms / recPacketsVoip);
@@ -395,6 +500,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityVoip50ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVoip50ms = 1.0 - double((recPacketsVoipOutBudget50ms + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
 			recordScalar(nameString.c_str(), TotalReliabilityVoip50ms);
+			//rec packets
+			nameString = "recPacketsInBudgetVoip50ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsVoip - recPacketsVoipOutBudget50ms);
+			//
 
 			double reliabilityVoip100ms = 1.0 - double(recPacketsVoipOutBudget100ms / recPacketsVoip);
 			nameString = "reliabilityVoip100ms" + direction + std::to_string(carNodeId);
@@ -402,6 +511,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityVoip100ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVoip100ms = 1.0 - double((recPacketsVoipOutBudget100ms + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
 			recordScalar(nameString.c_str(), TotalReliabilityVoip100ms);
+			//rec packets
+			nameString = "recPacketsInBudgetVoip100ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsVoip - recPacketsVoipOutBudget100ms);
+			//
 
 			double reliabilityVoip200ms = 1.0 - double(recPacketsVoipOutBudget200ms / recPacketsVoip);
 			nameString = "reliabilityVoip200ms" + direction + std::to_string(carNodeId);
@@ -409,6 +522,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityVoip200ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVoip200ms = 1.0 - double((recPacketsVoipOutBudget200ms + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
 			recordScalar(nameString.c_str(), TotalReliabilityVoip200ms);
+			//rec packets
+			nameString = "recPacketsInBudgetVoip200ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsVoip - recPacketsVoipOutBudget200ms);
+			//
 
 			double reliabilityVoip500ms = 1.0 - double(recPacketsVoipOutBudget500ms / recPacketsVoip);
 			nameString = "reliabilityVoip500ms" + direction + std::to_string(carNodeId);
@@ -416,6 +533,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityVoip500ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVoip500ms = 1.0 - double((recPacketsVoipOutBudget500ms + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
 			recordScalar(nameString.c_str(), TotalReliabilityVoip500ms);
+			//rec packets
+			nameString = "recPacketsInBudgetVoip500ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsVoip - recPacketsVoipOutBudget500ms);
+			//
 
 			double reliabilityVoip1s = 1.0 - double(recPacketsVoipOutBudget1s / recPacketsVoip);
 			nameString = "reliabilityVoip1s" + direction + std::to_string(carNodeId);
@@ -423,6 +544,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityVoip1s" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVoip1s = 1.0 - double((recPacketsVoipOutBudget1s + lostPacketsVoip) / (lostPacketsVoip + recPacketsVoip));
 			recordScalar(nameString.c_str(), TotalReliabilityVoip1s);
+			//rec packets
+			nameString = "recPacketsInBudgetVoip1s" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsVoip - recPacketsVoipOutBudget1s);
+			//
 
 			nameString = "lostPacketsVoip" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), lostPacketsVoip);
@@ -456,6 +581,13 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityVideo10ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVideo10ms = 1.0 - double((recPacketsVideoOutBudget10ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
 			recordScalar(nameString.c_str(), TotalReliabilityVideo10ms);
+			//rec and sent packets
+			nameString = "recPacketsInBudgetVideo10ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsVideo - recPacketsVideoOutBudget10ms);
+			unsigned int sentPacketsTotal = lostPacketsVideo + recPacketsVideo; // only once
+			nameString = "sentPacketsTotalVideo" + direction + std::to_string(carNodeId); // only once
+			recordScalar(nameString.c_str(), sentPacketsTotal); //only once
+			//
 
 			double reliabilityVideo20ms = 1.0 - double(recPacketsVideoOutBudget20ms / recPacketsVideo);
 			nameString = "reliabilityVideo20ms" + direction + std::to_string(carNodeId);
@@ -463,6 +595,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityVideo20ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVideo20ms = 1.0 - double((recPacketsVideoOutBudget20ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
 			recordScalar(nameString.c_str(), TotalReliabilityVideo20ms);
+			//rec packets
+			nameString = "recPacketsInBudgetVideo20ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsVideo - recPacketsVideoOutBudget20ms);
+			//
 
 			//
 			double reliabilityVideo30ms = 1.0 - double(recPacketsVideoOutBudget30ms / recPacketsVideo);
@@ -471,6 +607,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityVideo30ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVideo30ms = 1.0 - double((recPacketsVideoOutBudget30ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
 			recordScalar(nameString.c_str(), TotalReliabilityVideo30ms);
+			//rec packets
+			nameString = "recPacketsInBudgetVideo30ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsVideo - recPacketsVideoOutBudget30ms);
+			//
 
 			double reliabilityVideo300ms = 1.0 - double(recPacketsVideoOutBudget300ms / recPacketsVideo);
 			nameString = "reliabilityVideo300ms" + direction + std::to_string(carNodeId);
@@ -478,6 +618,9 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityVideo300ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVideo300ms = 1.0 - double((recPacketsVideoOutBudget300ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
 			recordScalar(nameString.c_str(), TotalReliabilityVideo300ms);
+			//rec packets
+			nameString = "recPacketsInBudgetVideo300ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsVideo - recPacketsVideoOutBudget300ms);
 			//
 
 			double reliabilityVideo50ms = 1.0 - double(recPacketsVideoOutBudget50ms / recPacketsVideo);
@@ -486,6 +629,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityVideo50ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVideo50ms = 1.0 - double((recPacketsVideoOutBudget50ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
 			recordScalar(nameString.c_str(), TotalReliabilityVideo50ms);
+			//rec packets
+			nameString = "recPacketsInBudgetVideo50ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsVideo - recPacketsVideoOutBudget50ms);
+			//
 
 			double reliabilityVideo100ms = 1.0 - double(recPacketsVideoOutBudget100ms / recPacketsVideo);
 			nameString = "reliabilityVideo100ms" + direction + std::to_string(carNodeId);
@@ -493,6 +640,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityVideo100ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVideo100ms = 1.0 - double((recPacketsVideoOutBudget100ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
 			recordScalar(nameString.c_str(), TotalReliabilityVideo100ms);
+			//rec packets
+			nameString = "recPacketsInBudgetVideo100ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsVideo - recPacketsVideoOutBudget100ms);
+			//
 
 			double reliabilityVideo200ms = 1.0 - double(recPacketsVideoOutBudget200ms / recPacketsVideo);
 			nameString = "reliabilityVideo200ms" + direction + std::to_string(carNodeId);
@@ -500,6 +651,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityVideo200ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVideo200ms = 1.0 - double((recPacketsVideoOutBudget200ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
 			recordScalar(nameString.c_str(), TotalReliabilityVideo200ms);
+			//rec packets
+			nameString = "recPacketsInBudgetVideo200ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsVideo - recPacketsVideoOutBudget200ms);
+			//
 
 			double reliabilityVideo500ms = 1.0 - double(recPacketsVideoOutBudget500ms / recPacketsVideo);
 			nameString = "reliabilityVideo500ms" + direction + std::to_string(carNodeId);
@@ -507,6 +662,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityVideo500ms" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVideo500ms = 1.0 - double((recPacketsVideoOutBudget500ms + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
 			recordScalar(nameString.c_str(), TotalReliabilityVideo500ms);
+			//rec packets
+			nameString = "recPacketsInBudgetVideo500ms" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsVideo - recPacketsVideoOutBudget500ms);
+			//
 
 			double reliabilityVideo1s = 1.0 - double(recPacketsVideoOutBudget1s / recPacketsVideo);
 			nameString = "reliabilityVideo1s" + direction + std::to_string(carNodeId);
@@ -514,6 +673,10 @@ void TrafficGenerator::recordReliability() {
 			nameString = "TotalReliabilityVideo1s" + direction + std::to_string(carNodeId);
 			double TotalReliabilityVideo1s = 1.0 - double((recPacketsVideoOutBudget1s + lostPacketsVideo) / (lostPacketsVideo + recPacketsVideo));
 			recordScalar(nameString.c_str(), TotalReliabilityVideo1s);
+			//rec packets
+			nameString = "recPacketsInBudgetVideo1s" + direction + std::to_string(carNodeId);
+			recordScalar(nameString.c_str(), recPacketsVideo - recPacketsVideoOutBudget1s);
+			//
 
 			nameString = "lostPacketsVideo" + direction + std::to_string(carNodeId);
 			recordScalar(nameString.c_str(), lostPacketsVideo);
@@ -696,6 +859,13 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 				// packetDelayVariationReal --> consecutive packets
 				calcPVV2XUL(nodeId, temp, true);
 
+				//calc PLR UL
+				unsigned int lostPackets = connectionsUEtoServ[nodeId].statReport.lostPacketsV2X;
+				unsigned int sentPack = number; //the SequenceNumber starts at 1
+				double plr = static_cast<double>(lostPackets) / static_cast<double>(sentPack); //0 --> best result, no packet loss, 1 worst result --> all packets lost
+				packetLossRateULV2X.record(plr);
+				//
+
 			} else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsUEtoServ[nodeId].statReport.lastV2X->getSequenceNumber() + 1);
@@ -703,6 +873,12 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 				lostPacketsV2X = connectionsUEtoServ[nodeId].statReport.lostPacketsV2X; //all over summary of lost packets
 
 				calcPVV2XUL(nodeId, temp, false);
+
+				//calc PLR UL
+				unsigned int sentPack = number; //the SequenceNumber starts at 1
+				double plr = static_cast<double>(lostPacketsV2X) / static_cast<double>(sentPack); //0 --> best result, no packet loss, 1 worst result --> all packets lost
+				packetLossRateULV2X.record(plr);
+				//
 
 			}
 
@@ -800,6 +976,13 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 				// packetDelayVariation
 				calcPVVideoUL(nodeId, temp, true);
 
+				//calc PLR UL
+				unsigned int lostPackets = connectionsUEtoServ[nodeId].statReport.lostPacketsVideo;
+				unsigned int sentPack = number; //the SequenceNumber starts at 1
+				double plr = static_cast<double>(lostPackets) / static_cast<double>(sentPack); //0 --> best result, no packet loss, 1 worst result --> all packets lost
+				packetLossRateULVideo.record(plr);
+				//
+
 			} else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsUEtoServ[nodeId].statReport.lastVideo->getSequenceNumber() + 1);
@@ -807,6 +990,12 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 				lostPacketsVideo = connectionsUEtoServ[nodeId].statReport.lostPacketsVideo; //all over summary of lost packets
 
 				calcPVVideoUL(nodeId, temp, false);
+
+		 		//calc PLR UL
+				unsigned int sentPack = number; //the SequenceNumber starts at 1
+				double plr = static_cast<double>(lostPacketsVideo) / static_cast<double>(sentPack); //0 --> best result, no packet loss, 1 worst result --> all packets lost
+				packetLossRateULVideo.record(plr);
+				//
 
 			}
 
@@ -904,6 +1093,13 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 				// packetDelayVariation
 				calcPVVoipUL(nodeId, temp, true);
 
+				//calc PLR UL
+				unsigned int lostPackets = connectionsUEtoServ[nodeId].statReport.lostPacketsVoip;
+				unsigned int sentPack = number; //the SequenceNumber starts at 1
+				double plr = static_cast<double>(lostPackets) / static_cast<double>(sentPack); //0 --> best result, no packet loss, 1 worst result --> all packets lost
+				packetLossRateULVoip.record(plr);
+				//
+
 			} else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsUEtoServ[nodeId].statReport.lastVoIP->getSequenceNumber() + 1);
@@ -911,6 +1107,12 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 				lostPacketsVoip = connectionsUEtoServ[nodeId].statReport.lostPacketsVoip; //all over summary of lost packets
 
 				calcPVVoipUL(nodeId, temp, false);
+
+				//calc PLR UL
+				unsigned int sentPack = number; //the SequenceNumber starts at 1
+				double plr = static_cast<double>(lostPacketsVoip) / static_cast<double>(sentPack); //0 --> best result, no packet loss, 1 worst result --> all packets lost
+				packetLossRateULVoip.record(plr);
+				//
 
 			}
 
@@ -1000,44 +1202,44 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 				connectionsUEtoServ[nodeId].statReport.recPacketsDataOutBudget300ms++;
 			}
 
-			//
-			if (considerDatasizeAndMessages) {
-				//HD Map
-				if (connectionsUEtoServ[nodeId].timeFirstDataPacketArrived == 0) { //at least one full map packet arrived
-					connectionsUEtoServ[nodeId].timeFirstDataPacketArrived = NOW;
-				}
-				if (connectionsUEtoServ[nodeId].dataBytesLeft <= 0 && connectionsUEtoServ[nodeId].messages <= 0) {
-					delete temp;
-					return;
-				} else {
-					connectionsUEtoServ[nodeId].dataBytesLeft = connectionsUEtoServ[nodeId].dataBytesLeft - messageLen;
-
-					if (connectionsUEtoServ[nodeId].dataBytesLeft <= 0) {
-						--connectionsUEtoServ[nodeId].messages;
-
-						if (connectionsUEtoServ[nodeId].messages <= 0) {
-							TrafficGeneratorCarUL *tmp1 = check_and_cast<TrafficGeneratorCarUL*>(getSimulation()->getModuleByPath(name)->getSubmodule("udpApp", 0));
-							tmp1->setDataPacketFlag(false);
-							connectionsUEtoServ[nodeId].timeLastDataPacketArrived = NOW;
-
-							simtime_t delay = connectionsUEtoServ[nodeId].timeLastDataPacketArrived - connectionsUEtoServ[nodeId].timeFirstDataPacketArrived;
-							delayDataTransferFinished.record(delay);
-							connectionsUEtoServ[nodeId].dataBytesLeft = 0;
-
-							delete temp;
-							return;
-						}
-						//now finished
-						connectionsUEtoServ[nodeId].timeLastDataPacketArrived = NOW;
-
-						simtime_t delay = connectionsUEtoServ[nodeId].timeLastDataPacketArrived - connectionsUEtoServ[nodeId].timeFirstDataPacketArrived;
-						delayDataTransferFinished.record(delay);
-						connectionsUEtoServ[nodeId].dataBytesLeft = dataSize;
-
-						connectionsUEtoServ[nodeId].timeFirstDataPacketArrived = 0;
-					}
-				}
-			}
+			// not used --> maybe delete
+//			if (considerDatasizeAndMessages) {
+//				//HD Map
+//				if (connectionsUEtoServ[nodeId].timeFirstDataPacketArrived == 0) { //at least one full map packet arrived
+//					connectionsUEtoServ[nodeId].timeFirstDataPacketArrived = NOW;
+//				}
+//				if (connectionsUEtoServ[nodeId].dataBytesLeft <= 0 && connectionsUEtoServ[nodeId].messages <= 0) {
+//					delete temp;
+//					return;
+//				} else {
+//					connectionsUEtoServ[nodeId].dataBytesLeft = connectionsUEtoServ[nodeId].dataBytesLeft - messageLen;
+//
+//					if (connectionsUEtoServ[nodeId].dataBytesLeft <= 0) {
+//						--connectionsUEtoServ[nodeId].messages;
+//
+//						if (connectionsUEtoServ[nodeId].messages <= 0) {
+//							TrafficGeneratorCarUL *tmp1 = check_and_cast<TrafficGeneratorCarUL*>(getSimulation()->getModuleByPath(name)->getSubmodule("udpApp", 0));
+//							tmp1->setDataPacketFlag(false);
+//							connectionsUEtoServ[nodeId].timeLastDataPacketArrived = NOW;
+//
+//							simtime_t delay = connectionsUEtoServ[nodeId].timeLastDataPacketArrived - connectionsUEtoServ[nodeId].timeFirstDataPacketArrived;
+//							delayDataTransferFinished.record(delay);
+//							connectionsUEtoServ[nodeId].dataBytesLeft = 0;
+//
+//							delete temp;
+//							return;
+//						}
+//						//now finished
+//						connectionsUEtoServ[nodeId].timeLastDataPacketArrived = NOW;
+//
+//						simtime_t delay = connectionsUEtoServ[nodeId].timeLastDataPacketArrived - connectionsUEtoServ[nodeId].timeFirstDataPacketArrived;
+//						delayDataTransferFinished.record(delay);
+//						connectionsUEtoServ[nodeId].dataBytesLeft = dataSize;
+//
+//						connectionsUEtoServ[nodeId].timeFirstDataPacketArrived = 0;
+//					}
+//				}
+//			}
 			//
 
 			//already one entry
@@ -1047,6 +1249,13 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 				// packetDelayVariation
 				calcPVDataUL(nodeId, temp, true);
 
+				//calc PLR UL
+				unsigned int lostPackets = connectionsUEtoServ[nodeId].statReport.lostPacketsData;
+				unsigned int sentPack = number; //the SequenceNumber starts at 1
+				double plr = static_cast<double>(lostPackets) / static_cast<double>(sentPack); //0 --> best result, no packet loss, 1 worst result --> all packets lost
+				packetLossRateULData.record(plr);
+				//
+
 			} else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsUEtoServ[nodeId].statReport.lastData->getSequenceNumber() + 1);
@@ -1055,6 +1264,11 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 
 				calcPVDataUL(nodeId, temp, false);
 
+				//calc PLR UL
+				unsigned int sentPack = number; //the SequenceNumber starts at 1
+				double plr = static_cast<double>(lostPacketsData) / static_cast<double>(sentPack); //0 --> best result, no packet loss, 1 worst result --> all packets lost
+				packetLossRateULData.record(plr);
+				//
 			}
 
 			delete connectionsUEtoServ[nodeId].statReport.lastData;
@@ -1085,13 +1299,13 @@ void TrafficGeneratorServerUL::processPacketServer(cPacket *pk) {
 			tmp.statReport.recPacketsData++;
 			tmp.messages = messages;
 
-			if (considerDatasizeAndMessages) {
-
-				tmp.dataSize = dataSize;
-
-				tmp.dataBytesLeft = tmp.dataSize - messageLen;
-
-			}
+//			if (considerDatasizeAndMessages) {
+//
+//				tmp.dataSize = dataSize;
+//
+//				tmp.dataBytesLeft = tmp.dataSize - messageLen;
+//
+//			}
 
 			connectionsUEtoServ[nodeId] = tmp;
 		}
@@ -1152,16 +1366,17 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 		if (remoteDrivingUL) {
 			//check nodeId --> every ...th car is a remote car
 			if (!isRemoteCar(nodeId, remoteCarFactor)) {
-				sendVideoPacket = false;
 				return;
 			}
 		}
 
-		//if true, the vehicle should send a packet
-		if (!getNRBinder()->getVehicleApplicationSummaryValue(nodeId, "V2X")) {
-			numberSentPackets--;
-			numSent--;
-			return;
+		if (!remoteDrivingUL){
+			//if true, the vehicle should send a packet
+			if (!getNRBinder()->getVehicleApplicationSummaryValue(nodeId, "V2X")) {
+				numberSentPackets--;
+				numSent--;
+				return;
+			}
 		}
 
 		//simplified flow control
@@ -1221,6 +1436,13 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 		socket.sendTo(payload, destAddress_, destPort);
 
 	} else if (strcmp(packetName, "Video") == 0) {
+
+		if (remoteDrivingUL) {
+			//check nodeId --> every 10th car is a remote car
+			if (isRemoteCar(nodeId, remoteCarFactor)) {
+				return;
+			}
+		}
 
 		//if true, the vehicle should send a packet
 		if (!getNRBinder()->getVehicleApplicationSummaryValue(nodeId, "Video")) {
@@ -1288,6 +1510,13 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 		socket.sendTo(payload, destAddress_, destPort);
 
 	} else if (strcmp(packetName, "VoIP") == 0) {
+
+		if (remoteDrivingUL) {
+			//check nodeId --> every 10th car is a remote car
+			if (isRemoteCar(nodeId, remoteCarFactor)) {
+				return;
+			}
+		}
 
 		//if true, the vehicle should send a packet
 		if (!getNRBinder()->getVehicleApplicationSummaryValue(nodeId, "VoIP")) {
@@ -1358,7 +1587,6 @@ void TrafficGeneratorCarUL::sendPacket(long bytes) {
 		if (remoteDrivingUL) {
 			//check nodeId --> every 10th car is a remote car
 			if (isRemoteCar(nodeId, remoteCarFactor)) {
-				sendDataPacket = false;
 				return;
 			}
 		}
@@ -1624,6 +1852,13 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 				// packetDelayVariation
 				calcPVV2XDL(nodeId, temp, true);
 
+				//calc PLR UL
+				unsigned int lostPackets = connectionsServToUE[nodeId].statReport.lostPacketsV2X;
+				unsigned int sentPack = number; //the SequenceNumber starts at 1
+				double plr = static_cast<double>(lostPackets) / static_cast<double>(sentPack); //0 --> best result, no packet loss, 1 worst result --> all packets lost
+				packetLossRateDLV2X.record(plr);
+				//
+
 			} else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsServToUE[nodeId].statReport.lastV2X->getSequenceNumber() + 1);
@@ -1631,6 +1866,12 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 				lostPacketsV2X = connectionsServToUE[nodeId].statReport.lostPacketsV2X; //all over summary of lost packets
 
 				calcPVV2XDL(nodeId, temp, false);
+
+				//calc PLR UL
+				unsigned int sentPack = number; //the SequenceNumber starts at 1
+				double plr = static_cast<double>(lostPacketsV2X) / static_cast<double>(sentPack); //0 --> best result, no packet loss, 1 worst result --> all packets lost
+				packetLossRateDLV2X.record(plr);
+				//
 
 			}
 			//
@@ -1728,6 +1969,13 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 				// packetDelayVariation
 				calcPVVideoDL(nodeId, temp, true);
 
+				//calc PLR UL
+				unsigned int lostPackets = connectionsServToUE[nodeId].statReport.lostPacketsVideo;
+				unsigned int sentPack = number; //the SequenceNumber starts at 1
+				double plr = static_cast<double>(lostPackets) / (sentPack); //0 --> best result, no packet loss, 1 worst result --> all packets lost
+				packetLossRateDLVideo.record(plr);
+				//
+
 			} else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsServToUE[nodeId].statReport.lastVideo->getSequenceNumber() + 1);
@@ -1735,6 +1983,12 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 				lostPacketsVideo = connectionsServToUE[nodeId].statReport.lostPacketsVideo; //all over summary of lost packets
 
 				calcPVVideoDL(nodeId, temp, false);
+
+				//calc PLR UL
+				unsigned int sentPack = number; //the SequenceNumber starts at 1
+				double plr = static_cast<double>(lostPacketsVideo) / static_cast<double>(sentPack); //0 --> best result, no packet loss, 1 worst result --> all packets lost
+				packetLossRateDLVideo.record(plr);
+				//
 
 			}
 
@@ -1833,6 +2087,13 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 				// packetDelayVariationReal
 				calcPVVoipDL(nodeId, temp, true);
 
+				//calc PLR UL
+				unsigned int lostPackets = connectionsServToUE[nodeId].statReport.lostPacketsVoip;
+				unsigned int sentPack = number; //the SequenceNumber starts at 1
+				double plr = static_cast<double>(lostPackets) / static_cast<double>(sentPack); //0 --> best result, no packet loss, 1 worst result --> all packets lost
+				packetLossRateDLVoip.record(plr);
+				//
+
 			} else {
 				//some packet lost on the way
 				unsigned int lostPackets = number - (connectionsServToUE[nodeId].statReport.lastVoIP->getSequenceNumber() + 1);
@@ -1841,6 +2102,11 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 				//packetDelayVariation
 				calcPVVoipDL(nodeId, temp, false);
 
+				//calc PLR UL
+				unsigned int sentPack = number; //the SequenceNumber starts at 1
+				double plr = static_cast<double>(lostPacketsVoip) / static_cast<double>(sentPack); //0 --> best result, no packet loss, 1 worst result --> all packets lost
+				packetLossRateDLVoip.record(plr);
+				//
 			}
 
 			delete connectionsServToUE[nodeId].statReport.lastVoIP;
@@ -1932,54 +2198,62 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 			}
 			//
 
-			if (considerDatasizeAndMessages) {
-				//******************
-				//HD Map
-				if (connectionsServToUE[nodeId].timeFirstDataPacketArrived == 0) { //at least one full map packet arrived
-					connectionsServToUE[nodeId].timeFirstDataPacketArrived = NOW;
-				}
-				if (connectionsServToUE[nodeId].dataBytesLeft <= 0 && connectionsServToUE[nodeId].messages <= 0) {
-					delete temp;
-					return;
-				} else {
-					connectionsServToUE[nodeId].dataBytesLeft = connectionsServToUE[nodeId].dataBytesLeft - messageLen;
+//			if (considerDatasizeAndMessages) {
+//				//******************
+//				//HD Map
+//				if (connectionsServToUE[nodeId].timeFirstDataPacketArrived == 0) { //at least one full map packet arrived
+//					connectionsServToUE[nodeId].timeFirstDataPacketArrived = NOW;
+//				}
+//				if (connectionsServToUE[nodeId].dataBytesLeft <= 0 && connectionsServToUE[nodeId].messages <= 0) {
+//					delete temp;
+//					return;
+//				} else {
+//					connectionsServToUE[nodeId].dataBytesLeft = connectionsServToUE[nodeId].dataBytesLeft - messageLen;
+//
+//					if (connectionsServToUE[nodeId].dataBytesLeft <= 0) {
+//						--connectionsServToUE[nodeId].messages;
+//
+//						if (connectionsServToUE[nodeId].messages <= 0) {
+//							TrafficGeneratorServerDL *tmp1 = check_and_cast<TrafficGeneratorServerDL*>(getSimulation()->getModuleByPath(name)->getSubmodule("udpApp", 0));
+//							const char *ueName = this->getParentModule()->getFullName();
+//							tmp1->deleteNameFromQueuedNames(ueName);
+//
+//							connectionsServToUE[nodeId].timeLastDataPacketArrived = NOW;
+//
+//							simtime_t delay = connectionsServToUE[nodeId].timeLastDataPacketArrived - connectionsServToUE[nodeId].timeFirstDataPacketArrived;
+//							delayDataTransferFinished.record(delay);
+//							connectionsServToUE[nodeId].dataBytesLeft = dataSize;
+//
+//							delete temp;
+//							return;
+//						}
+//						//now finished
+//						connectionsServToUE[nodeId].timeLastDataPacketArrived = NOW;
+//
+//						simtime_t delay = connectionsServToUE[nodeId].timeLastDataPacketArrived - connectionsServToUE[nodeId].timeFirstDataPacketArrived;
+//						delayDataTransferFinished.record(delay);
+//						connectionsServToUE[nodeId].dataBytesLeft = dataSize;
+//
+//						connectionsServToUE[nodeId].timeFirstDataPacketArrived = 0;
+//					}
+//				}
+//			}
 
-					if (connectionsServToUE[nodeId].dataBytesLeft <= 0) {
-						--connectionsServToUE[nodeId].messages;
 
-						if (connectionsServToUE[nodeId].messages <= 0) {
-							TrafficGeneratorServerDL *tmp1 = check_and_cast<TrafficGeneratorServerDL*>(getSimulation()->getModuleByPath(name)->getSubmodule("udpApp", 0));
-							const char *ueName = this->getParentModule()->getFullName();
-							tmp1->deleteNameFromQueuedNames(ueName);
-
-							connectionsServToUE[nodeId].timeLastDataPacketArrived = NOW;
-
-							simtime_t delay = connectionsServToUE[nodeId].timeLastDataPacketArrived - connectionsServToUE[nodeId].timeFirstDataPacketArrived;
-							delayDataTransferFinished.record(delay);
-							connectionsServToUE[nodeId].dataBytesLeft = dataSize;
-
-							delete temp;
-							return;
-						}
-						//now finished
-						connectionsServToUE[nodeId].timeLastDataPacketArrived = NOW;
-
-						simtime_t delay = connectionsServToUE[nodeId].timeLastDataPacketArrived - connectionsServToUE[nodeId].timeFirstDataPacketArrived;
-						delayDataTransferFinished.record(delay);
-						connectionsServToUE[nodeId].dataBytesLeft = dataSize;
-
-						connectionsServToUE[nodeId].timeFirstDataPacketArrived = 0;
-					}
-				}
-			}
 
 			//already one entry
 			//find the corresponding destination and check the next sequenceNumber
-
 			if ((connectionsServToUE[nodeId].statReport.lastData->getSequenceNumber() + 1) == number) {
 				//received the next packet
 				// packetDelayVariation
 				calcPVDataDL(nodeId, temp, true);
+
+				//calc PLR UL
+				unsigned int lostPackets = connectionsServToUE[nodeId].statReport.lostPacketsData;
+				unsigned int sentPack = number; //the SequenceNumber starts at 1
+				double plr = static_cast<double>(lostPackets) / static_cast<double>(sentPack); //0 --> best result, no packet loss, 1 worst result --> all packets lost
+				packetLossRateDLData.record(plr);
+				//
 
 			} else {
 				//some packet lost on the way
@@ -1989,6 +2263,11 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 
 				calcPVDataDL(nodeId, temp, false);
 
+				//calc PLR UL
+				unsigned int sentPack = number; //the SequenceNumber starts at 1
+				double plr = static_cast<double>(lostPacketsData) / static_cast<double>(sentPack); //0 --> best result, no packet loss, 1 worst result --> all packets lost
+				packetLossRateDLData.record(plr);
+				//
 			}
 
 			delete connectionsServToUE[nodeId].statReport.lastData;
@@ -2019,13 +2298,13 @@ void TrafficGeneratorCarDL::processPacket(cPacket *pk) {
 
 			tmp.messages = messages;
 
-			if (considerDatasizeAndMessages) {
-
-				tmp.dataSize = dataSize;
-
-				tmp.dataBytesLeft = tmp.dataSize - messageLen;
-
-			}
+//			if (considerDatasizeAndMessages) {
+//
+//				tmp.dataSize = dataSize;
+//
+//				tmp.dataBytesLeft = tmp.dataSize - messageLen;
+//
+//			}
 
 			connectionsServToUE[nodeId] = tmp;
 		}
@@ -2054,7 +2333,6 @@ void TrafficGeneratorServerDL::initialize(int stage) {
 
 	if (stage == INITSTAGE_LOCAL) {
 		TrafficGenerator::initialize(stage);
-
 	}
 }
 
@@ -2212,6 +2490,18 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 				socket.sendTo(payload, L3AddressResolver().resolve(carName.c_str()), destPort);
 			} else if (strcmp(packetName, "Video") == 0) {
 
+				if (remoteDrivingDL) {
+					//check nodeId --> every 10th car is a remote car
+					if (isRemoteCar(nodeId, remoteCarFactor)) {
+						//sendVideoPacket = false;
+						itr = names.erase(itr);
+						carsSendingTimes.erase(carName);
+						carsByteLengthRemoteDrivingDL.erase(carName);
+						carsSendingIntervalRemoteDrivingDL.erase(carName);
+						continue;
+					}
+				}
+
 				//if true, the vehicle should send a packet
 				if (!getNRBinder()->getVehicleApplicationSummaryValue(nodeId, "Video")) {
 					numberSentPackets--;
@@ -2273,6 +2563,18 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 
 			} else if (strcmp(packetName, "VoIP") == 0) {
 
+				if (remoteDrivingDL) {
+					//check nodeId --> every 10th car is a remote car
+					if (isRemoteCar(nodeId, remoteCarFactor)) {
+						//sendVideoPacket = false;
+						itr = names.erase(itr);
+						carsSendingTimes.erase(carName);
+						carsByteLengthRemoteDrivingDL.erase(carName);
+						carsSendingIntervalRemoteDrivingDL.erase(carName);
+						continue;
+					}
+				}
+
 				//if true, the vehicle should send a packet
 				if (!getNRBinder()->getVehicleApplicationSummaryValue(nodeId, "VoIP")) {
 					numberSentPackets--;
@@ -2330,6 +2632,18 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 				socket.sendTo(payload, L3AddressResolver().resolve(carName.c_str()), destPort);
 			} else if (strcmp(packetName, "Data") == 0) {
 
+				if (remoteDrivingDL) {
+					//check nodeId --> every 10th car is a remote car
+					if (isRemoteCar(nodeId, remoteCarFactor)) {
+						//sendVideoPacket = false;
+						itr = names.erase(itr);
+						carsSendingTimes.erase(carName);
+						carsByteLengthRemoteDrivingDL.erase(carName);
+						carsSendingIntervalRemoteDrivingDL.erase(carName);
+						continue;
+					}
+				}
+
 				//if true, the vehicle should send a packet
 				if (!getNRBinder()->getVehicleApplicationSummaryValue(nodeId, "Data")) {
 					numberSentPackets--;
@@ -2348,18 +2662,6 @@ void TrafficGeneratorServerDL::sendPacket(long bytes) {
 					}
 				}
 				//
-
-				if (remoteDrivingDL) {
-					//check nodeId --> every 10th car is a remote car
-					if (isRemoteCar(nodeId, remoteCarFactor)) {
-						//sendVideoPacket = false;
-						itr = names.erase(itr);
-						carsSendingTimes.erase(carName);
-						carsByteLengthRemoteDrivingDL.erase(carName);
-						carsSendingIntervalRemoteDrivingDL.erase(carName);
-						continue;
-					}
-				}
 
 				sentPacketsData++;
 
