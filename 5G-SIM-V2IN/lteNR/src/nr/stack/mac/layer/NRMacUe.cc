@@ -102,7 +102,7 @@ void NRMacUe::macHandleGrant(cPacket *pkt) {
 			return;
 		}
 		if (schedulingGrantMap.find(grant->getProcessId()) != schedulingGrantMap.end()) {
-			delete schedulingGrant_;
+			resetSchedulingGrant();
 			schedulingGrant_ = schedulingGrantMap[grant->getProcessId()];
 		} else {
 			for (auto &var : schedulingGrantMap) {
@@ -113,12 +113,7 @@ void NRMacUe::macHandleGrant(cPacket *pkt) {
 			}
 		}
 	} else {
-
-		if (schedulingGrant_ != NULL) {
-			delete schedulingGrant_;
-			schedulingGrant_ = NULL;
-		}
-
+		resetSchedulingGrant();
 		schedulingGrant_ = grant;
 
 		if (grant->getPeriodic()) {
@@ -411,12 +406,11 @@ void NRMacUe::handleSelfMessage() {
 		//EV << NOW << " NRMacUe::handleSelfMessage " << nodeId_ << " NO configured grant" << endl;
 		checkRAC();
 
-	} else if (schedulingGrant_->getPeriodic()) {
+	} else if (schedulingGrant_ && schedulingGrant_->getPeriodic()) {
 		// Periodic checks
 		if (--expirationCounter_ < 0) {
 			// Periodic grant is expired
-			delete schedulingGrant_;
-			schedulingGrant_ = NULL;
+			resetSchedulingGrant();
 			// if necessary, a RAC request will be sent to obtain a grant
 			checkRAC();
 			//return;

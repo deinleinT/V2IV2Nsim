@@ -76,6 +76,8 @@ void NRPhyUe::initialize(int stage) {
 		bler = registerSignal("bler");
 		speed = registerSignal("speed");
 
+		servingCellHandover = registerSignal("servingCellHandover");
+
 		emit(averageTxPower, txPower_);
 		errorCount = 0;
 
@@ -314,6 +316,9 @@ void NRPhyUe::handleMessage(cMessage *msg) {
 	if(msg->isName("checkConnectionTimer")){
 		checkConnection();
 		return;
+	}
+	else if (msg->isName("handoverStarter")){
+        emit(servingCellHandover, (long)candidateMasterId_);
 	}
 
 	LtePhyUe::handleMessage(msg);

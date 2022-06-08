@@ -56,7 +56,7 @@ public:
 	virtual void resetSchedulingGrant() {
 		Enter_Method_Silent();
 
-		if (schedulingGrantMap.size() > 0) {
+		if (schedulingGrant_ && !schedulingGrantMap.empty()) {
 			schedulingGrantMap.erase(schedulingGrant_->getProcessId());
 		}
 		delete schedulingGrant_;
@@ -69,9 +69,12 @@ public:
 
 		std::map<unsigned char, LteSchedulingGrant*>::const_iterator it;
 		for (it = schedulingGrantMap.begin(); it != schedulingGrantMap.end();) {
+			if (it->second == schedulingGrant_)
+				schedulingGrant_ = NULL;
 			delete it->second;
 			it = schedulingGrantMap.erase(it);
 		}
+		schedulingGrantMap.clear();
 
 		if (schedulingGrant_ != NULL) {
 			if (schedulingGrant_->getUserTxParams() == NULL) {
@@ -81,8 +84,6 @@ public:
 			}
 		}
 		schedulingGrant_ = NULL;
-
-		schedulingGrantMap.clear();
 	}
 
 	virtual void checkConfiguredGrant() {

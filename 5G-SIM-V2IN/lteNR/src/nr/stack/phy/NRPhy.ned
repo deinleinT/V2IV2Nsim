@@ -72,6 +72,9 @@ simple NRPhyUe extends NRPhyBase
         @signal[servingCell];
         @statistic[servingCell](title="ID of the serving eNodeB for the UE"; unit=""; source="servingCell"; record=vector);
 
+        @signal[servingCellHandover];
+        @statistic[servingCellHandover](title="ID of the future serving eNodeB for the UE"; unit=""; source="servingCellHandover"; record=vector);
+
         //# CQI statistics
         @signal[averageCqiDl];
         @statistic[averageCqiDl](title="Average Cqi reported in DL"; unit="cqi"; source="averageCqiDl"; record=mean,vector);

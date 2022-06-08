@@ -215,7 +215,7 @@ TrafficFlowTemplateId TrafficFlowFilterNR::findTrafficFlow(L3Address srcAddress,
 		//get local upf name
 		std::string localUPFname = getParentModule()->getFullPath();
 		//MacNodeId connectedGnbWithDestId = binder_->getConnectedGnb(destId);
-		std::string connectedUpfToMasterId = binder_->getConnectedUpf(destMaster);
+		const std::string &connectedUpfToMasterId = binder_->getConnectedUpf(destMaster);
 		if (connectedUpfToMasterId == localUPFname) {
 			return destMaster;
 		} else {
