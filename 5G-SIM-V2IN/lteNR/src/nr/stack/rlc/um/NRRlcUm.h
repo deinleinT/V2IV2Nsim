@@ -54,7 +54,7 @@ protected:
     cOutVector UERlcThroughputPerSecondUl;
     cOutVector UERlcThroughputPerSecondDl;
 
-    cMessage * throughputTimer;
+    cMessage * throughputTimer = nullptr;
     double throughputInterval;
     std::string nodeType;
 
