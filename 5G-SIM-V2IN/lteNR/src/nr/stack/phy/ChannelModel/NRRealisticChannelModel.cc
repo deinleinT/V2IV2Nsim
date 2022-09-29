@@ -1936,14 +1936,14 @@ void NRRealisticChannelModel::considerCodeBlockGroups(LteControlInfo *&info, uns
 double NRRealisticChannelModel::computeExtCellPathLossNR(double &d3ddistance, double &d2ddistance, const MacNodeId &nodeId) {
 	//std::cout << "NRRealisticChannelModel::computeExtCellPathLossNR start at " << simTime().dbl() << std::endl;
 
-//	double movement = .0;
-//	double speed = .0;
-//
-//	speed = computeSpeed(nodeId, myCoord3d, movement);
+	//	double movement = .0;
+	//	double speed = .0;
+	//
+	//	speed = computeSpeed(nodeId, myCoord3d, movement);
 
-//compute attenuation based on selected scenario and based on LOS or NLOS
+	//compute attenuation based on selected scenario and based on LOS or NLOS
 	double attenuation = 0;
-//    double dbp = 0;
+	//    double dbp = 0;
 	switch (scenarioNR_) {
 	case INDOOR_HOTSPOT_EMBB:
 		attenuation = computeIndoorHotspot(d3ddistance, d2ddistance, nodeId);
@@ -1965,8 +1965,8 @@ double NRRealisticChannelModel::computeExtCellPathLossNR(double &d3ddistance, do
 
 	}
 
-//    Applying shadowing only if it is enabled by configuration
-//    log-normal shadowing
+	//    Applying shadowing only if it is enabled by configuration
+	//    log-normal shadowing
 	if (shadowing_) {
 		double att = lastComputedSF_.at(nodeId).second;
 
@@ -1988,7 +1988,7 @@ bool NRRealisticChannelModel::computeMultiCellInterferenceNR(const MacNodeId &eN
 
 	//EV << "**** Multi Cell Interference ****" << endl;
 
-// reference to the mac/phy/channel of each cell
+	// reference to the mac/phy/channel of each cell
 	LtePhyBase *ltePhy;
 
 	int temp;
@@ -2233,7 +2233,7 @@ bool NRRealisticChannelModel::computeDownlinkInterference(MacNodeId eNbId, MacNo
 }
 
 bool NRRealisticChannelModel::computeUplinkInterference(MacNodeId eNbId, MacNodeId senderId, bool isCqi, RbMap rbmap, std::vector<double> *interference) {
-//   EV << "**** Uplink Interference for cellId[" << eNbId << "] node["<<senderId<<"] ****" << endl;
+	//   EV << "**** Uplink Interference for cellId[" << eNbId << "] node["<<senderId<<"] ****" << endl;
 
 	const std::vector<UeAllocationInfo> *allocatedUes;
 	std::vector<UeAllocationInfo>::const_iterator ue_it, ue_et;
@@ -2298,8 +2298,8 @@ bool NRRealisticChannelModel::computeUplinkInterference(MacNodeId eNbId, MacNode
 				// get tx power and attenuation from this UE
 				double txPwr = uePhy->getTxPwr(dir) - cableLoss_ + antennaGainUe_ + antennaGainEnB_;
 				LtePhyBase *gNodeBPhy = check_and_cast<LtePhyBase*>(getBinder()->getMacFromMacNodeId(eNbId)->getParentModule()->getSubmodule("phy", 0));
-//				double att = getAttenuationNR(ueId, UL, check_and_cast<NRRealisticChannelModel*>(uePhy->getChannelModel())->getMyPosition(),
-//						check_and_cast<NRRealisticChannelModel*>(gNodeBPhy->getChannelModel())->getMyPosition(), false);
+				//				double att = getAttenuationNR(ueId, UL, check_and_cast<NRRealisticChannelModel*>(uePhy->getChannelModel())->getMyPosition(),
+				//						check_and_cast<NRRealisticChannelModel*>(gNodeBPhy->getChannelModel())->getMyPosition(), false);
 				double att = dynamic_cast<NRRealisticChannelModel*>(gNodeBPhy->getChannelModel())->getAttenuationNR(ueId, UL,
 						check_and_cast<NRRealisticChannelModel*>(uePhy->getChannelModel())->getMyPosition(), check_and_cast<NRRealisticChannelModel*>(gNodeBPhy->getChannelModel())->getMyPosition(),
 						false);
@@ -2374,8 +2374,8 @@ bool NRRealisticChannelModel::computeUplinkInterference(MacNodeId eNbId, MacNode
 				// get tx power and attenuation from this UE
 				double txPwr = uePhy->getTxPwr(dir) - cableLoss_ + antennaGainUe_ + antennaGainEnB_;
 				LtePhyBase *gNodeBPhy = check_and_cast<LtePhyBase*>(getBinder()->getMacFromMacNodeId(eNbId)->getParentModule()->getSubmodule("phy", 0));
-//				double att = getAttenuationNR(ueId, UL, check_and_cast<NRRealisticChannelModel*>(uePhy->getChannelModel())->getMyPosition(),
-//						check_and_cast<NRRealisticChannelModel*>(gNodeBPhy->getChannelModel())->getMyPosition(), false);
+				//				double att = getAttenuationNR(ueId, UL, check_and_cast<NRRealisticChannelModel*>(uePhy->getChannelModel())->getMyPosition(),
+				//						check_and_cast<NRRealisticChannelModel*>(gNodeBPhy->getChannelModel())->getMyPosition(), false);
 				double att = dynamic_cast<NRRealisticChannelModel*>(gNodeBPhy->getChannelModel())->getAttenuationNR(ueId, UL,
 						check_and_cast<NRRealisticChannelModel*>(uePhy->getChannelModel())->getMyPosition(), check_and_cast<NRRealisticChannelModel*>(gNodeBPhy->getChannelModel())->getMyPosition(),
 						false);
@@ -2402,7 +2402,7 @@ bool NRRealisticChannelModel::computeExtCellInterferenceNR(const MacNodeId &eNbI
 
 	//EV << "**** Ext Cell Interference **** " << endl;
 
-// get external cell list
+	// get external cell list
 	ExtCellList list = binder_->getExtCellList();
 	ExtCellList::iterator it = list.begin();
 
@@ -2413,7 +2413,7 @@ bool NRRealisticChannelModel::computeExtCellInterferenceNR(const MacNodeId &eNbI
 			att, // dBm
 			angularAtt; // dBm
 
-//compute distance for each cell
+	//compute distance for each cell
 	while (it != list.end()) {
 		// get external cell position
 		c = (*it)->getPosition();
