@@ -105,14 +105,14 @@ network NRFourBSHighwaySimple extends GeneralParameters
 
         //INET
         server1: StandardHost {
-            @display("p=3934.32,3031.86;is=n;i=device/server");
+            @display("p=3873.48,3985.02;is=n;i=device/server");
         }
-        server2: StandardHost {
-            @display("p=3032.424,4473.576;is=n;i=device/server");
-        }
-        server3: StandardHost {
-            @display("p=3943.152,3993.192;is=n;i=device/server");
-        }
+//        server2: StandardHost {
+//            @display("p=3032.424,4473.576;is=n;i=device/server");
+//        }
+//        server3: StandardHost {
+//            @display("p=3943.152,3993.192;is=n;i=device/server");
+//        }
 
         //INET
         router: Router {
@@ -141,8 +141,8 @@ network NRFourBSHighwaySimple extends GeneralParameters
 
     connections allowunconnected:
         server1.pppg++ <--> Eth10G <--> router.pppg++;
-        server2.pppg++ <--> Eth10G <--> router.pppg++;
-        server3.pppg++ <--> Eth10G <--> router.pppg++;
+        //server2.pppg++ <--> Eth10G <--> router.pppg++;
+        //server3.pppg++ <--> Eth10G <--> router.pppg++;
 
         router.pppg++ <--> Eth10G <--> upf.filterGate;
         upf.pppg++ <--> Eth10G <--> gNodeB1.ppp;

@@ -13,9 +13,8 @@
 #define __EXTCELL_H_
 
 #include <omnetpp.h>
-
-#include "common/binder/Binder.h"
 #include "common/LteCommon.h"
+#include "common/binder/Binder.h"
 
 typedef std::vector<int> BandStatus;
 

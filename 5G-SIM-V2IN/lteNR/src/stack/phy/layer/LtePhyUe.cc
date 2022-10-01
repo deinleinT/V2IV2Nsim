@@ -60,7 +60,7 @@ void LtePhyUe::initialize(int stage)
         currentMasterRssi_ = 0;
         candidateMasterRssi_ = 0;
         hysteresisTh_ = 0;
-        hysteresisFactor_ = 10;
+        hysteresisFactor_ = 100;
         handoverDelta_ = 0.00001;
 
         dasRssiThreshold_ = 1.0e-5;
@@ -243,6 +243,9 @@ void LtePhyUe::handleSelfMessage(cMessage *msg)
     else if (msg->isName("handoverTrigger"))
     {
         doHandover();
+        if (getSimulation()->getSystemModule()->par("useSINRThreshold").boolValue()) {
+            getBinder()->deleteFromUeNotConnectedList(nodeId_);
+        }
         delete msg;
         handoverTrigger_ = nullptr;
     }

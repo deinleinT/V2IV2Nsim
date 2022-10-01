@@ -77,7 +77,10 @@ module Ue
         bool enableExtInterface = default(false);
         string extHostAddress = default("");
 
+        //# Num of PcapRecorders
         int numPcapRecorders = default(0); // no of PcapRecorders
+
+        bool hasRNISupport = default(false); 
 
     gates:
         input radioIn @directIn;     // connection to master
@@ -89,9 +92,13 @@ module Ue
         mobility: <mobilityType> like IMobility {
             @display("p=127.368004,172.26001;is=s");
         }
+
+        //# app layer 
         app[numApps]: <> like IApp {
             @display("p=374.47998,72.479996,row,140");
         }
+
+        //# transport layer 
         udp: <default(firstAvailableOrEmpty("Udp"))> like IUdp if hasUdp {
             parameters:
                 @display("p=375,226");
@@ -123,12 +130,12 @@ module Ue
             parameters:
                 @display("p=550,146;b=600,5,,,,1");
         }
-        // message dispatcher for SAP between transport and network layer
+        //# message dispatcher for SAP between transport and network layer
         tn: MessageDispatcher {
             parameters:
                 @display("p=550,296;b=600,5,,,,1");
         }
-        // message dispatcher for SAP to link layer
+        //# message dispatcher for SAP to link layer
         nl: MessageDispatcher {
             parameters:
                 @display("p=550,446;b=600,5,,,,1");

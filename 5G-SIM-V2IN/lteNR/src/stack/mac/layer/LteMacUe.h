@@ -44,7 +44,7 @@ public:
     // one per carrier
     std::map<double, LteSchedulerUeUl*> lcgScheduler_;
 
-    // configured grant - one each codeword
+    // configured grant - one each codeword, first is carrier frequency
     std::map<double, inet::IntrusivePtr<const LteSchedulingGrant> > schedulingGrant_;
 
     /// List of scheduled connection for this UE

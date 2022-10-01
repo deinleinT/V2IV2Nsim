@@ -19,7 +19,7 @@ module LteRlc {
     parameters:
         @display("i=block/transport");      
         string LteRlcUmType = default("LteRlcUm");                   // One of: "LteRlcUm", "LteRlcUmD2D"      
-        bool d2dCapable;                                             // inherit the value from the parent module
+        bool d2dCapable = default(false);                                             // inherit the value from the parent module
         string umType = d2dCapable ? "LteRlcUmD2D" : LteRlcUmType;
 
     gates:
@@ -139,7 +139,7 @@ simple LteRlcUm like ILteRlcUm {
         
         //# SDU-level statistics
         @signal[rlcDelayDl];
-        @statistic[rlcDelayDl](title="Delay at the rlc layer UL"; unit="s"; source="rlcDelayDl"; record=mean,vector);
+        @statistic[rlcDelayDl](title="Delay at the rlc layer DL"; unit="s"; source="rlcDelayDl"; record=mean,vector);
         @signal[rlcThroughputDl];
         @statistic[rlcThroughputDl](title="Throughput at the rlc layer DL"; unit="Bps"; source="rlcThroughputDl"; record=mean,vector);
         @signal[rlcDelayUl];
@@ -161,6 +161,21 @@ simple LteRlcUm like ILteRlcUm {
         @statistic[rlcCellPacketLossDl](title="rlc Cell Packet Loss"; unit=""; source="rlcCellPacketLossDl"; record=mean);
         @signal[rlcCellPacketLossUl];
         @statistic[rlcCellPacketLossUl](title="rlc Cell Packet Loss"; unit=""; source="rlcCellPacketLossUl"; record=mean); 
+        
+        @signal[totalRlcThroughputDl];
+        @statistic[totalRlcThroughputDl](title="totalRlcThroughputDl"; unit="Bps"; source="totalRlcThroughputDl"; record=vector);
+        @signal[totalRlcThroughputUl];
+        @statistic[totalRlcThroughputUl](title="totalRlcThroughputUl"; unit="Bps"; source="totalRlcThroughputUl"; record=vector);
+        
+        @signal[totalRlcThroughputDlMean];
+        @statistic[totalRlcThroughputDlMean](title="totalRlcThroughputDl"; unit="Bps"; source="totalRlcThroughputDl"; record=mean);
+        @signal[totalRlcThroughputUlMean];
+        @statistic[totalRlcThroughputUlMean](title="totalRlcThroughputUl"; unit="Bps"; source="totalRlcThroughputUl"; record=mean);
+        
+        @signal[UEtotalRlcThroughputDlMean];
+        @statistic[UEtotalRlcThroughputDlMean](title="UEtotalRlcThroughputDlMean"; unit="Bps"; source="UEtotalRlcThroughputDlMean"; record=mean);
+        @signal[UEtotalRlcThroughputUlMean];
+        @statistic[UEtotalRlcThroughputUlMean](title="UEtotalRlcThroughputUlMean"; unit="Bps"; source="UEtotalRlcThroughputUlMean"; record=mean);
         
         //# PDU-level statistics                 
         @signal[rlcPduDelayDl];

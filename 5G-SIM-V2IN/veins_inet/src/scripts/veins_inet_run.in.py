@@ -50,7 +50,14 @@ if (len(omnet_args) > 0) and omnet_args[0] == '--':
 
 run_libs = [relpath(s) for s in run_libs]
 run_neds = [relpath(s) for s in run_neds] + ['.']
+run_excs = [relpath(s) for s in run_excs]
 run_imgs = [relpath(s) for s in run_imgs]
+
+run_excs_lines = []
+for run_exc in run_excs:
+    if os.path.isfile(run_exc):
+        with open(run_exc, 'r') as f:
+            run_excs_lines += [line.strip() for line in f]
 
 opp_run = 'opp_run'
 if args.debug:
@@ -67,9 +74,15 @@ if args.mode:
     else:
         assert False, 'unknown --mode option'
 
-lib_flags = ['-l%s' % s for s in run_libs]
-ned_flags = ['-n' + ';'.join(run_neds)]
-img_flags = ['--image-path=' + ';'.join(run_imgs)]
+lib_flags = []
+if run_libs:
+    lib_flags += ['-l%s' % s for s in run_libs]
+ned_flags = []
+if run_neds:
+    ned_flags += ['-n' + ';'.join(run_neds)]
+img_flags = []
+if run_imgs:
+    img_flags += ['--image-path=' + ';'.join(run_imgs)]
 
 prefix = []
 if args.tool == 'lldb':
@@ -85,6 +98,8 @@ cmdline = prefix + [opp_run] + lib_flags + ned_flags + img_flags + omnet_args
 
 if args.verbose:
     print("Running with command line arguments: %s" % ' '.join(['"%s"' % arg for arg in cmdline]))
+
+os.environ['OMNETPP_NED_PACKAGE_EXCLUSIONS'] = ';'.join(list(filter(None, os.getenv('OMNETPP_NED_PACKAGE_EXCLUSIONS', '').split(';'))) + run_excs_lines)
 
 if os.name == 'nt':
     subprocess.call(['env'] + cmdline)

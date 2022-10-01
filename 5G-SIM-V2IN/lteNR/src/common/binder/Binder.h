@@ -160,20 +160,28 @@ class Binder : public omnetpp::cSimpleModule
         ueList_.clear();
     }
 
-    //returns true if the ue is not connected to a base station
-    //only considered if the flag useSINRThreshold
-    virtual bool isNotConnected(MacNodeId ueId) {
+	//returns true if the ue is not connected to a base station
+	//only considered if the flag useSINRThreshold
+	virtual bool isNotConnected(MacNodeId ueId){
 
-        ASSERT(ueId >= UE_MIN_ID && ueId <= UE_MAX_ID);
+		ASSERT(ueId >= UE_MIN_ID && ueId <= UE_MAX_ID);
 
-        for (auto var : ueNotConnectedList_) {
-            if (var == ueId) {
-                return true;
-            }
-        }
+		for(auto & var : ueNotConnectedList_){
+			if(var == ueId){
+				return true;
+			}
+		}
 
-        return false;
-    }
+		return false;
+	}
+
+	virtual void insertUeToNotConnectedList(MacNodeId ueId){
+		ueNotConnectedList_.insert(ueId);
+	}
+
+	virtual void deleteFromUeNotConnectedList(MacNodeId ueId){
+		ueNotConnectedList_.erase(ueId);
+	}
 
     /**
      * Registers a carrier to the global Binder module
@@ -417,7 +425,7 @@ class Binder : public omnetpp::cSimpleModule
      * getDeployedUes() returns the affiliates
      * of a given eNodeB
      */
-    ConnectedUesMap getDeployedUes(MacNodeId localId, Direction dir);
+    ConnectedUesMap getDeployedUes(MacNodeId localId);
     PhyPisaData phyPisaData;
 
     int getNodeCount(){

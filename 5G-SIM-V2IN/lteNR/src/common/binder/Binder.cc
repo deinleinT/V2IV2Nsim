@@ -117,13 +117,15 @@ SlotFormat Binder::computeSlotFormat(bool useTdd, unsigned int tddNumSymbolsDl, 
         unsigned int rbxDl = 7;  // TODO replace with the parameter obtained from NED file once you moved the function to the Component Carrier
 
         sf.tdd = true;
-        unsigned int numSymbols = rbxDl * 2;
+        unsigned int numSymbols = 14;
 
         if (tddNumSymbolsDl+tddNumSymbolsUl > numSymbols)
             throw cRuntimeError("Binder::computeSlotFormat - Number of symbols not valid - DL[%d] UL[%d]", tddNumSymbolsDl,tddNumSymbolsUl);
 
-        sf.numDlSymbols = tddNumSymbolsDl;
-        sf.numUlSymbols = tddNumSymbolsUl;
+//        sf.numDlSymbols = tddNumSymbolsDl;
+//        sf.numUlSymbols = tddNumSymbolsUl;
+        sf.numDlSymbols = 6;
+        sf.numUlSymbols = 6;
         sf.numFlexSymbols = numSymbols - tddNumSymbolsDl - tddNumSymbolsUl;
     }
     return sf;
@@ -341,7 +343,7 @@ const char* Binder::getModuleNameByMacNodeId(MacNodeId nodeId)
     return macNodeIdToModuleName_[nodeId];
 }
 
-ConnectedUesMap Binder::getDeployedUes(MacNodeId localId, Direction dir)
+ConnectedUesMap Binder::getDeployedUes(MacNodeId localId)
 {
     Enter_Method_Silent("getDeployedUes");
     return dMap_[localId];

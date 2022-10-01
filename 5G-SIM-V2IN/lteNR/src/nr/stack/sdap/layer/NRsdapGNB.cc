@@ -54,25 +54,6 @@ void NRsdapGNB::initialize(int stage) {
 
 }
 
-void NRsdapGNB::handleMessage(cMessage *msg) {
-
-    //std::cout << "NRsdap::handleMessage start at " << simTime().dbl() << std::endl;
-
-    if (strcmp(msg->getArrivalGate()->getBaseName(), "upperLayer")
-            == 0) {
-
-        fromUpperToLower(msg);
-
-    } else if (strcmp(msg->getArrivalGate()->getBaseName(), "lowerLayer")
-            == 0) {
-
-        fromLowerToUpper(msg);
-
-    }
-
-    //std::cout << "NRsdap::handleMessage end at " << simTime().dbl() << std::endl;
-}
-
 //incoming messages from IP2NR, to pdcp
 void NRsdapGNB::fromUpperToLower(cMessage *msg) {
 

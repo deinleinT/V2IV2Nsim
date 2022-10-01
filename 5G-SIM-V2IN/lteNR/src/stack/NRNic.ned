@@ -64,7 +64,6 @@ module NRNicUe extends LteNicUeD2D
         nrPhy: <NRPhyType> like LtePhy {
             @display("p=411,389");
         }
-        
         // NR Channel Model 
         nrChannelModel[numNRCarriers]: <NRChannelModelType> like LteChannelModelInterface {
             @display("p=144,389");

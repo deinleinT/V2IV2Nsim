@@ -9,6 +9,12 @@
 // and cannot be removed from it.
 //
 
+//
+// This file has been modified/enhanced for 5G-SIM-V2I/N.
+// Date: 2021
+// Author: Thomas Deinlein
+//
+
 #ifndef _LTE_LTESCHEDULER_H_
 #define _LTE_LTESCHEDULER_H_
 
@@ -199,6 +205,10 @@ class LteScheduler
     }
     virtual void updateSchedulingInfo()
     {
+    }
+
+    virtual ActiveSet * getActiveConnectionSet(){
+        return activeConnectionSet_;
     }
 
   protected:

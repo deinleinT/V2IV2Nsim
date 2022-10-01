@@ -22,7 +22,7 @@
  * Part of 5G-Sim-V2I/N
  *
  *
- */
+*/
 
 #include "nr/stack/sdap/layer/NRsdapUE.h"
 
@@ -30,51 +30,33 @@ Define_Module(NRsdapUE);
 
 void NRsdapUE::initialize(int stage) {
 
-	if (stage == inet::INITSTAGE_NETWORK_LAYER) {
-		upperLayer = gate("upperLayer$o");
-		lowerLayer = gate("lowerLayer$o");
-		upperLayerIn = gate("upperLayer$i");
-		lowerLayerIn = gate("lowerLayer$i");
+    if (stage == inet::INITSTAGE_NETWORK_LAYER) {
+        upperLayer = gate("upperLayer$o");
+        lowerLayer = gate("lowerLayer$o");
+        upperLayerIn = gate("upperLayer$i");
+        lowerLayerIn = gate("lowerLayer$i");
 
-		fromUpperLayer = registerSignal("fromUpperLayer");
-		fromLowerLayer = registerSignal("fromLowerLayer");
-		toUpperLayer = registerSignal("toUpperLayer");
-		toLowerLayer = registerSignal("toLowerLayer");
-		pkdrop = registerSignal("pkdrop");
+        fromUpperLayer = registerSignal("fromUpperLayer");
+        fromLowerLayer = registerSignal("fromLowerLayer");
+        toUpperLayer = registerSignal("toUpperLayer");
+        toLowerLayer = registerSignal("toLowerLayer");
+        pkdrop = registerSignal("pkdrop");
 
-		qosHandler = check_and_cast<QosHandler*>(getParentModule()->getSubmodule("qosHandler"));
+        qosHandler = check_and_cast<QosHandler*>(getParentModule()->getSubmodule("qosHandler"));
 
-		nodeType = qosHandler->getNodeType();
-		nodeId_ = getAncestorPar("macNodeId");
-		hoErrorCount = 0;
-		WATCH(nodeId_);
+        nodeType = qosHandler->getNodeType();
+        nodeId_ = getAncestorPar("macNodeId");
+        hoErrorCount = 0;
+        WATCH(nodeId_);
 
-	}
+    }
 
-}
-
-void NRsdapUE::handleMessage(cMessage * msg) {
-
-	//std::cout << "NRsdap::handleMessage start at " << simTime().dbl() << std::endl;
-
-	if (strcmp(msg->getArrivalGate()->getBaseName(), "upperLayer") == 0) {
-
-		fromUpperToLower(msg);
-
-	}
-	else if (strcmp(msg->getArrivalGate()->getBaseName(), "lowerLayer") == 0) {
-
-		fromLowerToUpper(msg);
-
-	}
-
-	//std::cout << "NRsdap::handleMessage end at " << simTime().dbl() << std::endl;
 }
 
 //incoming messages from IP2NR, to pdcp
-void NRsdapUE::fromUpperToLower(cMessage * msg) {
+void NRsdapUE::fromUpperToLower(cMessage *msg) {
 
-	//std::cout << "NRsdap::fromUpperToLower start at " << simTime().dbl() << std::endl;
+    //std::cout << "NRsdap::fromUpperToLower start at " << simTime().dbl() << std::endl;
 
 	auto pktIn = check_and_cast<cPacket*>(msg);
 	auto pkt = check_and_cast<inet::Packet*>(pktIn);
@@ -99,6 +81,8 @@ void NRsdapUE::fromUpperToLower(cMessage * msg) {
 	pkt->addTagIfAbsent<FlowControlInfo>()->setDestId(destId);
 	pkt->addTagIfAbsent<FlowControlInfo>()->setSourceId(nodeId_);
 	pkt->addTagIfAbsent<FlowControlInfo>()->setHeaderSize(1);
+	pkt->addTagIfAbsent<FlowControlInfo>()->setDirection(UL);
+
 
 	if (getSystemModule()->hasPar("considerProcessingDelay")) {
 		if (getSystemModule()->par("considerProcessingDelay").boolValue()) {
@@ -110,13 +94,13 @@ void NRsdapUE::fromUpperToLower(cMessage * msg) {
 		}
 	}
 
-	//std::cout << "NRsdap::fromUpperToLower end at " << simTime().dbl() << std::endl;
+    //std::cout << "NRsdap::fromUpperToLower end at " << simTime().dbl() << std::endl;
 }
 
 //incoming messages from pdcp, to IP2NR
-void NRsdapUE::fromLowerToUpper(cMessage * msg) {
+void NRsdapUE::fromLowerToUpper(cMessage *msg) {
 
-	//std::cout << "NRsdap::fromLowerToUpper start at " << simTime().dbl() << std::endl;
+    //std::cout << "NRsdap::fromLowerToUpper start at " << simTime().dbl() << std::endl;
 
 	inet::Packet *pkt = check_and_cast<inet::Packet*>(msg);
 
@@ -130,6 +114,6 @@ void NRsdapUE::fromLowerToUpper(cMessage * msg) {
 		}
 	}
 
-	//std::cout << "NRsdap::fromLowerToUpper end at " << simTime().dbl() << std::endl;
+    //std::cout << "NRsdap::fromLowerToUpper end at " << simTime().dbl() << std::endl;
 }
 

@@ -26,7 +26,7 @@
 
 #include "nr/stack/rlc/um/NRRlcUm.h"
 
-#include "../../mac/layer/NRMacUE.h"
+#include "nr/stack/mac/layer/NRMacUE.h"
 #include "nr/stack/mac/layer/NRMacGNB.h"
 #include "nr/common/cellInfo/NRCellInfo.h"
 #include "nr/apps/TrafficGenerator/packet/V2XMessage_m.h"
@@ -35,58 +35,112 @@ Define_Module(NRRlcUm);
 
 void NRRlcUm::initialize(int stage) {
 
-	//LteRlcUm::initialize(stage);
-	if (stage == inet::INITSTAGE_LOCAL) {
-		up_[IN_GATE] = gate("UM_Sap_up$i");
-		up_[OUT_GATE] = gate("UM_Sap_up$o");
-		down_[IN_GATE] = gate("UM_Sap_down$i");
-		down_[OUT_GATE] = gate("UM_Sap_down$o");
+    //LteRlcUm::initialize(stage);
+    if (stage == inet::INITSTAGE_LOCAL) {
+        nodeType = getParentModule()->getParentModule()->par("nodeType").stdstringValue();
+        up_[IN_GATE] = gate("UM_Sap_up$i");
+        up_[OUT_GATE] = gate("UM_Sap_up$o");
+        down_[IN_GATE] = gate("UM_Sap_down$i");
+        down_[OUT_GATE] = gate("UM_Sap_down$o");
 
-		// parameters
-		mapAllLcidsToSingleBearer_ = par("mapAllLcidsToSingleBearer");
+        // parameters
+        mapAllLcidsToSingleBearer_ = par("mapAllLcidsToSingleBearer");
 
-		// statistics
-		receivedPacketFromUpperLayer = registerSignal("receivedPacketFromUpperLayer");
-		receivedPacketFromLowerLayer = registerSignal("receivedPacketFromLowerLayer");
-		sentPacketToUpperLayer = registerSignal("sentPacketToUpperLayer");
-		sentPacketToLowerLayer = registerSignal("sentPacketToLowerLayer");
-		rlcPacketLossDl = registerSignal("rlcPacketLossDl");
-		rlcPacketLossUl = registerSignal("rlcPacketLossUl");
+        // statistics
+        receivedPacketFromUpperLayer = registerSignal("receivedPacketFromUpperLayer");
+        receivedPacketFromLowerLayer = registerSignal("receivedPacketFromLowerLayer");
+        sentPacketToUpperLayer = registerSignal("sentPacketToUpperLayer");
+        sentPacketToLowerLayer = registerSignal("sentPacketToLowerLayer");
+        rlcPacketLossDl = registerSignal("rlcPacketLossDl");
+        rlcPacketLossUl = registerSignal("rlcPacketLossUl");
 
-		WATCH_MAP(txEntities_);
-		WATCH_MAP(rxEntities_);
-	}
+        totalRlcThroughputUl.setName("UEtotalRlcThroughputUl");
+        totalRlcThroughputDl.setName("UEtotalRlcThroughputDl");
 
-	if (stage == inet::INITSTAGE_LOCAL) {
+        //for measuring the throughput for remote vehicles and human driven vehicles
+        if (nodeType.compare("UE") != 0) {
+            ueTotalRlcThroughputDlInit = true;
+            ueTotalRlcThroughputUlInit = true;
+            ueTotalRlcThroughputUlStartTime = NOW;
+            ueTotalRlcThroughputDlStartTime = NOW;
+            ueTotalRlcThroughputUl.setName("UEtotalRlcThroughputUl");
+            ueTotalRlcThroughputDl.setName("UEtotalRlcThroughputDl");
 
-		up_[IN_GATE] = gate("UM_Sap_up$i");
-		up_[OUT_GATE] = gate("UM_Sap_up$o");
-		down_[IN_GATE] = gate("UM_Sap_down$i");
-		down_[OUT_GATE] = gate("UM_Sap_down$o");
+        }
+        else {
+            ueTotalRlcThroughputDlInit = false;
+            ueTotalRlcThroughputUlInit = false;
+            throughputTimer = new cMessage("throughputTimer");
+            throughputInterval = getSimulation()->getSystemModule()->par("throughputInterval").doubleValue();
+            double time = NOW.dbl();
+            double firstSchedule = floor(time + throughputInterval);
+            scheduleAt(firstSchedule, throughputTimer);
+        }
 
-		qosHandler = check_and_cast<QosHandler*>(getParentModule()->getParentModule()->getSubmodule("qosHandler"));
+        totalRcvdBytesUl = 0;
+        totalRcvdBytesDl = 0;
 
-		WATCH_MAP(txEntities_);
-		WATCH_MAP(rxEntities_);
+        numberOfConnectedUes = 0;
+        cellConnectedUes.setName("cellConnectedUes");
 
-		totalRlcThroughputUl.setName("UEtotalRlcThroughputUl");
-		totalRlcThroughputDl.setName("UEtotalRlcThroughputDl");
-		totalRcvdBytesUl = 0;
-		totalRcvdBytesDl = 0;
+        UEtotalRlcThroughputDlMean = registerSignal("UEtotalRlcThroughputDlMean");
+        UEtotalRlcThroughputUlMean = registerSignal("UEtotalRlcThroughputUlMean");
 
-		numberOfConnectedUes = 0;
+        throughputInBitsPerSecondDL = 0;
+        throughputInBitsPerSecondUL = 0;
 
-		cellConnectedUes.setName("cellConnectedUes");
-
-		UEtotalRlcThroughputDlMean = registerSignal("UEtotalRlcThroughputDlMean");
-		UEtotalRlcThroughputUlMean = registerSignal("UEtotalRlcThroughputUlMean");
-	}
+        qosHandler = check_and_cast<QosHandler*>(getParentModule()->getParentModule()->getSubmodule("qosHandler"));
+    }
 }
 
-void NRRlcUm::handleUpperMessage(cPacket * pkt) {
+void NRRlcUm::handleUpperMessage(cPacket * pktAux) {
 	//std::cout << "NRRlcUm::handleUpperMessage start at " << simTime().dbl() << std::endl;
 
-	LteRlcUm::handleUpperMessage(pkt);
+	//LteRlcUm::handleUpperMessage(pkt);
+
+    emit(receivedPacketFromUpperLayer, pktAux);
+
+    auto pkt = check_and_cast<inet::Packet *> (pktAux);
+    auto lteInfo = pkt->getTag<FlowControlInfo>();
+
+    auto chunk = pkt->peekAtFront<inet::Chunk>();
+    EV << "LteRlcUm::handleUpperMessage - Received packet " << chunk->getClassName() << " from upper layer, size " << pktAux->getByteLength() << "\n";
+
+    UmTxEntity* txbuf = getTxBuffer(lteInfo);
+
+    // Create a new RLC packet
+    auto rlcPkt = inet::makeShared<LteRlcSdu>();
+    rlcPkt->setSnoMainPacket(lteInfo->getSequenceNumber());
+    rlcPkt->setLengthMainPacket(pkt->getByteLength());
+    pkt->insertAtFront(rlcPkt);
+
+    drop(pkt);
+
+//    if (txbuf->isHoldingDownstreamInPackets())
+//    {
+//        // do not store in the TX buffer and do not signal the MAC layer
+//        EV << "LteRlcUm::handleUpperMessage - Enque packet " << rlcPkt->getClassName() << " into the Holding Buffer\n";
+//        txbuf->enqueHoldingPackets(pkt);
+//    }
+//    else
+//    {
+        if(txbuf->enque(pkt)){
+            EV << "LteRlcUm::handleUpperMessage - Enque packet " << rlcPkt->getClassName() << " into the Tx Buffer\n";
+
+            // create a message so as to notify the MAC layer that the queue contains new data
+            auto newDataPkt = inet::makeShared<LteRlcPduNewData>();
+            // make a copy of the RLC SDU
+            auto pktDup = pkt->dup();
+            pktDup->insertAtFront(newDataPkt);
+            // the MAC will only be interested in the size of this packet
+
+            EV << "LteRlcUm::handleUpperMessage - Sending message " << newDataPkt->getClassName() << " to port UM_Sap_down$o\n";
+            send(pktDup, down_[OUT_GATE]);
+        } else {
+            // Queue is full - drop SDU
+            dropBufferOverflow(pkt);
+        }
+//    }
 
 	//std::cout << "NRRlcUm::handleUpperMessage end at " << simTime().dbl() << std::endl;
 }
@@ -94,6 +148,18 @@ void NRRlcUm::handleUpperMessage(cPacket * pkt) {
 void NRRlcUm::handleMessage(cMessage * msg) {
 
 	//std::cout << "NRRlcUm::handleMessage start at " << simTime().dbl() << std::endl;
+	if (nodeType.compare("UE") == 0) {
+		if (msg->isSelfMessage()) {
+			//throughput per second for each vehicle
+			checkRemoteCarStatus();
+			UERlcThroughputPerSecondDl.record(throughputInBitsPerSecondDL);
+			UERlcThroughputPerSecondUl.record(throughputInBitsPerSecondUL);
+			throughputInBitsPerSecondDL = 0;
+			throughputInBitsPerSecondUL = 0;
+			scheduleAt(NOW + throughputInterval, throughputTimer);
+			return;
+		}
+	}
 
 	LteRlcUm::handleMessage(msg);
 
@@ -173,8 +239,10 @@ void NRRlcUm::sendDefragmented(cPacket * pkt) {
 			}
 		}
 	}
+	//
 
 	send(pkt, up_[OUT_GATE]);
 
 	//std::cout << "NRRlcUm::sendDefragmented end at " << simTime().dbl() << std::endl;
 }
+

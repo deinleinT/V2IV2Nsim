@@ -12,7 +12,8 @@
 #include "stack/rlc/um/LteRlcUm.h"
 #include "stack/rlc/um/entity/UmRxEntity.h"
 #include "stack/mac/layer/LteMacBase.h"
-#include "stack/mac/layer/LteMacEnb.h"
+#include "nr/stack/mac/layer/NRMacGNB.h"
+#include "nr/common/cellInfo/NRCellInfo.h"
 
 Define_Module(UmRxEntity);
 
@@ -170,7 +171,7 @@ void UmRxEntity::enque(cPacket* pktAux)
 
     index = rxWindowDesc_.firstSnoForReordering_-rxWindowDesc_.firstSno_; //
 
-    // D
+    //
     if (received_.at(rxWindowDesc_.firstSnoForReordering_-rxWindowDesc_.firstSno_) == true)
     {
         unsigned int old = rxWindowDesc_.firstSnoForReordering_;
@@ -213,6 +214,8 @@ void UmRxEntity::enque(cPacket* pktAux)
             rxWindowDesc_.reorderingSno_ = rxWindowDesc_.highestReceivedSno_;
         }
     }
+
+    //std::cout << "UmRxEntity::enque end at " << simTime().dbl() << std::endl;
 }
 
 void UmRxEntity::moveRxWindow(const int pos)
@@ -300,6 +303,42 @@ void UmRxEntity::toPdcp(Packet* pktAux)
             ue->emit(rlcPacketLoss_, 0.0);
             ue->emit(rlcPacketLossTotal_, 0.0);
             ue->emit(rlcDelay_, (NOW - ts).dbl());
+            LteMacBase *mac = check_and_cast<LteMacBase*>(
+                    getParentModule()->getParentModule()->getSubmodule("mac"));
+            LteRlcUm *rlcUe = check_and_cast<LteRlcUm*>(ue);
+            if (mac->getNodeType() == ENODEB || mac->getNodeType() == GNODEB) {
+                rlcUe->recordUETotalRlcThroughputUl(length);
+                LteRlcUm *rlcNodeB = check_and_cast<LteRlcUm*>(nodeB_);
+                NRMacGNB *macNodeB = check_and_cast<NRMacGNB*>(
+                        binder_->getMacFromMacNodeId(mac->getMacCellId()));
+
+                //getNRCellInfo(nodeId)
+                NRCellInfo *cellInfo = check_and_cast<NRCellInfo*>(
+                        macNodeB->getCellInfo());
+                std::vector<MacNodeId> ues = cellInfo->getConnectedUes();
+                unsigned int conUes = 0;
+                for (auto &var : cellInfo->getConnectedUes()) {
+                    if (var != mac->getMacCellId())
+                        ++conUes;
+                }
+                rlcNodeB->recordConnectedCellUes(conUes);
+            } else {
+                rlcUe->recordUETotalRlcThroughputDl(length);
+                LteRlcUm *rlcNodeB = check_and_cast<LteRlcUm*>(nodeB_);
+                NRMacGNB *macNodeB = check_and_cast<NRMacGNB*>(
+                        binder_->getMacFromMacNodeId(mac->getMacCellId()));
+
+                //getNRCellInfo(nodeId)
+                NRCellInfo *cellInfo = check_and_cast<NRCellInfo*>(
+                        macNodeB->getCellInfo());
+                std::vector<MacNodeId> ues = cellInfo->getConnectedUes();
+                unsigned int conUes = 0;
+                for (auto &var : cellInfo->getConnectedUes()) {
+                    if (var != mac->getMacCellId())
+                        ++conUes;
+                }
+                rlcNodeB->recordConnectedCellUes(conUes);
+            }
         }
         else
         {
@@ -730,7 +769,6 @@ void UmRxEntity::initialize()
     totalPduRcvdBytes_ = 0;
 
     cModule* parent = check_and_cast<LteRlcUm*>(getParentModule()->getSubmodule("um"));
-
     //statistics
 
     // TODO find a more elegant way
@@ -751,6 +789,8 @@ void UmRxEntity::initialize()
         rlcPduPacketLoss_ = parent->registerSignal("rlcPduPacketLossUl");
         rlcDelay_ = parent->registerSignal("rlcDelayUl");
         rlcThroughput_ = parent->registerSignal("rlcThroughputUl");
+        totalRlcThroughputSignal_ = parent->registerSignal("totalRlcThroughputUl");
+        rlcThroughputMean_ = parent->registerSignal("rlcThroughputUlMean");
         rlcPduDelay_ = parent->registerSignal("rlcPduDelayUl");
         rlcPduThroughput_ = parent->registerSignal("rlcPduThroughputUl");
         rlcCellThroughput_ = parent->registerSignal("rlcCellThroughputUl");
@@ -762,6 +802,8 @@ void UmRxEntity::initialize()
         rlcPduPacketLoss_ = parent->registerSignal("rlcPduPacketLossDl");
         rlcDelay_ = parent->registerSignal("rlcDelayDl");
         rlcThroughput_ = parent->registerSignal("rlcThroughputDl");
+        totalRlcThroughputSignal_ = parent->registerSignal("totalRlcThroughputDl");
+        rlcThroughputMean_ = parent->registerSignal("rlcThroughputDlMean");
         rlcPduDelay_ = parent->registerSignal("rlcPduDelayDl");
         rlcPduThroughput_ = parent->registerSignal("rlcPduThroughputDl");
 

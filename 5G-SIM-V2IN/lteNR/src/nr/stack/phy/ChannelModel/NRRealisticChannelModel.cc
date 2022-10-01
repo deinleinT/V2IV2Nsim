@@ -670,7 +670,7 @@ std::vector<double> NRRealisticChannelModel::getSINR(LteAirFrame *frame,
         } else {
             speed = computeSpeed(ueId, ueCoord);
         }
-//			cqiDl = true;
+        //			cqiDl = true;
     }
     /*
      * If direction is UL OR
@@ -927,7 +927,7 @@ std::vector<double> NRRealisticChannelModel::getSINR(LteAirFrame *frame,
         }
     }
 
-//std::cout << "NRRealisticChannelModel::getSINR end at " << simTime().dbl() << std::endl;
+    //std::cout << "NRRealisticChannelModel::getSINR end at " << simTime().dbl() << std::endl;
 
     return snrVector;
 }
@@ -1109,8 +1109,8 @@ double NRRealisticChannelModel::getAttenuationNR(const MacNodeId &nodeId,
                 enodebcoord, uecoord); //use veinsObstacleControl for NLOS, here it is nlos, and we want to calculate attenuation with veins obstacleControl
     }
 
-//    Applying shadowing only if it is enabled by configuration
-//    log-normal shadowing
+    //    Applying shadowing only if it is enabled by configuration
+    //    log-normal shadowing
     if (shadowing_) {
         double mean = 0;
 
@@ -1168,7 +1168,7 @@ double NRRealisticChannelModel::getAttenuationNR(const MacNodeId &nodeId,
         attenuation += att;
     }
 
-// update current user position
+    // update current user position
 
     if (nodeId >= UE_MIN_ID && nodeId <= UE_MAX_ID) {
         updatePositionHistory(nodeId, uecoord);
@@ -1238,7 +1238,7 @@ double NRRealisticChannelModel::computeIndoorHotspot(const double &d3d,
             }
         }
     }
-//InH_B
+    //InH_B
     else {
         //LOS
         if (losMap_[nodeId]) {
@@ -1280,25 +1280,25 @@ double NRRealisticChannelModel::calcDistanceBreakPoint(const double &d2d) {
     //std::cout << "NRRealisticChannelModel::calcDistanceBreakPoint start at " << simTime().dbl() << std::endl;
 
     double dbp = 0.0;
-//h'BS
+    //h'BS
     double hBS = 0.0;
-//h'UT
+    //h'UT
     double hUT = 0.0;
-//C(d2d,hUe)
+    //C(d2d,hUe)
     double c = 0.0;
     double g = 0.0;
-//1/(1+c)
+    //1/(1+c)
     double probability = 0.0;
-//effective environment height
+    //effective environment height
     double he = 0.0;
 
-//calc g(d2d)
+    //calc g(d2d)
     if (d2d <= 18)
         g = 0;
     else if (18 < d2d)
         g = (5 / 4) * pow(d2d / 100, 3) * exp(-d2d / 150);
 
-//calc C(d2d,hUT)
+    //calc C(d2d,hUT)
     //in most cases ue_height is < 13m
     if (hUe_ < 13)
         c = 0.0;
@@ -1345,7 +1345,7 @@ double NRRealisticChannelModel::computePLrmaLos(const double &d3d,
     if (!(10 <= d2d && d2d <= 21000))
         throw cRuntimeError("Error Path Loss RMa --> invalid distance (2d)");
 
-//dbp Note 4
+    //dbp Note 4
     double dbp = calcDistanceBreakPointRMa(d2d);
     double a1 = (0.03 * pow(hBuilding_, 1.72));
     double b1 = 0.044 * pow(hBuilding_, 1.72);
@@ -1355,7 +1355,7 @@ double NRRealisticChannelModel::computePLrmaLos(const double &d3d,
     double plOne = 20 * log10(40 * M_PI * d3d * (carrierFrequency_ / 3))
             + a * log10(d3d) - b + 0.002 * log10(hBuilding_) * d3d;
 
-//PL1
+    //PL1
     if (10 <= d2d && d2d <= dbp)
         return plOne;
     else if (dbp <= d2d && d2d <= 21000)  //PL2
@@ -1393,7 +1393,7 @@ double NRRealisticChannelModel::computeRMaA(double &d3ddistance,
         double &d2ddistance, const MacNodeId &nodeId) {
     //std::cout << "NRRealisticChannelModel::computeRMaA start at " << simTime().dbl() << std::endl;
 
-//check range of parameters --> parameterRanges.txt
+    //check range of parameters --> parameterRanges.txt
     if (!(5 <= hBuilding_ && hBuilding_ <= 50 && 5 <= wStreet_ && wStreet_ <= 50
             && 10 <= hNodeB_ && hNodeB_ <= 150 && 1 <= hUe_ && hUe_ <= 10))
         throw cRuntimeError(
@@ -1438,7 +1438,7 @@ double NRRealisticChannelModel::computeRMaB(double &d3ddistance,
         double &d2ddistance, const MacNodeId &nodeId) {
     //std::cout << "NRRealisticChannelModel::computeRMaB start at " << simTime().dbl() << std::endl;
 
-//check range of parameters --> parameterRanges.txt
+    //check range of parameters --> parameterRanges.txt
     if (!(5 <= hBuilding_ && hBuilding_ <= 50 && 5 <= wStreet_ && wStreet_ <= 50
             && 10 <= hNodeB_ && hNodeB_ <= 150 && 1 <= hUe_ && hUe_ <= 10))
         throw cRuntimeError(
@@ -1694,7 +1694,7 @@ double NRRealisticChannelModel::computePLumiALos(const double &d3d,
  */
 double NRRealisticChannelModel::computePLumaLos(const double &d3d,
         double &d2d) {
-//dbp --> see Note 3: d'BP --> Note 3: 4 * h'BS * h'UT * f
+    //dbp --> see Note 3: d'BP --> Note 3: 4 * h'BS * h'UT * f
 
     //std::cout << "NRRealisticChannelModel::computePLumaLos start at " << simTime().dbl() << std::endl;
 
@@ -1763,7 +1763,9 @@ double NRRealisticChannelModel::computeUMaA(double &d3d, double &d2d,
                     - (24.37 - 3.7 * pow(hBuilding_ / hNodeB_, 2.0))
                             * log10(hNodeB_)
                     + (43.42 - 3.1 * log10(hNodeB_)) * (log10(d3d) - 3.0)
-                    + 20.0 * log10(carrierFrequency_) - (3.2 * pow(log10(17.625), 2.0) - 4.97) - 0.6 * (hUe_ - 1.5);
+                    + 20.0 * log10(carrierFrequency_)
+                    - (3.2 * pow(log10(17.625), 2.0) - 4.97)
+                    - 0.6 * (hUe_ - 1.5);
 
         } else if (6 < carrierFrequency_ && carrierFrequency_ <= 100) {
             plumaLos = computePLumaLos(d3d, d2d);
@@ -1890,7 +1892,7 @@ bool NRRealisticChannelModel::isCorrupted(LteAirFrame *frame,
         UserControlInfo *lteInfo) {
     //std::cout << "NRRealisticChannelModel::error start at " << simTime().dbl() << std::endl;
 
-    bool isCorrupted = false;
+    bool isNotCorrupted = false;
     MacNodeId ueId = 0;
     MacNodeId eNbId = 0;
 
@@ -1898,11 +1900,11 @@ bool NRRealisticChannelModel::isCorrupted(LteAirFrame *frame,
 
     //Get MacNodeId of UE
     if (dir == DL) {
-//        id = lteInfo->getDestId();
+        //        id = lteInfo->getDestId();
         ueId = lteInfo->getDestId();
         eNbId = lteInfo->getSourceId();
     } else {
-//        id = lteInfo->getSourceId();
+        //        id = lteInfo->getSourceId();
         ueId = lteInfo->getSourceId();
         eNbId = lteInfo->getDestId();
     }
@@ -2001,23 +2003,24 @@ bool NRRealisticChannelModel::isCorrupted(LteAirFrame *frame,
 
             int snr = snrV[jt->first]; //XXX because jt->first is a Band (=unsigned short)
 
-            if (snr < binder_->phyPisaData.minSnr())
+            if (snr < 0)
                 bler = 1;
             else if (snr > binder_->phyPisaData.maxSnr())
                 bler = 0;
             else
                 bler = binder_->phyPisaData.getBler(itxmode, cqi - 1, snr);
 
-            //EV << "\t bler computation: [itxMode=" << itxmode << "] - [cqi-1=" << cqi-1                   << "] - [snr=" << snr << "]" << endl;
-
-            double success = 1 - bler;
-            //compute the success probability according to the number of RB used
-            double successPacket = pow(success, (double) jt->second);
-            // compute the success probability according to the number of LB used
-            finalSuccess *= successPacket;
-
-            //EV << " NRRealisticChannelModel::error direction " << dirToA(dir) << " node " << id << " remote unit " << dasToA((*it).first) << " Band " << (*jt).first << " SNR " << snr << " CQI "<< cqi << " BLER " << bler << " success probability " << successPacket << " total success probability " << finalSuccess << endl;
         }
+
+        //EV << "\t bler computation: [itxMode=" << itxmode << "] - [cqi-1=" << cqi-1                   << "] - [snr=" << snr << "]" << endl;
+
+        double success = 1 - bler;
+        //compute the success probability according to the number of RB used
+        double successPacket = pow(success, (double) jt->second);
+        // compute the success probability according to the number of LB used
+        finalSuccess *= successPacket;
+
+        //EV << " NRRealisticChannelModel::error direction " << dirToA(dir) << " node " << id << " remote unit " << dasToA((*it).first) << " Band " << (*jt).first << " SNR " << snr << " CQI "<< cqi << " BLER " << bler << " success probability " << successPacket << " total success probability " << finalSuccess << endl;
     }
 
     //Compute total error probability
@@ -2039,7 +2042,7 @@ bool NRRealisticChannelModel::isCorrupted(LteAirFrame *frame,
     if (er <= totalPer) {
         //EV << "This is NOT your lucky day (" << er << " < " << totalPer << ") -> do not receive." << endl;
         // Signal too weak, we can't receive it
-        isCorrupted = false;
+        isNotCorrupted = false;
 
         //simplified consideration of codeblockgroups
         if (getSimulation()->getSystemModule()->hasPar("useCodeBlockGroups")) {
@@ -2053,10 +2056,10 @@ bool NRRealisticChannelModel::isCorrupted(LteAirFrame *frame,
     } else {
         // Signal is strong enough, receive this Signal
         //EV << "This is your lucky day (" << er << " > " << totalPer << ") -> Receive AirFrame." << endl;
-        isCorrupted = true;
+        isNotCorrupted = true;
     }
 
-    if (!isCorrupted) {
+    if (!isNotCorrupted) {
         if (isNodeB_) {
             NRPhyGnb *nrPhy =
                     check_and_cast<NRPhyGnb*>(
@@ -2077,7 +2080,7 @@ bool NRRealisticChannelModel::isCorrupted(LteAirFrame *frame,
 
     //std::cout << "NRRealisticChannelModel::error end at " << simTime().dbl() << std::endl;
 
-    return isCorrupted;
+    return isNotCorrupted;
 }
 
 void NRRealisticChannelModel::considerCodeBlockGroups(LteControlInfo *&info,
@@ -2296,7 +2299,7 @@ bool NRRealisticChannelModel::computeDownlinkInterference(MacNodeId masterId,
 bool NRRealisticChannelModel::computeUplinkInterference(MacNodeId eNbId,
         MacNodeId senderId, bool isCqi, double carrierFrequency, RbMap rbmap,
         std::vector<double> *interference) {
-//   EV << "**** Uplink Interference for cellId[" << eNbId << "] node["<<senderId<<"] ****" << endl;
+    //   EV << "**** Uplink Interference for cellId[" << eNbId << "] node["<<senderId<<"] ****" << endl;
 
     const std::vector<std::vector<UeAllocationInfo> > *ulTransmissionMap;
     const std::vector<UeAllocationInfo> *allocatedUes;

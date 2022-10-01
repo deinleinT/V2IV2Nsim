@@ -668,7 +668,7 @@ unsigned int LteSchedulerEnb::readRbOccupation(const MacNodeId id, double carrie
 void LteSchedulerEnb::initAndResetAllocator()
 {
     // initialize and reset the allocator
-    allocator_->initAndReset(resourceBlocks_,
+    allocator_->init(resourceBlocks_,
         mac_->getCellInfo()->getNumBands());
 }
 

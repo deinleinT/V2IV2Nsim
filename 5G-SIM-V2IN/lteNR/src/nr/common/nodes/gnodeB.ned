@@ -36,7 +36,7 @@ import inet.transportlayer.sctp.Sctp;
 import inet.common.MessageDispatcher;
 import lteNR.x2.LteX2App;
 import lteNR.stack.ICellularNic;
-import lteNR.common.cellInfo.CellInfo;
+import lteNR.nr.common.cellInfo.NRCellInfo;
 import lteNR.nr.corenetwork.gtp.GtpUserNR;
 import lteNR.corenetwork.gtp.GtpUserX2;
 import lteNR.nr.corenetwork.trafficFlowFilter.TrafficFlowFilterNR;
@@ -106,7 +106,7 @@ module gnodeB
             parameters:
                 @display("p=117.65,414.0375;is=s");
         }
-        cellInfo: CellInfo {
+        cellInfo: NRCellInfo {
             parameters:
                 @display("p=117.65,533.95;is=s");
         }

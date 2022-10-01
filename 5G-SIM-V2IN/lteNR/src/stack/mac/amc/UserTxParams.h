@@ -91,7 +91,7 @@ class UserTxParams
         cqiVector_.clear();
         allowedBands_.clear();
 
-        txMode_ = SINGLE_ANTENNA_PORT0;
+        txMode_ = aToTxMode(omnetpp::getSimulation()->getSystemModule()->par("initialTxMode").stringValue());
         ri_ = NORANK;
         pmi_ = NOPMI;
         cqiVector_.push_back(NOSIGNALCQI);

@@ -9,6 +9,12 @@
 // and cannot be removed from it.
 //
 
+//
+// This file has been modified/enhanced for 5G-SIM-V2I/N.
+// Date: 2021
+// Author: Thomas Deinlein
+//
+
 #ifndef _LTE_LTESCHEDULERENB_H_
 #define _LTE_LTESCHEDULERENB_H_
 
@@ -40,6 +46,7 @@ class LteSchedulerEnb
     friend class LteMaxCiOptMB;
     friend class LteMaxCiComp;
     friend class LteAllocatorBestFit;
+    friend class NRQoSModel;
 
   protected:
 
@@ -87,6 +94,7 @@ class LteSchedulerEnb
 
     // Schedule list. One per carrier
     std::map<double, LteMacScheduleList> scheduleList_;
+    std::map<double, LteMacScheduleList> scheduleListRealCid_;
 
     // Codeword list
     LteMacAllocatedCws allocatedCws_;
@@ -142,7 +150,7 @@ class LteSchedulerEnb
      * @param dir link direction
      * @param mac pointer to MAC module
      */
-    void initialize(Direction dir, LteMacEnb* mac);
+    virtual void initialize(Direction dir, LteMacEnb* mac);
 
     /*
      * Initialize counters for schedulers
@@ -315,7 +323,7 @@ class LteSchedulerEnb
     // store an element in the schedule list
     void storeScListId(double carrierFrequency,std::pair<unsigned int, Codeword> scList,unsigned int num_blocks);
 
-  private:
+  //private:
 
     /*****************
      * UTILITIES
@@ -326,7 +334,7 @@ class LteSchedulerEnb
      * implementing the given discipline.
      * @param discipline scheduler discipline
      */
-    LteScheduler* getScheduler(SchedDiscipline discipline);
+    virtual LteScheduler* getScheduler(SchedDiscipline discipline);
 };
 
 #endif // _LTE_LTESCHEDULERENB_H_

@@ -91,13 +91,13 @@ void NRPhyUe::handleAirFrame(cMessage* msg)
         }
 
         // check if the message is from a different cellular technology
-        if (lteInfo->isNr() != isNr_)
-        {
-            EV << "Received handover packet [from NR=" << lteInfo->isNr() << "] from a different radio technology [to NR=" << isNr_ << "]. Delete it." << endl;
-            delete lteInfo;
-            delete frame;
-            return;
-        }
+//        if (lteInfo->isNr() != isNr_)
+//        {
+//            EV << "Received handover packet [from NR=" << lteInfo->isNr() << "] from a different radio technology [to NR=" << isNr_ << "]. Delete it." << endl;
+//            delete lteInfo;
+//            delete frame;
+//            return;
+//        }
 
         // check if the eNodeB is a secondary node
         MacNodeId masterNodeId = binder_->getMasterNode(sourceId);

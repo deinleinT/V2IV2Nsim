@@ -9,6 +9,12 @@
 // and cannot be removed from it.
 //
 
+//
+// This file has been modified/enhanced for 5G-SIM-V2I/N.
+// Date: 2021
+// Author: Thomas Deinlein
+//
+
 #ifndef _LTE_LTE_SCHEDULER_ENB_UL_H_
 #define _LTE_LTE_SCHEDULER_ENB_UL_H_
 
@@ -25,6 +31,7 @@ class LteSchedulerEnbUl : public LteSchedulerEnb
 
     typedef std::map<MacNodeId, unsigned char> HarqStatus;
     typedef std::map<MacNodeId, bool> RacStatus;
+    typedef std::map<MacNodeId, UserControlInfo*> RacStatusInfo;
 
     /// Minimum scheduling unit, represents the MAC SDU size
     unsigned int scheduleUnit_;
@@ -44,6 +51,7 @@ class LteSchedulerEnbUl : public LteSchedulerEnb
 
     //! RAC requests flags: signals wheter an UE shall be granted the RAC allocation
     RacStatus racStatus_;
+    RacStatusInfo racStatusInfo_;
 
   public:
 
@@ -69,6 +77,10 @@ class LteSchedulerEnbUl : public LteSchedulerEnb
     {
         racStatus_[nodeId] = true;
     }
+    virtual void signalRacInfo(const MacNodeId nodeId, UserControlInfo * info){
+        delete racStatusInfo_[nodeId];
+        racStatusInfo_[nodeId] = info;
+    }
 
     /**
      * Schedules retransmission for the Harq Process of the given UE on a set of logical bands.
@@ -88,7 +100,7 @@ class LteSchedulerEnbUl : public LteSchedulerEnb
     unsigned int schedulePerAcidRtxD2D(MacNodeId destId, MacNodeId senderId, double carrierFrequency, Codeword cw, unsigned char acid,
         std::vector<BandLimit>* bandLim = nullptr, Remote antenna = MACRO, bool limitBl = false);
 
-    void removePendingRac(MacNodeId nodeId);
+    virtual void removePendingRac(MacNodeId nodeId);
 };
 
 #endif // _LTE_LTE_SCHEDULER_ENB_UL_H_

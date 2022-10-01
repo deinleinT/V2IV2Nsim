@@ -9,6 +9,12 @@
 // and cannot be removed from it.
 //
 
+//
+// This file has been modified/enhanced for 5G-SIM-V2I/N.
+// Date: 2021
+// Author: Thomas Deinlein
+//
+
 #ifndef _LTE_LTE_SCHEDULER_UE_UL_H_
 #define _LTE_LTE_SCHEDULER_UE_UL_H_
 
@@ -50,7 +56,7 @@ class LteSchedulerUeUl
     /* After the scheduling, returns the amount of bytes
      * scheduled for each connection
      */
-    LteMacScheduleList* getScheduledBytesList();
+    virtual LteMacScheduleList* getScheduledBytesList();
 
     /*
      * constructor

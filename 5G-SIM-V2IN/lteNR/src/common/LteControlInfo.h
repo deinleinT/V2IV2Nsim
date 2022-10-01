@@ -35,6 +35,7 @@ class UserControlInfo : public UserControlInfo_Base
     //Move senderMovement;
     /** @brief The playground position of the sending host.*/
     inet::Coord senderCoord;
+    omnetpp::simtime_t creationTimeOfQueueFront;
 
   public:
 
@@ -103,6 +104,14 @@ class UserControlInfo : public UserControlInfo_Base
     FeedbackRequest feedbackReq;
     void setCoord(const inet::Coord& coord);
     inet::Coord getCoord() const;
+
+    void setCreationTimeOfQueueFront(omnetpp::simtime_t timestamp){
+        this->creationTimeOfQueueFront = timestamp;
+    }
+
+    omnetpp::simtime_t getCreationTimeOfQueueFront(){
+        return creationTimeOfQueueFront;
+    }
 };
 
 Register_Class(UserControlInfo);

@@ -28,7 +28,13 @@ module NRUe extends Ue
         int nrMacCellId = default(0); // TODO: this is not a real parameter
     
     gates:
-        input nrRadioIn @directIn;     // connection to master
+        input nrRadioIn @directIn;     // connection to master    
+
+    submodules:
+        //# UeStatsCollector - for MEC
+//        NRueCollector: NRueStatsCollector if hasRNISupport {
+//            @display("p=73.687996,445.75198;is=s");
+//        }
 
     connections allowunconnected:
 

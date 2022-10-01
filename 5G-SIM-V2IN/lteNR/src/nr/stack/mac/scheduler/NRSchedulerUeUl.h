@@ -30,6 +30,7 @@
 #include "stack/mac/scheduler/LteSchedulerUeUl.h"
 #include "stack/mac/layer/LteMacUe.h"
 #include "nr/stack/mac/scheduler/NRLcgScheduler.h"
+#include "nr/stack/mac/scheduler/NRQoSModelScheduler.h"
 
 //see inherit class for method description
 class NRSchedulerUeUl : public LteSchedulerUeUl
@@ -42,4 +43,7 @@ class NRSchedulerUeUl : public LteSchedulerUeUl
     NRSchedulerUeUl(LteMacUe * mac, double carrierFrequency);
 
     virtual ~NRSchedulerUeUl();
+
+  protected:
+    bool useQosModel;
 };

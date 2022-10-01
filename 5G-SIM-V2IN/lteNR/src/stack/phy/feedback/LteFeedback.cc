@@ -20,6 +20,7 @@ using namespace omnetpp;
 LteFeedback::LteFeedback() :
         status_(EMPTY), txMode_(SINGLE_ANTENNA_PORT0), periodicFeedback_(true), remoteAntennaId_(
                 MACRO) {
+    txMode_ = aToTxMode(getSimulation()->getSystemModule()->par("initialTxMode").stringValue());
 }
 
 void LteFeedback::reset() {
@@ -30,7 +31,7 @@ void LteFeedback::reset() {
 
     status_ = EMPTY;
     periodicFeedback_ = true;
-    txMode_ = SINGLE_ANTENNA_PORT0;
+    txMode_ = aToTxMode(getSimulation()->getSystemModule()->par("initialTxMode").stringValue());
     remoteAntennaId_ = MACRO;
 }
 

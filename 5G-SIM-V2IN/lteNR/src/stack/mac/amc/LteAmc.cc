@@ -286,9 +286,9 @@ void LteAmc::initialize()
     cellId_ = mac_->getMacCellId();
 
     /** Get deployed UEs maps from Binder **/
-    dlConnectedUe_ = binder_->getDeployedUes(nodeId_, DL);
-    ulConnectedUe_ = binder_->getDeployedUes(nodeId_, UL);
-    d2dConnectedUe_ = binder_->getDeployedUes(nodeId_, UL);
+    dlConnectedUe_ = binder_->getDeployedUes(nodeId_);
+    ulConnectedUe_ = binder_->getDeployedUes(nodeId_);
+    d2dConnectedUe_ = binder_->getDeployedUes(nodeId_);
 
     /** Get parameters from cellInfo **/
     numBands_ = cellInfo_->getPrimaryCarrierNumBands();
@@ -469,6 +469,11 @@ void LteAmc::pushFeedback(MacNodeId id, Direction dir, LteFeedback fb, double ca
     EV << "index: " << index << endl;
     (*history)[antenna].at(index).at(txMode).put(fb);
 
+    // delete the old UserTxParam for this <UE_dir_carrierFreq>, so that it will be recomputed next time it's needed
+    std::map<double,std::vector<UserTxParams> > *txParams = (dir == DL) ? &dlTxParams_ : (dir == UL) ? &ulTxParams_ : throw cRuntimeError("LteAmc::pushFeedback(): Unrecognized direction");
+    if (txParams->find(carrierFrequency) != txParams->end() && txParams->at(carrierFrequency).at(index).isSet())
+        (*txParams)[carrierFrequency].at(index).restoreDefaultValues();
+
     // DEBUG
 //    printFbhb(dir);
     EV << "Antenna: " << dasToA(antenna) << ", TxMode: " << txMode << ", Index: " << index << endl;
@@ -508,6 +513,11 @@ void LteAmc::pushFeedbackD2D(MacNodeId id, LteFeedback fb, MacNodeId peerId, dou
         (*history)[peerId] = newHist;
     }
     (*history)[peerId][antenna].at(index).at(txMode).put(fb);
+
+    // delete the old UserTxParam for this <UE_dir_carrierFreq>, so that it will be recomputed next time it's needed
+    if (d2dTxParams_.find(carrierFrequency) != d2dTxParams_.end() && d2dTxParams_.at(carrierFrequency).at(index).isSet())
+        d2dTxParams_[carrierFrequency].at(index).restoreDefaultValues();
+
 
     // DEBUG
     EV << "PeerId: " << peerId << ", Antenna: " << dasToA(antenna) << ", TxMode: " << txMode << ", Index: " << index << endl;
@@ -638,7 +648,6 @@ const UserTxParams& LteAmc::setTxParams(MacNodeId id, const Direction dir, UserT
         tmp.resize(connectedUe.size(), UserTxParams());
         (*txParams)[carrierFrequency] = tmp;
     }
-
     return (*txParams)[carrierFrequency].at(nodeIndex.at(id)) = info;
 }
 
@@ -757,6 +766,11 @@ unsigned int LteAmc::computeReqRbs(MacNodeId id, Band b, Codeword cw, unsigned i
     EV << NOW << " LteAmc::getRbs Number of RBs: " << j+1 << "\n";
 
     return j+1;
+}
+
+unsigned int LteAmc::computeReqRbs(MacNodeId id, Codeword cw, unsigned int bytes, const Direction dir, unsigned int avBlocks, double carrierFrequency)
+{
+    return 0;
 }
 
 unsigned int LteAmc::computeBitsOnNRbs(MacNodeId id, Band b, unsigned int blocks, const Direction dir, double carrierFrequency)

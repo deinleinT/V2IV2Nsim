@@ -180,7 +180,6 @@ void IP2Nic::handleMessage(cMessage *msg)
     		if (sockInd)
         		delete sockInd;
     		removeAllSimu5GTags(pkt);
-
     		toIpUe(pkt);
         }
         else

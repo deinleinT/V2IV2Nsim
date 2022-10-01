@@ -961,7 +961,7 @@ void LteMacEnb::handleSelfMessage()
     }
 
     /*UPLINK*/
-    EV << "============================================== UPLINK ==============================================" << endl;
+    //EV << "============================================== UPLINK ==============================================" << endl;
     // init and reset global allocation information
     if (binder_->getLastUpdateUlTransmissionInfo() < NOW)  // once per TTI, even in case of multicell scenarios
         binder_->initAndResetUlTransmissionInfo();
@@ -974,9 +974,9 @@ void LteMacEnb::handleSelfMessage()
     std::map<double, LteMacScheduleList>* scheduleListUl = enbSchedulerUl_->schedule();
     // send uplink grants to PHY layer
     sendGrants(scheduleListUl);
-    EV << "============================================ END UPLINK ============================================" << endl;
+    //EV << "============================================ END UPLINK ============================================" << endl;
 
-    EV << "============================================ DOWNLINK ==============================================" << endl;
+    //EV << "============================================ DOWNLINK ==============================================" << endl;
     /*DOWNLINK*/
     // Set current available OFDM space
     (enbSchedulerDl_->resourceBlocks()) = cellInfo_->getNumBands();

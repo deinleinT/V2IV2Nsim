@@ -35,6 +35,9 @@ LteHarqProcessRx::LteHarqProcessRx(unsigned char acid, LteMacBase *owner)
     transmissions_ = 0;
     maxHarqRtx_ = owner->par("maxHarqRtx");
     harqFbEvaluationTimer_ = owner->par("harqFbEvaluationTimer");
+    if(getSimulation()->getSystemModule()->par("nrHarq").boolValue()){
+        harqFbEvaluationTimer_ = getSimulation()->getSystemModule()->par("harqFBEvaluationIntervalNR").intValue();
+    }
     binder_ = getBinder();
 }
 
@@ -156,6 +159,17 @@ Packet* LteHarqProcessRx::extractPdu(Codeword cw)
     return pkt;
 }
 
+//added
+inet::Packet * LteHarqProcessRx::getPdu(Codeword cw)
+{
+    return pdu_.at(cw);
+}
+
+simtime_t LteHarqProcessRx::getPduCreationTime(Codeword cw){
+    return pdu_.at(cw)->getCreationTime();
+}
+//
+
 int64_t LteHarqProcessRx::getByteLength(Codeword cw)
 {
     if (pdu_.at(cw) != nullptr)
@@ -163,7 +177,7 @@ int64_t LteHarqProcessRx::getByteLength(Codeword cw)
         //for codeblockgroups
         if (getSimulation()->getSystemModule()->par("useCodeBlockGroups").boolValue()) {
             auto pkt = pdu_.at(cw);
-            auto pduInfo = pkt->getTag<LteControlInfo>();
+            auto pduInfo = pkt->getTag<UserControlInfo>();
             if (pduInfo->getRestByteSize() == 0) {
                 return pdu_.at(cw)->getByteLength();
             } else {

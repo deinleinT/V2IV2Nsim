@@ -139,6 +139,17 @@ void IP2NR::toIpBs(Packet * pkt) {
 	//std::cout << "IP2NR::toIpEnb start at " << simTime().dbl() << std::endl;
 
 	auto ipHeader = pkt->peekAtFront<Ipv4Header>();
+	std::string name = std::string(pkt->getName());
+
+    if (name == "V2X" && getSystemModule()->par("v2vMulticastFlag").boolValue()) {
+        if (ipHeader->getDestAddress().getInt() != pkt->getTag<FlowControlInfo>()->getDstAddr()) {
+            Ipv4Address newAddress(pkt->getTag<FlowControlInfo>()->getDstAddr());
+            auto copiedHeader = ipHeader.get()->dup();
+            copiedHeader->setDestAddress(newAddress);
+            ipHeader = copiedHeader;
+        }
+    }
+
 	auto networkProtocolInd = pkt->addTagIfAbsent<NetworkProtocolInd>();
 	networkProtocolInd->setProtocol(&Protocol::ipv4);
 	networkProtocolInd->setNetworkProtocolHeader(ipHeader);
@@ -147,17 +158,8 @@ void IP2NR::toIpBs(Packet * pkt) {
 
 	EV << "IP2Nic::toIpBs - message from stack: send to IP layer" << endl;
 	prepareForIpv4(pkt, &LteProtocol::ipv4uu);
+
 	send(pkt, ipGateOut_);
-
-//    if((ApplicationType)pkt->getTag<FlowControlInfo>()->getApplication() == V2X && getSystemModule()->par("v2vMulticastFlag").boolValue()){
-//    	if(ipHeader->getDestAddress().getInt() != pkt->getTag<FlowControlInfo>()->getDstAddr()){
-//    	    Ipv4Address newAddress(pkt->getTag<FlowControlInfo>()->getDstAddr());
-//    		copiedHeader->setDestAddress(newAddress);
-//    		auto t = pkt->popAtFront();
-//    		pkt->insertAtFront(copiedHeader);
-//    	}
-//    }
-
 	//std::cout << "IP2NR::toIpEnb end at " << simTime().dbl() << std::endl;
 }
 

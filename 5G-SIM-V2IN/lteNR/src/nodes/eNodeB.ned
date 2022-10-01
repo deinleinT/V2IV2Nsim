@@ -1,11 +1,9 @@
 // 
-//                  Simu5G
-//
-// Authors: Giovanni Nardini, Giovanni Stea, Antonio Virdis (University of Pisa)
+//                           Simu5G
 // 
 // This file is part of a software released under the license included in file
-// "license.pdf". Please read LICENSE and README files before using it.
-// The above files and the present reference are part of the software itself, 
+// "license.pdf". This license can be also found at http://www.ltesimulator.com/
+// The above file and the present reference are part of the software itself, 
 // and cannot be removed from it.
 // 
 
@@ -157,6 +155,16 @@ module eNodeB
                 @display("p=963.195,212.68001");
         }
 
+	    // =============== X2AP ============== //
+        x2App[numX2Apps]: LteX2App {
+            parameters:
+                @display("p=371.30002,75.840004,row");
+        }
+        sctp: Sctp {
+            parameters:
+                @display("p=494.54,211.72");
+        }
+
 	    // message dispatcher for SAP between application and transport layer
         at: MessageDispatcher {
             parameters:
@@ -172,17 +180,7 @@ module eNodeB
             parameters:
                 @display("p=750,446;b=1000,5,,,,1");
         }
-        
-	    // =============== X2AP ============== //
-        x2App[numX2Apps]: LteX2App {
-            parameters:
-                @display("p=371.30002,75.840004,row");
-        }
-        sctp: Sctp {
-            parameters:
-                @display("p=494.54,211.72");
-        }
-
+                
         //# 
         //# Modules for connecting to the core network and X2
         //# 

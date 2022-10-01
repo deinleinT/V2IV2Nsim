@@ -75,6 +75,25 @@ class LteHarqProcessRx
     unsigned short harqFbEvaluationTimer_;
 
   public:
+    virtual omnetpp::simtime_t getRxTimeForCodeWord(Codeword cw){
+        return rxTime_[cw];
+    }
+
+    virtual void setMacOwner(LteMacBase * macOwner){
+        this->macOwner_ = macOwner;
+    }
+
+    virtual omnetpp::simtime_t getPduCreationTime(Codeword cw);
+
+    inet::Packet * getPdu(Codeword cw);
+
+    unsigned char getTransmissions(){
+        return transmissions_;
+    }
+
+    unsigned char getAcid(){
+        return acid_;
+    }
 
     /**
      * Constructor.

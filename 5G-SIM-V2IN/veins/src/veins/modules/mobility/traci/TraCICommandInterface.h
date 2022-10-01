@@ -250,6 +250,31 @@ public:
          */
         double getAccumulatedWaitingTime() const;
 
+        /**
+         * Get the vehicle's stop state which carries information about whether it is currently stopping and in which context.
+         *
+         * @return the stop state which is a bit field defined as follows:
+         *     1 * stopped
+         * +   2 * parking
+         * +   4 * triggered
+         * +   8 * containerTriggered
+         * +  16 * atBusStop
+         * +  32 * atContainerStop
+         * +  64 * atChargingStation
+         * + 128 * atParkingArea
+         */
+        uint8_t getStopState() const;
+
+        /**
+         * Get whether the vehicle is currently stopping at a scheduled stop (e.g. a bus stop or after using stopAt).
+         */
+        bool isStopReached() const;
+
+        /**
+         * Sets the vehicle's current destination edge, causing its route to be rebuilt.
+         */
+        void changeTarget(const std::string& newTarget) const;
+
         std::pair<std::string, double> getLeader(const double distance);
 
     protected:
@@ -273,6 +298,7 @@ public:
             connection = &traci->connection;
         }
 
+        std::string getName();
         double getCurrentTravelTime();
         double getMeanSpeed();
 
@@ -302,6 +328,7 @@ public:
         double getLength();
         double getMaxSpeed();
         double getMeanSpeed();
+        double getWidth();
         void setDisallowed(std::list<std::string> disallowedClasses);
 
     protected:
@@ -437,6 +464,7 @@ public:
         }
 
         Coord getPosition();
+        std::list<Coord> getShape();
 
     protected:
         TraCICommandInterface* traci;
@@ -450,6 +478,7 @@ public:
 
     // Route methods
     std::list<std::string> getRouteIds();
+    void addRoute(std::string routeId, const std::list<std::string>& edges);
     class VEINS_API Route {
     public:
         Route(TraCICommandInterface* traci, std::string routeId)
@@ -528,6 +557,7 @@ private:
     double genericGetDouble(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId, TraCIConnection::Result* result = nullptr);
     void genericSetDouble(uint8_t commandId, std::string objectId, uint8_t variableId, double value);
     simtime_t genericGetTime(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId, TraCIConnection::Result* result = nullptr);
+    uint8_t genericGetUnsignedByte(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId, TraCIConnection::Result* result = nullptr);
     int32_t genericGetInt(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId, TraCIConnection::Result* result = nullptr);
     std::list<std::string> genericGetStringList(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId, TraCIConnection::Result* result = nullptr);
     std::list<Coord> genericGetCoordList(uint8_t commandId, std::string objectId, uint8_t variableId, uint8_t responseId, TraCIConnection::Result* result = nullptr);

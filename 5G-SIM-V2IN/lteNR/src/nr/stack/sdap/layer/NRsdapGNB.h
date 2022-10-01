@@ -40,7 +40,6 @@ class NRsdapGNB: public NRsdap {
 
 protected:
     virtual void initialize(int stage);
-    virtual void handleMessage(cMessage *msg);
     virtual void fromLowerToUpper(cMessage * msg);
     virtual void fromUpperToLower(cMessage * msg);
 

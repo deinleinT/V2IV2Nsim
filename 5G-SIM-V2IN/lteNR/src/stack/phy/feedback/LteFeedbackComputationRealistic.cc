@@ -110,11 +110,11 @@ unsigned int LteFeedbackComputationRealistic::computeRank(MacNodeId id)
 
 Cqi LteFeedbackComputationRealistic::getCqi(TxMode txmode, double snr)
 {
-    int newsnr = floor(snr + 0.5);
-    if (newsnr < phyPisaData_->minSnr())
+    if (snr < phyPisaData_->minSnr())
         return 0;
-    if (newsnr > phyPisaData_->maxSnr())
+    if (snr > phyPisaData_->maxSnr())
         return 15;
+    unsigned int newsnr = floor(snr + 0.5);
     unsigned int txm = txModeToIndex[txmode];
     std::vector<double> min;
     int found = 0;

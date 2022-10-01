@@ -12,8 +12,8 @@
 #ifndef CONFLICTGRAPH_H
 #define	CONFLICTGRAPH_H
 
-#include "common/cellInfo/CellInfo.h"
 #include "stack/mac/layer/LteMacEnbD2D.h"
+#include "common/cellInfo/CellInfo.h"
 
 typedef enum
 {

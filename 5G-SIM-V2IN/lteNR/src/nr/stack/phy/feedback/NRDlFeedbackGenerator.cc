@@ -28,9 +28,8 @@
 
 Define_Module(NRDlFeedbackGenerator);
 
-void NRDlFeedbackGenerator::handleMessage(cMessage * msg) {
-	//TODO check if code has to be overwritten
-	LteDlFeedbackGenerator::handleMessage(msg);
+void NRDlFeedbackGenerator::handleMessage(cMessage *msg){
+    LteDlFeedbackGenerator::handleMessage(msg);
 }
 
 void NRDlFeedbackGenerator::initialize(int stage) {
@@ -45,7 +44,7 @@ void NRDlFeedbackGenerator::initialize(int stage) {
 		fbType_ = getFeedbackType(par("feedbackType").stringValue());
 		rbAllocationType_ = getRbAllocationType(par("rbAllocationType").stringValue());
 		usePeriodic_ = par("usePeriodic");
-		currentTxMode_ = aToTxMode(par("initialTxMode"));
+		currentTxMode_ = aToTxMode(getSimulation()->getSystemModule()->par("initialTxMode").stringValue());
 
 		generatorType_ = getFeedbackGeneratorType(par("feedbackGeneratorType").stringValue());
 

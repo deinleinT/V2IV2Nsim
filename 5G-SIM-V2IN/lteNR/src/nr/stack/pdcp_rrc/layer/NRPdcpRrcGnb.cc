@@ -22,7 +22,7 @@
  * Part of 5G-Sim-V2I/N
  *
  *
- */
+*/
 
 #include "nr/stack/pdcp_rrc/layer/NRPdcpRrcGnb.h"
 
@@ -220,13 +220,14 @@ void NRPdcpRrcGnb::fromDataPort(cPacket * pktIn) {
 			qosinfo.lcid = mylcid;
 			qosinfo.cid = key;
 			qosinfo.trafficClass = (LteTrafficClass) lteInfo->getTraffic();
-			qosHandler->getQosInfo()[key] = qosinfo;
+			qosHandler->insertQosInfo(key, qosinfo);
+//			qosHandler->getQosInfo()[key] = qosinfo;
 		}
 	}
 
 	// obtain CID
 	MacCid cid = ctrlInfoToMacCid(lteInfo);
-
+	pkt->addTagIfAbsent<FlowControlInfo>()->setLcid(mylcid);
 	pkt->addTagIfAbsent<FlowControlInfo>()->setSourceId(srcId);
 	pkt->addTagIfAbsent<FlowControlInfo>()->setCid(cid);
 	pkt->addTagIfAbsent<FlowControlInfo>()->setContainsSeveralCids(false);

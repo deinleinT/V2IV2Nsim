@@ -22,10 +22,9 @@
  * Part of 5G-Sim-V2I/N
  *
  *
-*/
+ */
 
 #pragma once
-
 
 #include "nr/stack/mac/scheduler/NRSchedulerGnbUL.h"
 #include "stack/mac/layer/NRMacGnb.h"
@@ -48,40 +47,104 @@
 #include "stack/mac/conflict_graph/DistanceBasedConflictGraph.h"
 #include "stack/phy/layer/LtePhyBase.h"
 
-class NRMacGNB: public NRMacGnb {
+class NRMacGNB : public NRMacGnb
+{
+
+public:
+    virtual void insertRtxMap(MacNodeId ueid, unsigned char currentProcess, Codeword codeword)
+    {
+        if (rtxMap[ueid].size() == 0) {
+            unsigned short order = rtxMap[ueid].size() + 1;
+            RtxMapInfo temp(codeword, currentProcess, NOW, order);
+            std::unordered_map<unsigned short, RtxMapInfo> mapInfo = rtxMap[ueid];
+            mapInfo.insert(std::make_pair(order, temp));
+            rtxMap[ueid] = mapInfo;
+        }
+        else {
+            unsigned short nextOrder = 17;
+            for (auto &var : rtxMap[ueid]) {
+                unsigned short order = var.second.order + 1;
+                if (order < nextOrder) {
+                    nextOrder = order;
+                }
+                break;
+            }
+
+            RtxMapInfo temp(codeword, currentProcess, NOW, nextOrder);
+            std::unordered_map<unsigned short, RtxMapInfo> mapInfo = rtxMap[ueid];
+            mapInfo.insert(std::make_pair(nextOrder, temp));
+            rtxMap[ueid] = mapInfo;
+        }
+    }
+
+    void deleteFromRtxMap(MacNodeId ueid)
+    {
+        rtxMap.erase(ueid);
+    }
 
 protected:
 
-//    std::map<MacNodeId, std::unordered_map<unsigned short, RtxMapInfo>> rtxMap;
+    std::map<MacNodeId, std::unordered_map<unsigned short, RtxMapInfo>> rtxMap;
     QosHandler *qosHandler;
     int harqProcessesNR_;
 
     virtual void initialize(int stage);
-    virtual void handleMessage(cMessage* msg);
-    virtual void fromPhy(omnetpp::cPacket *pkt);;
+    virtual void handleMessage(cMessage *msg);
+    virtual void fromPhy(omnetpp::cPacket *pkt);
+    ;
     virtual void macSduRequest();
     virtual void macPduMake(MacCid cid);
-    virtual bool bufferizePacket(cPacket* pkt);
-    virtual void handleUpperMessage(cPacket* pkt);
+    virtual bool bufferizePacket(cPacket *pkt);
+    virtual void handleUpperMessage(cPacket *pkt);
 
     virtual void handleSelfMessage();
-    virtual void flushHarqBuffers();
 
-    virtual void macPduUnmake(omnetpp::cPacket* pkt);
+    virtual void macPduUnmake(omnetpp::cPacket *pkt);
 
-    virtual void sendGrants(std::map<double, LteMacScheduleList>* scheduleList);
+    virtual void sendGrants(std::map<double, LteMacScheduleList> *scheduleList);
 
+    virtual void macHandleRac(cPacket *pkt);
 
 public:
     /*
      * for handover, delete the node from qosHandler
      */
-    virtual void deleteNodeFromQosHandler(unsigned int nodeId) {
+    virtual void deleteNodeFromQosHandler(unsigned int nodeId)
+    {
         qosHandler->deleteNode(nodeId);
+    }
+
+    virtual void deleteQueues(MacNodeId nodeId)
+    {
+        LteMacBase::deleteQueues(nodeId);
+
+        LteMacBufferMap::iterator bit;
+        for (bit = bsrbuf_.begin(); bit != bsrbuf_.end();)
+        {
+            if (MacCidToNodeId(bit->first) == nodeId)
+            {
+                delete bit->second; // Delete Queue
+                bsrbuf_.erase(bit++); // Delete Elem
+            }
+            else
+            {
+                ++bit;
+            }
+        }
+
+        //update harq status in schedulers
+    //    enbSchedulerDl_->updateHarqDescs();
+    //    enbSchedulerUl_->updateHarqDescs();
+
+        // remove active connections from the schedulers
+        enbSchedulerDl_->removeActiveConnections(nodeId);
+        enbSchedulerUl_->removeActiveConnections(nodeId);
+
+        // remove pending RAC requests
+        enbSchedulerUl_->removePendingRac(nodeId);
     }
 
     NRMacGNB();
     virtual ~NRMacGNB();
-
 
 };

@@ -26,6 +26,7 @@
 #include "stack/rlc/um/entity/UmRxEntity.h"
 #include "stack/rlc/packet/LteRlcDataPdu.h"
 #include "stack/mac/layer/LteMacBase.h"
+#include "nr/stack/sdap/utils/QosHandler.h"
 
 class UmTxEntity;
 class UmRxEntity;
@@ -54,10 +55,30 @@ class UmRxEntity;
 class LteRlcUm : public omnetpp::cSimpleModule
 {
   public:
+    LteRlcUm()
+    {
+    }
     virtual ~LteRlcUm()
     {
     }
 
+    //length --> packet size in byte
+    //converted to bits
+    virtual void recordUETotalRlcThroughputUl(double length){
+    	this->totalRcvdBytesUl += (length * 8);
+    	double tp = totalRcvdBytesUl / (NOW - getSimulation()->getWarmupPeriod());
+    	ueTotalRlcThroughputUl.record(tp);
+    }
+
+	virtual void recordUETotalRlcThroughputDl(double length) {
+		this->totalRcvdBytesDl += (length * 8);
+		double tp = totalRcvdBytesDl / (NOW - getSimulation()->getWarmupPeriod());
+		ueTotalRlcThroughputDl.record(tp);
+	}
+
+	virtual void recordConnectedCellUes(double number){
+		cellConnectedUes.record(number);
+	}
     /**
      * sendFragmented() is invoked by the TXBuffer as a direct method
      * call and used to forward fragments to lower layers. This is needed
@@ -105,6 +126,12 @@ class LteRlcUm : public omnetpp::cSimpleModule
 
     virtual bool isEmptyingTxBuffer(MacNodeId peerId) { return false; }
 
+    virtual QosHandler * getQoSHandler(){
+        Enter_Method_Silent();
+        return qosHandler;
+    }
+
+
   protected:
 
     omnetpp::cGate* up_[2];
@@ -133,7 +160,8 @@ class LteRlcUm : public omnetpp::cSimpleModule
      */
     virtual void handleMessage(omnetpp::cMessage *msg) override;
 
-    // parameters
+  protected:
+    QosHandler * qosHandler;
     bool mapAllLcidsToSingleBearer_;
 
     /**
@@ -159,6 +187,31 @@ class LteRlcUm : public omnetpp::cSimpleModule
      *
      */
     virtual UmRxEntity* getRxBuffer(FlowControlInfo* lteInfo);
+
+    //added for individual Throughput
+    cOutVector ueTotalRlcThroughputDl;
+    cOutVector ueTotalRlcThroughputUl;
+
+    //time when the first packet for throughput calculation was sent
+    simtime_t ueTotalRlcThroughputDlStartTime;
+    simtime_t ueTotalRlcThroughputUlStartTime;
+
+    //for checking the vector is already initialized
+    bool ueTotalRlcThroughputDlInit;
+    bool ueTotalRlcThroughputUlInit;
+
+    double totalRcvdBytesUl;
+    double totalRcvdBytesDl;
+
+    cOutVector totalCellRlcThroughputUl;
+	static double totalCellRcvdBytesUl;
+	static double totalCellRcvdBytesDl;
+	cOutVector totalCellRlcThroughputDl;
+
+	double numberOfConnectedUes;
+	cOutVector cellConnectedUes;
+
+
 
     /**
      * handler for traffic coming

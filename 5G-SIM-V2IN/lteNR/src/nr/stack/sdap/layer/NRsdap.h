@@ -70,7 +70,7 @@ protected:
 
 protected:
     virtual void initialize(int stage) = 0;
-    virtual void handleMessage(cMessage *msg) = 0;
+    virtual void handleMessage(cMessage *msg);
     virtual void fromLowerToUpper(cMessage * msg) = 0;
     virtual void fromUpperToLower(cMessage * msg) = 0;
     virtual void setTrafficInformation(std::string appName, inet::Packet * pkt);

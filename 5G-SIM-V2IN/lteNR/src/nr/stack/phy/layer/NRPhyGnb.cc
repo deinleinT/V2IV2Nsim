@@ -163,7 +163,6 @@ void NRPhyGnb::initialize(int stage) {
 		errorCount = 0;
 
 		qosHandler = check_and_cast<QosHandlerGNB*>(getParentModule()->getSubmodule("qosHandler"));
-
 	}
 }
 

@@ -26,7 +26,7 @@ class LteMacPdu;
  * @class LcgScheduler
  */
 typedef std::map<MacCid, unsigned int> ScheduleList;
-typedef std::map<MacCid, std::pair<unsigned int,unsigned int>> ScheduleListSizes;
+//typedef std::map<MacCid, std::pair<unsigned int,unsigned int>> ScheduleListSizes;
 
 class LcgScheduler
 {
@@ -76,6 +76,9 @@ class LcgScheduler
 
     // schedule List - returned by reference on scheduler invocation
     ScheduleList scheduleList_;
+
+    // schedule List - returned by reference on scheduler invocation
+    //ScheduleListSizes scheduleListSizes_; //cid.first -> numSdus, cid.second -> dateinbytes
 
     // scheduled bytes list
     ScheduleList scheduledBytesList_;

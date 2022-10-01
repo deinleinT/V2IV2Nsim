@@ -418,7 +418,7 @@ simple LteMacEnb extends LteMacBase {
         double prfFixedBROADCAST @unit(W)= default(4.4W);
         double prfRBBROADCAST @unit(W)= default(0.712W);
         
-        string pilotMode = default("ROBUST_CQI"); // one of MIN_CQI, MAX_CQI, AVG_CQI, ROBUST_CQI
+        string pilotMode = default("MAX_CQI"); // one of MIN_CQI, MAX_CQI, AVG_CQI, ROBUST_CQI
         
         //#
         //# Statistics for Lte Scheduler Enb

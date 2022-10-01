@@ -26,7 +26,7 @@ const UserTxParams& AmcPilotAuto::computeTxParams(MacNodeId id, const Direction 
 
     // TODO make it configurable from NED
     // default transmission mode
-    TxMode txMode = TRANSMIT_DIVERSITY;
+    TxMode txMode = aToTxMode(getSimulation()->getSystemModule()->par("initialTxMode").stringValue());
 
     /**
      *  Select the band which has the best summary
@@ -232,7 +232,8 @@ std::vector<Cqi> AmcPilotAuto::getMultiBandCqi(MacNodeId id , const Direction di
 
     // TODO make it configurable from NED
     // default transmission mode
-    TxMode txMode = TRANSMIT_DIVERSITY;
+    //TxMode txMode = TRANSMIT_DIVERSITY;
+    TxMode txMode = aToTxMode(getSimulation()->getSystemModule()->par("initialTxMode").stringValue());
 
     /**
      *  Select the band which has the best summary

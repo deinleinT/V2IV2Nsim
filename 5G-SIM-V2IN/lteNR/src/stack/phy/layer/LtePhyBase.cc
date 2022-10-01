@@ -296,7 +296,16 @@ void LtePhyBase::sendUnicast(LteAirFrame *frame)
     // get a pointer to receiving module
     cModule *receiver = getSimulation()->getModule(destOmnetId);
 
-    sendDirect(frame, 0, frame->getDuration(), receiver, getReceiverGateIndex(receiver, isNrUe(dest)));
+    if (getSystemModule()->par("nrHarq").boolValue()) {
+        //frame->setSchedulingPriority(0);
+        sendDirect(frame, 0, 0, receiver, getReceiverGateIndex(receiver, isNrUe(dest)));
+        //sendDirect(frame, 0, frame->getDuration(), receiver, getReceiverGateIndex(receiver));
+    }
+    else {
+        sendDirect(frame, 0, frame->getDuration(), receiver, getReceiverGateIndex(receiver, isNrUe(dest)));
+    }
+
+    //sendDirect(frame, 0, frame->getDuration(), receiver, getReceiverGateIndex(receiver, isNrUe(dest)));
 }
 
 int LtePhyBase::getReceiverGateIndex(const omnetpp::cModule *receiver, bool isNr) const

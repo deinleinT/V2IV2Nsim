@@ -22,7 +22,7 @@
  * Part of 5G-Sim-V2I/N
  *
  *
-*/
+ */
 
 #include "nr/stack/sdap/layer/NRsdap.h"
 
@@ -30,29 +30,7 @@ void NRsdap::handleMessage(cMessage *msg) {
 
     //std::cout << "NRsdap::handleMessage start at " << simTime().dbl() << std::endl;
 
-	if (getSimulation()->getSystemModule()->par("useSINRThreshold").boolValue()) {
-		if (!msg->isSelfMessage()) {
-			inet::Packet *pkt = check_and_cast<inet::Packet*>(msg);
-			auto lteInfo = pkt->getTag<FlowControlInfo>();
-			MacNodeId ueId;
-			if (lteInfo->getDirection() == DL) {
-				ueId = lteInfo->getDestId();
-			} else if (lteInfo->getDirection() == UL) {
-				ueId = lteInfo->getSourceId();
-			} else {
-				throw cRuntimeError("Unknown direction in NRsdap::handleMessage");
-			}
-			ASSERT(ueId >= UE_MIN_ID && ueId <= UE_MAX_ID);
-			if (getBinder()->isNotConnected(ueId)) {
-				delete msg;
-				return;
-			}
-		}
-	}
-
-
-     if (strcmp(msg->getArrivalGate()->getBaseName(), "upperLayer")
-            == 0) {
+    if (strcmp(msg->getArrivalGate()->getBaseName(), "upperLayer") == 0) {
 
         fromUpperToLower(msg);
 
@@ -66,29 +44,33 @@ void NRsdap::handleMessage(cMessage *msg) {
     //std::cout << "NRsdap::handleMessage end at " << simTime().dbl() << std::endl;
 }
 
-
 //sets the qfi for each packet
-void NRsdap::setTrafficInformation(std::string applName, inet::Packet* pkt) {
+void NRsdap::setTrafficInformation(std::string applName, inet::Packet *pkt) {
     //std::cout << "NRsdap::setTrafficInformation start at " << simTime().dbl() << std::endl;
 
     if ((applName.find("V2X") != string::npos)
-			|| (applName.find("v2x") != string::npos)) {
+            || (applName.find("v2x") != string::npos)) {
         pkt->addTagIfAbsent<FlowControlInfo>()->setApplication(V2X);
         pkt->addTagIfAbsent<FlowControlInfo>()->setQfi(qosHandler->getQfi(V2X));
-        pkt->addTagIfAbsent<FlowControlInfo>()->setRadioBearerId(qosHandler->getRadioBearerId(pkt->getTag<FlowControlInfo>()->getQfi()));
-    } else if ((applName.find("VoIP") != string::npos)
-			|| (applName.find("voip") != string::npos)
-			|| (applName.find("Voip") != string::npos)) {
-        pkt->addTagIfAbsent<FlowControlInfo>()->setQfi(qosHandler->getQfi(VOIP));
+        pkt->addTagIfAbsent<FlowControlInfo>()->setRadioBearerId(
+                qosHandler->getRadioBearerId(
+                        pkt->getTag<FlowControlInfo>()->getQfi()));
+    } else if ((applName.find("VoIP") != string::npos) || (applName.find("voip") != string::npos) || (applName.find("Voip") != string::npos)) {
+        pkt->addTagIfAbsent<FlowControlInfo>()->setQfi(
+                qosHandler->getQfi(VOIP));
         pkt->addTagIfAbsent<FlowControlInfo>()->setApplication(VOIP);
-        pkt->addTagIfAbsent<FlowControlInfo>()->setRadioBearerId(qosHandler->getRadioBearerId(pkt->getTag<FlowControlInfo>()->getQfi()));
-    } else if ((applName.find("Video") != string::npos)
-			|| (applName.find("video") != string::npos)) {
+        pkt->addTagIfAbsent<FlowControlInfo>()->setRadioBearerId(
+                qosHandler->getRadioBearerId(
+                        pkt->getTag<FlowControlInfo>()->getQfi()));
+    } else if ((applName.find("Video") != string::npos) || (applName.find("video") != string::npos)) {
         pkt->addTagIfAbsent<FlowControlInfo>()->setQfi(qosHandler->getQfi(VOD));
         pkt->addTagIfAbsent<FlowControlInfo>()->setApplication(VOD);
-        pkt->addTagIfAbsent<FlowControlInfo>()->setRadioBearerId(qosHandler->getRadioBearerId(pkt->getTag<FlowControlInfo>()->getQfi()));
+        pkt->addTagIfAbsent<FlowControlInfo>()->setRadioBearerId(
+                qosHandler->getRadioBearerId(
+                        pkt->getTag<FlowControlInfo>()->getQfi()));
     } else /*if (strcmp(pkt->getName(), "Data") == 0 || strcmp(pkt->getName(), "Data-frag") == 0) */{
-        pkt->addTagIfAbsent<FlowControlInfo>()->setQfi(qosHandler->getQfi(DATA_FLOW));
+        pkt->addTagIfAbsent<FlowControlInfo>()->setQfi(
+                qosHandler->getQfi(DATA_FLOW));
         pkt->addTagIfAbsent<FlowControlInfo>()->setApplication(DATA_FLOW);
         pkt->addTagIfAbsent<FlowControlInfo>()->setRadioBearerId(qosHandler->getRadioBearerId(pkt->getTag<FlowControlInfo>()->getQfi()));
     }
@@ -104,13 +86,13 @@ void NRsdap::setTrafficInformation(std::string applName, inet::Packet* pkt) {
 
 }
 
-NRSdapEntity * NRsdap::getEntity(MacNodeId sender, MacNodeId dest,
+NRSdapEntity* NRsdap::getEntity(MacNodeId sender, MacNodeId dest,
         ApplicationType appType) {
 
     //std::cout << "NRsdap::setTrafficInformation start at " << simTime().dbl() << std::endl;
 
-    AddressTuple tmp = std::make_tuple(sender,dest,appType);
-    if(entities.find(tmp) == entities.end()){
+    AddressTuple tmp = std::make_tuple(sender, dest, appType);
+    if (entities.find(tmp) == entities.end()) {
         entities[tmp] = new NRSdapEntity();
     }
     return entities[tmp];
@@ -118,26 +100,28 @@ NRSdapEntity * NRsdap::getEntity(MacNodeId sender, MacNodeId dest,
     //std::cout << "NRsdap::setTrafficInformation start at " << simTime().dbl() << std::endl;
 }
 
-void NRsdap::finish(){
-    for(auto var : entities){
+void NRsdap::finish() {
+    for (auto var : entities) {
         delete var.second;
     }
     entities.clear();
     recordScalar("hoErrorCounts", hoErrorCount);
 }
 
-void NRsdap::deleteEntities(MacNodeId nodeId){
+void NRsdap::deleteEntities(MacNodeId nodeId) {
 
-    Enter_Method("deleteEntities");
+    Enter_Method
+    ("deleteEntities");
     std::vector<AddressTuple> tuples;
 
-    for (auto & var : entities) {
-        if (std::get<0>(var.first) == nodeId || std::get<1>(var.first) == nodeId){
+    for (auto &var : entities) {
+        if (std::get<0>(var.first) == nodeId
+                || std::get<1>(var.first) == nodeId) {
             tuples.push_back(var.first);
         }
     }
 
-    for(auto & var : tuples){
+    for (auto &var : tuples) {
         delete entities[var];
         entities.erase(var);
     }

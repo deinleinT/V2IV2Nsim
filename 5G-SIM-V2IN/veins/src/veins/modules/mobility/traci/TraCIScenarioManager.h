@@ -65,7 +65,7 @@ class MobileHostObstacle;
  * @see TraCIScenarioManagerLaunchd
  *
  */
-class VEINS_API TraCIScenarioManager : public cSimpleModule {
+class VEINS_API TraCIScenarioManager : public cSimpleModule, public cISimulationLifecycleListener {
 public:
     static const simsignal_t traciInitializedSignal;
     static const simsignal_t traciModulePreInitSignal;
@@ -81,6 +81,7 @@ public:
         return std::max(cSimpleModule::numInitStages(), 2);
     }
     void initialize(int stage) override;
+    void preNetworkFinish();
     void finish() override;
     void handleMessage(cMessage* msg) override;
     virtual void handleSelfMsg(cMessage* msg);
@@ -237,7 +238,8 @@ protected:
 
     //added for 5G-Sim-V2I/N
     std::set<std::string> remoteVehicles;
-
+    void lifecycleEvent(SimulationLifecycleEventType eventType, cObject* details) override;
+    void listenerRemoved() override;
 };
 
 class VEINS_API TraCIScenarioManagerAccess {

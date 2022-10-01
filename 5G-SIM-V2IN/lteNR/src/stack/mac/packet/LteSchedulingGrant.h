@@ -38,6 +38,7 @@ private:
     RbMap grantedBlocks;
     std::vector<unsigned int> grantedCwBytes;
     Direction direction_;
+    unsigned int grantId;
 
   public:
 
@@ -143,4 +144,10 @@ private:
     {
         return direction_;
     }
+
+    unsigned int getGrandId() const
+    {
+        return grantId;
+    }
+
 };

@@ -239,6 +239,8 @@ void LtePhyEnb::handleAirFrame(cMessage* msg)
     {
         result = channelModel->isCorrupted(frame, lteInfo);
     }
+
+    //result --> true if not corrupted
     if (result)
         numAirFrameReceived_++;
     else

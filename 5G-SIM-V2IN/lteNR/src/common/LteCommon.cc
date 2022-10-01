@@ -569,6 +569,19 @@ CellInfo* getCellInfo(MacNodeId nodeId)
     return module? check_and_cast<CellInfo*>(module->getSubmodule("cellInfo")) : nullptr;
 }
 
+cModule* getPhyByMacNodeId(MacNodeId nodeId)
+{
+    // UE might have left the simulation, return NULL in this case
+    // since we do not have a MAC-Module anymore
+    int id = getBinder()->getOmnetId(nodeId);
+    if (id == 0){
+        return nullptr;
+    }
+    if (isNrUe(nodeId))
+        return (getSimulation()->getModule(id)->getSubmodule("cellularNic")->getSubmodule("nrPhy"));
+    return (getSimulation()->getModule(id)->getSubmodule("cellularNic")->getSubmodule("phy"));
+}
+
 cModule* getMacByMacNodeId(MacNodeId nodeId)
 {
     // UE might have left the simulation, return NULL in this case
@@ -733,21 +746,12 @@ void initializeAllChannels(cModule *mod)
     }
 }
 
-void removeAllSimu5GTags(inet::Packet *pkt) {
-    auto c2 = pkt->removeTagIfPresent<TftControlInfo>();
-    if (c2)
-        delete c2;
-    auto c3 = pkt->removeTagIfPresent<X2ControlInfoTag>();
-    if (c3)
-        delete c3;
-    auto c4 = pkt->removeTagIfPresent<FlowControlInfo>();
-    if (c4)
-        delete c4;
-    auto c5 = pkt->removeTagIfPresent<UserControlInfo>();
-    if (c5)
-        delete c5;
-    auto c1 = pkt->removeTagIfPresent<LteControlInfo>();
-    if (c1)
-        delete c1;
+void removeAllSimu5GTags(inet::Packet *pkt)
+{
+    pkt->removeTagIfPresent<TftControlInfo>();
+    pkt->removeTagIfPresent<X2ControlInfoTag>();
+    pkt->removeTagIfPresent<FlowControlInfo>();
+    pkt->removeTagIfPresent<UserControlInfo>();
+    pkt->removeTagIfPresent<LteControlInfo>();
 }
 

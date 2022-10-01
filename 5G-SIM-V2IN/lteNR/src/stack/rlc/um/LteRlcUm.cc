@@ -24,6 +24,9 @@ Define_Module(LteRlcUm);
 
 using namespace omnetpp;
 
+double LteRlcUm::totalCellRcvdBytesUl = 0;
+double LteRlcUm::totalCellRcvdBytesDl = 0;
+
 UmTxEntity* LteRlcUm::getTxBuffer(FlowControlInfo* lteInfo)
 {
     MacNodeId nodeId = 0;
@@ -79,11 +82,14 @@ UmTxEntity* LteRlcUm::getTxBuffer(FlowControlInfo* lteInfo)
 
         return it->second;
     }
+
+    //std::cout << "LteRlcUm::getTxBuffer end at " << simTime().dbl() << std::endl;
 }
 
 
 UmRxEntity* LteRlcUm::getRxBuffer(FlowControlInfo* lteInfo)
 {
+    //std::cout << "LteRlcUm::getRxBuffer start at " << simTime().dbl() << std::endl;
     MacNodeId nodeId;
     if (lteInfo->getDirection() == DL)
         nodeId = lteInfo->getDestId();
@@ -121,6 +127,8 @@ UmRxEntity* LteRlcUm::getRxBuffer(FlowControlInfo* lteInfo)
 
         return it->second;
     }
+
+    //std::cout << "LteRlcUm::getRxBuffer end at " << simTime().dbl() << std::endl;
 }
 
 void LteRlcUm::sendDefragmented(cPacket *pkt)
@@ -132,10 +140,14 @@ void LteRlcUm::sendDefragmented(cPacket *pkt)
     send(pkt, up_[OUT_GATE]);
 
     emit(sentPacketToUpperLayer, pkt);
+
+    //std::cout << "LteRlcUm::sendDefragmented end at " << simTime().dbl() << std::endl;
 }
 
 void LteRlcUm::sendToLowerLayer(cPacket *pktAux)
 {
+    //std::cout << "LteRlcUm::sendToLowerLayer start at " << simTime().dbl() << std::endl;
+    
     Enter_Method_Silent("sendToLowerLayer()");                    // Direct Method Call
     take(pktAux);                                                    // Take ownership
     auto pkt = check_and_cast<inet::Packet *> (pktAux);
@@ -151,6 +163,8 @@ void LteRlcUm::sendToLowerLayer(cPacket *pktAux)
         emit(rlcPacketLossUl, 0.0);
 
     emit(sentPacketToLowerLayer, pkt);
+
+    //std::cout << "LteRlcUm::sendToLowerLayer end at " << simTime().dbl() << std::endl;
 }
 
 void LteRlcUm::dropBufferOverflow(cPacket *pktAux)
@@ -320,8 +334,18 @@ void LteRlcUm::initialize(int stage)
         rlcPacketLossDl = registerSignal("rlcPacketLossDl");
         rlcPacketLossUl = registerSignal("rlcPacketLossUl");
 
-        WATCH_MAP(txEntities_);
-        WATCH_MAP(rxEntities_);
+	ueTotalRlcThroughputUl.setName("UEtotalRlcThroughputUl");
+	ueTotalRlcThroughputDl.setName("UEtotalRlcThroughputUl");
+	totalRcvdBytesUl = 0;
+	totalRcvdBytesDl = 0;
+
+	totalCellRlcThroughputUl.setName("CELLtotalRlcThroughputUl");
+	totalCellRlcThroughputDl.setName("CELLtotalRlcThroughputUl");
+	totalCellRcvdBytesUl = 0;
+	totalCellRcvdBytesDl = 0;
+
+	numberOfConnectedUes=0;
+	cellConnectedUes.setName("cellConnectedUes");
     }
 }
 

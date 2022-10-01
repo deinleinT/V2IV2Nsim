@@ -37,6 +37,9 @@ class LteMacPdu extends inet::FieldsChunk
     //# MacSduList sduList;
     //# MacControlElementsList ceList;
     //#
+    
+    unsigned int macCid = 0;
+    unsigned int macLcid = 0;
 }
 
 //

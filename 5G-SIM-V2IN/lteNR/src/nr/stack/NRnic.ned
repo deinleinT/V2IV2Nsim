@@ -63,7 +63,7 @@ module NRnicBase extends InterfaceEntry like ICellularNic
         string interfaceTableModule;
         string routingTableModule;
         string nodeType;
-        double processingDelayIn @unit(s) = default(0s); 
+        double processingDelayIn @unit(s) = default(0s);
         double processingDelayOut @unit(s) = default(0s);
         bool d2dCapable;
         bool dualConnectivityEnabled = default(false);
@@ -90,7 +90,7 @@ module NRnicBase extends InterfaceEntry like ICellularNic
     submodules:
 
         qosHandler: <qosHandlerType> like IQosHandler {
-            @display("p=167,26");
+            @display("p=62,65");
         }
 
         // bridge between radio nic and network layer
@@ -131,7 +131,7 @@ module NRnicBase extends InterfaceEntry like ICellularNic
 
         // NR Channel Model 
         nrChannelModel[numCarriers]: <NRChannelModelType> like LteChannelModelInterface {
-            @display("p=167,91");
+            @display("p=220,65");
         }
 
 
@@ -175,7 +175,7 @@ module NRnicUE extends NRnicBase
 
     submodules:
         dlFbGen: NRDlFeedbackGenerator {
-            @display("p=302.24402,264.888;is=s");
+            @display("p=62,130;is=s");
         }
 
 }
@@ -193,7 +193,7 @@ module NRnicGNB extends NRnicBase
 
         qosHandlerType = default("QosHandlerGNB");
         NRsdapType = default("NRsdapGNB");
-        
+
         nrChannelModel[*].isNodeB = true;
 
         @display("bgb=633.92,477.704");

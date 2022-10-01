@@ -33,12 +33,21 @@
 #include "stack/mac/buffer/harq/LteHarqBufferTx.h"
 #include "stack/mac/buffer/LteMacBuffer.h"
 #include "stack/mac/allocator/LteAllocationModule.h"
+#include "stack/mac/allocator/LteAllocationModuleFrequencyReuse.h"
 #include "stack/mac/scheduler/LteSchedulerEnbDl.h"
 #include "stack/mac/scheduler/LteScheduler.h"
+#include "nr/stack/sdap/utils/QosHandler.h"
+#include "nr/stack/mac/scheduling_modules/NRQoSModel.h"
 
 //see inherit class for method description
 class NRSchedulerGnbDl : public LteSchedulerEnbDl
 {
+protected:
+    std::set<MacNodeId> schedulingNodeSet;
+
+    bool useQosModel;
+
+    bool combineQosWithRac;
 
 public:
 	NRSchedulerGnbDl();
@@ -46,10 +55,15 @@ public:
 
     virtual unsigned int scheduleGrant(MacCid cid, unsigned int bytes, bool& terminate, bool& active, bool& eligible, double carrierFrequency,
             BandLimitVector* bandLim = nullptr, Remote antenna = MACRO, bool limitBl = false);
+
     virtual std::map<double, LteMacScheduleList>* schedule();
     virtual bool rtxschedule(double carrierFrequency, BandLimitVector* bandLim = NULL);
 
     virtual unsigned int schedulePerAcidRtx(MacNodeId nodeId, double carrierFrequency, Codeword cw, unsigned char acid,
             std::vector<BandLimit>* bandLim = nullptr, Remote antenna = MACRO, bool limitBl = false);
+
+    virtual void qosModelSchedule(double carrierFrequency);
+
+    virtual void initialize(Direction dir, LteMacEnb* mac);
 
 };

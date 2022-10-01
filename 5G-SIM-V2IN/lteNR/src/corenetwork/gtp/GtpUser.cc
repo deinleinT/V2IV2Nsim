@@ -51,9 +51,9 @@ void GtpUser::initialize(int stage)
     }
 
     //mec
-    if(getParentModule()->hasPar("meHost"))
+    if(getParentModule()->hasPar("mecHost"))
     {
-        std::string meHost = getParentModule()->par("meHost").stringValue();
+        std::string meHost = getParentModule()->par("mecHost").stringValue();
         if(isBaseStation(ownerType_) &&  strcmp(meHost.c_str(), "")){
 
             std::stringstream meHostName;
@@ -163,14 +163,6 @@ void GtpUser::handleFromTrafficFlowFilter(Packet * datagram)
 
         delete datagram;
 
-//        auto gtpHeader = makeShared<GtpUserMsg>();
-//        gtpHeader->setTeid(0);
-//        gtpHeader->setChunkLength(B(8));
-//        datagram->insertAtFront(gtpHeader);
-//        datagram->addTagIfAbsent<PacketProtocolTag>()->setProtocol(&LteProtocol::gtp);
-
-
-
         L3Address tunnelPeerAddress;
         if (flowId == -1) // send to the PGW or UPF
         {
@@ -192,8 +184,6 @@ void GtpUser::handleFromTrafficFlowFilter(Packet * datagram)
             tunnelPeerAddress = L3AddressResolver().resolve(symbolicName);
         }
         socket_.sendTo(gtpPacket, tunnelPeerAddress, tunnelPeerPort_);
-//        socket_.sendTo(datagram, tunnelPeerAddress, tunnelPeerPort_);
-
     }
 }
 
@@ -299,6 +289,6 @@ void GtpUser::handleFromUdp(Packet * pkt)
     }
     //end mec
 
-    // destination is outside the LTE network
+    // destination is outside the radio network
     send(originalPacket,"pppGate");
 }

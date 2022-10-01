@@ -9,6 +9,12 @@
 // and cannot be removed from it.
 //
 
+//
+// This file has been modified/enhanced for 5G-SIM-V2I/N.
+// Date: 2021
+// Author: Thomas Deinlein
+//
+
 #ifndef _LTE_LTEHARQBUFFERRX_H_
 #define _LTE_LTEHARQBUFFERRX_H_
 
@@ -65,6 +71,31 @@ class LteHarqBufferRx
   public:
     LteHarqBufferRx() {}
     LteHarqBufferRx(unsigned int num, LteMacBase *owner, MacNodeId nodeId);
+
+    virtual std::vector<LteHarqProcessRx *> getProcessesRx(){
+        return processes_;
+    }
+    virtual void setProcessesRx(std::vector<LteHarqProcessRx *> procs){
+        this->processes_ = procs;
+    }
+
+    virtual unsigned int getTotalRcvdBytes(){
+        return totalRcvdBytes_;
+    }
+    virtual void setTotalRcvdBytes(unsigned int bytes){
+        this->totalRcvdBytes_ = bytes;
+    }
+
+    virtual unsigned int getNumHarqProcesses() {
+        return numHarqProcesses_;
+    }
+    virtual void setNumHarqProcesses(unsigned int procs) {
+        this->numHarqProcesses_ = procs;
+    }
+
+    virtual void setIsMulticast(unsigned int bytes) {
+        this->totalRcvdBytes_ = bytes;
+    }
 
     /**
      * Insertion of a new pdu coming from phy layer into

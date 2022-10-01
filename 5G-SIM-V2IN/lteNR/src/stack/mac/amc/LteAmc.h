@@ -9,6 +9,12 @@
 // and cannot be removed from it.
 //
 
+//
+// This file has been modified/enhanced for 5G-SIM-V2I/N.
+// Date: 2022
+// Author: Thomas Deinlein
+//
+
 #ifndef _LTE_LTEAMC_H_
 #define _LTE_LTEAMC_H_
 
@@ -39,6 +45,9 @@ typedef std::map<Remote, std::vector<std::vector<LteSummaryBuffer> > > History_;
  */
 class LteAmc
 {
+public:
+    virtual void printTBS(){};
+
   private:
     AmcPilot *getAmcPilot(const omnetpp::cPar& amcMode);
     MacNodeId getNextHop(MacNodeId dst);
@@ -145,6 +154,7 @@ class LteAmc
     const UserTxParams & computeTxParams(MacNodeId id, const Direction dir, double carrierFrequency);
     void cleanAmcStructures(Direction dir, ActiveSet aUser);
     virtual unsigned int computeReqRbs(MacNodeId id, Band b, Codeword cw, unsigned int bytes, const Direction dir, double carrierFrequency);
+    virtual unsigned int computeReqRbs(MacNodeId id, Codeword cw, unsigned int bytes, const Direction dir, unsigned int blocks, double carrierFrequency);
     virtual unsigned int computeBitsOnNRbs(MacNodeId id, Band b, unsigned int blocks, const Direction dir, double carrierFrequency);
     virtual unsigned int computeBitsOnNRbs(MacNodeId id, Band b, Codeword cw, unsigned int blocks, const Direction dir, double carrierFrequency);
     virtual unsigned int computeBytesOnNRbs(MacNodeId id, Band b, unsigned int blocks, const Direction dir, double carrierFrequency);

@@ -82,6 +82,7 @@ void NRPdcpRrcUE::initialize(int stage) {
 	//LtePdcpRrcUeD2D::initialize(stage);
 	if (stage == inet::INITSTAGE_NETWORK_LAYER) {
 		nodeId_ = getAncestorPar("macNodeId");
+		lcid_ = 10000;
 	}
 }
 
@@ -105,6 +106,8 @@ void NRPdcpRrcUE::resetConnectionTable(MacNodeId masterId, MacNodeId nodeId) {
     }
 
 	ht_->erase_entry(nodeId);
+	delete ht_;
+	ht_ = new ConnectionsTableMod();
 
 	//std::cout << "NRPdcpRrcGnb::resetConnectionTable end at " << simTime().dbl() << std::endl;
 }
@@ -227,15 +230,18 @@ void NRPdcpRrcUE::fromDataPort(cPacket * pktIn) {
 			qosinfo.lcid = mylcid;
 			qosinfo.cid = key;
 			qosinfo.trafficClass = (LteTrafficClass) lteInfo->getTraffic();
-			qosHandler->getQosInfo()[key] = qosinfo;
+			qosinfo.dir = (Direction)lteInfo->getDirection();
+            qosHandler->insertQosInfo(key, qosinfo);
+			//qosHandler->getQosInfo()[key] = qosinfo;
 		}
 	}
 
 	// obtain CID
 //    MacNodeId destId = lteInfo->getDestId();
-	MacCid cid = ctrlInfoToMacCid(lteInfo);
+	MacCid cid = idToMacCid(nodeId_, mylcid);
 	pkt->addTagIfAbsent<FlowControlInfo>()->setSourceId(nodeId_);
 	pkt->addTagIfAbsent<FlowControlInfo>()->setCid(cid);
+	pkt->addTagIfAbsent<FlowControlInfo>()->setLcid(mylcid);
 	pkt->addTagIfAbsent<FlowControlInfo>()->setContainsSeveralCids(false);
 
 	LteTxPdcpEntity *entity = getTxEntity(cid);

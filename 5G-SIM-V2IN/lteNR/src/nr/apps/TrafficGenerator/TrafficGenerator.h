@@ -24,8 +24,6 @@
 #pragma once
 
 #include <omnetpp.h>
-
-#include "../../stack/phy/layer/NRPhyUE.h"
 #include "nr/common/NRCommon.h"
 #include "inet/applications/udpapp/UdpBasicApp.h"
 #include "inet/common/INETDefs.h"
@@ -36,14 +34,14 @@
 #include "nr/apps/TrafficGenerator/packet/VideoMessage_m.h"
 #include "nr/apps/TrafficGenerator/packet/VoIPMessage_m.h"
 #include "nr/apps/TrafficGenerator/packet/DataMessage_m.h"
-#include "veins/modules/mobility/traci/TraCIScenarioManager.h"
+#include "nr/stack/phy/layer/NRPhyUE.h"
 
 using namespace omnetpp;
 using namespace inet;
 
 /**
  * struct for recording the statistics for each
- * datastreams
+ * datastream
  */
 struct StatReport {
 
@@ -88,6 +86,8 @@ struct StatReport {
 	double recPacketsDataOutBudget200ms = 0;
 	double recPacketsDataOutBudget500ms = 0;
 	double recPacketsDataOutBudget1s = 0;
+	double recPacketsDataOutBudget30ms = 0;
+	double recPacketsDataOutBudget300ms = 0;
 
 	double recPacketsV2XOutBudget10ms = 0;
 	double recPacketsV2XOutBudget20ms = 0;
@@ -96,6 +96,8 @@ struct StatReport {
 	double recPacketsV2XOutBudget200ms = 0;
 	double recPacketsV2XOutBudget500ms = 0;
 	double recPacketsV2XOutBudget1s = 0;
+	double recPacketsV2XOutBudget30ms = 0;
+	double recPacketsV2XOutBudget300ms = 0;
 
 	double recPacketsVoipOutBudget10ms = 0;
 	double recPacketsVoipOutBudget20ms = 0;
@@ -104,6 +106,8 @@ struct StatReport {
 	double recPacketsVoipOutBudget200ms = 0;
 	double recPacketsVoipOutBudget500ms = 0;
 	double recPacketsVoipOutBudget1s = 0;
+	double recPacketsVoipOutBudget30ms = 0;
+	double recPacketsVoipOutBudget300ms = 0;
 
 	double recPacketsVideoOutBudget10ms = 0;
 	double recPacketsVideoOutBudget20ms = 0;
@@ -112,6 +116,8 @@ struct StatReport {
 	double recPacketsVideoOutBudget200ms = 0;
 	double recPacketsVideoOutBudget500ms = 0;
 	double recPacketsVideoOutBudget1s = 0;
+	double recPacketsVideoOutBudget30ms = 0;
+	double recPacketsVideoOutBudget300ms = 0;
 
 };
 
@@ -134,6 +140,7 @@ struct Connection {
 	OmnetId omnetIdSender;
 	MacNodeId macNodeIdDest;
 	OmnetId omnetIdDest;
+	int messages;
 
 	//for exchange delay
 	unsigned int lastReceivedStatusUpdateSN = 0;
@@ -157,6 +164,14 @@ typedef ConnectionsMap::iterator ConnectionsMapIterator;
  */
 class TrafficGenerator: public UdpBasicApp {
 protected:
+
+	//flag parameters from ini / ned file / GeneralParameters
+	bool remoteDrivingDL;
+	bool remoteDrivingUL;
+	bool useSimplifiedFlowControl;
+	int remoteCarFactor;
+	bool useSINRThreshold;
+	//
 
 	std::string nodeType;
 	L3Address localAddress_;
@@ -182,6 +197,7 @@ protected:
 
 	//Packet Delay Variation
 	//considers the delay variation of the arrived packet and the last received packet before
+	//(lost packets are neglected)
 	simsignal_t delayVoipVariation;
 	simsignal_t delayV2XVariation;
 	simsignal_t delayVideoVariation;
@@ -211,6 +227,24 @@ protected:
 	unsigned int sentPacketsVoip;
 	unsigned int sentPacketsData;
 
+	//considered as packet loss rate
+	// plr = lostPackets / sentPackets
+	// recorded every time when a packet
+	// is received at the application layer
+	cOutVector packetLossRateULV2X;
+	cOutVector packetLossRateULVoip;
+	cOutVector packetLossRateULVideo;
+	cOutVector packetLossRateULData;
+
+	cOutVector packetLossRateDLV2X;
+	cOutVector packetLossRateDLVoip;
+	cOutVector packetLossRateDLVideo;
+	cOutVector packetLossRateDLData;
+	//
+
+	//server DL
+	unsigned int messages;
+
 	simtime_t delayBudget10ms;
 	simtime_t delayBudget20ms;
 	simtime_t delayBudget50ms;
@@ -218,6 +252,9 @@ protected:
 	simtime_t delayBudget200ms;
 	simtime_t delayBudget500ms;
 	simtime_t delayBudget1s;
+
+	simtime_t delayBudget30ms;
+	simtime_t delayBudget300ms;
 
 	std::set<std::string> carsV2X;
 	std::set<std::string> carsData;
@@ -232,25 +269,7 @@ protected:
 	 */
 	virtual bool isRemoteCar(unsigned short ueId, unsigned int remoteCarFactor) {
 
-		if (getSystemModule()->par("remoteCarByColour")) {
-			veins::TraCIScenarioManager *vinetmanager = check_and_cast<veins::TraCIScenarioManager*>(getSimulation()->getModuleByPath("veinsManager"));
-			return vinetmanager->isRemoteVehicle(getBinder()->getMacFromMacNodeId(ueId)->getParentModule()->getParentModule()->getFullName());
-		}
-
-		//if remoteCarJustOne is true, only one remote vehicle is added to the simulation
-		//its id is determined by the remoteCarFactor (e.g., remoteCarFactor=0 --> the remote car is the one with the ueId 1025)
-		if (getSystemModule()->par("remoteCarJustOne").boolValue()) {
-			if ((UE_MIN_ID + remoteCarFactor) == ueId) {
-				return true;
-			}
-			return false;
-		}
-
-		//several remote cars are added to the simulation
-		if (ueId % remoteCarFactor == 0) {
-			return true;
-		}
-		return false;
+		return getNRBinder()->isRemoteCar(ueId, remoteCarFactor);
 	}
 
 	virtual int numInitStages() const override {
@@ -269,6 +288,23 @@ protected:
 	virtual void recordReliability();
 
 	virtual void sendPacket(){ UdpBasicApp::sendPacket();};
+
+	virtual inet::Coord getVehiclePositon(MacNodeId nodeId, Direction direction) {
+
+		Enter_Method_Silent
+		("getVehiclePositon");
+
+		if (direction == DL) {
+			//server sends to car, this is called on UE side, get access to its physical layer
+			return check_and_cast<NRPhyUE*>(getParentModule()->getSubmodule("cellularNic")->getSubmodule("phy"))->getCoord();
+			//
+		} else {
+			//car sends to server, this is called on server side, but the value is recorded in the corresponding car!
+			cModule *module = getMacUe(nodeId);
+			return check_and_cast<NRPhyUE*>(module->getParentModule()->getSubmodule("phy"))->getCoord();
+			//
+		}
+	}
 
 	/**
 	 * Calculates the Packet delay variation, two variations are considered:
@@ -525,7 +561,7 @@ public:
 		}
 
 		//save the random messageLength for each car in RemoteDrivingDL
-		if (getSimulation()->getSystemModule()->par("remoteDrivingDL")) {
+		if (remoteDrivingDL) {
 			carsByteLengthRemoteDrivingDL[name] = par("messageLength").intValue();
 			carsSendingIntervalRemoteDrivingDL[name] = interval;
 		}

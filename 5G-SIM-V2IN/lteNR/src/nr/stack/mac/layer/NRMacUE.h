@@ -54,7 +54,24 @@ public:
         qosHandler->deleteNode(nodeId);
     }
 
+    virtual void resetParamsOnHandover(){
+        firstTx = false;
+        currentHarq_ = 0;
+        racRequested_ = false;
+        bsrTriggered_ = false;
+        requestedSdus_ = 0;
+        debugHarq_ = false;
+        racBackoffTimer_ = 0;
+        maxRacTryouts_ = 0;
+        currentRacTry_ = 0;
+        minRacBackoff_ = 0;
+        maxRacBackoff_ = 1;
+        raRespTimer_ = 0;
+        raRespWinStart_ = 3;
+    }
+
 protected:
+    bool useQosModel;
     unsigned int harqProcessesNR_;
 	virtual void initialize(int stage);
 	virtual void handleMessage(cMessage *msg);
@@ -66,7 +83,7 @@ protected:
 	 */
 	virtual int macSduRequest();
 
-	virtual void macHandleGrant(cPacket *pkt);
+	virtual void macHandleGrant(cPacket *pktAux);
 
 	/**
 	 * macPduUnmake() extracts SDUs from a received MAC
@@ -111,5 +128,7 @@ protected:
 	virtual bool bufferizePacket(omnetpp::cPacket* pkt);
 
 	virtual void checkRAC();
+
+	virtual void checkRACQoSModel();
 };
 

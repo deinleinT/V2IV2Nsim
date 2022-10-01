@@ -44,8 +44,7 @@ void NRBinder::finish() {
 }
 
 MacNodeId NRBinder::getConnectedGnb(MacNodeId ueid) {
-	Enter_Method_Silent
-	("getConnectedGnb");
+	Enter_Method_Silent("getConnectedGnb");
 
 	//if true, ueid not available
 	if (getOmnetId(ueid) == 0)
@@ -59,7 +58,7 @@ MacNodeId NRBinder::getConnectedGnb(MacNodeId ueid) {
 	}
 
 	for (auto var : availableGnbs) {
-		if (getDeployedUes(var, UL)[ueid]) {
+		if (getDeployedUes(var)[ueid]) {
 			return var;
 		}
 	}
@@ -120,12 +119,19 @@ void NRBinder::initialize(int stages) {
 
 		//load the values into the values map
 		for (short i = 0; i < sizeDefAveragingWindow; i++) {
-			qosChar->getValues()[qiValue[i]] = QosCharacteristic(convertStringToResourceType(resourceType[i]), priorityLevel[i],
-					packetDelayBudgetNR[i], packetErrorRate[i], maxDataBurstVolume[i], defAveragingWindow[i]);
+			qosChar->getValues()[qiValue[i]] = QosCharacteristic(convertStringToResourceType(resourceType[i]), priorityLevel[i], packetDelayBudgetNR[i], packetErrorRate[i], maxDataBurstVolume[i],
+					defAveragingWindow[i]);
 		}
 
 		losDetected = 0;
 		nlosDetected = 0;
+
+		//ini / ned flags
+		remoteCarByColour = getSimulation()->getSystemModule()->par("remoteCarByColour").boolValue();
+		remoteCarJustOne = getSimulation()->getSystemModule()->par("remoteCarJustOne").boolValue();
+		realisticApproachMultiApplication = getSimulation()->getSystemModule()->par("realisticApproachMultiApplication").boolValue();
+		//
+
 	}
 }
 

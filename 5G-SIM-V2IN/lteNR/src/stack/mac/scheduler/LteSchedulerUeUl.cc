@@ -48,6 +48,9 @@ LteSchedulerUeUl::~LteSchedulerUeUl()
 LteMacScheduleList*
 LteSchedulerUeUl::schedule()
 {
+
+
+
     // 1) Environment Setup
 
     // clean up old scheduling decisions
