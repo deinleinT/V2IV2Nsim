@@ -913,6 +913,25 @@ void TraCIScenarioManager::processSimSubscription(std::string objectId, TraCIBuf
             simtime_t omnetTimestep = simTime();
             ASSERT(omnetTimestep == serverTimestep);
         }
+        else if (variable1_resp == VAR_COLLIDING_VEHICLES_IDS) {
+            uint8_t varType;
+            buf >> varType;
+            ASSERT(varType == TYPE_STRINGLIST);
+            uint32_t count;
+            buf >> count;
+            EV_DEBUG << "TraCI reports " << count << " collided vehicles." << endl;
+            for (uint32_t i = 0; i < count; ++i) {
+                std::string idstring;
+                buf >> idstring;
+                cModule* mod = getManagedModule(idstring);
+                if (mod) {
+                    auto mobilityModules = getSubmodulesOfType<TraCIMobility>(mod);
+                    for (auto mm : mobilityModules) {
+                        mm->collisionOccurred(true);
+                    }
+                }
+            }
+        }
         else {
             throw cRuntimeError("Received unhandled sim subscription result");
         }
