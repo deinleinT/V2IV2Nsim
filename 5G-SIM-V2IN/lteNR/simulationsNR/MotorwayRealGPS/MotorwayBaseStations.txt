@@ -1,0 +1,47 @@
+//contains the coordinates of the base stations
+//the coordinates were converted with sumolib (part of sumo-tools) and veins (TraCICoordinateTransformation)
+
+General Information MotorwayScenario
+
+Dimensions:     x: 6128.34 y: 817.74
+Topleft:        x: 0 y: 0
+Bottomright:    x: 6128.34 y: 817.74
+Margin:         25
+
+---------------------------------------------
+
+OMNET Coordinates
+
+gNodeB1: x: 5911.62 y: 182.52
+
+gNodeB2: x: 4279.08 y: 182.52
+
+gNodeB3: x: 2555.28 y: 182.52
+
+gNodeB4: x: 902.46 y: 577.98004
+
+----------------------------------------------
+
+SUMO Coordinates: (no raw UTM)
+
+gNodeB1: x: 5886.62 y: 660.22
+
+gNodeB2: x: 4254.08 y: 660.22
+
+gNodeB3: x: 2530.28 y: 660.22
+
+gNodeB4: x: 877.46 y: 264.75996
+
+-----------------------------------------------
+
+GPS Position
+
+gNodeB1: lon: 11.2870133665 lat: 49.40103954
+
+gNodeB2: lon: 11.2645298407 lat: 49.4014822934
+
+gNodeB3: lon: 11.2407888745 lat: 49.4019450546
+
+gNodeB4: lon: 11.2178647444 lat: 49.3988296954
+
+

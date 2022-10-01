@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on Tue Oct 22 13:03:30 2019 by Eclipse SUMO duarouter Version 1.0.0
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/duarouterConfiguration.xsd">
+
+    <input>
+        <net-file value="autobahnSimple.net.xml"/>
+        <route-files value="trips001.xml"/>
+    </input>
+
+    <output>
+        <output-file value="autobahnSimple001.rou.xml"/>
+        <alternatives-output value="autobahnSimple001.rou.alt.xml"/>
+    </output>
+
+    <processing>
+        <repair value="true"/>
+    </processing>
+
+</configuration>
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    <vehicle id="0" depart="0.10" accel="2.5" decel="4.3" sigma="0.5" length="4.74" minGap="3.89" maxSpeed="40.9">
+        <route edges="275413837 275413841 288193247"/>
+    </vehicle>
+    <vehicle id="1" depart="0.10" accel="2.66" decel="4.38" sigma="0.5" length="4.04" minGap="4.11" maxSpeed="20.29">
+        <route edges="44288195 288193246 275413828 143837872"/>
+    </vehicle>
+    <vehicle id="2" depart="0.10" accel="2.06" decel="4.44" sigma="0.5" length="3.67" minGap="4.4" maxSpeed="29.90">
+        <route edges="275413841"/>
+    </vehicle>
+    <vehicle id="4" depart="0.10" accel="2.74" decel="4.03" sigma="0.5" length="4.84" minGap="4.37" maxSpeed="25.7">
+        <route edges="275413841"/>
+    </vehicle>
+    <vehicle id="5" depart="0.10" accel="2.38" decel="4.25" sigma="0.5" length="3.06" minGap="2.66" maxSpeed="44.90">
+        <route edges="288193246 275413828 143837872"/>
+    </vehicle>
+    <vehicle id="6" depart="0.10" accel="2.06" decel="4.12" sigma="0.5" length="4.68" minGap="2.98" maxSpeed="37.3">
+        <route edges="275413841"/>
+    </vehicle>
+    <vehicle id="7" depart="0.10" accel="2.77" decel="4.63" sigma="0.5" length="4.63" minGap="2.44" maxSpeed="37.1">
+        <route edges="275413831 275413837 275413841 288193247"/>
+    </vehicle>
+    <vehicle id="9" depart="0.10" accel="2.5" decel="4.72" sigma="0.5" length="4.68" minGap="2.63" maxSpeed="31.7">
+        <route edges="275413831 275413837 275413841 288193247"/>
+    </vehicle>
+    <vehicle id="10" depart="0.10" accel="2.87" decel="4.94" sigma="0.5" length="3.71" minGap="2.34" maxSpeed="48.3">
+        <route edges="288193246 275413828"/>
+    </vehicle>
+    <vehicle id="12" depart="0.10" accel="2.68" decel="4.88" sigma="0.5" length="3.03" minGap="3.51" maxSpeed="31.20">
+        <route edges="275413841"/>
+    </vehicle>
+    <vehicle id="14" depart="0.10" accel="2.1" decel="4.02" sigma="0.5" length="3.93" minGap="3.62" maxSpeed="43.9">
+        <route edges="288193246 275413828"/>
+    </vehicle>
+    <vehicle id="15" depart="0.10" accel="2.97" decel="4.45" sigma="0.5" length="3.08" minGap="2.14" maxSpeed="20.7">
+        <route edges="44288195 288193246 275413828 143837872"/>
+    </vehicle>
+    <vehicle id="16" depart="0.10" accel="2.96" decel="4.39" sigma="0.5" length="3.15" minGap="3.23" maxSpeed="44.80">
+        <route edges="275413841"/>
+    </vehicle>
+    <vehicle id="18" depart="0.10" accel="2.62" decel="4.12" sigma="0.5" length="3.8" minGap="2.68" maxSpeed="48.2">
+        <route edges="275413831 275413837 275413841 288193247"/>
+    </vehicle>
+    <vehicle id="20" depart="0.10" accel="2.37" decel="4.19" sigma="0.5" length="4.4" minGap="4.69" maxSpeed="36.5">
+        <route edges="275413831 275413837 275413841 288193247"/>
+    </vehicle>
+</routes>
